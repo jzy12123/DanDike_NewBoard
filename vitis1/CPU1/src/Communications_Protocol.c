@@ -909,18 +909,14 @@ void handle_SetACS(cJSON *data)
 
     // 生成交流信号
     str_wr_bram(PID_OFF);
-
     // 修改二级DA 波形幅度 量程
-    // 遍历 setACS.Vals 数组，并更新 Wave_Amplitude 和 Wave_Range 数组的值
     for (int i = 0; i < 4; i++)
     {
         Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
         Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
-        //		printf(" Wave_Amplitude_U=%f\n Wave_Amplitude_I=%f\n Wave_Range_U=%lu\n Wave_Range_I=%lu\n",Wave_Amplitude[i] , Wave_Amplitude[i+4] , Wave_Range[i] , Wave_Range[i+4]);
     }
-    // 控制二级DA
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 }
 
@@ -1230,6 +1226,164 @@ void write_reply_to_shared_memory(ReplyData *replyData)
     cJSON_Delete(json);
 }
 
+/**
+ * @brief 报告保护事件
+ *
+ * 根据输入的故障信息，生成并报告保护事件的JSON对象。
+ *
+ * @param ProectFault u8类型，包含故障信息的字节。每一位代表一个可能的故障，
+ *                  0表示故障存在，1表示无故障。
+ */
+void report_protection_event(u8 ProectFault)
+{
+    // Only report if there is a fault (any bit is 0)
+    if (ProectFault == 0xFF)
+    {
+        return; // No faults detected
+    }
+
+    // Create the JSON object for the protection event
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "Report");
+    cJSON_AddStringToObject(report, "FunCode", "ProtectedEvent");
+
+    // Create the Data object
+    cJSON *data = cJSON_CreateObject();
+
+    // Check for IOPEN
+    if ((ProectFault & 0x0F) != 0x0F)
+    {
+        cJSON *IOPEN = cJSON_CreateArray();
+
+        // Correct bit mapping: Bit 0 for IX, Bit 1 for IC, Bit 2 for IB, Bit 3 for IA
+        for (int i = 0; i < 4; i++)
+        {
+            if ((ProectFault & (1 << i)) == 0) // Bit is 0 means fault
+            {
+                cJSON *fault = cJSON_CreateObject();
+                cJSON_AddStringToObject(fault, "Type", "AC");
+                cJSON_AddNumberToObject(fault, "Line", 1);
+
+                int channelMap[4] = {4, 3, 2, 1}; // IX IC IB IA
+
+                cJSON_AddNumberToObject(fault, "Chn", channelMap[i]);
+                cJSON_AddItemToArray(IOPEN, fault);
+            }
+        }
+
+        if (cJSON_GetArraySize(IOPEN) > 0)
+        {
+            cJSON_AddItemToObject(data, "IOPEN", IOPEN);
+        }
+        else
+        {
+            cJSON_Delete(IOPEN);
+        }
+    }
+
+    // Check for USHORT
+    if ((ProectFault & 0xF0) != 0xF0)
+    {
+        cJSON *USHORT = cJSON_CreateArray();
+
+        for (int i = 0; i < 4; i++)
+        {
+            if ((ProectFault & (1 << (i + 4))) == 0) // Bit is 0 means fault
+            {
+                cJSON *fault = cJSON_CreateObject();
+                cJSON_AddStringToObject(fault, "Type", "AC");
+                cJSON_AddNumberToObject(fault, "Line", 1);
+
+                int channelMap[4] = {4, 3, 2, 1}; // UX UC UB UA
+                cJSON_AddNumberToObject(fault, "Chn", channelMap[i]);
+                cJSON_AddItemToArray(USHORT, fault);
+            }
+        }
+
+        if (cJSON_GetArraySize(USHORT) > 0)
+        {
+            cJSON_AddItemToObject(data, "USHORT", USHORT);
+        }
+        else
+        {
+            cJSON_Delete(USHORT);
+        }
+    }
+
+    // Add the Data object to the report if it has children
+    if (cJSON_GetObjectItem(data, "UShort") != NULL || cJSON_GetObjectItem(data, "IOpen") != NULL)
+    {
+        cJSON_AddItemToObject(report, "Data", data);
+    }
+    else
+    {
+        cJSON_Delete(data);
+        cJSON_Delete(report);
+        return; // No faults to report
+    }
+
+    // Convert the JSON to a string
+    char *string = cJSON_Print(report);
+    if (string == NULL)
+    {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(report);
+        return;
+    }
+
+    // Add the pipe characters
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3); // +3 for the two '|' and null terminator
+    if (finalString == NULL)
+    {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_Delete(report);
+        free(string);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    // Write to message queue
+    ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
+    if (bytesWritten < 0)
+    {
+        xil_printf("CPU1: Failed to write to message queue: %ld\n", bytesWritten);
+    }
+    else
+    {
+        xil_printf("CPU1: Protection event reported successfully\n");
+    }
+
+    // 打印最终的JSON字符串用于测试
+    // xil_printf("CPU1: Protection event JSON: %s\n", finalString);
+
+    // 硬件操作
+    //  关闭DA
+    Wave_Frequency = 50;                                   // 频率
+    memset(Phase_shift, 0, sizeof(Phase_shift));           // 清空基波相位
+    enable = 0x00;                                         // 关闭通道输出
+    memset(numHarmonics, 0, sizeof(numHarmonics));         // 清除谐波
+    memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
+    memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
+    str_wr_bram(PID_OFF);                                  // 生成交流信号
+
+    // 关闭功放
+    // 修改二级DA 波形幅度 量程
+    for (int i = 0; i < 4; i++)
+    {
+        Wave_Amplitude[i] = 0.0;
+        Wave_Amplitude[i + 4] = 0.0;
+        Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
+        Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+    }
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+
+    // Clean up
+    free(finalString);
+    cJSON_Delete(report);
+    free(string);
+}
+
 void write_command_to_shared_memory()
 {
     // 1.1
@@ -1496,17 +1650,6 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
         memcpy(payload_ptr, &lineAC, sizeof(LineAC));
         payload_ptr += sizeof(LineAC);
     }
-    printf("True UA= %.4f || ", lineAC.u[0]);
-    printf("UB= %.4f || ", lineAC.u[1]);
-    printf("UC= %.4f || ", lineAC.u[2]);
-    printf("UX= %.4f\r\n", lineAC.u[3]);
-    printf("SET  UA= %.4f\r\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
-
-    printf("True IA= %.4f || ", lineAC.i[0]);
-    printf("IB= %.4f || ", lineAC.i[1]);
-    printf("IC= %.4f || ", lineAC.i[2]);
-    printf("IX= %.4f\r\n", lineAC.i[3]);
-    printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
 
     // LineHarm
     Xil_DCacheFlushRange((UINTPTR)&lineHarm, sizeof(LineHarm));

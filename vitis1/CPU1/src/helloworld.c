@@ -59,7 +59,7 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-	sleep(17); // 必须要有等待linux启动
+	//	sleep(17); // 必须要有等待linux启动
 
 	/************************** DMA初始化 *****************************/
 	int status;
@@ -127,8 +127,6 @@ int main()
 	str_wr_bram(PID_OFF);
 
 	// 控制二级DA
-	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
-
 	for (int i = 0; i < 8; i++)
 	{
 		setACS.Vals[i].U = 6.5;
@@ -136,6 +134,15 @@ int main()
 		setACS.Vals[i].I_ = 5;	 // 测试 设置电流幅值的初始值
 		setACS.Vals[i].IR = 5;	 // 测试 设置电流幅值的初始值
 	}
+	// 修改二级DA 波形幅度 量程
+	for (int i = 0; i < 4; i++)
+	{
+		Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
+		Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
+		Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
+		Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+	}
+	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
 	/************************** 测试FFT*****************************/
 	// 内存测试
@@ -307,7 +314,6 @@ int main()
 			/************************** 测试FFT*****************************/
 
 			/*2 回报UDP结构体*/
-			__sync_synchronize(); // Memory barrier
 			Timer_Flag = 0;
 			ReportUDP_Structure(reportStatus);
 
@@ -318,31 +324,22 @@ int main()
 			//  printf("PhIB=%.4f\r\n", lineAC.phi[1]);
 			//  printf("SetB=%.4f\r\n", 150.00);
 			//  控制二级DA
-			//			printf("True UA= %.4f || ", lineAC.u[0]);
-			//			printf("UB= %.4f || ", lineAC.u[1]);
-			//			printf("UC= %.4f || ", lineAC.u[2]);
-			//			printf("UX= %.4f\r\n", lineAC.u[3]);
-			//			printf("SET  UA= %.4f\r\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
-			//
-			//			printf("True IA= %.4f || ", lineAC.i[0]);
-			//			printf("IB= %.4f || ", lineAC.i[1]);
-			//			printf("IC= %.4f || ", lineAC.i[2]);
-			//			printf("IX= %.4f\r\n", lineAC.i[3]);
-			//			printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
+			printf("True UA= %.4f || ", lineAC.u[0]);
+			printf("UB= %.4f || ", lineAC.u[1]);
+			printf("UC= %.4f || ", lineAC.u[2]);
+			printf("UX= %.4f\n", lineAC.u[3]);
+			printf("SET  UA= %.4f\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
 
-			// 修改二级DA 波形幅度 量程
-			for (int i = 0; i < 4; i++)
-			{
-				Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
-				Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
-				Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
-				Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
-				//		printf(" Wave_Amplitude_U=%f\n Wave_Amplitude_I=%f\n Wave_Range_U=%lu\n Wave_Range_I=%lu\n",Wave_Amplitude[i] , Wave_Amplitude[i+4] , Wave_Range[i] , Wave_Range[i+4]);
-			}
+			printf("True IA= %.4f || ", lineAC.i[0]);
+			printf("IB= %.4f || ", lineAC.i[1]);
+			printf("IC= %.4f || ", lineAC.i[2]);
+			printf("IX= %.4f\n", lineAC.i[3]);
+			printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
+
 			power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
-			/*4 读错误信号*/
-			//	RdSerial();
+			/*4 读故障信号*/
+			RdSerial();
 		}
 	}
 }

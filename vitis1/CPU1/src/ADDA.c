@@ -22,7 +22,7 @@ float Phase_shift[8] = {0, 30, 60, 90, 120, 150, 180, 210}; // 8Â·²¨ÐÎÏàÎ»Æ«ÒÆ µ
 u32 enable = 0xff;                                          // Ê¹ÄÜÍ¨µÀÊä³ö
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {100, 100, 100, 100, 100, 100, 100, 100};
-u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0x92, 0x92, 0x92, 0x92};
+u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 uint16_t Wave_NewData[8][DATA_LEN]; // ÐÞ¸Äºó8Â·Í¨µÀËùÓÐÊý¾Ý
 
 int numHarmonics[CHANNL_MAX] = {0};                      // Ã¿¸öÍ¨µÀÓÐ¼¸¸öÐ³²¨
@@ -129,7 +129,7 @@ void adcS_intr_handler(void *callback)
 {
     // ½øÈëµ½´ËÖÐ¶Ï´ú±íADCÒÑ¾­Íê³ÉÁËÒ»´Î²ÉÑùÈÎÎñ£¨1024¸öµã »ò 2048¸öµã£©
     // ¼ÌÐø¿ªÆôÐÂÒ»´ÎµÄADC
-//	printf("ADC_Handler\r\n");
+    //	printf("ADC_Handler\r\n");
     if (ADC_ChannelEnable)
     { // ADC_ChannelEnable²»Îª0£¬Ôò¿ªÆôADC
         adc_start(sample_points, sample_points * Wave_Frequency);
@@ -392,12 +392,12 @@ void Adc_Data_processing()
     if (ADC_Sampling_ddr == 1)
     {
         ADC_ChannelEnable = 0; // ¹Ø±ÕAD¹¦ÄÜ
-        AdcFinish_Flag = 1;                          // ¸øADcÍê³É±êÖ¾Ð´1
+        AdcFinish_Flag = 1;    // ¸øADcÍê³É±êÖ¾Ð´1
     }
     else if (ADC_Sampling_ddr == 0)
     {
         // ËµÃ÷AD_SAMP_CYCLE_NUMBERÐ´ÍêÁËÒ»ÂÖ
-        ADC_Sampling_ddr = AD_SAMP_CYCLE_NUMBER;     // Ñ­»·Ð´AD_SAMP_CYCLE_NUMBER¸ö²¨ÐÎ
+        ADC_Sampling_ddr = AD_SAMP_CYCLE_NUMBER; // Ñ­»·Ð´AD_SAMP_CYCLE_NUMBER¸ö²¨ÐÎ
 
         Current_DDR_Region = 1 - Current_DDR_Region; // ÇÐ»»DDRÇøÓò(0->1»ò1->0)
     }

@@ -8,25 +8,56 @@
 
 void RdSerial()
 {
-	char s[10];
+	static u8 lastProectFault = 0xFF;  // 保存上一次的故障状态，初始为无故障
+	static bool faultDetected = false; // 是否已经检测到一次故障
+
 	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000200);
 
-	itoa((u8)Xil_In32(Amplifier_Switch_BASEADDR + RdSerial_ADDR), s, 2);
-	xil_printf("rd_from_amplifier_serial8bit Data : %s\n", s);
+	// ProectFault前4位代表IXICIBIA 后四位代表UXUCUBUA,如果正常则为11111111，出现故障对应的位会变0.
+	u8 ProectFault = (u8)Xil_In32(Amplifier_Switch_BASEADDR + RdSerial_ADDR);
+
+	// 如果当前检测到故障信号
+	if (ProectFault != 0xFF)
+	{
+		// 如果之前已经检测到过一次故障，并且当前故障与上次故障相同
+		if (faultDetected && (ProectFault == lastProectFault))
+		{
+			// 连续两次检测到相同故障，上报
+			report_protection_event(ProectFault);
+			// 上报后重置标志，避免重复上报同一故障
+			faultDetected = false;
+		}
+		else if (!faultDetected)
+		{
+			// 第一次检测到故障，记录并设置标志
+			faultDetected = true;
+			lastProectFault = ProectFault;
+		}
+		// 如果故障不同，更新为新的故障
+		else if (ProectFault != lastProectFault)
+		{
+			lastProectFault = ProectFault;
+		}
+	}
+	else
+	{
+		// 当前无故障，重置标志
+		faultDetected = false;
+	}
 }
 
 // 根据输入电压返回对应的输出值
 unsigned char voltage_to_output(float voltage)
 {
-	if (voltage >= 6)
+	if (voltage >= 6)//6.5V
 	{
 		return 0xC2;
 	}
-	else if (voltage >= 3)
+	else if (voltage >= 3)//3.25V
 	{
 		return 0xD4;
 	}
-	else if (voltage >= 1)
+	else if (voltage >= 1)//1.625V
 	{
 		return 0xA0;
 	}
@@ -40,15 +71,15 @@ unsigned char voltage_to_output(float voltage)
 // 根据输入电流返回对应的输出值
 unsigned char current_to_output(float current)
 {
-	if (current >= 4)
+	if (current >= 4)//5A
 	{
 		return 0xC2;
 	}
-	else if (current >= 0.5)
+	else if (current >= 0.5)//1A
 	{
 		return 0x92;
 	}
-	else if (current >= 0.1)
+	else if (current >= 0.1)//0.2A
 	{
 		return 0xA4;
 	}
@@ -83,24 +114,24 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], int pid_s
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 配置595 不开启使能
-//	// slv_reg0: 开关量 start清0; 595置1 1595置0,功放start清0;
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002);
-//	usleep(1000);
-//	//	xil_printf("CPU1:Amplifier config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
-//	// 595中的7引脚 ！EN信号对应rd_from_serial8bit读回数据 是0还是1，向595 中写00001000，读回 个是故障信号
-//	// 二进制数据		0 1 2 3 4  5  6  7   对应位数取反
-//	// 对应595引脚	4 5 6 7 14 15 16 17
-//
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)((Wave_Range[1] & 0x7F) << 24) | ((Wave_Range[0] & 0x7F) << 8)); // ub + ua din0发送 00000000为高电平
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)((Wave_Range[3] & 0x7F) << 24) | ((Wave_Range[2] & 0x7F) << 8)); // ux + uc din1发送 ff00为低电平 ux为低，uc为高	// rd_from_serial8bit中该通道读回为0
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (u32)((Wave_Range[5] & 0x7F) << 24) | ((Wave_Range[4] & 0x7F) << 8)); // ib + ia din2发送
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (u32)((Wave_Range[7] & 0x7F) << 24) | ((Wave_Range[6] & 0x7F) << 8)); // ix + ic din3发送
-//
-//	// slv_reg0: 开关量start清0; 595置1 1595置0;  功放start置1
-//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
-//	usleep(1000);
-//	//	xil_printf("CPU1:Amplifier config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+	//	// slv_reg0: 开关量 start清0; 595置1 1595置0,功放start清0;
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002);
+	//	usleep(1000);
+	//	//	xil_printf("CPU1:Amplifier config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+	//	// 595中的7引脚 ！EN信号对应rd_from_serial8bit读回数据 是0还是1，向595 中写00001000，读回 个是故障信号
+	//	// 二进制数据		0 1 2 3 4  5  6  7   对应位数取反
+	//	// 对应595引脚	4 5 6 7 14 15 16 17
+	//
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)((Wave_Range[1] & 0x7F) << 24) | ((Wave_Range[0] & 0x7F) << 8)); // ub + ua din0发送 00000000为高电平
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)((Wave_Range[3] & 0x7F) << 24) | ((Wave_Range[2] & 0x7F) << 8)); // ux + uc din1发送 ff00为低电平 ux为低，uc为高	// rd_from_serial8bit中该通道读回为0
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (u32)((Wave_Range[5] & 0x7F) << 24) | ((Wave_Range[4] & 0x7F) << 8)); // ib + ia din2发送
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (u32)((Wave_Range[7] & 0x7F) << 24) | ((Wave_Range[6] & 0x7F) << 8)); // ix + ic din3发送
+	//
+	//	// slv_reg0: 开关量start清0; 595置1 1595置0;  功放start置1
+	//	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
+	//	usleep(1000);
+	//	//	xil_printf("CPU1:Amplifier config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 配置595 开启使能最高位写1
