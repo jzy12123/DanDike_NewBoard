@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+
+#include "ADDA.h"
+#include "kiss_fft/kiss_fft.h"
+
+#define FFT_POINTS sample_points
+#define Fs 50.0  // 采样频率
+
+typedef struct {
+    double frequency;                     // 基波频率
+    double amplitude;                     // 基波幅值
+    double active_power;                  // 有功功率
+    double reactive_power;                // 无功功率
+    double power_factor;                  // 功率因数
+    double total_harmonic_distortion;     // 总谐波畸变
+
+    double harmonic_frequencies[MAX_HARMONICS]; // 各谐波频率
+    double harmonic_amplitudes[MAX_HARMONICS];  // 各谐波幅值
+    double harmonic_percentage[MAX_HARMONICS];   // 各谐波占基波的百分比
+} FFTResults;
+
+
+extern FFTResults Fft_results[8]; // 存储8个通道结果
+
+void calculate_fft(int dma_rx_8[8][sample_points], FFTResults results[8]);

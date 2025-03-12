@@ -1,0 +1,390 @@
+
+#include"My_kissFft.h"
+
+
+double FindFrequence(const int WaveData[], int data_length) {
+    double likelihood[D_RANGE_MAX];
+    double x_segment[N_APPROX];
+    double b_y;
+    int d, k;
+
+//    printf("N_APPROX=%d\n",N_APPROX);
+//    printf("D_RANGE_MAX=%d\n",D_RANGE_MAX);
+    // 提取信号片段
+    for (int i = 0; i < N_APPROX; i++) {
+        x_segment[i] = (double)WaveData[i];
+    }
+
+    // 初始化似然数组
+    memset(&likelihood[0], 0, D_RANGE_MAX * sizeof(double));
+
+    // 计算最大似然估计
+    for (d = 0; d < D_RANGE_MAX; d++) {
+        double y[N_APPROX];
+        for (k = 0; k < N_APPROX; k++) {
+            b_y = (double)WaveData[k + d + 1] - x_segment[k];
+            y[k] = b_y * b_y;
+        }
+
+        b_y = y[0];
+        for (k = 1; k < N_APPROX; k++) {
+            b_y += y[k];
+        }
+
+        likelihood[d] = -b_y;
+    }
+
+    // 找到最大似然估计的位置
+    d = 0;
+    for (k = 1; k < D_RANGE_MAX; k++) {
+        if (likelihood[k] > likelihood[d]) {
+            d = k;
+        }
+    }
+
+    // 计算并返回估计频率
+    return SAMPLE_RATE / ((double)d + 1);
+}
+
+//void AnalyzeWaveform(float *fundamental_frequency, float *fundamental_value, float harmonic_info[][3],int channel) {
+//    const int exterded_radio = AD_SAMP_CYCLE_NUMBER;  // 将波形扩展到n倍长度
+//    int N = sample_points * exterded_radio;  // 扩展后的数据长度
+//    int extended_data[N];
+//
+//    for(int j = 0; j < exterded_radio; j++){
+//    	for(int i = 0; i < sample_points; i++){
+//    		//共享基地址 + 通道偏移地址 + AD_SAMP_CYCLE_NUMBER次波形 + 单次1024个点
+//    		extended_data[i+j*sample_points] = Xil_In32(Share_addr + channel*sample_points*4 + j*sample_points*CHANNL_MAX*4 + i*4);
+//    	}
+//    }
+//    //打印原始波形
+////    for(int i = 0;i < N;i++){
+////    	printf("x=%d\n", extended_data[i]);
+////    }
+//
+//    // 基波频率检测
+//    *fundamental_frequency = FindFrequence(extended_data, N_APPROX);
+////    printf("Fundamental Frequency: %f Hz\n", *fundamental_frequency);
+//
+//
+//
+//    // 准备 Kiss FFT 输入和输出
+//	kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
+//	kiss_fft_cpx in[N], out[N];
+//
+//	for (int i = 0; i < N; i++) {
+//		in[i].r = (float)(extended_data[i] / MAX_AMPLITUDE);  // 实部
+//		in[i].i = 0.0f;                                     // 虚部
+//	}
+//
+//	// 执行 Kiss FFT
+//	kiss_fft(cfg, in, out);
+//
+//    // 计算频谱幅值
+//    float P2[N];
+//    for (int i = 0; i < N; i++) {
+//        P2[i] = sqrt(out[i].r * out[i].r + out[i].i * out[i].i) / N;
+//    }
+//
+//    // 只取一半频谱
+//    float P1[N / 2 + 1];
+//    for (int i = 0; i <= N / 2; i++) {
+//        P1[i] = P2[i];
+//        if (i > 0 && i < N / 2) {
+//            P1[i] *= 2;
+//        }
+//    }
+//
+//    // 打印频谱
+////    for (int i = 0; i <= 1000; i++) {
+////        float frequency = (i * fs / N);  // 计算对应的频率 i*频率分辨率
+////        printf("x=%10.6f\r\n frequency:%15.2f\n",P1[i],frequency);
+////    }
+//
+//
+//	// 设置基波值
+//    // 采样率
+//    float fs = SAMPLE_RATE;
+//	*fundamental_value = P1[(int)(*fundamental_frequency * N / fs)];
+//
+//
+////    // 查找和打印最大峰值
+////    float peak_frequencies[MAX_HARMONICS];
+////    float peak_amplitudes[MAX_HARMONICS];
+////
+////    // 查找峰值
+////    for (int i = 1; i < N / 2 - 1; i++) { // 从1到N/2-1，避免边界
+////        if (P1[i] > P1[i - 1] && P1[i] > P1[i + 1]) { // 判断是否为局部最大值
+////            // 插入新峰值按幅度排序
+////            for (int j = 0; j < MAX_HARMONICS; j++) {
+////                if (P1[i] > peak_amplitudes[j]) {
+////                    // 移动已有的峰值
+////                    for (int k = MAX_HARMONICS - 1; k > j; k--) {
+////                        peak_frequencies[k] = peak_frequencies[k - 1];
+////                        peak_amplitudes[k] = peak_amplitudes[k - 1];
+////                    }
+////                    // 记录新峰值
+////                    peak_frequencies[j] = (i * fs / N); // 计算频率
+////                    peak_amplitudes[j] = P1[i];
+////                    break;
+////                }
+////            }
+////        }
+////    }
+////    // 打印提取的峰值
+////    printf("\nDetected Peaks:\n");
+////    for (int i = 0; i < MAX_HARMONICS; i++) {
+////        if (peak_amplitudes[i] > 0) { // 只打印有效峰值
+////            printf("Peak %d: Frequency = %.2f Hz, Amplitude = %.6f\n", i + 1, peak_frequencies[i], peak_amplitudes[i]);
+////        }
+////    }
+////    //替换基波频率和幅值
+////    *fundamental_frequency = peak_frequencies[0];
+////    *fundamental_value = peak_amplitudes[0];
+//
+//
+//	// 直接提取基波频率的整数倍谐波
+//	int harmonic_idx = 0;
+//	// 检测基波的最高32次谐波
+//	for (int i = 1; i <= MAX_HARMONICS; i++) {
+//	  int harmonic_index = (int)(i * (*fundamental_frequency) * N / fs);
+//	  if (harmonic_index < N / 2) {
+//		  float harmonic_value = P1[harmonic_index];
+//		  float percentage_of_fundamental = (harmonic_value / *fundamental_value) * 100;
+//
+//		  // 如果幅度大于某个阈值，记录谐波信息
+//		  if (harmonic_value >= 0.01) { // 设置一个幅度阈值
+//			  harmonic_info[harmonic_idx][0] = i * (*fundamental_frequency);
+//			  harmonic_info[harmonic_idx][1] = harmonic_value;
+//			  harmonic_info[harmonic_idx][2] = percentage_of_fundamental;
+//			  harmonic_idx++;
+//		  }
+//	  }
+//	}
+//	// 释放 Kiss FFT 配置
+//    free(cfg);
+//}
+
+void AnalyzeWaveform() {
+    AnalyzeAC line_data;
+    memset(&line_data, 0, sizeof(line_data));
+	/*1 初始化*/
+    const int exterded_radio = AD_SAMP_CYCLE_NUMBER;  // 将波形扩展到n倍长度
+    int N = sample_points * exterded_radio;  // 扩展后的数据长度
+    int extended_data[CHANNL_MAX][N]; // 8通道的扩展数据 UA UB U CUX IA IB IC IX
+
+    /*2 从内存中取出8通道数据*/
+    // 提取 U 和 I 通道数据
+    for(int k = 0; k < CHANNL_MAX; k++){
+        for (int j = 0; j < exterded_radio; j++) {
+            for (int i = 0; i < sample_points; i++) {
+            	//共享基地址 + 通道偏移地址 + AD_SAMP_CYCLE_NUMBER次波形 + 单次1024个点
+            	extended_data[k][i + j * sample_points] = Xil_In32(Share_addr + k * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
+            }
+        }
+    }
+    //打印原始波形
+//    for(int i = 0;i < N;i++){
+//    	printf("x=%d\n", extended_data_UA[i]);
+//    }
+
+//    /*3 计算8通道有效值*/
+//    for(int k = 0; k < ChnsAC; k++){
+//        double rms_u = 0.0;
+//        double rms_i = 0.0;
+//        for (int i = 0; i < N; i++) {
+//            rms_u += (double)extended_data[k][i] * (double)extended_data[k][i];
+//            rms_i += (double)extended_data[k+4][i] * (double)extended_data[k+4][i];
+//        }
+//        rms_u = sqrt(rms_u / N);
+//        rms_i = sqrt(rms_i / N);
+//
+//        line_data->LineAC.u[k] = rms_u;
+//        line_data->LineAC.i[k] = rms_i;
+//    }
+//    printf("3 UA_RMS=%.2f\n ",line_data->LineAC.u[0]);
+
+    /*4 使用最大似然法求基波频率*/
+    // 基波频率检测
+    double fundamental_frequency[CHANNL_MAX];
+    for(int i = 0; i < 1; i++){
+    	fundamental_frequency[i] = FindFrequence(extended_data[i], N_APPROX);
+    }
+
+    line_data.LineAC.f[0] = fundamental_frequency[0];
+//    line_data->LineAC.f[1] = fundamental_frequency[1];
+//    line_data->LineAC.f[2] = fundamental_frequency[2];
+//    line_data->LineAC.f[3] = fundamental_frequency[3];
+    printf("4 Fundamental Frequency: %f Hz\n", line_data.LineAC.f[0]);
+
+
+//    /*5 计算8通道相位*/
+//    //进行FFT以计算相位
+//    kiss_fft_cpx in[CHANNL_MAX][N], out[CHANNL_MAX][N];
+//    for (int k = 0; k < CHANNL_MAX; k++) {
+//        for (int i = 0; i < N; i++) {
+//            in[k][i].r = (float)(extended_data[k][i]) / MAX_AMPLITUDE; // 实部
+//            in[k][i].i = 0.0f; // 虚部
+//        }
+//        kiss_fft(kiss_fft_alloc(N, 0, NULL, NULL), in[k], out[k]); // 执行FFT
+//    }
+//
+//    // 计算每个通道的相位，并根据 UA 计算其他通道的相位差
+//    double Reference_Phase  = atan2(out[0][1].i, out[0][1].r);//设置基准相位 以UA为参考
+//    for (int k = 0; k < CHANNL_MAX; k++) {
+//        double Ph = atan2(out[k][1].i, out[k][1].r); // 使用第一个频率分量的相位
+//        if (k < ChnsAC) { // U 通道
+//            line_data->LineAC.phu[k] = Ph - Reference_Phase; // 以 UA 通道为参考
+//        } else { // I 通道
+//            line_data->LineAC.phi[k-4] = Ph - Reference_Phase; // 也以 UA 通道为参考
+//        }
+//    }
+//    printf("5 UA_Phase_Shift: %f Hz IA_Phase_Shift: %f Hz\n", line_data->LineAC.phu[0],line_data->LineAC.phi[0]);
+//
+//    /* 6 计算总波形畸变 */
+//    //使用FFT后的结果
+//    // 计算频谱幅值
+//    float P2[CHANNL_MAX][N];
+//    for (int k = 0; k < CHANNL_MAX; k++) {
+//        for (int i = 0; i < N; i++) {
+//            P2[k][i] = sqrt(out[k][i].r * out[k][i].r + out[k][i].i * out[k][i].i) / N;
+//        }
+//    }
+//
+//    // 只取一半频谱
+//    float P1[CHANNL_MAX][N / 2 + 1];
+//    for (int k = 0; k < CHANNL_MAX; k++){
+//        for (int i = 0; i <= N / 2; i++) {
+//            P1[k][i] = P2[k][i];
+//            if (i > 0 && i < N / 2) {
+//                P1[k][i] *= 2;
+//            }
+//        }
+//    }
+//
+//    // 打印频谱
+////    for (int i = 0; i <= 1000; i++) {
+////        float frequency = (i * fs / N);  // 计算对应的频率 i*频率分辨率
+////        printf("x=%10.6f\r\n frequency:%15.2f\n",P1[0][i],frequency);
+////    }
+//
+//
+//
+//    // 采样率
+//    float fs = SAMPLE_RATE;
+//    // 设置基波值
+//	float fundamental_value[CHANNL_MAX];
+//	for (int i = 0; i < CHANNL_MAX; i++){
+//		fundamental_value[i] = P1[i][(int)(fundamental_frequency[i] * N / fs)];
+//	}
+//
+//	//32次谐波信息
+//	float Harmonic_Frequency[CHANNL_MAX][MAX_HARMONICS];
+//	float Harmonic_Value[CHANNL_MAX][MAX_HARMONICS];
+//	float Harmonic_Percentage[CHANNL_MAX][MAX_HARMONICS];
+//
+//	for (int k = 0; k < CHANNL_MAX; k++){
+//		// 直接提取基波频率的整数倍谐波
+//		int harmonic_idx = 0;
+//		// 检测基波的最高32次谐波
+//		for (int i = 1; i <= MAX_HARMONICS; i++) {
+//		  int harmonic_index = (int)(i * fundamental_frequency[k] * N / fs);
+//		  if (harmonic_index < N / 2) {
+//			  float harmonic_value = P1[k][harmonic_index];
+//			  float percentage_of_fundamental = (harmonic_value / fundamental_value[k]) * 100;
+//
+//			  // 如果幅度大于某个阈值，记录谐波信息
+//			  if (harmonic_value >= THRESHOLD_PERCENTAGE) { // 设置一个幅度阈值
+//				  Harmonic_Frequency[k][harmonic_idx] = i * (fundamental_frequency[k]);
+//				  Harmonic_Value[k][harmonic_idx] = harmonic_value;
+//				  Harmonic_Percentage[k][harmonic_idx] = percentage_of_fundamental;
+//				  harmonic_idx++;
+//			  }
+//		  }
+//		}
+//	}
+//
+//	//调试FFt
+//	for (int i = 0; i < MAX_HARMONICS; i++) {
+//		// 仅打印有效谐波数据
+//		if (Harmonic_Value[0][i] >= THRESHOLD_PERCENTAGE) { // 只打印幅度大于阈值的谐波
+//			printf("6 Harmonic %d:\n", i); // i + 1 使谐波编号从 1 开始而不是 0
+//			printf("  Frequency: %.2f Hz\n", Harmonic_Frequency[0][i]);
+//			printf("  Value: %.4f\n", Harmonic_Value[0][i]);
+//			printf("  Percentage: %.2f%%\n", Harmonic_Percentage[0][i]);
+//		}
+//	}
+//
+//	//计算THDU和THDI
+//	double THDU[4]; // 存放电压通道的 total harmonic distortion
+//	double THDI[4]; // 存放电流通道的 total harmonic distortion
+//
+//	for (int channel = 0; channel < 4; channel++) { // 对于每个通道
+//	    double voltage_harmonic_sum = 0.0; // 电压谐波平方和
+//	    double current_harmonic_sum = 0.0; // 电流谐波平方和
+//	    double fundamental_voltage = Harmonic_Percentage[channel][0]; // 假定基波幅值
+//	    double fundamental_current = Harmonic_Percentage[channel + 4][0]; // 假定基波幅值
+//
+//	    for (int harmonic = 1; harmonic < 32; harmonic++) { // 从第二次谐波开始
+//	        double harmonic_amplitude_U = Harmonic_Percentage[channel][harmonic] * (fundamental_voltage / 100.0);
+//	        double harmonic_amplitude_I = Harmonic_Percentage[channel + 4][harmonic] * (fundamental_current / 100.0);
+//	        // 计算谐波幅度平方和
+//	        voltage_harmonic_sum += harmonic_amplitude_U * harmonic_amplitude_U;
+//	        current_harmonic_sum += harmonic_amplitude_I * harmonic_amplitude_I;
+//	    }
+//
+//	    // 计算 THDU
+//	    if (fundamental_voltage != 0) {
+//	        THDU[channel] = (double)(sqrt(voltage_harmonic_sum) / fundamental_voltage) * 100.0; // THDU=H2^2+H3^2+.../H1
+//	    } else {
+//	        THDU[channel] = 0; // 避免除以零
+//	    }
+//	    // 计算 THDI
+//	    if (fundamental_current != 0) {
+//	        THDI[channel] = (double)(sqrt(current_harmonic_sum) / fundamental_current) * 100.0; // THDI=H2^2+H3^2+.../H1
+//	    } else {
+//	        THDI[channel] = 0; // 避免除以零
+//	    }
+//	    line_data->LineAC.thdu[channel] = THDU[channel];
+//	    line_data->LineAC.thdi[channel] = THDI[channel];
+//	}
+//	printf("6 UA_THDU: %f  IA_THDI: %f \n", line_data->LineAC.thdu[0],line_data->LineAC.thdi[0]);
+//
+//    /* 7 计算8通道功率 */
+//    line_data->LineAC.totalP = 0.0;  // 重置总有功功率
+//    line_data->LineAC.totalQ = 0.0;  // 重置总无功功率
+//
+//    for (int k = 0; k < (CHANNL_MAX / 2); k++) {
+//        // 计算相位差
+//        double phaseShift = line_data->LineAC.phu[k] - line_data->LineAC.phi[k];  // 电压相位减去电流相位
+//
+//        // 计算有功功率和无功功率
+//        double voltage = line_data->LineAC.u[k];  // 当前通道的电压有效值
+//        double current = line_data->LineAC.i[k];  // 当前通道的电流有效值
+//
+//        line_data->LineAC.p[k] = voltage * current * cos(phaseShift);  // 有功功率
+//        line_data->LineAC.q[k] = voltage * current * sin(phaseShift);  // 无功功率
+//		double apparentPower = sqrt(voltage * voltage + current * current); // 视在功率
+//
+//		// 计算功率因数
+//		if (apparentPower != 0) {
+//			line_data->LineAC.pf[k] = line_data->LineAC.p[k] / apparentPower; // 每个通道的功率因数
+//		} else {
+//			line_data->LineAC.pf[k] = 0; // 如果视在功率为零，则功率因数为零
+//		}
+//
+//        // 累加到总功率
+//        line_data->LineAC.totalP += line_data->LineAC.p[k];
+//        line_data->LineAC.totalQ += line_data->LineAC.q[k];
+//    }
+//    printf("7 UA_P: %f  IA_Q: %f \n", line_data->LineAC.p[0],line_data->LineAC.q[0]);
+//
+//    // 计算功率因数
+//    if (line_data->LineAC.totalP != 0) {
+//        double apparentPower = sqrt(line_data->LineAC.totalP * line_data->LineAC.totalP + line_data->LineAC.totalQ * line_data->LineAC.totalQ); // 视在功率
+//        line_data->LineAC.totalPF = line_data->LineAC.totalP / apparentPower;  // 功率因数
+//    } else {
+//        line_data->LineAC.totalPF = 0;  // 如果没有有功功率则设置功率因数为0
+//    }
+
+}

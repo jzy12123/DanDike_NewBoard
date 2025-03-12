@@ -1,0 +1,22 @@
+#ifndef MY_KISSFT_H
+#define MY_KISSFT_H
+
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ADDA.h"
+
+
+// 定义采样率和采样点数
+#define SAMPLE_RATE 51200           // 采样频率
+#define SAMPLE_POINTS 1024          // 每个通道的采样点数
+#define FUNDAMENTAL_FREQ_MIN 45     // 基波频率的最小值（Hz）
+#define FUNDAMENTAL_FREQ_MAX 65     // 基波频率的最大值（Hz）
+
+
+
+#endif
+
+

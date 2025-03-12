@@ -1,0 +1,1472 @@
+/*
+ * 此文件里的函数用来解析linux发出的JSON指令
+ * 同时定义并上报UDP结构体
+ * 【结构体的组成】
+	(
+		帧头区：（16字节）
+			同步头：			4字节		固定为：D1D2D3D4
+			数据区总长度1：		4字节（值为n）
+			数据区总长度2：		4字节（值为n，重复）
+			版本信息： 			   1字节
+			保留：				       3字节
+
+		数据区：（n字节）	具体结构由多个结构体链式组成。
+			结构体类型标识：	4字节
+			结构体内容长度：	4字节
+			结构体内容：		n1字节
+
+			结构体类型标识：	4字节
+			结构体内容长度：	4字节
+			结构体内容：		n2字节
+			...
+
+		帧尾区：（4字节）
+			结束符：			4字节		固定为：E1E2E3E4
+	)
+ *
+ */
+#include "Communications_Protocol.h"
+
+
+void extractContentBetweenPipes(char *buffer) {
+    int len = strlen(buffer);
+    int start = -1, end = -1;
+
+    // 遍历字符串，找到第一个和最后一个 '|' 的位置
+    for (int i = 0; i < len; i++) {
+        if (buffer[i] == '|') {
+            if (start == -1) {
+                start = i; // 找到第一个 '|'
+            } else {
+                end = i; // 更新最后一个 '|' 的位置
+            }
+        }
+    }
+
+    // 如果找到了两个 '|'，并且它们不在同一个位置
+    if (start != -1 && end != -1 && start != end) {
+        // 计算中间内容的长度
+        int contentLength = end - start - 1;
+
+        // 将中间内容移动到 buffer 的开头
+        memmove(buffer, buffer + start + 1, contentLength);
+
+        // 在末尾添加字符串结束符
+        buffer[contentLength] = '\0';
+
+        printf("CPU1: Remove | \n");
+    } else {
+        printf("CPU1: NotFound | \n");
+    }
+}
+
+/*
+ * 解析JSON指令顶层函数
+ */
+int Parse_JsonCommand(char *buffer){
+	FunCodeMap funCodeMap[] = {
+			{"GetFunCodeList", handle_GetFunCodeList},
+			{"GetDevBaseInfo", handle_GetDevBaseInfo},
+			{"GetDevState", handle_GetDevState},
+			{"SetReportEnable", handle_SetReportEnable},
+			{"SetDCS", handle_SetDCS},
+			{"SetDCM", handle_SetDCM},
+			{"SetACS", handle_SetACS},
+			{"SetACM", handle_SetACM},
+			{"SetHarm", handle_SetHarm},
+			{"SetInterHarm", handle_SetInterHarm},
+			{"SetDO", handle_SetDO},
+			{"StopDCS", handle_StopDCS},
+			{"StopAC", handle_StopAC},
+			{"ClearHarm", handle_ClearHarm},
+			{"ClearInterHarm", handle_ClearInterHarm}
+	};
+	const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
+
+	//检查输入字符串首尾的 '|'
+    extractContentBetweenPipes(buffer);
+
+	//打印buffer里的数据
+    printf("CPU1: Recived_JSON: %s\n", buffer);
+
+	// 使用cJSON解析JSON字符串
+	cJSON *json = cJSON_Parse(buffer);
+	if (json == NULL) {
+		xil_printf("Failed to parse JSON.\n");
+		return 1;
+	}
+
+	cJSON *funCodeItem = cJSON_GetObjectItem(json, "FunCode");
+	if (funCodeItem == NULL) {
+		xil_printf("No FunCode found in JSON.\n");
+		cJSON_Delete(json);
+		return 1;
+	}
+
+	const char *funCode = cJSON_GetStringValue(funCodeItem);
+	xil_printf("CPU1: FunCode: %s\r\n", funCode);
+	xil_printf("\r\n");
+
+	// 解析Data
+	cJSON *data = cJSON_GetObjectItem(json, "Data");
+
+	// 根据 FunCode 跳转到对应的处理函数
+	for (int i = 0; i < funCodeMapSize; i++) {
+		if (strcmp(funCode, funCodeMap[i].funCode) == 0) {
+			funCodeMap[i].handler(data);
+			break;
+		}
+	}
+
+	cJSON_Delete(json);
+
+    return 0;
+}
+
+
+
+void handle_GetFunCodeList(cJSON *data) {
+    // 处理 GetFunCodeList 的逻辑
+//    xil_printf("Handling handle_GetFunCodeList...\n");
+
+    // 定义 FunCode 列表
+    const char *CmdList[] = {
+    		"GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetReportEnable",
+			"SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetInterHarm", "SetDO",
+			"StopDCS", "StopACS", "ClearHarm", "ClearInterHarm"
+    };
+
+    const char *ReportList[] = {
+    		"ProtectEvent", "DISOE", "BaseDataAC", "BaseDataDC", "BaseDataIO", "HarmData", "InterHarmData"
+    };
+
+    const char *TaskEventList[] = {
+    		"SetSyncMode", "SetProgress"
+    };
+
+    // 创建上行指令的 JSON 对象
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "GetFunCodeList");
+    cJSON_AddStringToObject(reply, "Result", "Success");
+
+    cJSON *dataObj = cJSON_CreateObject();
+
+    cJSON *cmdList = cJSON_CreateStringArray(CmdList, sizeof(CmdList) / sizeof(CmdList[0]));
+    cJSON_AddItemToObject(dataObj, "CmdList", cmdList);
+
+    cJSON *reportList = cJSON_CreateStringArray(ReportList, sizeof(ReportList) / sizeof(ReportList[0]));
+    cJSON_AddItemToObject(dataObj, "ReportList", reportList);
+
+    cJSON *taskEventList = cJSON_CreateStringArray(TaskEventList, sizeof(TaskEventList) / sizeof(TaskEventList[0]));
+    cJSON_AddItemToObject(dataObj, "TaskEventList", taskEventList);
+
+    cJSON_AddItemToObject(reply, "Data", dataObj);
+
+    // 将生成的 JSON 转换为字符串
+    char *string = cJSON_Print(reply);
+    if (string == NULL) {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(reply);
+        return;
+    }
+
+    // 在字符串首尾加上 '|' 字符
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
+    if (finalString == NULL) {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_Delete(reply);
+        free(string);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    // 将生成的 JSON 写入共享内存
+    ssize_t bytesWritten = MsgQue_write(finalString,strlen(finalString));
+	if (bytesWritten < 0) {
+		xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+	} else {
+//		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+	}
+
+
+
+    // 清理
+	free(finalString);
+    cJSON_Delete(reply);
+    free(string);
+}
+
+void handle_GetDevBaseInfo(cJSON *data) {
+    // 处理 GetDevBaseInfo 的逻辑
+//    xil_printf("Handling handle_GetDevBaseInfo...\n");
+
+    // 创建上行指令的 JSON 对象
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "GetDevBaseInfo");
+    cJSON_AddStringToObject(reply, "Result", "Success");
+
+    cJSON *dataObj = cJSON_CreateObject();
+    cJSON_AddStringToObject(dataObj, "Model", "xxx");
+    cJSON_AddStringToObject(dataObj, "InnerModel", "DK-34B1");
+    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "1.0.1");
+    cJSON_AddStringToObject(dataObj, "ARM_Ver", "1.0.1");
+
+    const char *syncModes[] = {"GPS", "BD", "IRIG-B", "SNTP", "Manual"};
+    cJSON *syncMode = cJSON_CreateStringArray(syncModes, 5);
+    cJSON_AddItemToObject(dataObj, "SyncMode", syncMode);
+
+    // DI 信息
+    cJSON *di = cJSON_CreateObject();
+    cJSON_AddNumberToObject(di, "ChnCount", ChnsBI);
+    double diResolution[] = {0.1, 1, 10};//开入分辨率
+    cJSON *diResolutions = cJSON_CreateDoubleArray(diResolution, 3);
+    cJSON_AddItemToObject(di, "DI_Resolution", diResolutions);
+    cJSON_AddItemToObject(dataObj, "DI", di);
+
+    // DO 信息
+    cJSON *doInfo = cJSON_CreateObject();
+    cJSON_AddNumberToObject(doInfo, "ChnCount", ChnsBO);
+    cJSON_AddItemToObject(dataObj, "DO", doInfo);
+
+    // AC 信息
+    cJSON *ac = cJSON_CreateObject();
+    const char *acModes[] = {"S", "M"};
+    cJSON *acMode = cJSON_CreateStringArray(acModes, 2);
+    cJSON_AddItemToObject(ac, "Mode", acMode);
+    cJSON_AddNumberToObject(ac, "MaxHarmNumber", HarmNumberMax);
+    cJSON_AddNumberToObject(ac, "LineCount", LinesAC);
+    cJSON_AddNumberToObject(ac, "ChnCount", ChnsAC);
+
+    cJSON *acChns = cJSON_CreateArray();
+    for (int line = 1; line <= LinesAC; line++) {
+        for (int chn = 1; chn <= ChnsAC; chn++) {
+            cJSON *chnObj = cJSON_CreateObject();
+            cJSON_AddNumberToObject(chnObj, "Line", line);
+            cJSON_AddNumberToObject(chnObj, "Chn", chn);
+
+            double urValues[] = {6.5, 3.25, 1.876};
+            cJSON *urArray = cJSON_CreateDoubleArray(urValues, 3);
+            cJSON_AddItemToObject(chnObj, "URs", urArray);
+
+            double irValues[] = {5, 1, 0.2};
+            cJSON *irArray = cJSON_CreateDoubleArray(irValues, 3);
+            cJSON_AddItemToObject(chnObj, "IRs", irArray);
+
+            cJSON_AddItemToArray(acChns, chnObj);
+        }
+    }
+    cJSON_AddItemToObject(ac, "Chns", acChns);
+    cJSON_AddItemToObject(dataObj, "AC", ac);
+
+    // DCS 信息
+    cJSON *dcs = cJSON_CreateObject();
+    cJSON_AddNumberToObject(dcs, "ChnCount", ChnsDCS);
+
+    cJSON *dcsChns = cJSON_CreateArray();
+    for (int chn = 1; chn <= ChnsDCS; chn++) {
+        cJSON *chnObj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(chnObj, "Chn", chn);
+
+        double urValues[] = {57.7, 100, 220, 380};
+        cJSON *urArray = cJSON_CreateDoubleArray(urValues, 4);
+        cJSON_AddItemToObject(chnObj, "URs", urArray);
+
+        double irValues[] = {1, 5, 10, 100};
+        cJSON *irArray = cJSON_CreateDoubleArray(irValues, 4);
+        cJSON_AddItemToObject(chnObj, "IRs", irArray);
+
+        cJSON_AddItemToArray(dcsChns, chnObj);
+    }
+    cJSON_AddItemToObject(dcs, "Chns", dcsChns);
+    cJSON_AddItemToObject(dataObj, "DCS", dcs);
+
+    // DCM 信息
+    cJSON *dcm = cJSON_CreateObject();
+    cJSON_AddNumberToObject(dcm, "ChnCount", ChnsDCM);
+
+    cJSON *dcmChns = cJSON_CreateArray();
+    for (int chn = 1; chn <= ChnsDCM; chn++) {
+        cJSON *chnObj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(chnObj, "Chn", chn);
+
+        double urValues[] = {57.7, 100, 220, 380};
+        cJSON *urArray = cJSON_CreateDoubleArray(urValues, 4);
+        cJSON_AddItemToObject(chnObj, "URs", urArray);
+
+        double irValues[] = {1, 5, 10, 100};
+        cJSON *irArray = cJSON_CreateDoubleArray(irValues, 4);
+        cJSON_AddItemToObject(chnObj, "IRs", irArray);
+
+        cJSON_AddItemToArray(dcmChns, chnObj);
+    }
+    cJSON_AddItemToObject(dcm, "Chns", dcmChns);
+    cJSON_AddItemToObject(dataObj, "DCM", dcm);
+
+    cJSON_AddItemToObject(reply, "Data", dataObj);
+
+    // 将生成的 JSON 转换为字符串
+    char *string = cJSON_Print(reply);
+    if (string == NULL) {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(reply);
+        return;
+    }
+
+    // 在字符串首尾加上 '|' 字符
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
+    if (finalString == NULL) {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_Delete(reply);
+        free(string);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    // 将生成的 JSON 写入共享内存
+    ssize_t bytesWritten = MsgQue_write(finalString,strlen(finalString));
+	if (bytesWritten < 0) {
+		xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+	} else {
+//		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+	}
+
+
+
+    // 清理
+	free(finalString);
+    cJSON_Delete(reply);
+    free(string);
+}
+
+void handle_GetDevState(cJSON *data) {
+	// 处理 handle_GetDevState 的逻辑
+//	xil_printf("Handling handle_GetDevState...\n");
+
+	// 创建上行指令的 JSON 对象
+	cJSON *reply = cJSON_CreateObject();
+	cJSON_AddStringToObject(reply, "FunType", "Reply");
+	cJSON_AddStringToObject(reply, "FunCode", "GetDevState");
+	cJSON_AddStringToObject(reply, "Result", "Success");
+
+	cJSON *dataObj = cJSON_CreateObject();
+	cJSON_AddStringToObject(dataObj, "DevTime", "2024-01-31 00:00:00.123");
+	cJSON_AddNumberToObject(dataObj, "Temperature", 24);
+	cJSON_AddStringToObject(dataObj, "SyncMode", "GPS");
+	cJSON_AddNumberToObject(dataObj, "Longitude", 12.2);
+	cJSON_AddNumberToObject(dataObj, "Latitude", 12.2);
+	cJSON_AddNumberToObject(dataObj, "DI_Resolution", 0.1);
+
+	cJSON *task = cJSON_CreateObject();
+	cJSON_AddStringToObject(task, "FunCode", "");
+	cJSON_AddStringToObject(task, "StartTime", "2024-01-31 00:00:00.123");
+	cJSON_AddItemToObject(dataObj, "Task", task);
+
+	// AC 信息
+	cJSON *ac = cJSON_CreateObject();
+	cJSON_AddStringToObject(ac, "Mode", "S");
+	cJSON_AddBoolToObject(ac, "ClosedLoop", true);
+
+	cJSON *acChns = cJSON_CreateArray();
+	for (int line = 1; line <= LinesAC; line++) {
+		for (int chn = 1; chn <= ChnsAC; chn++) {
+			cJSON *chnObj = cJSON_CreateObject();
+			cJSON_AddNumberToObject(chnObj, "Line", line);
+			cJSON_AddNumberToObject(chnObj, "Chn", chn);
+			cJSON_AddNumberToObject(chnObj, "UR", 57.7);
+			cJSON_AddNumberToObject(chnObj, "IR", 5);
+			cJSON_AddItemToArray(acChns, chnObj);
+		}
+	}
+	cJSON_AddItemToObject(ac, "Chns", acChns);
+	cJSON_AddItemToObject(dataObj, "AC", ac);
+
+	// DCS 信息
+	cJSON *dcs = cJSON_CreateArray();
+	for (int chn = 1; chn <= ChnsDCS; chn++) {
+		cJSON *chnObj = cJSON_CreateObject();
+		cJSON_AddNumberToObject(chnObj, "Chn", chn);
+		cJSON_AddNumberToObject(chnObj, "UR", 57.7);
+		cJSON_AddNumberToObject(chnObj, "IR", 1);
+		cJSON_AddItemToArray(dcs, chnObj);
+	}
+	cJSON_AddItemToObject(dataObj, "DCS", dcs);
+
+	// DCM 信息
+	cJSON *dcm = cJSON_CreateArray();
+	for (int chn = 1; chn <= ChnsDCM; chn++) {
+		cJSON *chnObj = cJSON_CreateObject();
+		cJSON_AddNumberToObject(chnObj, "Chn", chn);
+		cJSON_AddNumberToObject(chnObj, "UR", 57.7);
+		cJSON_AddNumberToObject(chnObj, "IR", 1);
+		cJSON_AddItemToArray(dcm, chnObj);
+	}
+	cJSON_AddItemToObject(dataObj, "DCM", dcm);
+
+	// DO 信息
+	cJSON *doInfo = cJSON_CreateArray();
+	for (int i = 0; i < ChnsBO; i++) {
+		cJSON_AddItemToArray(doInfo, cJSON_CreateNumber(i % 2));  // 假设DO状态是0和1交替
+	}
+	cJSON_AddItemToObject(dataObj, "DO", doInfo);
+
+	// DI 信息
+	cJSON *diInfo = cJSON_CreateArray();
+	for (int i = 0; i < ChnsBI; i++) {
+		cJSON_AddItemToArray(diInfo, cJSON_CreateNumber(i % 2));  // 假设DI状态是0和1交替
+	}
+	cJSON_AddItemToObject(dataObj, "DI", diInfo);
+
+	cJSON_AddItemToObject(reply, "Data", dataObj);
+
+	//映射到硬件
+	//读错误信号
+//	RdSerial();
+
+    // 将生成的 JSON 转换为字符串
+    char *string = cJSON_Print(reply);
+    if (string == NULL) {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(reply);
+        return;
+    }
+
+    // 在字符串首尾加上 '|' 字符
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
+    if (finalString == NULL) {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_Delete(reply);
+        free(string);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    // 将生成的 JSON 写入共享内存
+    ssize_t bytesWritten = MsgQue_write(finalString,strlen(finalString));
+	if (bytesWritten < 0) {
+		xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+	} else {
+//		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+	}
+
+
+
+    // 清理
+	free(finalString);
+    cJSON_Delete(reply);
+    free(string);
+}
+
+ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true};
+void handle_SetReportEnable(cJSON *data) {
+    // 处理 handle_SetReportEnable 的逻辑
+//    xil_printf("Handling handle_SetReportEnable...\n");
+
+    // 更新使能状态
+    cJSON *BaseDataAC = cJSON_GetObjectItem(data, "BaseDataAC");
+    if (BaseDataAC != NULL) {
+    	reportStatus.BaseDataAC = cJSON_IsTrue(BaseDataAC);
+    }
+
+    cJSON *HarmData = cJSON_GetObjectItem(data, "HarmData");
+    if (HarmData != NULL) {
+    	reportStatus.HarmData = cJSON_IsTrue(HarmData);
+    }
+
+    cJSON *InterHarmData = cJSON_GetObjectItem(data, "InterHarmData");
+    if (InterHarmData != NULL) {
+    	reportStatus.InterHarmData = cJSON_IsTrue(InterHarmData);
+    }
+
+    cJSON *BaseDataDCS = cJSON_GetObjectItem(data, "BaseDataDCS");
+    if (BaseDataDCS != NULL) {
+    	reportStatus.BaseDataDCS = cJSON_IsTrue(BaseDataDCS);
+    }
+
+    cJSON *BaseDataDCM = cJSON_GetObjectItem(data, "BaseDataDCM");
+    if (BaseDataDCM != NULL) {
+    	reportStatus.BaseDataDCM = cJSON_IsTrue(BaseDataDCM);
+    }
+
+    cJSON *DI = cJSON_GetObjectItem(data, "DI");
+    if (DI != NULL) {
+    	reportStatus.DI = cJSON_IsTrue(DI);
+    }
+
+    cJSON *DISOE = cJSON_GetObjectItem(data, "DISOE");
+    if (DISOE != NULL) {
+    	reportStatus.DISOE = cJSON_IsTrue(DISOE);
+    }
+
+    cJSON *DO = cJSON_GetObjectItem(data, "DO");
+    if (DO != NULL) {
+    	reportStatus.DO = cJSON_IsTrue(DO);
+    }
+
+    cJSON *InnerBattery = cJSON_GetObjectItem(data, "InnerBattery");
+    if (InnerBattery != NULL) {
+    	reportStatus.InnerBattery = cJSON_IsTrue(InnerBattery);
+    }
+
+    cJSON *VMData = cJSON_GetObjectItem(data, "VMData");
+    if (VMData != NULL) {
+    	reportStatus.VMData = cJSON_IsTrue(VMData);
+    }
+
+
+
+
+    /*创建上行指令的 JSON 对象*/
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetReportEnable");
+    cJSON_AddStringToObject(reply, "Result", "Success");
+
+    cJSON *dataObj = cJSON_CreateObject();
+    cJSON_AddBoolToObject(dataObj, "BaseDataAC", reportStatus.BaseDataAC);
+    cJSON_AddBoolToObject(dataObj, "HarmData", reportStatus.HarmData);
+    cJSON_AddBoolToObject(dataObj, "InterHarmData", reportStatus.InterHarmData);
+    cJSON_AddBoolToObject(dataObj, "BaseDataDCS", reportStatus.BaseDataDCS);
+    cJSON_AddBoolToObject(dataObj, "BaseDataDCM", reportStatus.BaseDataDCM);
+    cJSON_AddBoolToObject(dataObj, "DI", reportStatus.DI);
+    cJSON_AddBoolToObject(dataObj, "DISOE", reportStatus.DISOE);
+    cJSON_AddBoolToObject(dataObj, "DO", reportStatus.DO);
+    cJSON_AddBoolToObject(dataObj, "InnerBattery", reportStatus.InnerBattery);
+    cJSON_AddBoolToObject(dataObj, "VMData", reportStatus.VMData);
+
+    cJSON_AddItemToObject(reply, "Data", dataObj);
+
+    // 将生成的 JSON 转换为字符串
+    char *string = cJSON_Print(reply);
+    if (string == NULL) {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(reply);
+        return;
+    }
+
+    // 在字符串首尾加上 '|' 字符
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
+    if (finalString == NULL) {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_Delete(reply);
+        free(string);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    // 将生成的 JSON 写入共享内存
+    ssize_t bytesWritten = MsgQue_write(finalString,strlen(finalString));
+	if (bytesWritten < 0) {
+		xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+	} else {
+//		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+	}
+
+    // 清理
+	free(finalString);
+    cJSON_Delete(reply);
+    free(string);
+}
+
+
+
+void handle_SetDCS(cJSON *data) {
+    // 处理 handle_SetDCS 的逻辑
+//    xil_printf("CPU1: Handling handle_SetDCS...\r\n");
+
+    SetDCS setDCS;
+    cJSON *closedLoop = cJSON_GetObjectItem(data, "ClosedLoop");
+     if (closedLoop != NULL) {
+         setDCS.ClosedLoop = cJSON_IsTrue(closedLoop);
+     } else {
+         setDCS.ClosedLoop = true; // 默认值
+     }
+
+     //读取Chns
+     cJSON *Chns = cJSON_GetObjectItem(data, "Chns");
+     if (Chns == NULL) {
+         xil_printf("No Chns found in JSON.\n");
+         return;
+     }
+
+     int ChnsCount = cJSON_GetArraySize(Chns);
+     for (int i = 0; i < ChnsCount; i++) {
+         cJSON *Vals = cJSON_GetArrayItem(Chns, i);
+
+         setDCS.Vals[i].Chn	= cJSON_GetObjectItem(Vals, "Chn")->valueint;
+         setDCS.Vals[i].UR	= (float)cJSON_GetObjectItem(Vals, "UR")->valuedouble;
+         setDCS.Vals[i].U	= (float)cJSON_GetObjectItem(Vals, "U")->valuedouble;
+         setDCS.Vals[i].URipple	= (float)cJSON_GetObjectItem(Vals, "URipple")->valuedouble;
+         setDCS.Vals[i].IR	= (float)cJSON_GetObjectItem(Vals, "IR")->valuedouble;
+         setDCS.Vals[i].I_	= (float)cJSON_GetObjectItem(Vals, "I")->valuedouble;
+         setDCS.Vals[i].IRipple	= (float)cJSON_GetObjectItem(Vals, "IRipple")->valuedouble;
+     }
+
+     // 打印解析结果以验证
+//     xil_printf("ClosedLoop: %d\r\n", setDCS.ClosedLoop);
+     for (int i = 0; i < ChnsDCS; i++) {
+         printf("CHn: %d, UR: %.2f, U: %.2f, URipple: %.2f, IR: %.2f, I: %.2f, IRipple: %.2f\r\n",
+                    setDCS.Vals[i].Chn,
+                    setDCS.Vals[i].UR, setDCS.Vals[i].U, setDCS.Vals[i].URipple,
+                    setDCS.Vals[i].IR, setDCS.Vals[i].I_, setDCS.Vals[i].IRipple);
+     }
+
+     //回报JSON
+     ReplyData replyData;
+     strcpy(replyData.FunCode, "SetDCS");
+     strcpy(replyData.Result, "Success");
+     replyData.hasClosedLoop = true;
+     replyData.ClosedLoop = setDCS.ClosedLoop;
+
+     // 写入回报指令到共享内存
+     write_reply_to_shared_memory(&replyData);
+}
+
+void handle_SetDCM(cJSON *data) {
+    // 处理 handle_SetDCM 的逻辑
+//    xil_printf("CPU1: Handling handle_SetDCM...\r\n");
+
+    SetDCM setDCM;
+    //读取Chns
+    cJSON *Chns = cJSON_GetObjectItem(data, "Chns");
+    if (Chns == NULL) {
+        xil_printf("No Chns found in JSON.\n");
+        return;
+    }
+    int ChnsCount = cJSON_GetArraySize(Chns);
+
+    for (int i = 0; i < ChnsCount; i++){
+    	cJSON *Vals = cJSON_GetArrayItem(Chns, i);
+
+    	setDCM.Vals[i].Chn	=	cJSON_GetObjectItem(Vals,"Chn")->valueint;
+    	setDCM.Vals[i].UR	=	(float)cJSON_GetObjectItem(Vals, "UR")->valuedouble;
+    	setDCM.Vals[i].IR	=	(float)cJSON_GetObjectItem(Vals, "IR")->valuedouble;
+    }
+    // 打印解析结果以验证
+
+    for (int i = 0; i < ChnsDCM; i++) {
+        printf("CHn: %d, UR: %.2f,IR: %.2f, \r\n",
+                   setDCM.Vals[i].Chn,
+                   setDCM.Vals[i].UR,
+                   setDCM.Vals[i].IR);
+    }
+
+    //回报JSON
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "SetDCM");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    // 写入回报指令到共享内存
+    write_reply_to_shared_memory(&replyData);
+}
+
+SetACS setACS;
+void handle_SetACS(cJSON *data) {
+	// 处理 handle_SetACS 的逻辑
+//	xil_printf("CPU1: Handling handle_SetACS...\r\n");
+
+    // 处理 ClosedLoop，如果存在则更新，否则保留原值
+    cJSON *closedLoop = cJSON_GetObjectItem(data, "ClosedLoop");
+    if (closedLoop != NULL) {
+        setACS.ClosedLoop = cJSON_IsTrue(closedLoop);
+    }
+
+    // 获取 vals 数组
+    cJSON *vals = cJSON_GetObjectItem(data, "vals");
+    if (vals == NULL) {
+        xil_printf("No vals found in JSON.\n");
+        return;
+    }
+
+    int valsCount = cJSON_GetArraySize(vals);
+	for (int i = 0; i < valsCount; i++) {
+//		cJSON *val = cJSON_GetArrayItem(vals, i);
+//		setACS.Vals[i].Line = cJSON_GetObjectItem(val, "Line")->valueint;
+//		setACS.Vals[i].Chn = cJSON_GetObjectItem(val, "Chn")->valueint;
+//		setACS.Vals[i].F = (float)cJSON_GetObjectItem(val, "F")->valuedouble;
+//		setACS.Vals[i].UR = (float)cJSON_GetObjectItem(val, "UR")->valuedouble;
+//		setACS.Vals[i].U = (float)cJSON_GetObjectItem(val, "U")->valuedouble;
+//		setACS.Vals[i].PhU = (float)cJSON_GetObjectItem(val, "PhU")->valuedouble;
+//		setACS.Vals[i].IR = (float)cJSON_GetObjectItem(val, "IR")->valuedouble;
+//		setACS.Vals[i].I_ = (float)cJSON_GetObjectItem(val, "I")->valuedouble;
+//		setACS.Vals[i].PhI = (float)cJSON_GetObjectItem(val, "PhI")->valuedouble;
+
+		cJSON *val = cJSON_GetArrayItem(vals, i);
+		//只更新新来的有效数据
+		cJSON *line = cJSON_GetObjectItem(val, "Line");
+		if(line){
+			setACS.Vals[i].Line = line->valueint;
+			printf("line\n");
+		}
+        cJSON *chn = cJSON_GetObjectItem(val, "Chn");
+        if (chn){
+        	setACS.Vals[i].Chn = chn->valueint;
+//        	printf("Chn\n");
+        }
+        cJSON *f = cJSON_GetObjectItem(val, "F");
+        if (f){
+        	setACS.Vals[i].F = (float)f->valuedouble;
+//        	printf("F\n");
+        }
+        cJSON *ur = cJSON_GetObjectItem(val, "UR");
+        if (ur){
+        	setACS.Vals[i].UR = (float)ur->valuedouble;
+//        	printf("UR\n");
+        }
+        cJSON *u = cJSON_GetObjectItem(val, "U");
+        if (u){
+        	setACS.Vals[i].U = (float)u->valuedouble;
+//        	printf("U\n");
+        }
+        cJSON *phU = cJSON_GetObjectItem(val, "PhU");
+        if (phU){
+        	setACS.Vals[i].PhU = (float)phU->valuedouble;
+//        	printf("PhU\n");
+        }
+        cJSON *ir = cJSON_GetObjectItem(val, "IR");
+        if (ir){
+        	setACS.Vals[i].IR = (float)ir->valuedouble;
+//        	printf("IR\n");
+        }
+        cJSON *i_ = cJSON_GetObjectItem(val, "I");
+        if (i_) {
+        	setACS.Vals[i].I_ = (float)i_->valuedouble;
+//        	printf("I\n");
+        }
+        cJSON *phI = cJSON_GetObjectItem(val, "PhI");
+        if (phI){
+        	setACS.Vals[i].PhI = (float)phI->valuedouble;
+//        	printf("PhI\n");
+        }
+	}
+
+	 // 打印解析结果以验证
+	 xil_printf("ClosedLoop: %d\r\n", setACS.ClosedLoop);
+	 for (int i = 0; i < LinesAC*ChnsAC; i++) {
+		printf("Line: %d, CHn: %d, F: %.2f, UR: %.2f, U: %.2f, PhU: %.2f, IR: %.2f, I: %.2f, PhI: %.2f\n",
+				setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
+				setACS.Vals[i].UR, setACS.Vals[i].U, setACS.Vals[i].PhU,
+				setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
+	 }
+
+
+	//回报JSON   提前到硬件处理之前
+	ReplyData replyData;
+	strcpy(replyData.FunCode, "SetACS");
+	strcpy(replyData.Result, "Success");
+	replyData.hasClosedLoop = true;
+	replyData.ClosedLoop = setACS.ClosedLoop;
+	// 写入回报指令到共享内存
+	write_reply_to_shared_memory(&replyData);
+
+	/*数据映射到硬件*/
+	Wave_Frequency = setACS.Vals[0].F;						//频率
+	for(int i = 0; i < 4; i++){
+		Phase_shift[i]	= setACS.Vals[i].PhU;				//相位
+		Phase_shift[i+4]	= setACS.Vals[i].PhI;
+	}
+	enable 				= 	0xff;							//使能通道输出
+	memset(numHarmonics, 0, sizeof(numHarmonics));			//清除谐波
+	memset(harmonics, 0, sizeof(harmonics));
+	memset(harmonics_phases, 0, sizeof(harmonics_phases));
+
+	//生成交流信号
+	str_wr_bram(PID_OFF);
+
+	//修改二级DA 波形幅度 量程
+	for(int i = 0; i < 4; i++){
+		Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
+		Wave_Amplitude[i+4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
+		Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
+		Wave_Range[i+4] = current_to_output(setACS.Vals[i].IR);
+//		printf(" Wave_Amplitude_U=%f\n Wave_Amplitude_I=%f\n Wave_Range_U=%lu\n Wave_Range_I=%lu\n",Wave_Amplitude[i] , Wave_Amplitude[i+4] , Wave_Range[i] , Wave_Range[i+4]);
+	}
+	//控制二级DA
+	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+
+
+}
+
+void handle_SetACM(cJSON *data) {
+    // 处理 handle_SetACM 的逻辑
+//    xil_printf("CPU1: Handling handle_SetACM...\r\n");
+
+    SetACM setACM;
+    int dataCount = cJSON_GetArraySize(data);
+    for (int i = 0; i < dataCount; i++){
+    	cJSON *Vals = cJSON_GetArrayItem(data, i);
+
+    	setACM.Vals[i].Line	=	cJSON_GetObjectItem(Vals,"Line")->valueint;
+    	setACM.Vals[i].Chn	=	cJSON_GetObjectItem(Vals,"Chn")->valueint;
+    	setACM.Vals[i].UR	=	(float)cJSON_GetObjectItem(Vals, "UR")->valuedouble;
+    	setACM.Vals[i].IR	=	(float)cJSON_GetObjectItem(Vals, "IR")->valuedouble;
+    }
+    // 打印解析结果以验证
+    for (int i = 0; i < LinesAC*ChnsAC; i++) {
+        printf("Line: %d, CHn: %d, UR: %.2f,IR: %.2f, \n",
+        		setACM.Vals[i].Line,
+				setACM.Vals[i].Chn,
+				setACM.Vals[i].UR,
+				setACM.Vals[i].IR);
+    }
+
+    //回报JSON
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "SetACM");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    // 写入回报指令到共享内存
+    write_reply_to_shared_memory(&replyData);
+
+    //映射到硬件
+
+	ADC_ChannelEnable = 1;
+	//开启ADC
+	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
+
+	sleep(1);
+
+
+
+
+}
+
+void handle_SetHarm(cJSON *data) {
+    // 处理 GetFunCodeList 的逻辑
+//    xil_printf("CPU1: Handling handle_SetHarm...\r\n");
+    SetHarm setHarm;
+
+    int index = 0;
+    int arraySize = cJSON_GetArraySize(data);
+    for (int i = 0; i < arraySize && index < LinesAC * ChnsAC * HarmNumberMax; i++) {
+    	cJSON *item = cJSON_GetArrayItem(data, i);
+    	if (item == NULL) {
+    		continue;
+    	}
+
+    	cJSON *line = cJSON_GetObjectItem(item, "Line");
+    	cJSON *chn = cJSON_GetObjectItem(item, "Chn");
+    	cJSON *hr = cJSON_GetObjectItem(item, "HR");
+    	cJSON *u = cJSON_GetObjectItem(item, "U");
+    	cJSON *phU = cJSON_GetObjectItem(item, "PhU");
+    	cJSON *iField = cJSON_GetObjectItem(item, "I");
+    	cJSON *phI = cJSON_GetObjectItem(item, "PhI");
+
+    	if (line && chn && hr && u && phU && iField && phI) {
+    		setHarm.Vals[index].Line = line->valueint;
+    		setHarm.Vals[index].Chn = chn->valueint;
+    		setHarm.Vals[index].HR = hr->valueint;
+    		setHarm.Vals[index].U = (float)u->valuedouble;
+    		setHarm.Vals[index].PhU = (float)phU->valuedouble;
+    		setHarm.Vals[index].I_ = (float)iField->valuedouble;
+    		setHarm.Vals[index].PhI = (float)phI->valuedouble;
+
+            printf("Line: %d, Chn: %d, HR: %d, U: %.2f, PhU: %.2f, I: %.2f, PhI: %.2f\n",
+                setHarm.Vals[index].Line,
+                setHarm.Vals[index].Chn,
+                setHarm.Vals[index].HR,
+                setHarm.Vals[index].U,
+                setHarm.Vals[index].PhU,
+                setHarm.Vals[index].I_,
+                setHarm.Vals[index].PhI
+            );
+
+    		index++;
+    	}
+    }
+
+
+
+    //映射到硬件 （需要修改和ddk协议一样）
+    // 填充 numHarmonics, harmonics 和 phases 数组
+    for (int i = 0; i < arraySize; i++) {
+        int ch = setHarm.Vals[i].Chn - 1;
+        int harmonicIndex = setHarm.Vals[i].HR - 2;
+
+        // 处理U
+        numHarmonics[ch] = setHarm.Vals[i].HR;
+        harmonics[ch][harmonicIndex] = setHarm.Vals[i].U;
+        harmonics_phases[ch][harmonicIndex] = setHarm.Vals[i].PhU;
+        // 处理I
+        numHarmonics[ch + 4] = setHarm.Vals[i].HR;
+        harmonics[ch + 4][harmonicIndex] = setHarm.Vals[i].I_;
+        harmonics_phases[ch + 4][harmonicIndex] = setHarm.Vals[i].PhI;
+    }
+	//生成交流信号
+	str_wr_bram(PID_OFF);
+
+    //回报JSON
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "SetHarm");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    // 写入回报指令到共享内存
+    write_reply_to_shared_memory(&replyData);
+}
+
+void handle_SetInterHarm(cJSON *data) {
+    // 处理 handle_SetInterHarm 的逻辑
+//    xil_printf("CPU1: Handling handle_SetInterHarm...\r\n");
+}
+void handle_SetDO(cJSON *data) {
+    // 处理 handle_SetDO 的逻辑
+//    xil_printf("CPU1: Handling handle_SetDO...\r\n");
+
+    SetDO setDO;
+
+    int dataCount = cJSON_GetArraySize(data);
+    for (int i = 0; i < dataCount; i++){
+    	cJSON *Vals = cJSON_GetArrayItem(data, i);
+
+    	setDO.Vals[i].Chn		=	cJSON_GetObjectItem(Vals,"Chn")->valueint;
+    	setDO.Vals[i].val		=	cJSON_GetObjectItem(Vals,"val")->valueint;
+    }
+    // 打印解析结果以验证
+
+    for (int i = 0; i < ChnsBO; i++) {
+        printf("CHn: %d, val: %d\n",
+        		setDO.Vals[i].Chn,
+				setDO.Vals[i].val);
+    }
+
+    //映射到硬件
+	//开关量
+//	Write_Read_Switch(bit_8 , 0xf0000000);//读写开关量模块 可配置8、16、24、32位 //8位模式下，0xf0000000为高4位写1
+
+    //回报JSON
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "SetDO");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    // 写入回报指令到共享内存
+    write_reply_to_shared_memory(&replyData);
+}
+
+void handle_StopDCS(cJSON *data) {
+	// 处理 handle_StopDCS 的逻辑
+//	xil_printf("CPU1: Handling handle_StopDCS...\r\n");
+
+	//回报JSON
+	ReplyData replyData;
+	strcpy(replyData.FunCode, "StopDCS");
+	strcpy(replyData.Result, "Success");
+	replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
+
+	// 写入回报指令到共享内存
+	write_reply_to_shared_memory(&replyData);
+}
+void handle_StopAC(cJSON *data) {
+	//交流表/源关闭（同时清空所有基波、谐波、间谐波输出）
+    // 处理 handle_StopACS 的逻辑
+//    xil_printf("CPU1: Handling handle_StopAC...\r\n");
+
+    //映射到硬件
+    //关闭DA
+	Wave_Frequency = 50;									//频率
+	memset(Phase_shift, 0, sizeof(Phase_shift));			//清空基波相位
+	enable 				= 	0x00;							//关闭通道输出
+	memset(numHarmonics, 0, sizeof(numHarmonics));			//清除谐波
+	memset(harmonics, 0, sizeof(harmonics));				//清除谐波幅值
+	memset(harmonics_phases, 0, sizeof(harmonics_phases));	//清除谐波相位
+	str_wr_bram(PID_OFF);											//生成交流信号
+	//关闭AD
+	ADC_ChannelEnable = 0;
+
+	//回报JSON
+	ReplyData replyData;
+	strcpy(replyData.FunCode, "StopAC");
+	strcpy(replyData.Result, "Success");
+	replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
+
+	// 写入回报指令到共享内存
+	write_reply_to_shared_memory(&replyData);
+}
+
+void handle_ClearHarm(cJSON *data) {
+    // 处理 handle_ClearHarm 的逻辑
+//    xil_printf("CPU1: Handling handle_ClearHarm...\r\n");
+
+    //映射到硬件
+	memset(numHarmonics, 0, sizeof(numHarmonics));			//清除谐波
+	memset(harmonics, 0, sizeof(harmonics));
+	memset(harmonics_phases, 0, sizeof(harmonics_phases));
+	//生成交流信号
+	str_wr_bram(PID_OFF);
+
+	//回报JSON
+	ReplyData replyData;
+	strcpy(replyData.FunCode, "ClearHarm");
+	strcpy(replyData.Result, "Success");
+	replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
+
+	// 写入回报指令到共享内存
+	write_reply_to_shared_memory(&replyData);
+}
+
+void handle_ClearInterHarm(cJSON *data) {
+    // 处理 handle_ClearInterHarm 的逻辑
+//    xil_printf("CPU1: Handling handle_ClearInterHarm...\r\n");
+}
+
+// 生成JSON字符串并写入共享内存的函数
+void write_reply_to_shared_memory(ReplyData *replyData) {
+
+    // 确保写入完成，使用内存屏障
+    __sync_synchronize();
+    // 创建JSON对象
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "FunType", "Reply");
+    cJSON_AddStringToObject(json, "FunCode", replyData->FunCode);
+    cJSON_AddStringToObject(json, "Result", replyData->Result);
+
+    // 创建Data对象
+    cJSON *data = cJSON_CreateObject();
+    if(replyData->hasClosedLoop){
+        cJSON_AddBoolToObject(data, "ClosedLoop", replyData->ClosedLoop);
+    }
+    cJSON_AddItemToObject(json, "Data", data);
+
+    // 将JSON对象转换为字符串
+    char *jsonString = cJSON_PrintUnformatted(json);
+    if (jsonString == NULL) {
+        xil_printf("Failed to print JSON.\n");
+        cJSON_Delete(json);
+        return;
+    }
+
+    // 在字符串首尾加上'|'字符
+    size_t jsonStringLength = strlen(jsonString);
+    char *finalString = (char *)malloc(jsonStringLength + 3); // +3 是为首尾 '|' 和终止符 '\0'
+    if (finalString == NULL) {
+        xil_printf("Failed to allocate memory for final JSON string.\n");
+        cJSON_free(jsonString);
+        cJSON_Delete(json);
+        return;
+    }
+    snprintf(finalString, jsonStringLength + 3, "|%s|", jsonString);
+
+    // 将字符串写入共享内存
+    ssize_t bytesWritten = MsgQue_write(finalString,strlen(finalString));
+    if (bytesWritten < 0) {
+        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+    } else {
+//        xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, jsonString);
+    }
+
+    // 释放JSON字符串
+    free(finalString);
+    cJSON_free(jsonString);
+    // 删除JSON对象
+    cJSON_Delete(json);
+}
+
+void write_command_to_shared_memory() {
+//1.1
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"GetFunCodeList\""
+//			"}";
+
+//1.2
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"GetDevBaseInfo\""
+//			"}";
+
+//1.3
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"GetDevState\""
+//			"}";
+
+//1.5
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"SetReportEnable\","
+//			"\"Data\": {"
+//			"\"BaseDataAC\": true,"
+//			"\"HarmData\": true,"
+//			"\"InterHarmData\": false,"
+//			"\"BaseDataDC\": false,"
+//			"\"BaseDataIO\": false,"
+//			"\"DISOE\": false,"
+//			"\"VMData\": false"
+//			"}"
+//			"}";
+
+//3.1.1
+//    const char* command = "{"
+//        "\"FunType\": \"Cmd\","
+//        "\"FunCode\": \"SetDCS\","
+//        "\"Data\": {"
+//            "\"ClosedLoop\": true,"
+//            "\"Chns\": ["
+//                "{\"Chn\": 1, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.01, \"IR\": 1.1, \"I\": 1.1, \"IRipple\": 0.01},"
+//                "{\"Chn\": 2, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.02, \"IR\": 2.2, \"I\": 2.2, \"IRipple\": 0.01},"
+//                "{\"Chn\": 3, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.03, \"IR\": 3.3, \"I\": 3.3, \"IRipple\": 0.01},"
+//                "{\"Chn\": 4, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.04, \"IR\": 4.4, \"I\": 4.4, \"IRipple\": 0.01}"
+//            "]"
+//        "}"
+//    "}";
+
+//3.1.2
+//    const char* command = "{"
+//        "\"FunType\": \"Cmd\","
+//        "\"FunCode\": \"StopDCS\""
+//    "}";
+
+//3.2.1
+//	    const char* command = "{"
+//	        "\"FunType\": \"Cmd\","
+//	        "\"FunCode\": \"SetDCM\","
+//	        "\"Data\": ["
+//	    		"{\"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
+//	    		"{\"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
+//	    		"{\"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
+//	    		"{\"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4}"
+//	        "]"
+//	    "}";
+
+//3.3.1
+//    const char* command = "{"
+//        "\"FunType\": \"Cmd\","
+//        "\"FunCode\": \"SetACS\","
+//        "\"Data\": {"
+//            "\"ClosedLoop\": true,"
+//            "\"vals\": ["
+//                "{\"Line\": 1, \"Chn\": 1, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 0, \"IR\": 5.1, \"I\": 1.1, \"PhI\": 30.4},"
+//                "{\"Line\": 1, \"Chn\": 2, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 120, \"IR\": 5, \"I\": 2, \"PhI\": 120},"
+//                "{\"Line\": 1, \"Chn\": 3, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 240, \"IR\": 5, \"I\": 3, \"PhI\": 240},"
+//                "{\"Line\": 1, \"Chn\": 4, \"F\": 60.0, \"UR\": 57.7, \"U\": 10, \"PhU\": 0, \"IR\": 5, \"I\": 4, \"PhI\": 0},"
+//                "{\"Line\": 2, \"Chn\": 1, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 0, \"IR\": 5, \"I\": 4, \"PhI\": 0},"
+//                "{\"Line\": 2, \"Chn\": 2, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 120, \"IR\": 5, \"I\": 3, \"PhI\": 120},"
+//                "{\"Line\": 2, \"Chn\": 3, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 240, \"IR\": 5, \"I\": 2, \"PhI\": 240},"
+//                "{\"Line\": 2, \"Chn\": 4, \"F\": 60.0, \"UR\": 57.7, \"U\": 20, \"PhU\": 0, \"IR\": 5, \"I\": 1, \"PhI\": 0}"
+//            "]"
+//        "}"
+//    "}";
+
+//3.3.2
+//    const char* command = "{"
+//        "\"FunType\": \"Cmd\","
+//        "\"FunCode\": \"SetACM\","
+//        "\"Data\": ["
+//    		"{\"Line\": 1, \"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
+//    		"{\"Line\": 1, \"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
+//    		"{\"Line\": 1, \"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
+//    		"{\"Line\": 1, \"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4},"
+//    		"{\"Line\": 2, \"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
+//    		"{\"Line\": 2, \"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
+//    		"{\"Line\": 2, \"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
+//    		"{\"Line\": 2, \"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4}"
+//        "]"
+//    "}";
+
+//3.3.3
+//	const char* command = "{"
+//	    "\"FunType\": \"Cmd\","
+//	    "\"FunCode\": \"SetHarm\","
+//	    "\"Data\": ["
+//	        "{\"Line\": 1, \"Chn\": 1, \"HR\": 2, \"U\": 0.0, \"PhU\": 0.0, \"I\": 0.1, \"PhI\": 0},"
+//	        "{\"Line\": 1, \"Chn\": 1, \"HR\": 3, \"U\": 0.0, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+//			"{\"Line\": 1, \"Chn\": 1, \"HR\": 4, \"U\": 0.0, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+//			"{\"Line\": 1, \"Chn\": 1, \"HR\": 5, \"U\": 0.0, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+//			"{\"Line\": 1, \"Chn\": 2, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
+//			"{\"Line\": 1, \"Chn\": 2, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+//			"{\"Line\": 1, \"Chn\": 2, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+//			"{\"Line\": 1, \"Chn\": 2, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+//			"{\"Line\": 1, \"Chn\": 3, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
+//			"{\"Line\": 1, \"Chn\": 3, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+//			"{\"Line\": 1, \"Chn\": 3, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+//			"{\"Line\": 1, \"Chn\": 3, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+//	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.0, \"PhI\": 0},"
+//	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.0, \"PhI\": 0.0},"
+//	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.0, \"PhI\": 0.0},"
+//	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.3, \"PhI\": 0.0}"
+//	    "]"
+//	"}";
+
+//3.3.4
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"ClearHarm\""
+//			"}";
+
+
+//3.3.7
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"StopAC\""
+//			"}";
+
+//3.4
+//	const char* command = "{"
+//			"\"FunType\": \"Cmd\","
+//			"\"FunCode\": \"SetDO\","
+//			"\"Data\": ["
+//			"{\"Chn\": 1, \"val\": 0},"
+//			"{\"Chn\": 2, \"val\": 0},"
+//			"{\"Chn\": 3, \"val\": 0},"
+//			"{\"Chn\": 4, \"val\": 0},"
+//			"{\"Chn\": 5, \"val\": 1},"
+//			"{\"Chn\": 6, \"val\": 1},"
+//			"{\"Chn\": 7, \"val\": 1},"
+//			"{\"Chn\": 8, \"val\": 1}"
+//			"]"
+//			"}";
+
+
+    // 将字符串写入共享内存
+
+    xil_printf("Command written to shared memory.\n");
+}
+
+
+size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus) {
+    size_t payload_size = 0;
+    size_t header_size = sizeof(u32) * 2;
+
+    if (ReportStatus.BaseDataAC) {
+        payload_size += header_size + sizeof(LineAC);
+//        printf("BaseDataAC size: %zu\n", header_size + sizeof(LineAC));
+    } else {
+        payload_size += header_size;
+//        printf("BaseDataAC header only: %zu\n", header_size);
+    }
+
+    if (ReportStatus.HarmData) {
+        payload_size += header_size + sizeof(LineHarm);
+//        printf("HarmData size: %zu\n", header_size + sizeof(LineHarm));
+    } else {
+        payload_size += header_size;
+//        printf("HarmData header only: %zu\n", header_size);
+    }
+
+    if (ReportStatus.DI) {
+        payload_size += header_size + sizeof(LineDI);
+//        printf("DI size: %zu\n", header_size + sizeof(LineDI));
+    } else {
+        payload_size += header_size;
+//        printf("DI header only: %zu\n", header_size);
+    }
+
+    if (ReportStatus.DO) {
+        payload_size += header_size + sizeof(LineDO);
+//        printf("DO size: %zu\n", header_size + sizeof(LineDO));
+    } else {
+        payload_size += header_size;
+//        printf("DO header only: %zu\n", header_size);
+    }
+
+    if (ReportStatus.DISOE) {
+        payload_size += header_size + sizeof(LineDisoe);
+//        printf("DISOE size: %zu\n", header_size + sizeof(LineDisoe));
+    } else {
+        payload_size += header_size;
+//        printf("DISOE header only: %zu\n", header_size);
+    }
+
+//    printf("Total dynamic payload size: %zu\n", payload_size);
+    return payload_size;
+}
+
+
+
+
+/*
+ * 回报UDP结构体顶层函数
+ */
+//初始化使能状态结构体
+LineAC lineAC;
+LineHarm lineHarm;
+LineDI lineDI;
+LineDO lineDO;
+LineDisoe lineDisoe;
+void ReportUDP_Structure(ReportEnableStatus ReportStatus){
+    UDPPacket udpPacket;
+
+
+    // 动态计算 payload 大小
+    size_t dynamic_payload_size = calculate_dynamic_payload_size(ReportStatus);
+
+    /*写UDP结构体帧头区*/
+    memcpy(udpPacket.syncHeader, (char[]){0xD1, 0xD2, 0xD3, 0xD4}, 4);  // 同步头
+    udpPacket.dataLength1 = dynamic_payload_size;						// 数据区总长度
+    udpPacket.dataLength2 = dynamic_payload_size;						//重复一次 数据区总长度
+    udpPacket.versionInfo = 1;                                          // 版本信息
+    memset(udpPacket.reserved, 0, 3);                                   // 保留
+
+    /*填充数据区*/
+    char* payload_ptr = udpPacket.payload;
+    u32 structType;
+    u32 structLength;
+
+    // LineAC
+    // Flush the entire lineAC structure
+    Xil_DCacheFlushRange((INTPTR)&lineAC, sizeof(LineAC));
+    structType = BaseDataAC;
+    structLength = ReportStatus.BaseDataAC ? sizeof(LineAC) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.BaseDataAC) {
+        memcpy(payload_ptr, &lineAC, sizeof(LineAC));
+        payload_ptr += sizeof(LineAC);
+    }
+
+    // LineHarm
+    Xil_DCacheFlushRange((UINTPTR)&lineHarm, sizeof(LineHarm));
+    structType = HarmData;
+    structLength = ReportStatus.HarmData ? sizeof(LineHarm) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.HarmData) {
+        memcpy(payload_ptr, &lineHarm, sizeof(LineHarm));
+        payload_ptr += sizeof(LineHarm);
+    }
+
+    // LineDI
+    structType = DI;
+    structLength = ReportStatus.DI ? sizeof(LineDI) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.DI) {
+        memcpy(payload_ptr, &lineDI, sizeof(LineDI));
+        payload_ptr += sizeof(LineDI);
+    }
+
+    // LineDO
+    structType = DO;
+    structLength = ReportStatus.DO ? sizeof(LineDO) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.DO) {
+        memcpy(payload_ptr, &lineDO, sizeof(LineDO));
+        payload_ptr += sizeof(LineDO);
+    }
+
+    // LineDisoe
+    structType = DISOE;
+    structLength = ReportStatus.DISOE ? sizeof(LineDisoe) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.DISOE) {
+        memcpy(payload_ptr, &lineDisoe, sizeof(LineDisoe));
+        payload_ptr += sizeof(LineDisoe);
+    }
+
+    /* 写UDP帧尾*/
+    memcpy(payload_ptr, (char[]){0xE1, 0xE2, 0xE3, 0xE4}, 4); // 结束符
+    payload_ptr += 4 * sizeof(u8);
+
+    // 写 UDP 数据到共享内存
+    // 设置共享内存最后一个字节为 1，标记占用
+    uint32_t last_byte_addr = UDP_ADDRESS + UDP_MEM_SIZE - 4;  // 共享内存最后一个字地址
+    Xil_Out32(last_byte_addr, 1);
+    Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
+    write_UDP_to_shared_memory(UDP_ADDRESS, &udpPacket, 16 + dynamic_payload_size + 4);
+    // 设置共享内存最后一个字节为 0，标记空闲
+    Xil_Out32(last_byte_addr, 0);
+    Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
+
+    //刷新整个UDP
+    Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
+    // 打印调试信息
+    // printf("lineAC size: %zu bytes\n", sizeof(LineAC));
+    // printf("dynamic_payload_size: %zu bytes\n", dynamic_payload_size);
+    // printf("UDP_PACKET_SIZE: %d bytes\n", sizeof(udpPacket));
+    // printf("CPU1: UDP written to memory at: 0x%X\n", UDP_ADDRESS);
+}
+
+
+// Function to initialize LineAC
+void initLineAC(LineAC *lineAC) {
+    for (int i = 0; i < ChnsAC; i++) {
+        lineAC->ur[i] = 6.5;
+        lineAC->ir[i] = 5;
+        lineAC->u[i] = 0;
+        lineAC->i[i] = 0;
+        lineAC->phu[i] = 0;
+        lineAC->phi[i] = 0;
+        lineAC->p[i] = 0.0 ;
+        lineAC->q[i] = 0.0 ;
+        lineAC->pf[i] = 0.0 ;
+        lineAC->f[i] = 0.0 ;
+        lineAC->thdu[i] = 0.0 ;
+        lineAC->thdi[i] = 0.0 ;
+    }
+    lineAC->totalP = 0.0;
+    lineAC->totalQ = 0.0;
+    lineAC->totalPF = 0.0;
+}
+
+// Function to initialize LineHarm
+void initLineHarm(LineHarm *lineHarm) {
+    for (int i = 0; i < ChnsAC; i++) {
+        for (int j = 0; j < HarmNumberMax; j++) {
+            lineHarm->harm[i].u[j] = 10.0 ;
+            lineHarm->harm[i].i[j] = 20.0 ;
+            lineHarm->harm[i].phu[j] = 30.0 ;
+            lineHarm->harm[i].phi[j] = 40.0 ;
+            lineHarm->harm[i].p[j] = 50.0 ;
+            lineHarm->harm[i].q[j] = 60.0 ;
+        }
+        lineHarm->harm[i].totalP = 300.0;
+        lineHarm->harm[i].totalQ = 400.0;
+    }
+}
+void initLineDI(LineDI *lineDI) {
+    for (int i = 0; i < ChnsDI; i++) {
+    	lineDI->DI[i].v = 1;
+    }
+}
+
+void initLineDO(LineDO *lineDO) {
+    for (int i = 0; i < ChnsDO; i++) {
+    	lineDO->DO[i].v = 0;
+    }
+}
+
+void initLineDisoe(LineDisoe *lineDisoe) {
+    for (int i = 0; i < DisoeMsgNum; i++) {
+    	lineDisoe->DISOE[i].Chn = i;
+    	lineDisoe->DISOE[i].Val = 1;
+    	lineDisoe->DISOE[i].MS = 999;
+    	lineDisoe->DISOE[i].TIME = 9999;
+    }
+}
+
+// Function to write data to shared memory
+void write_UDP_to_shared_memory(UINTPTR base_addr, void* data, size_t size) {
+    u32* data_ptr = (u32*)data;
+    size_t words = size / 4;
+
+    for (size_t i = 0; i < words; i++) {
+        Xil_Out32(base_addr + (i * 4), data_ptr[i]);
+    }
+    Xil_DCacheFlushRange((INTPTR)UDP_ADDRESS, size);
+}
+
+void init_JsonUdp(void){
+    // 初始化数据结构体
+    initLineAC(&lineAC);
+    initLineHarm(&lineHarm);
+    initLineDI(&lineDI);
+    initLineDO(&lineDO);
+    initLineDisoe(&lineDisoe);
+}
+

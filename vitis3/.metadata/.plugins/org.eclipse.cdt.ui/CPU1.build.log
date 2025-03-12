@@ -1,0 +1,20 @@
+20:59:02 **** Incremental Build of configuration Debug for project CPU1 ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+'Building target: CPU1.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis3/system_wrapper/export/system_wrapper/sw/system_wrapper/freertos_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/ADDA.o ./src/Amplifier_Switch.o ./src/Communications_Protocol.o ./src/Msg_Que.o ./src/My_KissFft.o ./src/cJSON.o ./src/freertos_hello_world.o   -lm -Wl,--start-group,-lxil,-lfreertos,-lgcc,-lc,--end-group
+'Finished building target: CPU1.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 197704	   3640	10593760	10795104	 a4b860	CPU1.elf
+'Finished building: CPU1.elf.size'
+' '
+
+20:59:04 Build Finished (took 1s.561ms)
+

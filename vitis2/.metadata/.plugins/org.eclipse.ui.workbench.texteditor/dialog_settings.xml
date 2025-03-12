@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value="configCHECK_FOR_STACK_OVERFLOW "/>
+		<item key="wrap" value="true"/>
+		<item key="casesensitive" value="true"/>
+		<item key="wholeword" value="true"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<list key="findhistory">
+			<item value="configCHECK_FOR_STACK_OVERFLOW "/>
+			<item value="line_data-&gt;"/>
+			<item value="-&gt;LineAC."/>
+			<item value="ChnsAC"/>
+			<item value="LineAC"/>
+			<item value="MAX_HARMONICS"/>
+			<item value="THRESHOLD_PERCENTAGE"/>
+			<item value="initLineAC"/>
+			<item value="MAX_PEAKS"/>
+			<item value="HARMONIC_FREQ_LIMIT"/>
+			<item value="ADC_Sampling"/>
+			<item value="FindFrequence"/>
+			<item value="ADC_ChannelEnable"/>
+			<item value="8"/>
+			<item value="jsonString"/>
+		</list>
+		<list key="replacehistory">
+			<item value="line_data-&gt;LineAC."/>
+			<item value="-&gt;LineAC."/>
+			<item value="MAX_HARMONICS"/>
+			<item value="RtosRecvedMsgID"/>
+			<item value="RtosSendedMsgID"/>
+			<item value="1"/>
+			<item value="exterded_radio"/>
+			<item value="sample_points"/>
+			<item value="FindFrequence"/>
+			<item value="SAMPLE_POINTS_5"/>
+			<item value="SAMPLE_POINTS_X5"/>
+			<item value="I_"/>
+			<item value="Share_addr"/>
+			<item value="adc_start"/>
+			<item value="adc_send_flag"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="1063"/>
+		<item key="DIALOG_Y_ORIGIN" value="235"/>
+		<item key="DIALOG_WIDTH" value="285"/>
+		<item key="DIALOG_HEIGHT" value="368"/>
+		<item key="DIALOG_FONT_NAME" value="1|Microsoft YaHei UI|9.0|0|WINDOWS|1|-24|0|0|0|400|0|0|0|1|0|0|0|0|Microsoft YaHei UI"/>
+	</section>
+</section>

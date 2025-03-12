@@ -1,0 +1,36 @@
+TRACE::2024-09-21.20:16:33::SCWBifWriter::Found the complete platform C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+TRACE::2024-09-21.20:16:33::SCWBifWriter::hardware databse : system_wrapper_1
+TRACE::2024-09-21.20:16:33::SCWBifWriter::bitstream found in the design
+TRACE::2024-09-21.20:16:33::SCWBifWriter::Found a baremetal domain, proc: ps7_cortexa9_0
+TRACE::2024-09-21.20:16:33::SCWBifWriter::proc type : 
+TRACE::2024-09-21.20:16:33::SCWBifWriter::proc[0] : ps7_cortexa9_0
+TRACE::2024-09-21.20:16:33::SCWBifWriter::Device type is : zynq
+TRACE::2024-09-21.20:16:33::SCWBifWriter::Writing BIF to file : C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/DanDIke_NewBoard_system/Debug/system.bif
+TRACE::2024-09-21.20:16:33::SCWBifWriter::Writing the Zynq Baremetal bif 
+TRACE::2024-09-21.20:21:04::SCWBifWriter::Found the complete platform C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+TRACE::2024-09-21.20:21:04::SCWBifWriter::hardware databse : system_wrapper_1
+TRACE::2024-09-21.20:21:04::SCWBifWriter::bitstream found in the design
+TRACE::2024-09-21.20:21:04::SCWBifWriter::Found a baremetal domain, proc: ps7_cortexa9_0
+TRACE::2024-09-21.20:21:04::SCWBifWriter::proc type : 
+TRACE::2024-09-21.20:21:04::SCWBifWriter::proc[0] : ps7_cortexa9_0
+TRACE::2024-09-21.20:21:04::SCWBifWriter::Device type is : zynq
+TRACE::2024-09-21.20:21:04::SCWBifWriter::Writing BIF to file : C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/DanDIke_NewBoard_system/Debug/system.bif
+TRACE::2024-09-21.20:21:04::SCWBifWriter::Writing the Zynq Baremetal bif 
+TRACE::2024-10-28.10:00:37::SCWBifWriter::Found the complete platform C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+TRACE::2024-10-28.10:00:37::SCWBifWriter::hardware databse : system_wrapper
+TRACE::2024-10-28.10:00:37::SCWBifWriter::bitstream found in the design
+TRACE::2024-10-28.10:00:37::SCWBifWriter::Found a baremetal domain, proc: ps7_cortexa9_0
+TRACE::2024-10-28.10:00:37::SCWBifWriter::proc type : 
+TRACE::2024-10-28.10:00:37::SCWBifWriter::proc[0] : ps7_cortexa9_0
+TRACE::2024-10-28.10:00:37::SCWBifWriter::Device type is : zynq
+TRACE::2024-10-28.10:00:37::SCWBifWriter::Writing BIF to file : C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/DanDIke_NewBoard_system/Debug/system.bif
+TRACE::2024-10-28.10:00:37::SCWBifWriter::Writing the Zynq Baremetal bif 
+TRACE::2024-10-28.10:03:40::SCWBifWriter::Found the complete platform C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+TRACE::2024-10-28.10:03:40::SCWBifWriter::hardware databse : system_wrapper
+TRACE::2024-10-28.10:03:40::SCWBifWriter::bitstream found in the design
+TRACE::2024-10-28.10:03:40::SCWBifWriter::Found a baremetal domain, proc: ps7_cortexa9_0
+TRACE::2024-10-28.10:03:40::SCWBifWriter::proc type : 
+TRACE::2024-10-28.10:03:40::SCWBifWriter::proc[0] : ps7_cortexa9_0
+TRACE::2024-10-28.10:03:40::SCWBifWriter::Device type is : zynq
+TRACE::2024-10-28.10:03:40::SCWBifWriter::Writing BIF to file : C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/DanDIke_NewBoard_system/Debug/system.bif
+TRACE::2024-10-28.10:03:40::SCWBifWriter::Writing the Zynq Baremetal bif 

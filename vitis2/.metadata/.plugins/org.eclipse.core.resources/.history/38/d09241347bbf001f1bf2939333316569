@@ -1,0 +1,159 @@
+
+/* FreeRTOS includes. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "timers.h"
+/* Xilinx includes. */
+#include "xil_printf.h"
+#include "xparameters.h"
+/*user includes*/
+#include "xil_mmu.h"
+#include "Amplifier_Switch.h"
+#include "ADDA.h"
+#include "Communications_Protocol.h"
+#include "Msg_que.h"
+#include "My_kissFft.h"
+
+
+#include "xgpiops.h" //包含 PS GPIO 的函数
+#define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
+#define MIO_USB 8 //连接到 MIO8
+/*-----------------------------------------------------------*/
+/* 函数原型声明 */
+static void prvAdDaTask( void *pvParameters );
+/*-----------------------------------------------------------*/
+
+/* 发送任务、接收任务、队列、定时器的句柄声明 */
+static TaskHandle_t xAdDaTask;
+static QueueHandle_t xQueue = NULL;
+char HWstring[15] = "Hello World";//发送队列中的数据
+int main( void )
+{
+	xTaskCreate( 	prvAdDaTask, 					/* 任务函数. */
+					( const char * ) "ADDA", 		/* 任务的文本名，仅用于辅助调试 */
+					configMINIMAL_STACK_SIZE, 	/* 任务的堆栈大小 */
+					NULL, 						/* 传入任务函数的参数 未使用任务参数，所以设置为 NUL. */
+					tskIDLE_PRIORITY,			/* 任务以空优先级运行 */
+					&xAdDaTask );					/* 返回的任务句柄（任务控制块） */
+
+	/* 创建队列 */
+	xQueue = xQueueCreate( 	1,						/* 队列的能够存储的最大单元个数 */
+							sizeof( HWstring ) );	/* 队列中数据单元的大小 */
+
+	/*检测队列是否创建. */
+	configASSERT( xQueue );
+
+
+	/* 启动任务运行和定时器运行 */
+	vTaskStartScheduler();
+
+	/* 如果一切正常，调度器现在将运行，并且 main()函数将永远不会执行到下一行 ，如果下一行被执行了，很可能是没有足够的 FreeRTOS 堆内存来创建空闲任务*/
+	for( ;; );
+}
+
+
+/*-----------------------------------------------------------*/
+static void prvAdDaTask( void *pvParameters )
+{
+	xil_printf("CPU1: initializing\r\n");
+	/************************** USB初始化 *****************************/
+	XGpioPs Gpio; // GPIO 设备的驱动程序实例
+	XGpioPs_Config *ConfigPtr;
+	ConfigPtr = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
+	XGpioPs_CfgInitialize(&Gpio, ConfigPtr,ConfigPtr->BaseAddr);
+	XGpioPs_SetDirectionPin(&Gpio, MIO_USB, 1);
+	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
+	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
+
+
+//	sleep(17);				//必须要有等待linux启动
+
+
+	/************************** DMA初始化 *****************************/
+	int status;
+	XAxiDma_Config *config;
+	config = XAxiDma_LookupConfig(DMA_DEV_ID);
+	if (!config) {
+	    xil_printf("No config found for %d\r\n", DMA_DEV_ID);
+	}
+	//初始化DMA引擎
+	status = XAxiDma_CfgInitialize(&axidma, config);
+	if (status != XST_SUCCESS) {
+	    xil_printf("Initialization failed %d\r\n", status);
+	}
+    //初始化dma标志信号
+    tx_done = 0;
+    error   = 0;
+
+	/************************** 定时器初始化 *****************************/
+	status = timer_init(&Timer);     								//定时器初始化
+	if (status != XST_SUCCESS) {
+		xil_printf("Timer Initial Failed\r\n");
+	}
+	Timer_Flag = 0;
+
+	//建立中断系统
+	status = setup_intr_system(&intc, &axidma, &Timer,
+			DMA_RX_INTR_ID, ADCS_RX_INTR_ID,DMA_TX_INTR_ID, Overflow_INTR_ID, Underflow_INTR_ID, Switch_INT_ID, Amplifier_INT_ID, SOFT_INTR_ID_TO_CPU1,TIMER_IRPT_INTR);
+	if (status != XST_SUCCESS) {
+	    xil_printf("Failed intr setup\r\n");
+	}
+
+
+
+	/************************** 禁用Cache*****************************/
+	Xil_SetTlbAttributes(JSON_ADDR,0x14de2);    					//禁用Cache属性	//S=b1 TEX=b100 AP=b11, Domain=b1111, C=b0, B=b0
+	Xil_SetTlbAttributes(UDP_ADDRESS,0x14de2);
+	Xil_SetTlbAttributes(Share_addr,0x14de2);
+
+//	XScuTimer_Start(&Timer);         								//启动定时器
+	InitializeQueues();
+	xil_printf("CPU1: Initialization successfully\r\n");
+
+
+
+	/************************** 测试FFT*****************************/
+	numHarmonics[0] = 4;
+	harmonics[0][0] = 0.0;
+	harmonics[0][1] = 0.2;
+	harmonics[0][2] = 0.1;
+	harmonics[0][3] = 0.0;
+
+	numHarmonics[1] = 4;
+	harmonics[1][0] = 0.0;
+	harmonics[1][1] = 0.2;
+	harmonics[1][2] = 0.1;
+	harmonics[1][3] = 0.0;
+	//生成交流信号
+	str_wr_bram();
+	sleep(1);
+    //开启AD 映射到硬件
+	ADC_ChannelEnable = 1;
+	//开启ADC
+	adc_start();
+	sleep(2);
+
+    // 刷新DDR
+    Xil_DCacheFlushRange((UINTPTR) Share_addr, sample_points* 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+    // 分析FFT
+
+    AnalyzeWaveform(&lineAC);
+
+
+    /************************** 测试FFT*****************************/
+
+	while(1)
+	{
+ 		if(Timer_Flag){					//0.5S定时器
+			/*2 回报UDP结构体*/
+//			Timer_Flag = 0;
+//			ReportUDP_Structure(reportStatus);
+		}
+	}
+}
+
+
+
+
+

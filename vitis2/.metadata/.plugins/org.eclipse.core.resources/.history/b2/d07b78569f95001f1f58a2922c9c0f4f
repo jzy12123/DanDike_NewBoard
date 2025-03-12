@@ -1,0 +1,444 @@
+#include"ADDA.h"
+/*
+ * 变量
+ */
+XAxiDma axidma;     						//XAxiDma实例
+XScuGic intc;       						//中断控制器的实例
+XScuTimer Timer;            				//定时器驱动程序实例
+volatile int tx_done;      					//发送完成标志
+volatile int error;        					//传输出错标志
+volatile int adcS_done;      				//adc发送完成标志
+volatile u8 Timer_Flag;						//定时器完成标志
+//ad
+int dma_rx_8[8][sample_points] = {0};   	//8个通道，每个通道的采样点数sample_points
+u16 *rx_buffer_ptr= (u16 *) RX_BUFFER_BASE;
+u16 *tx_buffer_ptr = (u16 *) TX_BUFFER_BASE;
+
+uint16_t Wave_NewData[8][DATA_LEN];									//修改后8路通道所有数据
+//波形修改参数
+float Phase_shift[8] 	= 	{0 , 0 , 0 , 0 , 0 , 0 , 0 , 0};		//8路波形相位偏移 单位度
+u32 enable 				= 	0xff;									//使能通道输出
+float Wave_Frequency 	= 	60;
+float Wave_Amplitude[8]	=	{100 , 100 , 100 , 100 , 100 , 100 , 100 , 100};
+u32 Wave_Range[8]		=	{0xff , 0xff , 0xff , 0xff , 0xff , 0xff , 0xff , 0xff};
+u8 ADC_ChannelEnable[8]  =   {0};
+
+u32 ADC_Sampling		=	3;
+int numHarmonics[CHANNL_MAX] = {0};                  				//每个通道有几个谐波
+float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};					//每个通道每次谐波的幅值
+float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0};			//每个通道每次谐波的相位
+
+int cpu1_SoftIntr_flag = 0;												//软中断标志位
+
+void adc_start(){
+	if(sample_points == 1024) {
+		Xil_Out32(adc_whole_base_addr + 8, 0x400);					//采样点：sample_points写1024
+		Xil_Out32(adc_whole_base_addr + 4, 0x7A1);					//1953，对应采样频率50*1024
+	}
+
+	if(sample_points == 2048) {
+		Xil_Out32(adc_whole_base_addr + 8,  0x800); 				//sample_points写2048
+		Xil_Out32(adc_whole_base_addr + 4,  0x3D0); 				//976
+	}
+
+	Xil_Out32(adc_whole_base_addr + 0,  0);							//开启一次ADC
+	Xil_Out32(adc_whole_base_addr + 0,  1);
+	//接下来进入adcS_intr_handler中断函数
+}
+void dma_dac_init() {
+	//dma_dac
+	start_dma_dac();
+}
+
+ void dds_dac_init() {
+
+	//更改使能、频率、相位、通道使能
+	str_wr_bram();
+
+}
+
+//DMA RX中断处理函数 adc
+ void rx_intr_handler(void *callback) {
+    u32 irq_status;
+    int timeout;
+    XAxiDma *axidma_inst = (XAxiDma *) callback;
+
+    irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DEVICE_TO_DMA);
+    XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DEVICE_TO_DMA);
+
+    //Rx出错
+    if ((irq_status & XAXIDMA_IRQ_ERROR_MASK)) {
+        error = 1;
+        XAxiDma_Reset(axidma_inst);
+        timeout = RESET_TIMEOUT_COUNTER;
+        while (timeout) {
+            if (XAxiDma_ResetIsDone(axidma_inst))
+                break;
+            timeout -= 1;
+        }
+        return;
+    }
+
+    //Rx完成
+    if ((irq_status & XAXIDMA_IRQ_IOC_MASK)){
+    	Xil_DCacheFlushRange((UINTPTR) rx_buffer_ptr, sample_points*16*8);
+    	Adc_Data_processing();
+    }
+}
+
+ void adcS_intr_handler(void *callback) {
+
+	//开启ADC
+	if(sizeof((int)ADC_ChannelEnable) / sizeof((int)ADC_ChannelEnable[0]) != 0){//数组不全为0，则开启ADC
+		adc_start();
+	}
+
+	XAxiDma_SimpleTransfer(&axidma, (UINTPTR) rx_buffer_ptr, sample_points*16*8, XAXIDMA_DEVICE_TO_DMA);
+	//接下来进入rx_intr_handler函数
+}
+
+//DMA TX中断处理函数 dac
+ void tx_intr_handler(void *callback) {
+    int timeout;
+    u32 irq_status;
+    XAxiDma *axidma_inst = (XAxiDma *) callback;
+
+    //读取待处理的中断
+    irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DMA_TO_DEVICE);
+    //确认待处理的中断
+    XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DMA_TO_DEVICE);
+
+    //Tx出错
+    if ((irq_status & XAXIDMA_IRQ_ERROR_MASK)) {
+        error = 1;
+        XAxiDma_Reset(axidma_inst);
+        timeout = RESET_TIMEOUT_COUNTER;
+        while (timeout) {
+            if (XAxiDma_ResetIsDone(axidma_inst))
+                break;
+            timeout -= 1;
+        }
+        return;
+    }
+
+    //Tx完成
+    if ((irq_status & XAXIDMA_IRQ_IOC_MASK)) {
+    	tx_done = 1;
+    }
+}
+
+//上溢：写满fifo后继续写则导致上溢
+ void overflow_handler() {
+	//xil_printf("overflow\r\n");
+}
+
+//下溢：读空fifo后继续读则导致下溢
+ void underflow_handler() {
+	//xil_printf("underflow\r\n");
+
+//	Copy_Wave_to_tx_buffer_ptr();
+	Xil_DCacheFlushRange((UINTPTR) tx_buffer_ptr, DATA_LEN*16);   //刷新Data Cache
+	XAxiDma_SimpleTransfer(&axidma, (UINTPTR) tx_buffer_ptr, DATA_LEN*16, XAXIDMA_DMA_TO_DEVICE);
+}
+
+ //定时器初始化程序
+int timer_init(XScuTimer *timer_ptr)
+{
+	int status;
+	//私有定时器初始化
+	XScuTimer_Config *timer_cfg_ptr;
+	timer_cfg_ptr = XScuTimer_LookupConfig(TIMER_DEVICE_ID);
+	if (NULL == timer_cfg_ptr)
+		return XST_FAILURE;
+	status = XScuTimer_CfgInitialize(timer_ptr, timer_cfg_ptr,timer_cfg_ptr->BaseAddr);
+	if (status != XST_SUCCESS)
+		return XST_FAILURE;
+
+	XScuTimer_LoadTimer(timer_ptr, TIMER_LOAD_VALUE); // 加载计数周期
+	XScuTimer_EnableAutoReload(timer_ptr);            // 设置自动装载模式
+
+	return XST_SUCCESS;
+}
+
+//建立DMA中断系统
+//  @param   int_ins_ptr是指向XScuGic实例的指针
+//  @param   AxiDmaPtr是指向DMA引擎实例的指针
+//  @param   tx_intr_id是TX通道中断ID
+//  @param   rx_intr_id是RX通道中断ID
+//  @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
+ int setup_intr_system(XScuGic * int_ins_ptr, XAxiDma * axidma_ptr,XScuTimer *timer_ptr,
+		u16 rx_intr_id, u16 adcS_id, u16 tx_intr_id, u16 overflow_id, u16 underflow_id, u16 switch_id,u16 amplifier_id,u16 SoftIntrCpu1_id,u16 Timer_id)
+{
+    int status;
+    XScuGic_Config *intc_config;
+
+    //初始化中断控制器驱动
+    intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
+    if (NULL == intc_config) {
+        return XST_FAILURE;
+    }
+    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config,
+            intc_config->CpuBaseAddress);
+    if (status != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+
+    //设置优先级和触发类型
+    //ad
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 0xA0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, adcS_id, 0xA0, 0x03);
+    //da
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 0xA0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, overflow_id, 0xA0, 0x3);  //高电平有效
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 0xA0, 0x3);
+    //switch amp
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, switch_id, 0xA0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, amplifier_id, 0xA0, 0x3);  //高电平有效
+    // 为定时器中断设置较高优先级
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3); // 设置更高优先级
+
+    //为中断设置中断处理函数
+    XScuGic_Connect(int_ins_ptr, rx_intr_id,(Xil_InterruptHandler) rx_intr_handler, axidma_ptr);
+    XScuGic_Connect(int_ins_ptr, adcS_id,(Xil_InterruptHandler) adcS_intr_handler, (void *)1);
+    XScuGic_Connect(int_ins_ptr, tx_intr_id,(Xil_InterruptHandler) tx_intr_handler, axidma_ptr);
+    XScuGic_Connect(int_ins_ptr, overflow_id,(Xil_InterruptHandler) overflow_handler, (void *)1);
+    XScuGic_Connect(int_ins_ptr, underflow_id,(Xil_InterruptHandler) underflow_handler, (void *)1);
+	XScuGic_Connect(int_ins_ptr, switch_id, (Xil_ExceptionHandler)Switch_INT_handler, (void *)1);
+	XScuGic_Connect(int_ins_ptr, amplifier_id, (Xil_ExceptionHandler)Amplifier_INT_handler, (void *)1);
+    XScuGic_Connect(int_ins_ptr, SoftIntrCpu1_id,(Xil_ExceptionHandler)soft_intr_handler, (void *)int_ins_ptr);//CPU1软中断
+    XScuGic_Connect(int_ins_ptr, Timer_id,(Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);	   //定时器
+
+    //使能
+    //ad
+    XScuGic_Enable(int_ins_ptr, rx_intr_id);
+    XScuGic_Enable(int_ins_ptr, adcS_id);
+    //da
+    XScuGic_Enable(int_ins_ptr, tx_intr_id);
+    XScuGic_Enable(int_ins_ptr, overflow_id);
+    XScuGic_Enable(int_ins_ptr, underflow_id);
+    //switch amp
+    XScuGic_Enable(int_ins_ptr, switch_id);
+    XScuGic_Enable(int_ins_ptr, amplifier_id);
+    //CPU1软中断
+    XScuGic_Enable(int_ins_ptr, SoftIntrCpu1_id); //CPU1软件中断
+    //定时器
+    XScuGic_Enable(int_ins_ptr, Timer_id);
+    //启用来自硬件的中断
+    Xil_ExceptionInit();
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+            (Xil_ExceptionHandler) XScuGic_InterruptHandler,
+            (void *) int_ins_ptr);
+    Xil_ExceptionEnable();
+
+    //使能中断
+    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);	//DMA
+    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
+    XScuTimer_EnableInterrupt(timer_ptr);      									//定时器
+    return XST_SUCCESS;
+}
+
+ int code_to_real(u16 x){   //将16位数据转换成实际电压值
+	int x1 = 0;
+	int x2 = 0;
+
+	if((x >> 15) == 0){   //如果是正电压，最高位为0
+		x2 = +((int)(x+1));
+		//x2 = +(((float)(x+1))*(20.0f))/(65536.0f);
+	}
+	else{  //如果是负电压
+		x1 = 0xFFFF - x + 0x01;  //将16位二进制数据全部取反，再+1
+		x2 = -((int)(x1));
+		//x2 = -(((float)(x1))*(20.0f))/(65536.0f);
+	}
+	return x2;
+}
+
+ void Adc_Data_processing() {
+	/************************** 数据处理 *****************************/
+	int k = 0;
+	for(int i = 0;i < sample_points;i ++){
+		dma_rx_8[0][i] = code_to_real(rx_buffer_ptr[k+1]);  //JUA
+		dma_rx_8[1][i] = code_to_real(rx_buffer_ptr[k+3]);  //JUB
+		dma_rx_8[2][i] = code_to_real(rx_buffer_ptr[k+5]); 	//JUC
+		dma_rx_8[3][i] = code_to_real(rx_buffer_ptr[k+7]);	//JUX
+		dma_rx_8[4][i] = code_to_real(rx_buffer_ptr[k]);	//JIA
+		dma_rx_8[5][i] = code_to_real(rx_buffer_ptr[k+2]);	//JIB
+		dma_rx_8[6][i] = code_to_real(rx_buffer_ptr[k+4]);	//JIC
+		dma_rx_8[7][i] = code_to_real(rx_buffer_ptr[k+6]);	//JIX
+		k += 8;
+	}
+
+	static int ADC_Sampling_ddr = 0;//写几个周期
+	/*输出到共享DDR*/
+	for(int j = 0;j < 8;j ++){//8个通道
+		for(int i = 0;i < sample_points;i ++){
+			Xil_Out32(Share_addr + j*sample_points*4 + ADC_Sampling_ddr*8*sample_points*4 + i*4
+					,(u32)dma_rx_8[j][i]) ;
+		}
+	}
+	ADC_Sampling_ddr++;
+
+
+
+}
+
+ void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress) {
+    for (int i = 0; i < Array_Length; i++) {
+        // 计算相位偏移后的正弦波值
+        double phase = 2 * M_PI * i / Array_Length; // 角度值
+        double shifted_phase = phase + (Phase_Degress * M_PI / 180.0); // 添加相位偏移
+        double sin_value = sin(shifted_phase); // 计算正弦值
+        // 将正弦值映射到合适的幅度范围（0到MAX_AMPLITUDE）
+        NewData[i] = (uint16_t)((sin_value + 1.0) * 0.5 * Data_Width);
+    }
+}
+
+ void Write_Wave_to_Wave_NewData() {
+	//二维数组8*DATA_LEN     Wave_NewData中存储的是8个通道，每个通道DATA_LEN个点，正弦波
+
+    for(int i = 0 ;i < CHANNL_MAX ; i++){
+    	addHarmonics(Wave_NewData[i], DATA_LEN, Phase_shift[i], numHarmonics[i], harmonics[i], harmonics_phases[i]);
+    }
+
+	if(DATA_LEN == 2048) {
+		//8*1024改成8*2048
+		for(int i = 0 ;i < 8 ; i++){
+			for(int j = 0; j < 1024; j++){
+					Wave_NewData[i][j + 1024] = Wave_NewData[i][j];
+				}
+		}
+	}
+
+	if(DATA_LEN == 4096) {
+		//8*1024改成8*2048
+		for(int i = 0 ;i < 8 ; i++){
+			for(int j = 0; j < 1024; j++){
+					Wave_NewData[i][j + 1024] = Wave_NewData[i][j];
+				}
+		}
+
+		//8*2048改成8*4096
+		for(int i = 0 ;i < 8 ; i++){
+			for(int j = 0; j < 2048; j++){
+					Wave_NewData[i][j + 2048] = Wave_NewData[i][j];
+				}
+		}
+	}
+}
+
+ void Copy_Wave_to_tx_buffer_ptr() {
+    //要给一维数组tx_buffer_ptr赋值，tx_buffer_ptr中存的是8个通道的所有数据，正弦波。前8位分别对应8个通道的第一个点，依次类推，每个通道存DATA_LEN个点
+	int k = 0;
+	for(int j = 0;j < DATA_LEN;j++){
+		for(int i = 0;i < 8;i ++){
+			tx_buffer_ptr[k+i] = Wave_NewData[i][j];
+		}
+		k += 8;
+	}
+}
+
+ void start_dma_dac() {
+	u16 frequency_divisor;//分频系数 默认为1953
+	//修改通道使能和分频系数
+	frequency_divisor = 100000000/Wave_Frequency/DATA_LEN;//分频系数
+
+	 /*
+	  * dma_enable     (slv_reg0[16])
+	  * dma_freq_div   (slv_reg1[31:16])
+	  * dma_channels   (slv_reg2[23:16])
+	  */
+	Xil_Out32(dac_whole_base_addr + 0, (u32)0x10000);
+	Xil_Out32(dac_whole_base_addr + 4,  (u32)(frequency_divisor << 16));
+	Xil_Out32(dac_whole_base_addr + 8,  (u32)(enable) << 16);
+
+	Write_Wave_to_Wave_NewData();
+	Copy_Wave_to_tx_buffer_ptr();
+	Xil_DCacheFlushRange((UINTPTR) tx_buffer_ptr, DATA_LEN*16);   //刷新Data Cache
+	XAxiDma_SimpleTransfer(&axidma, (UINTPTR) tx_buffer_ptr, DATA_LEN*16, XAXIDMA_DMA_TO_DEVICE);
+}
+
+
+//将波形写入BRAM
+ void str_wr_bram(){
+	u32 data_2channl;	//32位数据，存放2个通道16位的波形
+    u16 channel_cnt = 0;
+
+    u16 frequency_divisor;//分频系数 默认为1953
+    //修改波形
+
+    for(int i = 0 ;i < CHANNL_MAX ; i++){
+    	addHarmonics(Wave_NewData[i], DATA_LEN, Phase_shift[i], numHarmonics[i], harmonics[i], harmonics_phases[i]);
+    }
+
+    //修改通道使能和分频系数
+    frequency_divisor = 100000000/Wave_Frequency/DATA_LEN;//分频系数
+    /*
+     *  dds_enable     (slv_reg0[0])
+     *  dds_freq_div   (slv_reg1[15:0])    //1953
+     *  dds_channels   (slv_reg2[7:0])
+     */
+	Xil_Out32(dac_whole_base_addr + 0, 1);//start_dds写1,第17位
+    Xil_Out32(dac_whole_base_addr + 4 , (u32)frequency_divisor);
+    Xil_Out32(dac_whole_base_addr + 8,  (u32)enable );
+
+    //写入BRAM
+    //最大地址为32bit*4 *1024 = 16KB
+    for(int j = 0; j < DATA_LEN; j++){
+    	for(int i = 0; i < 4*BRAM_DATA_BYTE; i += BRAM_DATA_BYTE){//更新了8通道的第一个采样点
+    		data_2channl = (Wave_NewData[channel_cnt+1][j] << 16) + Wave_NewData[channel_cnt][j];
+    		XBram_WriteReg(XPAR_BRAM_0_BASEADDR,i + j*4*BRAM_DATA_BYTE,data_2channl);
+    		channel_cnt += 2;
+    	}
+    	channel_cnt = 0;
+    }
+}
+
+ //软件中断函数
+ void soft_intr_handler()
+ {
+ 	xil_printf("CPU1: CPU1 Soft Interrupt\r\n");
+ 	cpu1_SoftIntr_flag = 1;
+ }
+
+ //定时器中断处理函数
+ void timer_intr_handler(void *CallBackRef){
+	XScuTimer *timer_ptr = (XScuTimer *) CallBackRef;
+
+	Timer_Flag = 1;
+	//清除定时器中断标志
+	XScuTimer_ClearInterruptStatus(timer_ptr);
+ }
+
+ /*
+  *    添加谐波
+  */
+ void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[]) {
+     for (int i = 0; i < Array_length; i++) {
+         double phase = 2 * M_PI * i / Array_length; // 基本波形的相位
+         double shifted_phase = phase + (Base_Phase_Degrees * M_PI / 180.0); // 添加基波相位偏移
+         double sum = sin(shifted_phase); // 基本正弦波
+
+         // 添加谐波
+         for (int j = 0; j < numHarmonics; j++) {
+             double harmonic_phase = (j + 2) * phase; // 基波的整数倍
+             double shifted_harmonic_phase = harmonic_phase + (harmonics_phases[j]) * M_PI / 180.0; // 使用基波和谐波的相位偏移
+             double harmonic_value = sin(shifted_harmonic_phase);
+
+             sum += harmonic_value * harmonics[j]; // 添加谐波并乘以相应的幅值
+         }
+
+         // 归一化并转换为 uint16_t 类型
+         NewData[i] = (uint16_t)((sum / (1.0 + sumHarmonics(harmonics, numHarmonics))) * 32768 + 32767);
+     }
+ }
+
+ // 辅助函数，计算谐波幅值总和
+ double sumHarmonics(float harmonics[], int numHarmonics) {
+     double sum = 0.0;
+     for (int i = 0; i < numHarmonics; i++) {
+         sum += harmonics[i];
+     }
+     return sum;
+ }
+
+

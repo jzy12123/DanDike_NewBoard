@@ -1,0 +1,36 @@
+#ifndef MY_KISSFT_H
+#define MY_KISSFT_H
+
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ADDA.h"
+
+// 定义采样率和采样点数
+#define SAMPLE_RATE 51200           // 采样频率
+#define SAMPLE_POINTS 1024          // 每个通道的采样点数
+#define FUNDAMENTAL_FREQ_MIN 40     // 基波频率的最小值（Hz）
+#define FUNDAMENTAL_FREQ_MAX 70     // 基波频率的最大值（Hz）
+#define MAX_AMPLITUDE 16384.0       // 数据最大值范围
+
+#define N_APPROX 780                // 估计基波频率的点数
+#define D_RANGE_MAX 1138            // 最大步长对应45Hz的点数
+#define THRESHOLD_PERCENTAGE 0.1    // 谐波百分比阈值
+// 复数结构体定义
+struct compx {
+    float real;
+    float imag;
+};
+
+
+extern float fundamental_frequency, fundamental_value;
+extern float harmonic_info[MAX_HARMONICS][3];  // 每行存储频率、幅值和百分比
+
+double FindFrequence(const double WaveData[], int data_length);
+void AnalyzeWaveform(int data_in[], float *fundamental_frequency, float *fundamental_value, float harmonic_info[][3]);
+void FFT(struct compx *xin, int Num);
+#endif
+
+

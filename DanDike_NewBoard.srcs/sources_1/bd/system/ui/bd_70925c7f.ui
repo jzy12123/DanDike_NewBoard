@@ -1,0 +1,58 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"2.0",
+   "Default View_TopLeft":"-594,-30",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:10.0 non-TLS
+#  -string -flagsOSRD
+preplace port S_AXI -pg 1 -lvl 0 -x -20 -y 280 -defaultsOSRD
+preplace port OnOff_0 -pg 1 -lvl 2 -x 390 -y 240 -defaultsOSRD
+preplace port WrSerial_0 -pg 1 -lvl 2 -x 390 -y 270 -defaultsOSRD
+preplace port RdSerial_0 -pg 1 -lvl 2 -x 390 -y 300 -defaultsOSRD
+preplace port S_AXI1 -pg 1 -lvl 0 -x -20 -y -10 -defaultsOSRD
+preplace port S_AXI2 -pg 1 -lvl 0 -x -20 -y 20 -defaultsOSRD
+preplace port DA_0 -pg 1 -lvl 2 -x 390 -y -10 -defaultsOSRD
+preplace port S_AXI_LITE -pg 1 -lvl 0 -x -20 -y 50 -defaultsOSRD
+preplace port S_AXI3 -pg 1 -lvl 0 -x -20 -y 80 -defaultsOSRD
+preplace port AD_0 -pg 1 -lvl 2 -x 390 -y 20 -defaultsOSRD
+preplace port M00_AXI -pg 1 -lvl 2 -x 390 -y 50 -defaultsOSRD
+preplace port CLK25MHz -pg 1 -lvl 0 -x -20 -y 170 -defaultsOSRD
+preplace port CLK25MHz_ARESETN -pg 1 -lvl 0 -x -20 -y 200 -defaultsOSRD
+preplace port onoff_done -pg 1 -lvl 2 -x 390 -y 330 -defaultsOSRD
+preplace port wrserial_done -pg 1 -lvl 2 -x 390 -y 360 -defaultsOSRD
+preplace port s_axi_lite_aclk -pg 1 -lvl 0 -x -20 -y 110 -defaultsOSRD
+preplace port S_AXI_ARESETN -pg 1 -lvl 0 -x -20 -y 140 -defaultsOSRD
+preplace port prog_empty -pg 1 -lvl 2 -x 390 -y 80 -defaultsOSRD
+preplace port prog_full -pg 1 -lvl 2 -x 390 -y 110 -defaultsOSRD
+preplace port mm2s_introut -pg 1 -lvl 2 -x 390 -y 140 -defaultsOSRD
+preplace port s2mm_introut -pg 1 -lvl 2 -x 390 -y 170 -defaultsOSRD
+preplace port adc_end_intr -pg 1 -lvl 2 -x 390 -y 200 -defaultsOSRD
+preplace inst onoff_config_axi_0 -pg 1 -lvl 1 -x 190 -y 320 -defaultsOSRD
+preplace inst adda -pg 1 -lvl 1 -x 190 -y 120 -defaultsOSRD
+preplace netloc processing_system7_0_FCLK_CLK1 1 0 1 20 170n
+preplace netloc proc_sys_reset_0_peripheral_aresetn 1 0 1 40 190n
+preplace netloc onoff_config_axi_0_onoff_done 1 1 1 350J 330n
+preplace netloc onoff_config_axi_0_wrserial_done 1 1 1 NJ 360
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 1 10 110n
+preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 0 1 0 140n
+preplace netloc axis_data_fifo_1_prog_empty 1 1 1 360J 80n
+preplace netloc axis_data_fifo_1_prog_full 1 1 1 370J 110n
+preplace netloc axi_dma_0_mm2s_introut 1 1 1 350J 140n
+preplace netloc axi_dma_0_s2mm_introut 1 1 1 NJ 170
+preplace netloc adc_whole_0_adc_end_intr 1 1 1 350J 190n
+preplace netloc ps7_0_axi_periph_M09_AXI 1 0 1 NJ 280
+preplace netloc onoff_config_axi_0_OnOff 1 1 1 340J 240n
+preplace netloc onoff_config_axi_0_WrSerial 1 1 1 360J 270n
+preplace netloc onoff_config_axi_0_RdSerial 1 1 1 370J 300n
+preplace netloc ps7_0_axi_periph_M08_AXI 1 0 1 50J -10n
+preplace netloc ps7_0_axi_periph_M07_AXI 1 0 1 40J 20n
+preplace netloc dac_whole_0_DA 1 1 1 330J -10n
+preplace netloc ps7_0_axi_periph_M05_AXI 1 0 1 30J 50n
+preplace netloc ps7_0_axi_periph_M06_AXI 1 0 1 20J 80n
+preplace netloc adc_whole_0_AD 1 1 1 340J 20n
+preplace netloc adda_M00_AXI 1 1 1 350J 50n
+levelinfo -pg 1 -20 190 390
+pagesize -pg 1 -db -bbox -sgen -210 -30 530 420
+"
+}
+

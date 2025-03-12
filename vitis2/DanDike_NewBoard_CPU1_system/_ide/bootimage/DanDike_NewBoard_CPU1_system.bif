@@ -1,0 +1,7 @@
+//arch = zynq; split = false; format = BIN
+the_ROM_image:
+{
+	[bootloader]C:\Users\saber\Desktop\BOOT.BIN\zynq_fsbl.elf
+	C:\Users\saber\Desktop\u-boot.elf
+	C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/DanDike_NewBoard_CPU1/Debug/DanDike_NewBoard_CPU1.elf
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value="lineAC.u"/>
+		<item key="wrap" value="true"/>
+		<item key="casesensitive" value="true"/>
+		<item key="wholeword" value="true"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<list key="findhistory">
+			<item value="lineAC.u"/>
+			<item value="lineAC.u[0]"/>
+			<item value="totalP"/>
+			<item value="totalPF"/>
+			<item value="str_wr_bram"/>
+			<item value="stderr"/>
+			<item value="kiss_fft"/>
+			<item value="[ERROR] ../src/kiss_fft/kiss_fft.c:377 fout buffer NULL."/>
+			<item value="ERROR"/>
+			<item value="377"/>
+			<item value="fout buffer NULL"/>
+			<item value="total_magnitude"/>
+			<item value="fundamental_idx"/>
+		</list>
+		<list key="replacehistory">
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="1536"/>
+		<item key="DIALOG_Y_ORIGIN" value="438"/>
+		<item key="DIALOG_WIDTH" value="260"/>
+		<item key="DIALOG_HEIGHT" value="342"/>
+		<item key="DIALOG_FONT_NAME" value="1|Microsoft YaHei UI|9.0|0|WINDOWS|1|-21|0|0|0|400|0|0|0|1|0|0|5|0|Microsoft YaHei UI"/>
+	</section>
+</section>

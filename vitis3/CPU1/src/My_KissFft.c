@@ -1,0 +1,118 @@
+
+#include"My_kissFft.h"
+
+
+double FindFrequence(const int WaveData[], int data_length) {
+    double likelihood[D_RANGE_MAX];
+    double x_segment[N_APPROX];
+    double b_y;
+    int d, k;
+
+//    printf("N_APPROX=%d\n",N_APPROX);
+//    printf("D_RANGE_MAX=%d\n",D_RANGE_MAX);
+    // 提取信号片段
+    for (int i = 0; i < N_APPROX; i++) {
+        x_segment[i] = (double)WaveData[i];
+    }
+
+    // 初始化似然数组
+    memset(&likelihood[0], 0, D_RANGE_MAX * sizeof(double));
+
+    // 计算最大似然估计
+    for (d = 0; d < D_RANGE_MAX; d++) {
+        double y[N_APPROX];
+        for (k = 0; k < N_APPROX; k++) {
+            b_y = (double)WaveData[k + d + 1] - x_segment[k];
+            y[k] = b_y * b_y;
+        }
+
+        b_y = y[0];
+        for (k = 1; k < N_APPROX; k++) {
+            b_y += y[k];
+        }
+
+        likelihood[d] = -b_y;
+    }
+
+    // 找到最大似然估计的位置
+    d = 0;
+    for (k = 1; k < D_RANGE_MAX; k++) {
+        if (likelihood[k] > likelihood[d]) {
+            d = k;
+        }
+    }
+
+    // 计算并返回估计频率
+    return SAMPLE_RATE / ((double)d + 1);
+}
+
+void AnalyzeWaveform() {
+    const int exterded_radio = AD_SAMP_CYCLE_NUMBER;  // 将波形扩展到n倍长度
+    int N = sample_points * exterded_radio;  // 扩展后的数据长度
+    int extended_data[N];
+
+    for(int j = 0; j < exterded_radio; j++){
+    	for(int i = 0; i < sample_points; i++){
+    		//共享基地址 + 通道偏移地址 + AD_SAMP_CYCLE_NUMBER次波形 + 单次1024个点
+    		extended_data[i+j*sample_points] = Xil_In32(Share_addr + 0*sample_points*4 + j*sample_points*CHANNL_MAX*4 + i*4);
+    	}
+    }
+//    //打印原始波形
+//    for(int i = 0;i < N;i++){
+//    	printf("x=%d\n", extended_data[i]);
+//    }
+
+    // 基波频率检测
+    double fundamental_frequency = FindFrequence(extended_data, N_APPROX);
+    printf("Fundamental Frequency: %f Hz\n", fundamental_frequency);
+
+
+
+    // 准备 Kiss FFT 输入和输出
+	kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
+
+	printf("kiss_fft_cfg\n");
+	kiss_fft_cpx in[N], out[N];
+	printf("kiss_fft_cpx\n");
+
+
+	for (int i = 0; i < N; i++) {
+		in[i].r = (float)((float)extended_data[i] / MAX_AMPLITUDE );  // 实部
+		in[i].i = 0.0;                                     // 虚部
+	}
+
+	printf("before kiss_fft\n");
+	// 执行 Kiss FFT
+	kiss_fft(cfg,in, out);
+	printf("after kiss_fft\n");
+    // 计算频谱幅值
+    float P2[N];
+    for (int i = 0; i < N; i++) {
+        P2[i] = sqrt(out[i].r * out[i].r + out[i].i * out[i].i) / N;
+    }
+
+    // 只取一半频谱
+    float P1[N / 2 + 1];
+    for (int i = 0; i <= N / 2; i++) {
+        P1[i] = P2[i];
+        if (i > 0 && i < N / 2) {
+            P1[i] *= 2;
+        }
+    }
+
+	// 设置基波值
+    // 采样率
+    float fs = SAMPLE_RATE;
+
+
+    //打印频谱
+    for (int i = 0; i <= 1000; i++) {
+        float frequency = (i * fs / N);  // 计算对应的频率 i*频率分辨率
+        printf("x=%10.6f\r\n frequency:%15.2f\n",P1[i],frequency);
+    }
+
+
+	// 释放 Kiss FFT 配置
+    free(cfg);
+}
+

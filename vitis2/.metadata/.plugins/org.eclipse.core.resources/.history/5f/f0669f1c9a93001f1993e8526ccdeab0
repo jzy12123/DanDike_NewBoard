@@ -1,0 +1,263 @@
+#ifndef COMMUNICATIONS_PROTOCOL_H
+#define COMMUNICATIONS_PROTOCOL_H
+
+#include "stdio.h"
+#include "stdint.h"
+#include "stdlib.h"
+#include <stdbool.h>
+#include <string.h>
+#include "ADDA.h"
+#include "cJSON.h"
+
+
+#define SYNC_FLAG_ADDRESS   (JSON_ADDRESS + JSON_MEM_SIZE - 4) // 共享内存末尾的4字节作为标志位
+#define SYNC_FLAG_READY     0x1   // 写入完成标志
+#define SYNC_FLAG_NOT_READY 0x0   // 写入未完成标志
+
+#define JSON_ADDRESS	0XFFFF0000			//JSON指令位于共享RAM
+#define JSON_MEM_SIZE	0x6400
+#define	UDP_ADDRESS		JSON_ADDRESS+0x6400	//UDP回报结构体地址，在SHARE_BASE上偏移0x6400（留给JSON指令）
+#define UDP_MEM_SIZE	0x9A00
+#define SHARE_MEM_SIZE  0xFE00              //共享RAM总大小
+
+#define LinesAC 		2  					//装置支持的AC线路数
+#define ChnsAC  		4  					//AC每线路支持的通道数 ABCX
+#define ChnsDCS  		4					//直流源通道数
+#define ChnsDCM  		4					//直流表通道数
+#define ChnsBI   		8					//开入通道数
+#define ChnsBO			8					//开出通道数
+#define HarmNumberMax  	32  				//n+1，最大支持到31次，考虑1次备用（基波），所以定义结构体时该值为实际谐波次数+1.
+
+// 如果没有 assert，手动定义一个简单的宏
+//#ifndef assert
+//#define assert(expression) if (!(expression)) { \
+//    printf("Assertion failed: %s, file %s, line %d\n", #expression, __FILE__, __LINE__); \
+//    while (1); \
+//}
+//#endif
+
+/******************************************************************************************************
+ * UDP结构体
+ ******************************************************************************************************/
+typedef enum{
+	BaseDataAC		= 101,
+	HarmData		= 102,
+	InterHarmData	= 103,
+	BaseDataDCS		= 301,
+	BaseDataDCM		= 401,
+	DI				= 501,
+	DO				= 502
+
+}Return_DataType;
+
+//回报使能状态
+typedef struct {
+    bool BaseDataAC;
+    bool HarmData;
+    bool InterHarmData;
+    bool BaseDataDC;
+    bool BaseDataIO;
+    bool DISOE;
+    bool VMData;  // DK51D专用数据上报
+} ReportEnableStatus;
+extern ReportEnableStatus reportStatus;
+
+#define UDP_PAYLOAD_SIZE 6648    //谐波数据要个6208字节 交流量要408字节 payload要16个字节 至少要6632个字节+16冗余
+typedef struct __attribute__((aligned(4))){
+	//帧头区
+    char syncHeader[4];			// D1D2D3D4
+    u32 dataLength1;			// Length of LineAC
+    u32 dataLength2;			// Length of LineHarm
+    u8 versionInfo;				// 1
+    u8 reserved[3];				// 00 00 00
+    //数据区
+    char payload[UDP_PAYLOAD_SIZE];
+    //帧尾区
+    char endFooter[4];			// E1E2E3E4
+} UDPPacket;
+
+
+//101=BaseDataAC，交流源/交流表基础数据
+//源模式且源停止状态时，应置结构体长度=0, 非0表示源输出中。
+typedef struct 			  //交流线路——基本量                 ChnsAC*12*8+24 => 3通道=312
+{
+	double ur[ChnsAC];    //U档位[ChnsAC]
+	double ir[ChnsAC];    //I档位[ChnsAC]
+
+	double u[ChnsAC];     //U[ChnsAC]
+	double i[ChnsAC];     //I[ChnsAC]
+	double phu[ChnsAC];   //phu[ChnsAC]
+	double phi[ChnsAC];   //phi[ChnsAC]
+	double p[ChnsAC];     //p[ChnsAC]
+	double q[ChnsAC];     //q[ChnsAC]
+	double pf[ChnsAC];    //pf[ChnsAC]
+	double f[ChnsAC];     //f[ChnsAC]
+	double thdu[ChnsAC];  //thdu[ChnsAC]
+	double thdi[ChnsAC];  //thdi[ChnsAC]
+
+	double totalP;        //当前线路的总有功
+	double totalQ;
+	double totalPF;
+}LineAC;
+
+//102=HarmData，谐波数据
+typedef struct     				  //交流通道谐波       HarmNumberMax*6*8+16  => HarmNumberMax为32时=1552
+{
+	double u[HarmNumberMax];      //u[HrNo]
+	double i[HarmNumberMax];      //i[HrNo]
+	double phu[HarmNumberMax];    //phu[HrNo]
+	double phi[HarmNumberMax];    //phi[HrNo]
+	double p[HarmNumberMax];      //p[HrNo]
+	double q[HarmNumberMax];      //q[HrNo]
+
+	double totalP;        		  //当前通道的总有功
+	double totalQ;
+}Harm;
+typedef struct    				  //交流线路——谐波              ChnsAC*1552  => 6208
+{
+	Harm  harm[ChnsAC];  		  //harm[ChnsAC]
+}LineHarm;
+
+
+
+/*****************************************************************************************************
+ * JSON结构体
+ ******************************************************************************************************/
+//使用一个结构体来将FunCode与相应的处理函数映射起来
+typedef void (*FunCodeHandler) (cJSON *data);
+typedef struct {
+    const char *funCode;
+    FunCodeHandler handler;
+} FunCodeMap;
+
+
+//3.1.1直流源设置
+typedef struct
+{
+	int Chn;
+	float UR;
+	float U;
+	float URipple;
+	float IR;
+	float I_;
+	float IRipple;
+}SetDCS_Vals;
+typedef struct
+{
+	bool ClosedLoop;
+	SetDCS_Vals Vals[ChnsDCS];
+}SetDCS;
+
+//3.2.1直流表设置
+typedef struct
+{
+	int Chn;
+	float UR;
+	float IR;
+}SetDCM_Vals;
+typedef struct
+{
+	bool ClosedLoop;
+	SetDCM_Vals Vals[ChnsDCM];
+}SetDCM;
+
+//3.3.1交流源设置
+typedef struct
+{
+	int Line;
+	int Chn;
+	float F;
+	float UR;
+	float U;
+	float PhU;
+	float IR;
+	float I_;
+	float PhI;
+}SetACS_Vals;
+typedef struct
+{
+	bool ClosedLoop;
+	SetACS_Vals Vals[LinesAC * ChnsAC];
+}SetACS;
+
+
+//3.3.2交流表设置
+typedef struct
+{
+	int Line;
+	int Chn;
+	float UR;
+	float IR;
+}SetACM_Vals;
+typedef struct
+{
+	SetACM_Vals Vals[LinesAC * ChnsAC];
+}SetACM;
+
+
+//3.3.3谐波输出设置
+typedef struct
+{
+	int Line;
+	int Chn;
+	int HR;
+	float U;
+	float PhU;
+	float I_;
+	float PhI;
+}SetHarm_Vals;
+typedef struct
+{
+	SetHarm_Vals Vals[LinesAC * ChnsAC * HarmNumberMax];
+}SetHarm;
+
+//3.4 开出设置
+typedef struct
+{
+
+	int Chn;
+	bool val;
+}SetDO_Vals;
+typedef struct
+{
+	SetDO_Vals Vals[ChnsBO];
+}SetDO;
+
+
+// 定义JSON回报结构体
+typedef struct {
+    char FunCode[32];
+    char Result[16];
+    bool hasClosedLoop; // 指示是否包含ClosedLoop字段
+    bool ClosedLoop;
+} ReplyData;
+
+
+/******************************************************************************************************
+ * 函数申明
+ ******************************************************************************************************/
+void ReportUDP_Structure();
+void write_UDP_to_shared_memory(UINTPTR base_addr, void* data, size_t size);
+void initLineAC(LineAC *lineAC);
+void initLineHarm(LineHarm *lineHarm);
+int Parse_JsonCommand();
+void write_command_to_shared_memory();
+void write_reply_to_shared_memory(ReplyData *replyData);
+void handle_GetFunCodeList(cJSON *data);
+void handle_GetDevBaseInfo(cJSON *data);
+void handle_GetDevState(cJSON *data);
+void handle_SetReportEnable(cJSON *data);
+void handle_SetDCS(cJSON *data);
+void handle_SetDCM(cJSON *data);
+void handle_SetACS(cJSON *data);
+void handle_SetACM(cJSON *data);
+void handle_SetHarm(cJSON *data);
+void handle_SetInterHarm(cJSON *data);
+void handle_SetDO(cJSON *data);
+void handle_StopDCS(cJSON *data);
+void handle_StopAC(cJSON *data);
+void handle_ClearHarm(cJSON *data);
+void handle_ClearInterHarm(cJSON *data);
+int checkUdpStatus();
+void ClearSharedMemory();
+#endif

@@ -1,0 +1,21 @@
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "ADDA.h"
+#include "kiss_fft/kiss_fft.h"
+
+
+#define SAMPLE_POINTS_X5 5120  // 输入数据点数
+#define Fs 51200           // 采样频率 1024 * 50Hz
+#define MAX_HARMONICS 10   // 最大谐波数
+#define THRESHOLD 0.1      // 谐波阈值
+
+
+
+
+// 函数声明
+double MostLike_FindFrequence(double* WaveData, int DataLength);
+void FFT2C(double* var1, int DataLength, double* fundamental_frequency, double* fundamental_value, double harmonic_info[MAX_HARMONICS][3]);

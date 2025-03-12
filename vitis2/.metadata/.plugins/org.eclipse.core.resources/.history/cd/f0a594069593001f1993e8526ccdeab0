@@ -1,0 +1,17 @@
+#include <stdio.h>
+#include <math.h>
+#include <complex.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "ADDA.h"
+#include "kiss_fft/kiss_fft.h"
+
+
+#define SAMPLE_POINTS_5 	5120  // 输入数据点数
+#define SAMPLE_RATE  		51200           // 采样频率 1024 * 50Hz
+#define THRESHOLD 0.1      // 谐波阈值
+
+
+
+

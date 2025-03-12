@@ -1,0 +1,25 @@
+2024-10-28T10:03:37.568549700255-10:03:37 **** Build of configuration Debug for project DanDIke_NewBoard_CPU0 ****
+000-make all 
+000-make --no-print-directory pre-build
+000-a9-linaro-pre-build-step
+000-' '
+000-make --no-print-directory main-build
+000-'Building file: ../src/cpu0.c'
+000-'Invoking: ARM v7 gcc compiler'
+000-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/cpu0.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/cpu0.d" -MT"src/cpu0.o" -o "src/cpu0.o" "../src/cpu0.c"
+000-'Finished building: ../src/cpu0.c'
+000-' '
+000-'Building target: DanDIke_NewBoard_CPU0.elf'
+000-'Invoking: ARM v7 gcc linker'
+000-arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bsplib/lib -o "DanDIke_NewBoard_CPU0.elf"  ./src/cpu0.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+000-'Finished building target: DanDIke_NewBoard_CPU0.elf'
+000-' '
+000-'Invoking: ARM v7 Print Size'
+000-arm-none-eabi-size DanDIke_NewBoard_CPU0.elf  |tee "DanDIke_NewBoard_CPU0.elf.size"
+000-   text	   data	    bss	    dec	    hex	filename
+000-  28364	   1920	  22600	  52884	   ce94	DanDIke_NewBoard_CPU0.elf
+000-'Finished building: DanDIke_NewBoard_CPU0.elf.size'
+000-' '
+00255-
+10:03:38 Build Finished (took 940ms)
+

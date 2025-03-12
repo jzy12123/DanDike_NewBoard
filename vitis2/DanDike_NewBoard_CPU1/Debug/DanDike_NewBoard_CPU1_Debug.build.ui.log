@@ -1,0 +1,10 @@
+2024-12-22T09:58:29.54339100255-09:58:29 **** Incremental Build of configuration Debug for project DanDike_NewBoard_CPU1 ****
+000-make all 
+000-make --no-print-directory pre-build
+000-a9-linaro-pre-build-step
+000-' '
+000-make --no-print-directory main-build
+000-make[1]: Nothing to be done for 'main-build'.
+00255-
+09:58:30 Build Finished (took 697ms)
+

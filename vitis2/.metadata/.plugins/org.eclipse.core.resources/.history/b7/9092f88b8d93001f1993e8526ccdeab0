@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ASCII"?>
+<systemproject:SystemProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdsproject="http://www.xilinx.com/sdsproject" xmlns:systemproject="http://www.xilinx.com/systemproject" name="DanDike_NewBoard_CPU1_system" platform="C:/Users/saber/Desktop/DanDike_NewBoard/vitis2/system_wrapper/export/system_wrapper/system_wrapper.xpfm" platformUID="xilinx:::0.0(custom)" sysConfig="system_wrapper" runtime="C/C++" rootFSLocation="" linuxImage="" sysroot="">
+  <configuration name="Debug" id="com.xilinx.sdx.system.managedbuilder.debugConfiguration.461053768">
+    <configBuildOptions xsi:type="systemproject:SystemOptions">
+      <applications name="DanDike_NewBoard_CPU1" domainName="rtos_ps7_crotex9_1" domainPrettyName="rtos_ps7_crotex9_1" appBuildConfig="Debug"/>
+      <options xsi:type="sdsproject:Option" gensdcard="true" dmclkid="0"/>
+    </configBuildOptions>
+    <lastBuildOptions xsi:type="systemproject:SystemOptions">
+      <applications name="DanDike_NewBoard_CPU1" domainName="rtos_ps7_crotex9_1" domainPrettyName="rtos_ps7_crotex9_1" appBuildConfig="Debug"/>
+      <options xsi:type="sdsproject:Option" gensdcard="true" dmclkid="0"/>
+    </lastBuildOptions>
+  </configuration>
+  <configuration name="Release" id="com.xilinx.sdx.system.managedbuilder.releaseConfiguration.1838314749">
+    <configBuildOptions xsi:type="systemproject:SystemOptions">
+      <applications name="DanDike_NewBoard_CPU1" domainName="rtos_ps7_crotex9_1" domainPrettyName="rtos_ps7_crotex9_1" appBuildConfig="Release"/>
+      <options xsi:type="sdsproject:Option" gensdcard="true" dmclkid="0"/>
+    </configBuildOptions>
+  </configuration>
+</systemproject:SystemProject>

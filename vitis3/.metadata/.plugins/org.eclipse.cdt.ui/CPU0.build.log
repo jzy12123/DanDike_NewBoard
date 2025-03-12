@@ -1,0 +1,25 @@
+10:24:28 **** Build of configuration Debug for project CPU0 ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+'Building file: ../src/cpu0.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/cpu0.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis3/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/cpu0.d" -MT"src/cpu0.o" -o "src/cpu0.o" "../src/cpu0.c"
+'Finished building: ../src/cpu0.c'
+' '
+'Building target: CPU0.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis3/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bsplib/lib -o "CPU0.elf"  ./src/cpu0.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+'Finished building target: CPU0.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size CPU0.elf  |tee "CPU0.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  25036	   1920	  22600	  49556	   c194	CPU0.elf
+'Finished building: CPU0.elf.size'
+' '
+
+10:24:31 Build Finished (took 2s.150ms)
+

@@ -1,0 +1,170 @@
+
+#include"My_kissFft.h"
+
+
+
+
+float fundamental_frequency, fundamental_value;
+float harmonic_info[MAX_HARMONICS][3] = {0};  // 每行存储频率、幅值和百分比
+
+double FindFrequence(const int WaveData[], int data_length) {
+    double likelihood[D_RANGE_MAX];
+    double x_segment[N_APPROX];
+    double b_y;
+    int d, k;
+
+//    printf("N_APPROX=%d\n",N_APPROX);
+//    printf("D_RANGE_MAX=%d\n",D_RANGE_MAX);
+    // 提取信号片段
+    for (int i = 0; i < N_APPROX; i++) {
+        x_segment[i] = (double)WaveData[i];
+    }
+
+    // 初始化似然数组
+    memset(&likelihood[0], 0, D_RANGE_MAX * sizeof(double));
+
+    // 计算最大似然估计
+    for (d = 0; d < D_RANGE_MAX; d++) {
+        double y[N_APPROX];
+        for (k = 0; k < N_APPROX; k++) {
+            b_y = (double)WaveData[k + d + 1] - x_segment[k];
+            y[k] = b_y * b_y;
+        }
+
+        b_y = y[0];
+        for (k = 1; k < N_APPROX; k++) {
+            b_y += y[k];
+        }
+
+        likelihood[d] = -b_y;
+    }
+
+    // 找到最大似然估计的位置
+    d = 0;
+    for (k = 1; k < D_RANGE_MAX; k++) {
+        if (likelihood[k] > likelihood[d]) {
+            d = k;
+        }
+    }
+
+    // 计算并返回估计频率
+    return SAMPLE_RATE / ((double)d + 1);
+}
+
+void AnalyzeWaveform(float *fundamental_frequency, float *fundamental_value, float harmonic_info[][3],int channel) {
+    const int exterded_radio = AD_SAMP_CYCLE_NUMBER;  // 将波形扩展到n倍长度
+    int N = sample_points * exterded_radio;  // 扩展后的数据长度
+    int extended_data[N];
+
+    for(int j = 0; j < exterded_radio; j++){
+    	for(int i = 0; i < sample_points; i++){
+    		//共享基地址 + 通道偏移地址 + AD_SAMP_CYCLE_NUMBER次波形 + 单次1024个点
+    		extended_data[i+j*sample_points] = Xil_In32(Share_addr + channel*sample_points*4 + j*sample_points*CHANNL_MAX*4 + i*4);
+    	}
+    }
+    //打印波形
+//    for(int i = 0;i < N;i++){
+//    	printf("x=%d\n", extended_data[i]);
+//    }
+
+    // 基波频率检测
+    *fundamental_frequency = FindFrequence(extended_data, N_APPROX);
+    printf("Fundamental Frequency: %f Hz\n", *fundamental_frequency);
+
+    // 准备 Kiss FFT 输入和输出
+	kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
+	kiss_fft_cpx in[N], out[N];
+
+	for (int i = 0; i < N; i++) {
+		in[i].r = (float)(extended_data[i] / MAX_AMPLITUDE);  // 实部
+		in[i].i = 0.0f;                                     // 虚部
+	}
+
+	// 执行 Kiss FFT
+	kiss_fft(cfg, in, out);
+
+    // 计算频谱幅值
+    float P2[N];
+    for (int i = 0; i < N; i++) {
+        P2[i] = sqrt(out[i].r * out[i].r + out[i].i * out[i].i) / N;
+    }
+
+    // 只取一半频谱
+    float P1[N / 2 + 1];
+    for (int i = 0; i <= N / 2; i++) {
+        P1[i] = P2[i];
+        if (i > 0 && i < N / 2) {
+            P1[i] *= 2;
+        }
+    }
+
+    // 打印频谱的前半部分
+//    for (int i = 0; i <= 1000; i++) {
+//        float frequency = (i * fs / N);  // 计算对应的频率 i*频率分辨率
+//        printf("x=%10.6f\r\n frequency:%15.2f\n",P1[i],frequency);
+//    }
+
+
+	// 设置基波值
+    // 采样率
+    float fs = SAMPLE_RATE;
+	*fundamental_value = P1[(int)(*fundamental_frequency * N / fs)];
+
+
+    // 查找和打印最大峰值
+    float peak_frequencies[MAX_HARMONICS];
+    float peak_amplitudes[MAX_HARMONICS];
+
+    // 查找峰值
+    for (int i = 1; i < N / 2 - 1; i++) { // 从1到N/2-1，避免边界
+        if (P1[i] > P1[i - 1] && P1[i] > P1[i + 1]) { // 判断是否为局部最大值
+            // 插入新峰值按幅度排序
+            for (int j = 0; j < MAX_HARMONICS; j++) {
+                if (P1[i] > peak_amplitudes[j]) {
+                    // 移动已有的峰值
+                    for (int k = MAX_HARMONICS - 1; k > j; k--) {
+                        peak_frequencies[k] = peak_frequencies[k - 1];
+                        peak_amplitudes[k] = peak_amplitudes[k - 1];
+                    }
+                    // 记录新峰值
+                    peak_frequencies[j] = (i * fs / N); // 计算频率
+                    peak_amplitudes[j] = P1[i];
+                    break;
+                }
+            }
+        }
+    }
+    // 打印提取的峰值
+    printf("\nDetected Peaks:\n");
+    for (int i = 0; i < MAX_HARMONICS; i++) {
+        if (peak_amplitudes[i] > 0) { // 只打印有效峰值
+            printf("Peak %d: Frequency = %.2f Hz, Amplitude = %.6f\n", i + 1, peak_frequencies[i], peak_amplitudes[i]);
+        }
+    }
+    //替换基波频率和幅值
+    *fundamental_frequency = peak_frequencies[0];
+    *fundamental_value = peak_amplitudes[0];
+
+
+	// 直接提取基波频率的整数倍谐波
+	int harmonic_idx = 0;
+	// 检测基波的最高32次谐波
+	for (int i = 1; i <= MAX_HARMONICS; i++) {
+	  int harmonic_index = (int)(i * (*fundamental_frequency) * N / fs);
+	  if (harmonic_index < N / 2) {
+		  float harmonic_value = P1[harmonic_index];
+		  float percentage_of_fundamental = (harmonic_value / *fundamental_value) * 100;
+
+		  // 如果幅度大于某个阈值，记录谐波信息
+		  if (harmonic_value >= 0.01) { // 设置一个幅度阈值
+			  harmonic_info[harmonic_idx][0] = i * (*fundamental_frequency);
+			  harmonic_info[harmonic_idx][1] = harmonic_value;
+			  harmonic_info[harmonic_idx][2] = percentage_of_fundamental;
+			  harmonic_idx++;
+		  }
+	  }
+	}
+	// 释放 Kiss FFT 配置
+    free(cfg);
+}
+

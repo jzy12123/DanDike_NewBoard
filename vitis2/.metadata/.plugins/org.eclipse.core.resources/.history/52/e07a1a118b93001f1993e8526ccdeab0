@@ -1,0 +1,82 @@
+
+#include "FFT_Main.h"
+
+
+#define CHANNELS 8
+
+// 从内存读取数据到 emxArray_real_T
+void memoryToEmxArray(uint32_t base_addr, int Sample_Points, int Adc_Sampling, int channel, emxArray_real_T *emxArray) {
+    if (channel < 0 || channel >= 8) {
+        fprintf(stderr, "Invalid channel number\n");
+        return;
+    }
+
+    int total_points = Sample_Points * Adc_Sampling;
+    emxArray->data = (double *)malloc(total_points * sizeof(double));
+    emxArray->size = (int *)malloc(1 * sizeof(int)); // 1 维度：采样点数
+    emxArray->size[0] = total_points;
+    emxArray->allocatedSize = total_points;
+    emxArray->numDimensions = 1;
+    emxArray->canFreeData = 1;
+
+    for (int k = 0; k < Adc_Sampling; k++) {
+        for (int i = 0; i < Sample_Points; i++) {
+            uint32_t addr = base_addr + AD_MEM_OFFECT + channel * Sample_Points * 4 + k * 8 * Sample_Points * 4 + i * 4;
+            emxArray->data[k * Sample_Points + i] = (double)Xil_In32(addr);
+        }
+    }
+}
+
+// 初始化 emxArray_real_T
+void init_emxArray_real_T(emxArray_real_T *emxArray, int numDimensions, int size) {
+    emxArray->data = (double *)malloc(size * sizeof(double));
+    emxArray->size = (int *)malloc(numDimensions * sizeof(int));
+    emxArray->allocatedSize = size;
+    emxArray->numDimensions = numDimensions;
+    emxArray->canFreeData = true;
+    for (int i = 0; i < numDimensions; i++) {
+        emxArray->size[i] = size;
+    }
+}
+
+// 释放 emxArray_real_T
+void free_emxArray_real_T(emxArray_real_T *emxArray) {
+    if (emxArray->canFreeData && emxArray->data != NULL) {
+        free(emxArray->data);
+    }
+    if (emxArray->size != NULL) {
+        free(emxArray->size);
+    }
+}
+
+void FFT_Calculate(int chanel){
+	emxArray_real_T var1;
+	double harmonic_info_data[30];
+	double fundamental_frequency;
+	double fundamental_value;
+	int harmonic_info_size[2];
+	//初始化结构体
+	init_emxArray_real_T(&var1, 1, sample_points * ADC_Sampling);
+
+	// 将内存数据传输到 emxArray_real_T
+	memoryToEmxArray(SHARE_BASE, sample_points, ADC_Sampling, chanel, &var1);//通道3做FFT
+
+	// 调用 FFT2C 函数
+	FFT2C(&var1, &fundamental_frequency, &fundamental_value, harmonic_info_data, harmonic_info_size);
+
+    // 打印基波信息
+    printf("base_frequence: %lf Hz\n", fundamental_frequency);
+//    printf("基波幅值: %lf\n", fundamental_value);
+
+    // 打印谐波信息
+    int num_harmonics = harmonic_info_size[0];
+//    printf("谐波信息:\n");
+    for (int i = 0; i < num_harmonics; ++i) {
+        printf("harmonic %d: frequence = %lf Hz, amp = %lf, duty %lf %%\n",
+               i + 1, harmonic_info_data[i], harmonic_info_data[i + num_harmonics], harmonic_info_data[i + 2 * num_harmonics]);
+    }
+
+    // 释放内存
+    free_emxArray_real_T(&var1);
+
+}
