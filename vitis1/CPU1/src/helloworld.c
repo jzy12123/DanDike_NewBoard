@@ -159,7 +159,7 @@ int main()
 	AdcFinish_Flag = 0;
 	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
 	sleep(1);
-	//开启第一次AD
+	// 开启第一次AD
 	ADC_ChannelEnable = 1;
 	AdcFinish_Flag = 0;
 	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
@@ -170,10 +170,11 @@ int main()
 		{
 
 			/************************** 测试FFT*****************************/
-			while (AdcFinish_Flag == 0)
-				;
+			if (AdcFinish_Flag == 0)
+			{
+				printf("CPU1_Warring: ADC not finished\n");
+			};
 
-			printf("ADC finished, processing data\n");
 			// 确定用于FFT计算的DDR区域 - 使用与当前ADC写入相反的区域
 			u32 fft_share_addr = (Current_DDR_Region == 0) ? Share_addr_2 : Share_addr_1;
 			// 刷新共享内存的缓存，保证数据的一致性
@@ -339,6 +340,9 @@ int main()
 				//		printf(" Wave_Amplitude_U=%f\n Wave_Amplitude_I=%f\n Wave_Range_U=%lu\n Wave_Range_I=%lu\n",Wave_Amplitude[i] , Wave_Amplitude[i+4] , Wave_Range[i] , Wave_Range[i+4]);
 			}
 			power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+
+			/*4 读错误信号*/
+			//	RdSerial();
 		}
 	}
 }
