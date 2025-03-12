@@ -149,12 +149,12 @@ int main()
 	AdcFinish_Flag = 0;
 	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
 	sleep(1);
-	// // 开启第一次AD
-	// ADC_ChannelEnable = 1;
-	// AdcFinish_Flag = 0;
-	// adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-	// sleep(1);
-	// // 开启第一次AD
+	// 开启第一次AD
+	ADC_ChannelEnable = 1;
+	AdcFinish_Flag = 0;
+	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
+	sleep(1);
+	// 开启第一次AD
 	ADC_ChannelEnable = 1;
 	AdcFinish_Flag = 0;
 	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
