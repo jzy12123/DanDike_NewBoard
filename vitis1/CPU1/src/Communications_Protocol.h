@@ -307,7 +307,8 @@ void handle_StopDCS(cJSON *data);
 void handle_StopAC(cJSON *data);
 void handle_ClearHarm(cJSON *data);
 void handle_ClearInterHarm(cJSON *data);
-
+void handle_setCalibrateAC(cJSON *data);
+void handle_writeCalibrateAC(cJSON *data);
 //主动上报
 void report_protection_event(u8 ProectFault);
 #endif

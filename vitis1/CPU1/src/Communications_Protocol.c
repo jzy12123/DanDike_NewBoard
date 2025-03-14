@@ -88,7 +88,9 @@ int Parse_JsonCommand(char *buffer)
         {"StopDCS", handle_StopDCS},
         {"StopAC", handle_StopAC},
         {"ClearHarm", handle_ClearHarm},
-        {"ClearInterHarm", handle_ClearInterHarm}};
+        {"ClearInterHarm", handle_ClearInterHarm},
+        {"setCalibrateAC", handle_setCalibrateAC},
+        {"writeCalibrateAC", handle_writeCalibrateAC}};
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
     // 检查输入字符串首尾的 '|'
@@ -1165,6 +1167,279 @@ void handle_ClearInterHarm(cJSON *data)
 {
     // 处理 handle_ClearInterHarm 的逻辑
     //    xil_printf("CPU1: Handling handle_ClearInterHarm...\r\n");
+}
+
+/**
+ * @brief 处理设置校准点命令
+ *
+ * 该函数根据输入的校准点参数设置设备输出相应的幅值
+ *
+ * @param data 包含校准点数据的 JSON 对象
+ */
+void handle_setCalibrateAC(cJSON *data)
+{
+    // 从JSON中提取校准点信息
+    cJSON *mode = cJSON_GetObjectItem(data, "Mode");
+    cJSON *point = cJSON_GetObjectItem(data, "Point");
+
+    if (!mode || !point)
+    {
+        printf("CPU1: setCalibrateAC: Missing Mode or Point data\r\n");
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    // 提取点信息
+    cJSON *ur = cJSON_GetObjectItem(point, "UR");
+    cJSON *ir = cJSON_GetObjectItem(point, "IR");
+    cJSON *u = cJSON_GetObjectItem(point, "U");
+    cJSON *i = cJSON_GetObjectItem(point, "I");
+
+    if (!ur || !ir || !u || !i)
+    {
+        printf("CPU1: setCalibrateAC: Missing point data values\r\n");
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    float urValue = (float)ur->valuedouble;
+    float irValue = (float)ir->valuedouble;
+    float uValue = (float)u->valuedouble;
+    float iValue = (float)i->valuedouble;
+
+    // 判断装置是否有UR IR这个档位
+    // 定义浮点数比较的误差范围
+    const float epsilon = 0.01f;
+
+    // 检查电压档位
+    bool validURFound = false;
+    float voltageRanges[] = {6.5f, 3.25f, 1.876f};
+    for (int i = 0; i < 3; i++)
+    {
+        if (fabsf(urValue - voltageRanges[i]) < epsilon)
+        {
+            validURFound = true;
+            break;
+        }
+    }
+
+    // 检查电流档位
+    bool validIRFound = false;
+    float currentRanges[] = {5.0f, 1.0f, 0.2f};
+    for (int i = 0; i < 3; i++)
+    {
+        if (fabsf(irValue - currentRanges[i]) < epsilon)
+        {
+            validIRFound = true;
+            break;
+        }
+    }
+
+    if (!validURFound || !validIRFound)
+    {
+        printf("CPU1: setCalibrateAC: Invalid UR or IR range value\r\n");
+        printf("CPU1: UR=%f (valid: 6.5, 3.25, 1.876), IR=%f (valid: 5.0, 1.0, 0.2)\r\n",
+               urValue, irValue);
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    printf("CPU1: setCalibrateAC: Setting calibration point: UR=%f, IR=%f, U=%f, I=%f\r\n",
+           urValue, irValue, uValue, iValue);
+
+    // 设置所有通道的输出
+    for (int i = 0; i < LinesAC * ChnsAC; i++)
+    {
+        setACS.Vals[i].UR = urValue;
+        setACS.Vals[i].IR = irValue;
+        setACS.Vals[i].U = uValue;
+        setACS.Vals[i].I_ = iValue;
+    }
+
+    // 更新波形幅度和范围
+    for (int i = 0; i < 4; i++)
+    {
+        Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
+        Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
+        Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
+        Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+    }
+
+    // 应用设置
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+    str_wr_bram(PID_OFF);
+
+    // 返回成功响应
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "setCalibrateAC");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    write_reply_to_shared_memory(&replyData);
+}
+
+
+/**
+ * @brief 处理回写校准点标准值命令
+ *
+ * 该函数根据设定值和测量值更新校准参数
+ * 校准公式：新参数 = (设定值/真实值) * 旧参数
+ *
+ * @param data 包含校准数据的 JSON 对象
+ */
+void handle_writeCalibrateAC(cJSON *data)
+{
+    // 从JSON中提取校准信息
+    cJSON *mode = cJSON_GetObjectItem(data, "Mode");
+    cJSON *point = cJSON_GetObjectItem(data, "Point");
+    cJSON *chns = cJSON_GetObjectItem(data, "Chns");
+
+    if (!mode || !point || !chns)
+    {
+        printf("CPU1: writeCalibrateAC: Lack Mode, Point Or Chns \r\n");
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    // 提取点信息
+    cJSON *ur = cJSON_GetObjectItem(point, "UR");
+    cJSON *ir = cJSON_GetObjectItem(point, "IR");
+    cJSON *u = cJSON_GetObjectItem(point, "U");
+    cJSON *i = cJSON_GetObjectItem(point, "I");
+
+    if (!ur || !ir || !u || !i)
+    {
+        printf("CPU1: writeCalibrateAC: lack data\r\n");
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    float urValue = (float)ur->valuedouble;
+    float irValue = (float)ir->valuedouble;
+    float uValue = (float)u->valuedouble;
+    float iValue = (float)i->valuedouble;
+
+    // 获取校准通道数量
+    int chnsCount = cJSON_GetArraySize(chns);
+    if (chnsCount <= 0)
+    {
+        printf("CPU1: writeCalibrateAC: Channel data not provided\r\n");
+
+        // 返回失败响应
+        ReplyData replyData;
+        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.Result, "Failure");
+        replyData.hasClosedLoop = false;
+        write_reply_to_shared_memory(&replyData);
+        return;
+    }
+
+    // 获取电压和电流档位索引
+    int ur_idx = get_voltage_index_by_value(urValue);
+    int ir_idx = get_current_index_by_value(irValue);
+
+    printf("CPU1: writeCalibrateAC: Calibration point: UR=%f, IR=%f, U=%f, I=%f\r\n",
+           urValue, irValue, uValue, iValue);
+
+    // 对每个通道进行校准
+    for (int j = 0; j < chnsCount; j++)
+    {
+        cJSON *chn = cJSON_GetArrayItem(chns, j);
+
+        if (!chn)
+            continue; // 跳过无效项
+
+        cJSON *line_json = cJSON_GetObjectItem(chn, "Line");
+        cJSON *channel_json = cJSON_GetObjectItem(chn, "Chn");
+        cJSON *actual_u_json = cJSON_GetObjectItem(chn, "U");
+        cJSON *actual_i_json = cJSON_GetObjectItem(chn, "I");
+
+        if (!line_json || !channel_json || !actual_u_json || !actual_i_json)
+        {
+            printf("CPU1: writeCalibrateAC: CH %d Lack Data\r\n", j);
+            continue; // 跳过无效项
+        }
+
+        int line = line_json->valueint;
+        int channel = channel_json->valueint;
+        float actualU = (float)actual_u_json->valuedouble;
+        float actualI = (float)actual_i_json->valuedouble;
+
+        // 映射通道索引
+        int u_idx = channel - 1;     // 0-3 对应 UA, UB, UC, UX
+        int i_idx = channel - 1 + 4; // 4-7 对应 IA, IB, IC, IX
+
+        printf("CPU1: writeCalibrateAC: Line=%d, Chn=%d, actualU=%f, actualI=%f\r\n",
+               line, channel, actualU, actualI);
+
+        // 校准电压参数
+        if (actualU > 0.001) // 避免除以接近零的值
+        {
+            float ratio = uValue / actualU;
+            DA_Correct[u_idx][ur_idx] = DA_Correct[u_idx][ur_idx] * ratio;
+            printf("CPU1: Update voltage calibration parameters DA_Correct[%d][%d]: %f\r\n",
+                   u_idx, ur_idx, DA_Correct[u_idx][ur_idx]);
+        }
+
+        // 校准电流参数
+        if (actualI > 0.001) // 避免除以接近零的值
+        {
+            float ratio = iValue / actualI;
+            DA_Correct[i_idx][ir_idx] = DA_Correct[i_idx][ir_idx] * ratio;
+            printf("CPU1: Update current calibration parameters DA_Correct[%d][%d]: %f\r\n",
+                   i_idx, ir_idx, DA_Correct[i_idx][ir_idx]);
+        }
+    }
+
+    // 应用更新后的校准参数
+    // 更新波形幅度和范围
+    for (int i = 0; i < 4; i++)
+    {
+        Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
+        Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
+        Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
+        Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+    }
+
+    // 应用设置
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+    str_wr_bram(PID_OFF);
+
+    // 返回成功响应
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "writeCalibrateAC");
+    strcpy(replyData.Result, "Success");
+    replyData.hasClosedLoop = false;
+    write_reply_to_shared_memory(&replyData);
 }
 
 // 生成JSON字符串并写入共享内存的函数
