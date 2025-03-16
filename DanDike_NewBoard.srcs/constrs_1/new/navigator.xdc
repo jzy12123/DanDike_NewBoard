@@ -229,3 +229,12 @@ set_property PULLUP true [get_ports {Coder_Int[0]}]
 set_property PACKAGE_PIN U15 [get_ports {Coder_Int[0]}]
 
 set_property DRIVE 12 [get_ports KeyBoard_IIC_sda_io]
+
+set_property PACKAGE_PIN M14 [get_ports pulse_p_in_0]
+set_property PACKAGE_PIN J14 [get_ports pulse_p_out_0]
+set_property PACKAGE_PIN M15 [get_ports pulse_q_in_0]
+set_property PACKAGE_PIN L16 [get_ports pulse_q_out_0]
+set_property IOSTANDARD LVCMOS33 [get_ports pulse_p_in_0]
+set_property IOSTANDARD LVCMOS33 [get_ports pulse_p_out_0]
+set_property IOSTANDARD LVCMOS33 [get_ports pulse_q_in_0]
+set_property IOSTANDARD LVCMOS33 [get_ports pulse_q_out_0]

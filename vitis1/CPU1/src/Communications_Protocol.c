@@ -1180,6 +1180,7 @@ void handle_setCalibrateAC(cJSON *data)
 {
     // 从JSON中提取校准点信息
     cJSON *mode = cJSON_GetObjectItem(data, "Mode");
+    // 提取点信息
     cJSON *point = cJSON_GetObjectItem(data, "Point");
 
     if (!mode || !point)

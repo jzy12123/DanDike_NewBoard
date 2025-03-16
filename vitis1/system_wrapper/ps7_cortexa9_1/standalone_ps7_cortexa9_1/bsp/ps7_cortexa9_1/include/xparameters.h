@@ -513,11 +513,6 @@
 #define XPAR_AC_8_CHANNEL_1_ONOFF_CONFIG_AXI_0_HIGHADDR 0x43C9FFFF
 
 
-/* Definitions for peripheral POWER_PULSE_AXI_0 */
-#define XPAR_POWER_PULSE_AXI_0_BASEADDR 0x43CA0000
-#define XPAR_POWER_PULSE_AXI_0_HIGHADDR 0x43CAFFFF
-
-
 /* Definitions for peripheral PS7_AFI_0 */
 #define XPAR_PS7_AFI_0_S_AXI_BASEADDR 0xF8008000
 #define XPAR_PS7_AFI_0_S_AXI_HIGHADDR 0xF8008FFF
@@ -608,6 +603,11 @@
 /* Definitions for peripheral PS7_SLCR_0 */
 #define XPAR_PS7_SLCR_0_S_AXI_BASEADDR 0xF8000000
 #define XPAR_PS7_SLCR_0_S_AXI_HIGHADDR 0xF8000FFF
+
+
+/* Definitions for peripheral POWER_PULSE_V1_AXI_0 */
+#define XPAR_POWER_PULSE_V1_AXI_0_BASEADDR 0x43CA0000
+#define XPAR_POWER_PULSE_V1_AXI_0_HIGHADDR 0x43CAFFFF
 
 
 /******************************************************************/

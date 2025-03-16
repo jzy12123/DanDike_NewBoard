@@ -180,9 +180,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_code
 # IP: bd/system/ip/system_util_vector_logic_0_1/system_util_vector_logic_0_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_util_vector_logic_0_1 || ORIG_REF_NAME==system_util_vector_logic_0_1} -quiet] -quiet
 
-# IP: bd/system/ip/system_power_pulse_AXI_0_0/system_power_pulse_AXI_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_power_pulse_AXI_0_0 || ORIG_REF_NAME==system_power_pulse_AXI_0_0} -quiet] -quiet
-
 # IP: bd/system/ip/system_onoff_config_axi_0_2/system_onoff_config_axi_0_2.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_onoff_config_axi_0_2 || ORIG_REF_NAME==system_onoff_config_axi_0_2} -quiet] -quiet
 
@@ -335,6 +332,9 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto
 
 # IP: bd/system/ip/system_auto_pc_9/system_auto_pc_9.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_9 || ORIG_REF_NAME==system_auto_pc_9} -quiet] -quiet
+
+# IP: bd/system/ip/system_power_pulse_v1_AXI_0_0/system_power_pulse_v1_AXI_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_power_pulse_v1_AXI_0_0 || ORIG_REF_NAME==system_power_pulse_v1_AXI_0_0} -quiet] -quiet
 
 # XDC: bd/system/ip/system_processing_system7_0_0/system_processing_system7_0_0.xdc
 set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_processing_system7_0_0 || ORIG_REF_NAME==system_processing_system7_0_0} -quiet] {/inst } ]/inst ] -quiet] -quiet

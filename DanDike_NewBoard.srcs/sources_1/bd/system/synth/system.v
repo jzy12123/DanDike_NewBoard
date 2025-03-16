@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Wed Jan 15 11:22:11 2025
+//Date        : Sun Mar 16 09:44:50 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -9659,7 +9659,7 @@ module s00_couplers_imp_11SE3QO
         .s_axi_wvalid(s00_couplers_to_auto_pc_WVALID));
 endmodule
 
-(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=86,numReposBlks=52,numNonXlnxBlks=2,numHierBlks=34,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=29,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
+(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=86,numReposBlks=52,numNonXlnxBlks=2,numHierBlks=34,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=30,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
 module system
    (AD_0_ad_busy,
     AD_0_ad_ck,
@@ -9754,7 +9754,10 @@ module system
     lcd_de,
     lcd_hsync,
     lcd_vsync,
-    pulse_out_0,
+    pulse_p_in_0,
+    pulse_p_out_0,
+    pulse_q_in_0,
+    pulse_q_out_0,
     rgb_data_tri_i,
     rgb_data_tri_o,
     rgb_data_tri_t);
@@ -9851,7 +9854,10 @@ module system
   output lcd_de;
   output lcd_hsync;
   output lcd_vsync;
-  output pulse_out_0;
+  input pulse_p_in_0;
+  output pulse_p_out_0;
+  input pulse_q_in_0;
+  output pulse_q_out_0;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_I" *) input [18:0]rgb_data_tri_i;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_O" *) output [18:0]rgb_data_tri_o;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_T" *) output [18:0]rgb_data_tri_t;
@@ -10008,7 +10014,8 @@ module system
   wire onoff_config_axi_0_WrSerial_wr_load;
   wire onoff_config_axi_0_WrSerial_wr_sclk;
   wire onoff_config_axi_0_WrSerial_wr_sdo;
-  wire power_pulse_AXI_0_pulse_out;
+  wire power_pulse_v1_AXI_0_pulse_p_out;
+  wire power_pulse_v1_AXI_0_pulse_q_out;
   wire [0:0]proc_sys_reset_0_peripheral_aresetn;
   wire [14:0]processing_system7_0_DDR_ADDR;
   wire [2:0]processing_system7_0_DDR_BA;
@@ -10477,6 +10484,8 @@ module system
   wire ps7_0_axi_periph_M19_AXI_WREADY;
   wire [3:0]ps7_0_axi_periph_M19_AXI_WSTRB;
   wire ps7_0_axi_periph_M19_AXI_WVALID;
+  wire pulse_p_in_0_1;
+  wire pulse_q_in_0_1;
   wire [18:0]rgb2lcd_0_rgb_data_TRI_I;
   wire [18:0]rgb2lcd_0_rgb_data_TRI_O;
   wire [18:0]rgb2lcd_0_rgb_data_TRI_T;
@@ -10559,7 +10568,10 @@ module system
   assign processing_system7_0_IIC_1_SCL_I = IIC_LCD_0_scl_i;
   assign processing_system7_0_IIC_1_SDA_I = IIC_LCD_0_sda_i;
   assign processing_system7_0_MDIO_ETHERNET_1_MDIO_I = MDIO_ETHERNET_1_0_mdio_i;
-  assign pulse_out_0 = power_pulse_AXI_0_pulse_out;
+  assign pulse_p_in_0_1 = pulse_p_in_0;
+  assign pulse_p_out_0 = power_pulse_v1_AXI_0_pulse_p_out;
+  assign pulse_q_in_0_1 = pulse_q_in_0;
+  assign pulse_q_out_0 = power_pulse_v1_AXI_0_pulse_q_out;
   assign rgb2lcd_0_rgb_data_TRI_I = rgb_data_tri_i[18:0];
   assign rgb_data_tri_o[18:0] = rgb2lcd_0_rgb_data_TRI_O;
   assign rgb_data_tri_t[18:0] = rgb2lcd_0_rgb_data_TRI_T;
@@ -11123,7 +11135,7 @@ module system
         .s_axi_lite1_wready(ps7_0_axi_periph_M02_AXI_WREADY),
         .s_axi_lite1_wstrb(ps7_0_axi_periph_M02_AXI_WSTRB),
         .s_axi_lite1_wvalid(ps7_0_axi_periph_M02_AXI_WVALID));
-  system_power_pulse_AXI_0_0 power_pulse_AXI_0
+  system_power_pulse_v1_AXI_0_0 power_pulse_v1_AXI_0
        (.S_AXI_ACLK(processing_system7_0_FCLK_CLK0),
         .S_AXI_ARADDR(ps7_0_axi_periph_M19_AXI_ARADDR[3:0]),
         .S_AXI_ARESETN(rst_ps7_0_100M_peripheral_aresetn),
@@ -11145,7 +11157,10 @@ module system
         .S_AXI_WREADY(ps7_0_axi_periph_M19_AXI_WREADY),
         .S_AXI_WSTRB(ps7_0_axi_periph_M19_AXI_WSTRB),
         .S_AXI_WVALID(ps7_0_axi_periph_M19_AXI_WVALID),
-        .pulse_out(power_pulse_AXI_0_pulse_out));
+        .pulse_p_in(pulse_p_in_0_1),
+        .pulse_p_out(power_pulse_v1_AXI_0_pulse_p_out),
+        .pulse_q_in(pulse_q_in_0_1),
+        .pulse_q_out(power_pulse_v1_AXI_0_pulse_q_out));
   system_proc_sys_reset_0_0 proc_sys_reset_0
        (.aux_reset_in(1'b1),
         .dcm_locked(1'b1),

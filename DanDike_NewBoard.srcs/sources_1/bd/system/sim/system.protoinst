@@ -1949,7 +1949,7 @@
 						"WVALID": { "actual": "s_axi_wvalid"}
 					}
 				},
-				"/power_pulse_AXI_0/S_AXI": {
+				"/power_pulse_v1_AXI_0/S_AXI": {
 					"interface": "xilinx.com:interface:aximm:1.0",
 					"ports": {
 						"ACLK": { "actual": "S_AXI_ACLK"},

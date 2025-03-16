@@ -2,10 +2,10 @@
 <Root MajorVersion="0" MinorVersion="39">
   <CompositeFile CompositeFileTopName="system" CanBeSetAsTop="true" CanDisplayChildGraph="true">
     <Description>Composite Fileset</Description>
-    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1736911342"/>
-    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1736911342"/>
-    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1736911342"/>
-    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1736911342"/>
+    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1742089524"/>
+    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1742089524"/>
+    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1742089524"/>
+    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1742089524"/>
     <FileCollection Name="SOURCES" Type="SOURCES">
       <File Name="ip\system_processing_system7_0_0\system_processing_system7_0_0.xci" Type="IP">
         <Instance HierarchyPath="processing_system7_0"/>
@@ -247,14 +247,6 @@
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="ip\system_power_pulse_AXI_0_0\system_power_pulse_AXI_0_0.xci" Type="IP">
-        <Instance HierarchyPath="power_pulse_AXI_0"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
       <File Name="ip\system_onoff_config_axi_0_2\system_onoff_config_axi_0_2.xci" Type="IP">
         <Instance HierarchyPath="AC_8_channel_1/onoff_config_axi_0"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
@@ -333,6 +325,17 @@
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
         <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="synth\system.v" Type="Verilog">
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+      </File>
+      <File Name="sim\system.v" Type="Verilog">
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+        <Library Name="xil_defaultlib"/>
         <UsedIn Val="SIMULATION"/>
       </File>
       <File Name="ip\system_tier2_xbar_0_0\system_tier2_xbar_0_0.xci" Type="IP">
@@ -439,15 +442,12 @@
         <UsedIn Val="IMPLEMENTATION"/>
         <UsedIn Val="SIMULATION"/>
       </File>
-      <File Name="synth\system.v" Type="Verilog">
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
+      <File Name="ip\system_power_pulse_v1_AXI_0_0\system_power_pulse_v1_AXI_0_0.xci" Type="IP">
+        <Instance HierarchyPath="power_pulse_v1_AXI_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>
         <UsedIn Val="IMPLEMENTATION"/>
-      </File>
-      <File Name="sim\system.v" Type="Verilog">
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="false" IsStatusTracked="false"/>
-        <Library Name="xil_defaultlib"/>
         <UsedIn Val="SIMULATION"/>
       </File>
       <File Name="system.bmm" Type="BMM">

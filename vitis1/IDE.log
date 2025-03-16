@@ -10887,3 +10887,18 @@ con
 19:25:27 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
 19:25:32 INFO  : Successfully done query RDI_DATADIR 
 19:33:25 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:09:28 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+10:09:31 INFO  : XSCT server has started successfully.
+10:09:31 INFO  : plnx-install-location is set to ''
+10:09:31 INFO  : Successfully done setting XSCT server connection channel  
+10:09:31 INFO  : Successfully done setting workspace for the tool. 
+10:09:33 INFO  : Platform repository initialization has completed.
+10:09:34 INFO  : Registering command handlers for Vitis TCF services
+10:09:37 INFO  : Successfully done query RDI_DATADIR 
+10:10:31 INFO  : No changes in MSS file content so sources will not be generated.
+10:10:43 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+10:11:48 INFO  : Result from executing command 'getProjects': system_wrapper
+10:11:48 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+10:12:10 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:12:12 INFO  : Updating application flags with new BSP settings...
+10:12:13 INFO  : Successfully updated application flags for project CPU1.

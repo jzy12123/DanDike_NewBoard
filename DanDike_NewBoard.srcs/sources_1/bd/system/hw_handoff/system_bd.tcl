@@ -1024,7 +1024,10 @@ proc create_root_design { parentCell } {
   set lcd_de [ create_bd_port -dir O lcd_de ]
   set lcd_hsync [ create_bd_port -dir O lcd_hsync ]
   set lcd_vsync [ create_bd_port -dir O lcd_vsync ]
-  set pulse_out_0 [ create_bd_port -dir O pulse_out_0 ]
+  set pulse_p_in_0 [ create_bd_port -dir I pulse_p_in_0 ]
+  set pulse_p_out_0 [ create_bd_port -dir O pulse_p_out_0 ]
+  set pulse_q_in_0 [ create_bd_port -dir I pulse_q_in_0 ]
+  set pulse_q_out_0 [ create_bd_port -dir O pulse_q_out_0 ]
 
   # Create instance: AC_8_channel_0
   create_hier_cell_AC_8_channel_0 [current_bd_instance .] AC_8_channel_0
@@ -1058,8 +1061,8 @@ proc create_root_design { parentCell } {
   # Create instance: lcd
   create_hier_cell_lcd [current_bd_instance .] lcd
 
-  # Create instance: power_pulse_AXI_0, and set properties
-  set power_pulse_AXI_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:power_pulse_AXI:1.0 power_pulse_AXI_0 ]
+  # Create instance: power_pulse_v1_AXI_0, and set properties
+  set power_pulse_v1_AXI_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:power_pulse_v1_AXI:1.0 power_pulse_v1_AXI_0 ]
 
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
@@ -1928,7 +1931,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M16_AXI [get_bd_intf_pins AC_8_channel_1/S_AXI2] [get_bd_intf_pins ps7_0_axi_periph/M16_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M17_AXI [get_bd_intf_pins AC_8_channel_1/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M17_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M18_AXI [get_bd_intf_pins AC_8_channel_1/S_AXI3] [get_bd_intf_pins ps7_0_axi_periph/M18_AXI]
-  connect_bd_intf_net -intf_net ps7_0_axi_periph_M19_AXI [get_bd_intf_pins power_pulse_AXI_0/S_AXI] [get_bd_intf_pins ps7_0_axi_periph/M19_AXI]
+  connect_bd_intf_net -intf_net ps7_0_axi_periph_M19_AXI [get_bd_intf_pins power_pulse_v1_AXI_0/S_AXI] [get_bd_intf_pins ps7_0_axi_periph/M19_AXI]
   connect_bd_intf_net -intf_net rgb2lcd_0_rgb_data [get_bd_intf_ports rgb_data] [get_bd_intf_pins lcd/rgb_data]
 
   # Create port connections
@@ -1952,14 +1955,17 @@ proc create_root_design { parentCell } {
   connect_bd_net -net coder_Res [get_bd_pins coder/Res] [get_bd_pins xlconcat_0/In10]
   connect_bd_net -net coder_intrpt [get_bd_pins coder/intrpt] [get_bd_pins xlconcat_0/In9]
   connect_bd_net -net key_board_iic2intc_irpt [get_bd_pins key_board/iic2intc_irpt] [get_bd_pins xlconcat_0/In12]
-  connect_bd_net -net power_pulse_AXI_0_pulse_out [get_bd_ports pulse_out_0] [get_bd_pins power_pulse_AXI_0/pulse_out]
+  connect_bd_net -net power_pulse_v1_AXI_0_pulse_p_out [get_bd_ports pulse_p_out_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_p_out]
+  connect_bd_net -net power_pulse_v1_AXI_0_pulse_q_out [get_bd_ports pulse_q_out_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_q_out]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins AC_8_channel_0/CLK25MHz_ARESETN] [get_bd_pins AC_8_channel_1/CLK25MHz_RSTN] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins AC_8_channel_0/s_axi_lite_aclk] [get_bd_pins AC_8_channel_1/S_AXI_ACLK] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins axi_uartlite_0/s_axi_aclk] [get_bd_pins coder/s00_axi_aclk] [get_bd_pins key_board/s_axi_aclk] [get_bd_pins lcd/s_axi_aclk] [get_bd_pins power_pulse_AXI_0/S_AXI_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP2_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/M03_ACLK] [get_bd_pins ps7_0_axi_periph/M04_ACLK] [get_bd_pins ps7_0_axi_periph/M05_ACLK] [get_bd_pins ps7_0_axi_periph/M06_ACLK] [get_bd_pins ps7_0_axi_periph/M07_ACLK] [get_bd_pins ps7_0_axi_periph/M08_ACLK] [get_bd_pins ps7_0_axi_periph/M09_ACLK] [get_bd_pins ps7_0_axi_periph/M10_ACLK] [get_bd_pins ps7_0_axi_periph/M11_ACLK] [get_bd_pins ps7_0_axi_periph/M12_ACLK] [get_bd_pins ps7_0_axi_periph/M13_ACLK] [get_bd_pins ps7_0_axi_periph/M14_ACLK] [get_bd_pins ps7_0_axi_periph/M15_ACLK] [get_bd_pins ps7_0_axi_periph/M16_ACLK] [get_bd_pins ps7_0_axi_periph/M17_ACLK] [get_bd_pins ps7_0_axi_periph/M18_ACLK] [get_bd_pins ps7_0_axi_periph/M19_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins AC_8_channel_0/s_axi_lite_aclk] [get_bd_pins AC_8_channel_1/S_AXI_ACLK] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins axi_uartlite_0/s_axi_aclk] [get_bd_pins coder/s00_axi_aclk] [get_bd_pins key_board/s_axi_aclk] [get_bd_pins lcd/s_axi_aclk] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP2_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/M03_ACLK] [get_bd_pins ps7_0_axi_periph/M04_ACLK] [get_bd_pins ps7_0_axi_periph/M05_ACLK] [get_bd_pins ps7_0_axi_periph/M06_ACLK] [get_bd_pins ps7_0_axi_periph/M07_ACLK] [get_bd_pins ps7_0_axi_periph/M08_ACLK] [get_bd_pins ps7_0_axi_periph/M09_ACLK] [get_bd_pins ps7_0_axi_periph/M10_ACLK] [get_bd_pins ps7_0_axi_periph/M11_ACLK] [get_bd_pins ps7_0_axi_periph/M12_ACLK] [get_bd_pins ps7_0_axi_periph/M13_ACLK] [get_bd_pins ps7_0_axi_periph/M14_ACLK] [get_bd_pins ps7_0_axi_periph/M15_ACLK] [get_bd_pins ps7_0_axi_periph/M16_ACLK] [get_bd_pins ps7_0_axi_periph/M17_ACLK] [get_bd_pins ps7_0_axi_periph/M18_ACLK] [get_bd_pins ps7_0_axi_periph/M19_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
   connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins AC_8_channel_0/CLK25MHz] [get_bd_pins AC_8_channel_1/CLK25MHz] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK1]
   connect_bd_net -net processing_system7_0_FCLK_CLK2 [get_bd_pins lcd/ACLK] [get_bd_pins processing_system7_0/FCLK_CLK2] [get_bd_pins processing_system7_0/S_AXI_HP1_ACLK]
   connect_bd_net -net processing_system7_0_FCLK_CLK3 [get_bd_pins gmii2rgmii_0/idelay_clk] [get_bd_pins processing_system7_0/FCLK_CLK3]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins lcd/ext_reset_in] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins AC_8_channel_0/S_AXI_ARESETN] [get_bd_pins AC_8_channel_1/S_AXI_ARESETN] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins axi_uartlite_0/s_axi_aresetn] [get_bd_pins coder/s00_axi_aresetn] [get_bd_pins key_board/s_axi_aresetn] [get_bd_pins lcd/s_axi_aresetn] [get_bd_pins power_pulse_AXI_0/S_AXI_ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/M03_ARESETN] [get_bd_pins ps7_0_axi_periph/M04_ARESETN] [get_bd_pins ps7_0_axi_periph/M05_ARESETN] [get_bd_pins ps7_0_axi_periph/M06_ARESETN] [get_bd_pins ps7_0_axi_periph/M07_ARESETN] [get_bd_pins ps7_0_axi_periph/M08_ARESETN] [get_bd_pins ps7_0_axi_periph/M09_ARESETN] [get_bd_pins ps7_0_axi_periph/M10_ARESETN] [get_bd_pins ps7_0_axi_periph/M11_ARESETN] [get_bd_pins ps7_0_axi_periph/M12_ARESETN] [get_bd_pins ps7_0_axi_periph/M13_ARESETN] [get_bd_pins ps7_0_axi_periph/M14_ARESETN] [get_bd_pins ps7_0_axi_periph/M15_ARESETN] [get_bd_pins ps7_0_axi_periph/M16_ARESETN] [get_bd_pins ps7_0_axi_periph/M17_ARESETN] [get_bd_pins ps7_0_axi_periph/M18_ARESETN] [get_bd_pins ps7_0_axi_periph/M19_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
+  connect_bd_net -net pulse_p_in_0_1 [get_bd_ports pulse_p_in_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_p_in]
+  connect_bd_net -net pulse_q_in_0_1 [get_bd_ports pulse_q_in_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_q_in]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins AC_8_channel_0/S_AXI_ARESETN] [get_bd_pins AC_8_channel_1/S_AXI_ARESETN] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins axi_uartlite_0/s_axi_aresetn] [get_bd_pins coder/s00_axi_aresetn] [get_bd_pins key_board/s_axi_aresetn] [get_bd_pins lcd/s_axi_aresetn] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/M03_ARESETN] [get_bd_pins ps7_0_axi_periph/M04_ARESETN] [get_bd_pins ps7_0_axi_periph/M05_ARESETN] [get_bd_pins ps7_0_axi_periph/M06_ARESETN] [get_bd_pins ps7_0_axi_periph/M07_ARESETN] [get_bd_pins ps7_0_axi_periph/M08_ARESETN] [get_bd_pins ps7_0_axi_periph/M09_ARESETN] [get_bd_pins ps7_0_axi_periph/M10_ARESETN] [get_bd_pins ps7_0_axi_periph/M11_ARESETN] [get_bd_pins ps7_0_axi_periph/M12_ARESETN] [get_bd_pins ps7_0_axi_periph/M13_ARESETN] [get_bd_pins ps7_0_axi_periph/M14_ARESETN] [get_bd_pins ps7_0_axi_periph/M15_ARESETN] [get_bd_pins ps7_0_axi_periph/M16_ARESETN] [get_bd_pins ps7_0_axi_periph/M17_ARESETN] [get_bd_pins ps7_0_axi_periph/M18_ARESETN] [get_bd_pins ps7_0_axi_periph/M19_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
   connect_bd_net -net v_axi4s_vid_out_0_vid_active_video [get_bd_ports lcd_de] [get_bd_pins lcd/lcd_de]
   connect_bd_net -net v_axi4s_vid_out_0_vid_hsync [get_bd_ports lcd_hsync] [get_bd_pins lcd/lcd_hsync]
   connect_bd_net -net v_axi4s_vid_out_0_vid_vsync [get_bd_ports lcd_vsync] [get_bd_pins lcd/lcd_vsync]
@@ -1985,7 +1991,7 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x43C80000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_1/adda/dac_whole_0/S_AXI/reg0] -force
   assign_bd_address -offset 0x43C50000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/onoff_config_axi_0/S_AXI/reg0] -force
   assign_bd_address -offset 0x43C90000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_1/onoff_config_axi_0/S_AXI/reg0] -force
-  assign_bd_address -offset 0x43CA0000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs power_pulse_AXI_0/S_AXI/reg0] -force
+  assign_bd_address -offset 0x43CA0000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs power_pulse_v1_AXI_0/S_AXI/reg0] -force
   assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs lcd/v_tc_0/ctrl/Reg] -force
   assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces lcd/axi_vdma_0/Data_MM2S] [get_bd_addr_segs processing_system7_0/S_AXI_HP1/HP1_DDR_LOWOCM] -force
   assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces AC_8_channel_0/adda/axi_dma_0/Data_MM2S] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force

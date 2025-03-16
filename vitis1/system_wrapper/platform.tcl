@@ -40,3 +40,13 @@ platform clean
 platform generate
 platform generate
 platform generate
+platform active {system_wrapper}
+bsp reload
+bsp reload
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+domain active {zynq_fsbl}
+bsp reload
+catch {bsp regenerate}
+platform generate

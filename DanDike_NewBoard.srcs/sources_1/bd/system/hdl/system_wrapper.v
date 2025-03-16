@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Wed Jan 15 11:22:11 2025
+//Date        : Sun Mar 16 09:44:50 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -91,7 +91,10 @@ module system_wrapper
     lcd_de,
     lcd_hsync,
     lcd_vsync,
-    pulse_out_0,
+    pulse_p_in_0,
+    pulse_p_out_0,
+    pulse_q_in_0,
+    pulse_q_out_0,
     rgb_data_tri_io);
   input AD_0_ad_busy;
   output AD_0_ad_ck;
@@ -174,7 +177,10 @@ module system_wrapper
   output lcd_de;
   output lcd_hsync;
   output lcd_vsync;
-  output pulse_out_0;
+  input pulse_p_in_0;
+  output pulse_p_out_0;
+  input pulse_q_in_0;
+  output pulse_q_out_0;
   inout [18:0]rgb_data_tri_io;
 
   wire AD_0_ad_busy;
@@ -284,7 +290,10 @@ module system_wrapper
   wire lcd_de;
   wire lcd_hsync;
   wire lcd_vsync;
-  wire pulse_out_0;
+  wire pulse_p_in_0;
+  wire pulse_p_out_0;
+  wire pulse_q_in_0;
+  wire pulse_q_out_0;
   wire [0:0]rgb_data_tri_i_0;
   wire [1:1]rgb_data_tri_i_1;
   wire [10:10]rgb_data_tri_i_10;
@@ -591,7 +600,10 @@ module system_wrapper
         .lcd_de(lcd_de),
         .lcd_hsync(lcd_hsync),
         .lcd_vsync(lcd_vsync),
-        .pulse_out_0(pulse_out_0),
+        .pulse_p_in_0(pulse_p_in_0),
+        .pulse_p_out_0(pulse_p_out_0),
+        .pulse_q_in_0(pulse_q_in_0),
+        .pulse_q_out_0(pulse_q_out_0),
         .rgb_data_tri_i({rgb_data_tri_i_18,rgb_data_tri_i_17,rgb_data_tri_i_16,rgb_data_tri_i_15,rgb_data_tri_i_14,rgb_data_tri_i_13,rgb_data_tri_i_12,rgb_data_tri_i_11,rgb_data_tri_i_10,rgb_data_tri_i_9,rgb_data_tri_i_8,rgb_data_tri_i_7,rgb_data_tri_i_6,rgb_data_tri_i_5,rgb_data_tri_i_4,rgb_data_tri_i_3,rgb_data_tri_i_2,rgb_data_tri_i_1,rgb_data_tri_i_0}),
         .rgb_data_tri_o({rgb_data_tri_o_18,rgb_data_tri_o_17,rgb_data_tri_o_16,rgb_data_tri_o_15,rgb_data_tri_o_14,rgb_data_tri_o_13,rgb_data_tri_o_12,rgb_data_tri_o_11,rgb_data_tri_o_10,rgb_data_tri_o_9,rgb_data_tri_o_8,rgb_data_tri_o_7,rgb_data_tri_o_6,rgb_data_tri_o_5,rgb_data_tri_o_4,rgb_data_tri_o_3,rgb_data_tri_o_2,rgb_data_tri_o_1,rgb_data_tri_o_0}),
         .rgb_data_tri_t({rgb_data_tri_t_18,rgb_data_tri_t_17,rgb_data_tri_t_16,rgb_data_tri_t_15,rgb_data_tri_t_14,rgb_data_tri_t_13,rgb_data_tri_t_12,rgb_data_tri_t_11,rgb_data_tri_t_10,rgb_data_tri_t_9,rgb_data_tri_t_8,rgb_data_tri_t_7,rgb_data_tri_t_6,rgb_data_tri_t_5,rgb_data_tri_t_4,rgb_data_tri_t_3,rgb_data_tri_t_2,rgb_data_tri_t_1,rgb_data_tri_t_0}));

@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date             : Wed Jan 15 11:33:19 2025
+| Date             : Sun Mar 16 10:06:55 2025
 | Host             : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command          : report_power -file system_wrapper_power_routed.rpt -pb system_wrapper_power_summary_routed.pb -rpx system_wrapper_power_routed.rpx
 | Design           : system_wrapper
@@ -53,19 +53,19 @@ Table of Contents
 | On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
 +--------------------------+-----------+----------+-----------+-----------------+
 | Clocks                   |     0.095 |        9 |       --- |             --- |
-| Slice Logic              |     0.036 |    59052 |       --- |             --- |
-|   LUT as Logic           |     0.030 |    17911 |     53200 |           33.67 |
-|   Register               |     0.002 |    30066 |    106400 |           28.26 |
+| Slice Logic              |     0.036 |    59341 |       --- |             --- |
+|   LUT as Logic           |     0.030 |    17957 |     53200 |           33.75 |
+|   Register               |     0.002 |    30234 |    106400 |           28.42 |
 |   LUT as Distributed RAM |     0.002 |     1308 |     17400 |            7.52 |
-|   CARRY4                 |     0.002 |      842 |     13300 |            6.33 |
+|   CARRY4                 |     0.002 |      878 |     13300 |            6.60 |
 |   BUFG                   |    <0.001 |        5 |        32 |           15.63 |
 |   F7/F8 Muxes            |    <0.001 |      417 |     53200 |            0.78 |
 |   LUT as Shift Register  |    <0.001 |      656 |     17400 |            3.77 |
-|   Others                 |     0.000 |     1814 |       --- |             --- |
-| Signals                  |     0.050 |    41650 |       --- |             --- |
+|   Others                 |     0.000 |     1820 |       --- |             --- |
+| Signals                  |     0.050 |    41901 |       --- |             --- |
 | Block RAM                |     0.030 |     81.5 |       140 |           58.21 |
 | MMCM                     |     0.106 |        1 |         4 |           25.00 |
-| I/O                      |     0.058 |      102 |       125 |           81.60 |
+| I/O                      |     0.058 |      105 |       125 |           84.00 |
 | PS7                      |     1.544 |        1 |       --- |             --- |
 | Static Power             |     0.165 |          |           |                 |
 | Total                    |     2.084 |          |           |                 |
@@ -78,9 +78,9 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint    |       1.000 |     0.231 |       0.210 |      0.021 |       NA    | Unspecified | NA         |
+| Vccint    |       1.000 |     0.232 |       0.210 |      0.021 |       NA    | Unspecified | NA         |
 | Vccaux    |       1.800 |     0.080 |       0.063 |      0.017 |       NA    | Unspecified | NA         |
-| Vcco33    |       3.300 |     0.016 |       0.015 |      0.001 |       NA    | Unspecified | NA         |
+| Vcco33    |       3.300 |     0.015 |       0.014 |      0.001 |       NA    | Unspecified | NA         |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | Vcco18    |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
 | Vcco15    |       1.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -165,13 +165,13 @@ Table of Contents
 |   MDIO_ETHERNET_1_0_mdio_iobuf |     0.001 |
 |   gpio0_tri_iobuf_0            |     0.001 |
 |   gpio0_tri_iobuf_1            |     0.001 |
-|   gpio0_tri_iobuf_2            |     0.001 |
+|   gpio0_tri_iobuf_2            |     0.002 |
 |   system_i                     |     1.867 |
-|     AC_8_channel_0             |     0.068 |
-|       adda                     |     0.066 |
+|     AC_8_channel_0             |     0.067 |
+|       adda                     |     0.065 |
 |       onoff_config_axi_0       |     0.002 |
 |     AC_8_channel_1             |     0.067 |
-|       adda                     |     0.066 |
+|       adda                     |     0.065 |
 |       onoff_config_axi_0       |     0.002 |
 |     gmii2rgmii_0               |     0.008 |
 |       inst                     |     0.008 |
@@ -182,6 +182,8 @@ Table of Contents
 |       clk_wiz_0                |     0.111 |
 |       v_axi4s_vid_out_0        |     0.005 |
 |       v_tc_0                   |     0.014 |
+|     power_pulse_v1_AXI_0       |     0.001 |
+|       inst                     |     0.001 |
 |     processing_system7_0       |     1.552 |
 |       inst                     |     1.552 |
 |     ps7_0_axi_periph           |     0.025 |

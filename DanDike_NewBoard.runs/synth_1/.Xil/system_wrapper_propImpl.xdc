@@ -57,11 +57,11 @@ current_instance system_i/processing_system7_0/inst
 set_property src_info {type:SCOPED_XDC file:1 line:21 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_0 0.3
 set_property src_info {type:SCOPED_XDC file:1 line:24 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_1 1.2
-set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_2 0.21
-set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_3 0.15
+set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_input_jitter clk_fpga_1 1.2
 set_property src_info {type:SCOPED_XDC file:1 line:40 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN "C11" [get_ports "MIO[53]"]
 set_property src_info {type:SCOPED_XDC file:1 line:47 export:INPUT save:INPUT read:READ} [current_design]
@@ -529,6 +529,8 @@ set_property src_info {type:XDC file:6 line:132 export:INPUT save:INPUT read:REA
 set_property PACKAGE_PIN R14 [get_ports KeyBoard_IIC_sda_io]
 set_property src_info {type:XDC file:6 line:135 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN J14 [get_ports pulse_out_0]
+set_property src_info {type:XDC file:6 line:136 export:INPUT save:INPUT read:READ} [current_design]
+set_property IOSTANDARD LVCMOS33 [get_ports pulse_out_0]
 set_property src_info {type:XDC file:6 line:150 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN H16 [get_ports {RGMII_0_rd[3]}]
 set_property src_info {type:XDC file:6 line:151 export:INPUT save:INPUT read:READ} [current_design]
@@ -631,6 +633,14 @@ set_property src_info {type:XDC file:6 line:210 export:INPUT save:INPUT read:REA
 set_property PACKAGE_PIN V8 [get_ports IIC_LCD_0_sda_io]
 set_property src_info {type:XDC file:6 line:229 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN U15 [get_ports {Coder_Int[0]}]
+set_property src_info {type:XDC file:6 line:233 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN M14 [get_ports pulse_p_in_0]
+set_property src_info {type:XDC file:6 line:234 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN J14 [get_ports pulse_p_out_0]
+set_property src_info {type:XDC file:6 line:235 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN M15 [get_ports pulse_q_in_0]
+set_property src_info {type:XDC file:6 line:236 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN L16 [get_ports pulse_q_out_0]
 current_instance system_i/lcd/v_tc_0/U0
 set_property src_info {type:SCOPED_XDC file:7 line:5 export:INPUT save:INPUT read:READ} [current_design]
 set_max_delay -from [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/clk]] -to [all_registers -clock [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/s_axi_aclk]]] -datapath_only [get_property -min PERIOD [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/clk]]]

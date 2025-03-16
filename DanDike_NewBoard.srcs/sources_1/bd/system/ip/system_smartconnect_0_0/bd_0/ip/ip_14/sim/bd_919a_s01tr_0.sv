@@ -208,7 +208,7 @@ output wire m_axi_bready;
     .C_NUM_READ_THREADS(1),
     .C_NUM_WRITE_THREADS(1),
     .C_MEP_IDENTIFIER_WIDTH(3),
-    .C_MEP_IDENTIFIER(4),
+    .C_MEP_IDENTIFIER(3),
     .C_SEP_ROUTE_WIDTH(1),
     .C_RDATA_WIDTH(128),
     .C_WDATA_WIDTH(128),
@@ -223,7 +223,7 @@ output wire m_axi_bready;
     .C_NUM_WRITE_OUTSTANDING(16),
     .C_SINGLE_ISSUING(0)
   ) inst (
-    .mep_identifier(3'H4),
+    .mep_identifier(3'H3),
     .aclk(aclk),
     .aclken(1'D1),
     .aresetn(aresetn),
