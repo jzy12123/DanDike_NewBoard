@@ -47,6 +47,9 @@
 
 #define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
 #define MIO_USB 8 // 连接到 MIO8
+// 在FFT计算开始前
+#define CPU1_PRIORITY_REG 0xF8F00104
+void reinitialize_dma_controller();
 int main()
 {
 	xil_printf("CPU1: initializing\r\n");
@@ -59,8 +62,10 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-	//	sleep(17); // 必须要有等待linux启动
+	sleep(17); // 必须要有等待linux启动
 
+	// 重置和重新初始化外设
+	reinitialize_dma_controller();
 	/************************** DMA初始化 *****************************/
 	int status;
 	XAxiDma_Config *config;
@@ -99,14 +104,21 @@ int main()
 	Xil_SetTlbAttributes(JSON_ADDR, 0x14de2); // 禁用Cache属性	//S=b1 TEX=b100 AP=b11, Domain=b1111, C=b0, B=b0
 	Xil_SetTlbAttributes(UDP_ADDRESS, 0x14de2);
 	Xil_SetTlbAttributes(Share_addr, 0x14de2);
-	Xil_SetTlbAttributes(Share_addr_2, 0x14de2);
+	// 修改内存属性，设置为设备内存（不可缓存）
+	Xil_SetTlbAttributes(0x40400000, 0xC02); // DMA控制器寄存器区域
+	Xil_SetTlbAttributes(0x43C30000, 0xC02); // ADC控制器寄存器区域
 
 	XScuTimer_Start(&Timer); // 启动定时器
 	InitializeQueues();
 	init_JsonUdp();
 	PID_Init_All();
-	xil_printf("CPU1: Initialization successfully\r\n");
 
+	// 测试中断控制器是否正常
+	u32 int_mask = XScuGic_DistReadReg(&intc, XSCUGIC_ENABLE_SET_OFFSET + ((ADCS_RX_INTR_ID / 32) * 4));
+	//
+	printf("CPU1: ADC interrupt enabled: %ld\n", (int_mask >> (ADCS_RX_INTR_ID % 32)) & 0x1);
+	xil_printf("CPU1: Initialization successfully\r\n");
+	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
 	/************************** 测试FFT*****************************/
 	numHarmonics[0] = 6;
 	harmonics[0][0] = 0.0;
@@ -145,173 +157,145 @@ int main()
 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
 	/************************** 测试FFT*****************************/
-	// 内存测试
-	printf("Share_addr_1: 0x%08X\n", Share_addr_1);
-	printf("Share_addr_2: 0x%08X\n", Share_addr_2);
-	printf("UDP_ADDRESS: 0x%08X\n", UDP_ADDRESS);
-	printf("ADC data size: %d bytes\n", sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
 
-	// 开启第一次AD
-	ADC_ChannelEnable = 1;
-	AdcFinish_Flag = 0;
-	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-	sleep(1);
-	// 开启第一次AD
-	ADC_ChannelEnable = 1;
-	AdcFinish_Flag = 0;
-	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-	sleep(1);
-	// 开启第一次AD
-	ADC_ChannelEnable = 1;
-	AdcFinish_Flag = 0;
-	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-	sleep(1);
-	// 开启第一次AD
-	ADC_ChannelEnable = 1;
-	AdcFinish_Flag = 0;
-	adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-	sleep(1);
 	while (1)
 	{
 		if (Timer_Flag)
 		{
 
 			/************************** 测试FFT*****************************/
-			if (AdcFinish_Flag == 0)
+			// 开启AD采样
+			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+
+			if (AdcFinish_Flag != 1)
 			{
-				printf("CPU1_Warring: ADC not finished\n");
-			};
-
-			// 确定用于FFT计算的DDR区域 - 使用与当前ADC写入相反的区域
-			u32 fft_share_addr = (Current_DDR_Region == 0) ? Share_addr_2 : Share_addr_1;
-			// 刷新共享内存的缓存，保证数据的一致性
-			Xil_DCacheFlushRange((UINTPTR)fft_share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-
-			// 开启下一次AD采样
-			ADC_ChannelEnable = 1;
-			AdcFinish_Flag = 0;
-			adc_start(sample_points, sample_points * Wave_Frequency); // 设置每个周期的采样点数和采样频率
-			usleep(400000);
-
-			double Phase_reference = 0; // 定义相位基准
-			// 重置计算值
-			lineAC.totalP = 0.0;
-			lineAC.totalQ = 0.0;
-			lineAC.totalPF = 0.0;
-			for (int i = 0; i < 4; i++)
-			{
-				// 分析FFT
-				double harmonic_info_U[HarmNumberMax][3] = {0}; // 创建用于存储谐波的数组
-				double harmonic_info_I[HarmNumberMax][3] = {0};
-
-				//				AnalyzeWaveform(harmonic_info_U, i);	//分析谐波 交流表
-				//				AnalyzeWaveform(harmonic_info_I, i + 5);
-
-				// 使用两块DDR地址交替进行FFT分析
-				AnalyzeWaveform_WithDDR(harmonic_info_U, i, fft_share_addr, sample_points * Wave_Frequency, Wave_Frequency);
-				AnalyzeWaveform_WithDDR(harmonic_info_I, i + 4, fft_share_addr, sample_points * Wave_Frequency, Wave_Frequency);
-
-				if (i == 0)
-				{
-					// 定义相位基准
-					Phase_reference = harmonic_info_U[0][2];
-				}
-				// lineAC - 将分析后的结果填充到UDP结构体里
-				// 获取电压和电流量程索引
-				int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
-				int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
-
-				lineAC.f[i] = harmonic_info_U[0][0];												  // 频率
-				lineAC.ur[i] = setACS.Vals[0].UR;													  // 电压档位
-				lineAC.u[i] = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;	  // 电压幅值 V
-				lineAC.ir[i] = setACS.Vals[0].IR;													  // 电流档位
-				lineAC.i[i] = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR; // 电流 A
-				lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference;							  // 电压相位 角度制（UA为参考）
-				if (lineAC.phu[i] < 0)
-				{
-					lineAC.phu[i] += 360;
-				}
-				lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考）
-				if (lineAC.phi[i] < 0)
-				{
-					lineAC.phi[i] += 360;
-				}
-				lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(lineAC.phi[i] * M_PI / 180.0f)); // 有功功率
-				lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(lineAC.phi[i] * M_PI / 180.0f)); // 无功功率
-				lineAC.pf[i] = cos(lineAC.phi[i] * M_PI / 180.0f);								// 功率因数
-
-				// 累加到总功率
-				lineAC.totalP += lineAC.p[i];
-				lineAC.totalQ += lineAC.q[i];
-
-				// 初始化总谐波畸变率变量
-				double thdu = 0.0;
-				double thdi = 0.0;
-				// 计算电压总谐波畸变率 (THDU)
-				if (harmonic_info_U[0][1] >= 0.0001)
-				{ // 避免除以零
-					double sum_of_squares_u = 0.0;
-					// 遍历从2次谐波到32次谐波
-					for (int h = 1; h < 32; h++)
-					{
-						// 计算第i次谐波的比值
-						double harmonic_ratio_u = harmonic_info_U[h][1] / harmonic_info_U[0][1];
-						// 累加平方
-						sum_of_squares_u += harmonic_ratio_u * harmonic_ratio_u;
-					}
-					// 计算平方和的平方根，得到THD
-					thdu = sqrt(sum_of_squares_u);
-				}
-				else
-				{
-					// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
-					thdu = 0.0;
-				}
-				// 计算电流总谐波畸变率 (THDI)
-				if (harmonic_info_I[0][1] >= 0.0001)
-				{ // 避免除以零
-					double sum_of_squares_i = 0.0;
-					// 遍历从2次谐波到32次谐波
-					for (int h = 1; h < 32; h++)
-					{
-						// 计算第i次谐波的比值
-						double harmonic_ratio_i = harmonic_info_I[h][1] / harmonic_info_I[0][1];
-						// 累加平方
-						sum_of_squares_i += harmonic_ratio_i * harmonic_ratio_i;
-					}
-					// 计算平方和的平方根，得到THD
-					thdi = sqrt(sum_of_squares_i);
-				}
-				else
-				{
-					// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
-					thdi = 0.0;
-				}
-				// 保存结果
-				lineAC.thdu[i] = thdu * 100.0;
-				lineAC.thdi[i] = thdi * 100.0;
-
-				// lineHarm
-				for (int j = 0; j < HarmNumberMax; j++)
-				{
-					lineHarm.harm[i].u[j] = (harmonic_info_U[j][1] / AD_UA_Correct) * setACS.Vals[0].UR;
-					lineHarm.harm[i].i[j] = (harmonic_info_I[j][1] / AD_IA_Correct) * setACS.Vals[0].IR;
-					lineHarm.harm[i].phu[j] = harmonic_info_U[j][2];
-					lineHarm.harm[i].phi[j] = harmonic_info_I[j][2];
-				}
-			}
-			// 总功率因数
-			double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);
-			if (totalApparentPower > 0)
-			{
-				lineAC.totalPF = lineAC.totalP / totalApparentPower;
+				printf("CPU1 Warning : ADC data is not ready\n");
 			}
 			else
 			{
-				lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
-			}
+				// 刷新共享内存的缓存，保证数据的一致性
+				Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
 
-			/************************** 测试FFT*****************************/
+				// 重置计算值
+				double Phase_reference = 0; // 定义相位基准
+				lineAC.totalP = 0.0;
+				lineAC.totalQ = 0.0;
+				lineAC.totalPF = 0.0;
+				for (int i = 0; i < 4; i++)
+				{
+					// 分析FFT
+					double harmonic_info_U[HarmNumberMax][3] = {0}; // 创建用于存储谐波的数组
+					double harmonic_info_I[HarmNumberMax][3] = {0};
+
+					//				AnalyzeWaveform(harmonic_info_U, i);	//分析谐波 交流表
+					//				AnalyzeWaveform(harmonic_info_I, i + 5);
+
+					// 使用两块DDR地址交替进行FFT分析
+					AnalyzeWaveform_WithDDR(harmonic_info_U, i, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
+					AnalyzeWaveform_WithDDR(harmonic_info_I, i + 4, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
+
+					if (i == 0)
+					{
+						// 定义相位基准
+						Phase_reference = harmonic_info_U[0][2];
+					}
+					// lineAC - 将分析后的结果填充到UDP结构体里
+					// 获取电压和电流量程索引
+					int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
+					int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
+
+					lineAC.f[i] = harmonic_info_U[0][0];												  // 频率
+					lineAC.ur[i] = setACS.Vals[0].UR;													  // 电压档位
+					lineAC.u[i] = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;	  // 电压幅值 V
+					lineAC.ir[i] = setACS.Vals[0].IR;													  // 电流档位
+					lineAC.i[i] = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR; // 电流 A
+					lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference;							  // 电压相位 角度制（UA为参考）
+					if (lineAC.phu[i] < 0)
+					{
+						lineAC.phu[i] += 360;
+					}
+					lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考）
+					if (lineAC.phi[i] < 0)
+					{
+						lineAC.phi[i] += 360;
+					}
+					lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(lineAC.phi[i] * M_PI / 180.0f)); // 有功功率
+					lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(lineAC.phi[i] * M_PI / 180.0f)); // 无功功率
+					lineAC.pf[i] = cos(lineAC.phi[i] * M_PI / 180.0f);								// 功率因数
+
+					// 累加到总功率
+					lineAC.totalP += lineAC.p[i];
+					lineAC.totalQ += lineAC.q[i];
+
+					// 初始化总谐波畸变率变量
+					double thdu = 0.0;
+					double thdi = 0.0;
+					// 计算电压总谐波畸变率 (THDU)
+					if (harmonic_info_U[0][1] >= 0.0001)
+					{ // 避免除以零
+						double sum_of_squares_u = 0.0;
+						// 遍历从2次谐波到32次谐波
+						for (int h = 1; h < 32; h++)
+						{
+							// 计算第i次谐波的比值
+							double harmonic_ratio_u = harmonic_info_U[h][1] / harmonic_info_U[0][1];
+							// 累加平方
+							sum_of_squares_u += harmonic_ratio_u * harmonic_ratio_u;
+						}
+						// 计算平方和的平方根，得到THD
+						thdu = sqrt(sum_of_squares_u);
+					}
+					else
+					{
+						// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
+						thdu = 0.0;
+					}
+					// 计算电流总谐波畸变率 (THDI)
+					if (harmonic_info_I[0][1] >= 0.0001)
+					{ // 避免除以零
+						double sum_of_squares_i = 0.0;
+						// 遍历从2次谐波到32次谐波
+						for (int h = 1; h < 32; h++)
+						{
+							// 计算第i次谐波的比值
+							double harmonic_ratio_i = harmonic_info_I[h][1] / harmonic_info_I[0][1];
+							// 累加平方
+							sum_of_squares_i += harmonic_ratio_i * harmonic_ratio_i;
+						}
+						// 计算平方和的平方根，得到THD
+						thdi = sqrt(sum_of_squares_i);
+					}
+					else
+					{
+						// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
+						thdi = 0.0;
+					}
+					// 保存结果
+					lineAC.thdu[i] = thdu * 100.0;
+					lineAC.thdi[i] = thdi * 100.0;
+
+					// lineHarm
+					for (int j = 0; j < HarmNumberMax; j++)
+					{
+						lineHarm.harm[i].u[j] = (harmonic_info_U[j][1] / AD_UA_Correct) * setACS.Vals[0].UR;
+						lineHarm.harm[i].i[j] = (harmonic_info_I[j][1] / AD_IA_Correct) * setACS.Vals[0].IR;
+						lineHarm.harm[i].phu[j] = harmonic_info_U[j][2];
+						lineHarm.harm[i].phi[j] = harmonic_info_I[j][2];
+					}
+				}
+				// 总功率因数
+				double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);
+				if (totalApparentPower > 0)
+				{
+					lineAC.totalPF = lineAC.totalP / totalApparentPower;
+				}
+				else
+				{
+					lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
+				}
+
+				/************************** 测试FFT*****************************/
+			}
 
 			/*2 回报UDP结构体*/
 			Timer_Flag = 0;
@@ -342,4 +326,29 @@ int main()
 			RdSerial();
 		}
 	}
+}
+
+void reinitialize_dma_controller()
+{
+	// 完全重置DMA控制器
+	XAxiDma_Reset(&axidma);
+
+	// 等待重置完成
+	int timeout = RESET_TIMEOUT_COUNTER;
+	while (timeout)
+	{
+		if (XAxiDma_ResetIsDone(&axidma))
+			break;
+		timeout -= 1;
+	}
+
+	// 重新配置DMA
+	XAxiDma_Config *config = XAxiDma_LookupConfig(DMA_DEV_ID);
+	XAxiDma_CfgInitialize(&axidma, config);
+
+	// 重新设置中断
+	XAxiDma_IntrDisable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
+	XAxiDma_IntrDisable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
+	XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
+	XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
 }

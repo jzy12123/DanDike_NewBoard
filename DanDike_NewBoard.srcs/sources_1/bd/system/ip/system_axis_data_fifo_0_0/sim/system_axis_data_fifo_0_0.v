@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2024 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -65,7 +65,8 @@ module system_axis_data_fifo_0_0 (
   m_axis_tready,
   m_axis_tdata,
   m_axis_tstrb,
-  m_axis_tlast
+  m_axis_tlast,
+  prog_full
 );
 
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_RSTIF, POLARITY ACTIVE_LOW, INSERT_VIP 0, TYPE INTERCONNECT" *)
@@ -96,6 +97,7 @@ output wire [15 : 0] m_axis_tstrb;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME M_AXIS, TDATA_NUM_BYTES 16, TDEST_WIDTH 0, TID_WIDTH 0, TUSER_WIDTH 0, HAS_TREADY 1, HAS_TSTRB 1, HAS_TKEEP 0, HAS_TLAST 1, FREQ_HZ 100000000, PHASE 0.000, CLK_DOMAIN system_processing_system7_0_0_FCLK_CLK0, LAYERED_METADATA undef, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 M_AXIS TLAST" *)
 output wire m_axis_tlast;
+output wire prog_full;
 
   axis_data_fifo_v2_0_4_top #(
     .C_FAMILY("zynq"),
@@ -111,9 +113,9 @@ output wire m_axis_tlast;
     .C_ACLKEN_CONV_MODE(0),
     .C_ECC_MODE(0),
     .C_FIFO_MEMORY_TYPE("auto"),
-    .C_USE_ADV_FEATURES(825765944),
+    .C_USE_ADV_FEATURES(825765953),
     .C_PROG_EMPTY_THRESH(5),
-    .C_PROG_FULL_THRESH(11)
+    .C_PROG_FULL_THRESH(1000)
   ) inst (
     .s_axis_aresetn(s_axis_aresetn),
     .s_axis_aclk(s_axis_aclk),
@@ -143,7 +145,7 @@ output wire m_axis_tlast;
     .almost_empty(),
     .prog_empty(),
     .almost_full(),
-    .prog_full(),
+    .prog_full(prog_full),
     .sbiterr(),
     .dbiterr(),
     .injectsbiterr(1'H0),

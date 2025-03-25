@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2024 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -53,7 +53,7 @@
 (* X_CORE_INFO = "axis_data_fifo_v2_0_4_top,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_axis_data_fifo_1_1,axis_data_fifo_v2_0_4_top,{}" *)
 (* CORE_GENERATION_INFO = "system_axis_data_fifo_1_1,axis_data_fifo_v2_0_4_top,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=axis_data_fifo,x_ipVersion=2.0,x_ipCoreRevision=4,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_FAMILY=zynq,C_AXIS_TDATA_WIDTH=128,C_AXIS_TID_WIDTH=1,C_AXIS_TDEST_WIDTH=1,C_AXIS_TUSER_WIDTH=1,C_AXIS_SIGNAL_SET=0b00000000000000000000000000000011,C_FIFO_DEPTH=2048,C_FIFO_MODE=1,C_IS_ACLK_ASYNC=0,C_SYNCHRONIZER_STAGE=3,C_ACLKEN_CONV_MODE=0,C_ECC_MODE=0,C_FIFO_MEMORY_TYPE=auto,\
-C_USE_ADV_FEATURES=825372722,C_PROG_EMPTY_THRESH=5,C_PROG_FULL_THRESH=2043}" *)
+C_USE_ADV_FEATURES=825372720,C_PROG_EMPTY_THRESH=5,C_PROG_FULL_THRESH=2043}" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_axis_data_fifo_1_1 (
   s_axis_aresetn,
@@ -64,8 +64,7 @@ module system_axis_data_fifo_1_1 (
   m_axis_tvalid,
   m_axis_tready,
   m_axis_tdata,
-  prog_empty,
-  prog_full
+  prog_empty
 );
 
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_RSTIF, POLARITY ACTIVE_LOW, INSERT_VIP 0, TYPE INTERCONNECT" *)
@@ -89,7 +88,6 @@ input wire m_axis_tready;
 (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 M_AXIS TDATA" *)
 output wire [127 : 0] m_axis_tdata;
 output wire prog_empty;
-output wire prog_full;
 
   axis_data_fifo_v2_0_4_top #(
     .C_FAMILY("zynq"),
@@ -105,7 +103,7 @@ output wire prog_full;
     .C_ACLKEN_CONV_MODE(0),
     .C_ECC_MODE(0),
     .C_FIFO_MEMORY_TYPE("auto"),
-    .C_USE_ADV_FEATURES(825372722),
+    .C_USE_ADV_FEATURES(825372720),
     .C_PROG_EMPTY_THRESH(5),
     .C_PROG_FULL_THRESH(2043)
   ) inst (
@@ -137,7 +135,7 @@ output wire prog_full;
     .almost_empty(),
     .prog_empty(prog_empty),
     .almost_full(),
-    .prog_full(prog_full),
+    .prog_full(),
     .sbiterr(),
     .dbiterr(),
     .injectsbiterr(1'H0),

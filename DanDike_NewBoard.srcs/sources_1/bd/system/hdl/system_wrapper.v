@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Sun Mar 16 09:44:50 2025
+//Date        : Tue Mar 25 11:08:45 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -17,22 +17,12 @@ module system_wrapper
     AD_0_ad_rst,
     AD_0_ad_sa,
     AD_0_ad_sb,
-    AD_1_ad_busy,
-    AD_1_ad_ck,
-    AD_1_ad_cs,
-    AD_1_ad_cvn,
-    AD_1_ad_rst,
-    AD_1_ad_sa,
-    AD_1_ad_sb,
     Coder_A,
     Coder_B,
     Coder_Int,
     DA_0_da_clk,
     DA_0_da_cs,
     DA_0_da_sdo,
-    DA_1_da_clk,
-    DA_1_da_cs,
-    DA_1_da_sdo,
     DDR_addr,
     DDR_ba,
     DDR_cas_n,
@@ -74,17 +64,11 @@ module system_wrapper
     RdSerial_0_rd_load,
     RdSerial_0_rd_sclk,
     RdSerial_0_rd_sdi,
-    RdSerial_1_rd_load,
-    RdSerial_1_rd_sclk,
-    RdSerial_1_rd_sdi,
     UART_GPS_rxd,
     UART_GPS_txd,
     WrSerial_0_wr_load,
     WrSerial_0_wr_sclk,
     WrSerial_0_wr_sdo,
-    WrSerial_1_wr_load,
-    WrSerial_1_wr_sclk,
-    WrSerial_1_wr_sdo,
     gpio0_tri_io,
     lcd_bl,
     lcd_clk,
@@ -95,7 +79,8 @@ module system_wrapper
     pulse_p_out_0,
     pulse_q_in_0,
     pulse_q_out_0,
-    rgb_data_tri_io);
+    rgb_data_tri_io,
+    yad_os_0);
   input AD_0_ad_busy;
   output AD_0_ad_ck;
   output AD_0_ad_cs;
@@ -103,22 +88,12 @@ module system_wrapper
   output AD_0_ad_rst;
   input AD_0_ad_sa;
   input AD_0_ad_sb;
-  input AD_1_ad_busy;
-  output AD_1_ad_ck;
-  output AD_1_ad_cs;
-  output AD_1_ad_cvn;
-  output AD_1_ad_rst;
-  input AD_1_ad_sa;
-  input AD_1_ad_sb;
   input Coder_A;
   input Coder_B;
   input [0:0]Coder_Int;
   output DA_0_da_clk;
   output DA_0_da_cs;
   output [7:0]DA_0_da_sdo;
-  output DA_1_da_clk;
-  output DA_1_da_cs;
-  output [7:0]DA_1_da_sdo;
   inout [14:0]DDR_addr;
   inout [2:0]DDR_ba;
   inout DDR_cas_n;
@@ -160,17 +135,11 @@ module system_wrapper
   output RdSerial_0_rd_load;
   output RdSerial_0_rd_sclk;
   input RdSerial_0_rd_sdi;
-  output RdSerial_1_rd_load;
-  output RdSerial_1_rd_sclk;
-  input RdSerial_1_rd_sdi;
   input UART_GPS_rxd;
   output UART_GPS_txd;
   output WrSerial_0_wr_load;
   output WrSerial_0_wr_sclk;
   output WrSerial_0_wr_sdo;
-  output WrSerial_1_wr_load;
-  output WrSerial_1_wr_sclk;
-  output WrSerial_1_wr_sdo;
   inout [2:0]gpio0_tri_io;
   output [0:0]lcd_bl;
   output lcd_clk;
@@ -182,6 +151,7 @@ module system_wrapper
   input pulse_q_in_0;
   output pulse_q_out_0;
   inout [18:0]rgb_data_tri_io;
+  output [1:0]yad_os_0;
 
   wire AD_0_ad_busy;
   wire AD_0_ad_ck;
@@ -190,22 +160,12 @@ module system_wrapper
   wire AD_0_ad_rst;
   wire AD_0_ad_sa;
   wire AD_0_ad_sb;
-  wire AD_1_ad_busy;
-  wire AD_1_ad_ck;
-  wire AD_1_ad_cs;
-  wire AD_1_ad_cvn;
-  wire AD_1_ad_rst;
-  wire AD_1_ad_sa;
-  wire AD_1_ad_sb;
   wire Coder_A;
   wire Coder_B;
   wire [0:0]Coder_Int;
   wire DA_0_da_clk;
   wire DA_0_da_cs;
   wire [7:0]DA_0_da_sdo;
-  wire DA_1_da_clk;
-  wire DA_1_da_cs;
-  wire [7:0]DA_1_da_sdo;
   wire [14:0]DDR_addr;
   wire [2:0]DDR_ba;
   wire DDR_cas_n;
@@ -262,17 +222,11 @@ module system_wrapper
   wire RdSerial_0_rd_load;
   wire RdSerial_0_rd_sclk;
   wire RdSerial_0_rd_sdi;
-  wire RdSerial_1_rd_load;
-  wire RdSerial_1_rd_sclk;
-  wire RdSerial_1_rd_sdi;
   wire UART_GPS_rxd;
   wire UART_GPS_txd;
   wire WrSerial_0_wr_load;
   wire WrSerial_0_wr_sclk;
   wire WrSerial_0_wr_sdo;
-  wire WrSerial_1_wr_load;
-  wire WrSerial_1_wr_sclk;
-  wire WrSerial_1_wr_sdo;
   wire [0:0]gpio0_tri_i_0;
   wire [1:1]gpio0_tri_i_1;
   wire [2:2]gpio0_tri_i_2;
@@ -370,6 +324,7 @@ module system_wrapper
   wire [7:7]rgb_data_tri_t_7;
   wire [8:8]rgb_data_tri_t_8;
   wire [9:9]rgb_data_tri_t_9;
+  wire [1:0]yad_os_0;
 
   IOBUF IIC_LCD_0_scl_iobuf
        (.I(IIC_LCD_0_scl_o),
@@ -514,22 +469,12 @@ module system_wrapper
         .AD_0_ad_rst(AD_0_ad_rst),
         .AD_0_ad_sa(AD_0_ad_sa),
         .AD_0_ad_sb(AD_0_ad_sb),
-        .AD_1_ad_busy(AD_1_ad_busy),
-        .AD_1_ad_ck(AD_1_ad_ck),
-        .AD_1_ad_cs(AD_1_ad_cs),
-        .AD_1_ad_cvn(AD_1_ad_cvn),
-        .AD_1_ad_rst(AD_1_ad_rst),
-        .AD_1_ad_sa(AD_1_ad_sa),
-        .AD_1_ad_sb(AD_1_ad_sb),
         .Coder_A(Coder_A),
         .Coder_B(Coder_B),
         .Coder_Int(Coder_Int),
         .DA_0_da_clk(DA_0_da_clk),
         .DA_0_da_cs(DA_0_da_cs),
         .DA_0_da_sdo(DA_0_da_sdo),
-        .DA_1_da_clk(DA_1_da_clk),
-        .DA_1_da_cs(DA_1_da_cs),
-        .DA_1_da_sdo(DA_1_da_sdo),
         .DDR_addr(DDR_addr),
         .DDR_ba(DDR_ba),
         .DDR_cas_n(DDR_cas_n),
@@ -581,17 +526,11 @@ module system_wrapper
         .RdSerial_0_rd_load(RdSerial_0_rd_load),
         .RdSerial_0_rd_sclk(RdSerial_0_rd_sclk),
         .RdSerial_0_rd_sdi(RdSerial_0_rd_sdi),
-        .RdSerial_1_rd_load(RdSerial_1_rd_load),
-        .RdSerial_1_rd_sclk(RdSerial_1_rd_sclk),
-        .RdSerial_1_rd_sdi(RdSerial_1_rd_sdi),
         .UART_GPS_rxd(UART_GPS_rxd),
         .UART_GPS_txd(UART_GPS_txd),
         .WrSerial_0_wr_load(WrSerial_0_wr_load),
         .WrSerial_0_wr_sclk(WrSerial_0_wr_sclk),
         .WrSerial_0_wr_sdo(WrSerial_0_wr_sdo),
-        .WrSerial_1_wr_load(WrSerial_1_wr_load),
-        .WrSerial_1_wr_sclk(WrSerial_1_wr_sclk),
-        .WrSerial_1_wr_sdo(WrSerial_1_wr_sdo),
         .gpio0_tri_i({gpio0_tri_i_2,gpio0_tri_i_1,gpio0_tri_i_0}),
         .gpio0_tri_o({gpio0_tri_o_2,gpio0_tri_o_1,gpio0_tri_o_0}),
         .gpio0_tri_t({gpio0_tri_t_2,gpio0_tri_t_1,gpio0_tri_t_0}),
@@ -606,5 +545,6 @@ module system_wrapper
         .pulse_q_out_0(pulse_q_out_0),
         .rgb_data_tri_i({rgb_data_tri_i_18,rgb_data_tri_i_17,rgb_data_tri_i_16,rgb_data_tri_i_15,rgb_data_tri_i_14,rgb_data_tri_i_13,rgb_data_tri_i_12,rgb_data_tri_i_11,rgb_data_tri_i_10,rgb_data_tri_i_9,rgb_data_tri_i_8,rgb_data_tri_i_7,rgb_data_tri_i_6,rgb_data_tri_i_5,rgb_data_tri_i_4,rgb_data_tri_i_3,rgb_data_tri_i_2,rgb_data_tri_i_1,rgb_data_tri_i_0}),
         .rgb_data_tri_o({rgb_data_tri_o_18,rgb_data_tri_o_17,rgb_data_tri_o_16,rgb_data_tri_o_15,rgb_data_tri_o_14,rgb_data_tri_o_13,rgb_data_tri_o_12,rgb_data_tri_o_11,rgb_data_tri_o_10,rgb_data_tri_o_9,rgb_data_tri_o_8,rgb_data_tri_o_7,rgb_data_tri_o_6,rgb_data_tri_o_5,rgb_data_tri_o_4,rgb_data_tri_o_3,rgb_data_tri_o_2,rgb_data_tri_o_1,rgb_data_tri_o_0}),
-        .rgb_data_tri_t({rgb_data_tri_t_18,rgb_data_tri_t_17,rgb_data_tri_t_16,rgb_data_tri_t_15,rgb_data_tri_t_14,rgb_data_tri_t_13,rgb_data_tri_t_12,rgb_data_tri_t_11,rgb_data_tri_t_10,rgb_data_tri_t_9,rgb_data_tri_t_8,rgb_data_tri_t_7,rgb_data_tri_t_6,rgb_data_tri_t_5,rgb_data_tri_t_4,rgb_data_tri_t_3,rgb_data_tri_t_2,rgb_data_tri_t_1,rgb_data_tri_t_0}));
+        .rgb_data_tri_t({rgb_data_tri_t_18,rgb_data_tri_t_17,rgb_data_tri_t_16,rgb_data_tri_t_15,rgb_data_tri_t_14,rgb_data_tri_t_13,rgb_data_tri_t_12,rgb_data_tri_t_11,rgb_data_tri_t_10,rgb_data_tri_t_9,rgb_data_tri_t_8,rgb_data_tri_t_7,rgb_data_tri_t_6,rgb_data_tri_t_5,rgb_data_tri_t_4,rgb_data_tri_t_3,rgb_data_tri_t_2,rgb_data_tri_t_1,rgb_data_tri_t_0}),
+        .yad_os_0(yad_os_0));
 endmodule

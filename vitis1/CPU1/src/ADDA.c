@@ -6,7 +6,7 @@ XAxiDma axidma;                     // XAxiDma实例
 XScuGic intc;                       // 中断控制器的实例
 XScuTimer Timer;                    // 定时器驱动程序实例
 volatile int tx_done;               // 发送完成标志
-volatile int error;                 // 传输出错标志
+volatile int error = 0;             // 传输出错标志
 volatile int adcS_done;             // adc发送完成标志
 volatile u8 Timer_Flag;             // 定时器完成标志
 volatile u8 Current_DDR_Region = 0; // 0表示使用Share_addr_1，1表示使用Share_addr_2
@@ -15,7 +15,7 @@ volatile u8 Current_DDR_Region = 0; // 0表示使用Share_addr_1，1表示使用Share_add
 int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
 u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
-u8 ADC_ChannelEnable = 0;
+volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
 float Phase_shift[8] = {0, 30, 60, 90, 120, 150, 180, 210}; // 8路波形相位偏移 单位度
@@ -63,18 +63,43 @@ double AD_Correct[8][3] = {
  * 函数输入为采样频率
  * 自动设置IP核的采样点和采样频率
  */
-void adc_start(int SamplePoints, int SampleFrequency)
+void AdcDma_Start_OneBulk(int SamplePoints, int SampleFrequency)
 {
+    // 关闭所有中断
+    Xil_ExceptionDisable();
 
+    /*1 开启ADC采样，设置采样点数和采样频率*/
     if (sample_points == 256)
     {
-        Xil_Out32(adc_whole_base_addr + 8, SamplePoints);               // 采样点：sample_points写1024
+        Xil_Out32(adc_whole_base_addr + 8, SamplePoints);               // 采样点：sample_points写256
         Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency); // 7812，对应采样频率50*256
     }
 
     Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
     Xil_Out32(adc_whole_base_addr + 0, 1);
+
+    /*2 开启DMA传输*/
+    // 同时开启DMA传输ADC结果到DDR rx_buffer_ptr
+    // sample_points个点 *16位*8个通道
+    sync_dma_buffer((UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
+    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
+    if (status != XST_SUCCESS)
+    {
+        // 处理DMA传输失败情况
+        printf("CPU1: ADC DMA transfer failed, will retry next cycle\n");
+    }
+
+    // 重新启用中断
+    Xil_ExceptionEnable();
     // 接下来进入adcS_intr_handler中断函数
+}
+void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
+{
+    AdcFinish_Flag = 0;
+    ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
+    AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
+    usleep(400000);
+    // 下面进入adcS_intr_handler函数
 }
 
 void dma_dac_init()
@@ -88,6 +113,25 @@ void dds_dac_init()
 
     // 更改使能、频率、相位、通道使能
     str_wr_bram(PID_OFF);
+}
+
+// 对于DMA缓冲区，使用更强的缓存同步
+void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
+{
+    if (direction == XAXIDMA_DMA_TO_DEVICE)
+    {
+        // CPU写入，DMA读取
+        Xil_DCacheFlushRange(addr, size);
+    }
+    else
+    {
+        // 先刷新，再失效
+        Xil_DCacheFlushRange(addr, size);
+        Xil_DCacheInvalidateRange(addr, size);
+    }
+
+    // 添加内存屏障确保操作顺序
+    __asm__ __volatile__("dsb sy" : : : "memory");
 }
 
 // DMA RX中断处理函数 adc
@@ -107,6 +151,7 @@ void rx_intr_handler(void *callback)
         error = 1;
         XAxiDma_Reset(axidma_inst);
         timeout = RESET_TIMEOUT_COUNTER;
+        printf("CPU1:DMA RX Interrupt Handler: Error Transfer\n");
         while (timeout)
         {
             if (XAxiDma_ResetIsDone(axidma_inst))
@@ -120,23 +165,53 @@ void rx_intr_handler(void *callback)
     if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
     {
         // 用户函数
-        Xil_DCacheFlushRange((UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX);
+
+        // 继续开启新一次的ADC
+
+        if (ADC_Sampling_ddr > 1)
+        {
+            // 启动下一次的ADC和DMA
+            AdcDma_Start_OneBulk(sample_points, sample_points * Wave_Frequency);
+        }
+        else
+        {
+            // 说明AD_SAMP_CYCLE_NUMBER写完了一轮
+            AdcFinish_Flag = 1; // 给ADc完成标志写1
+        }
+
+        sync_dma_buffer((UINTPTR)rx_buffer_ptr, FIFO_DEPTH * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
         Adc_Data_processing();
     }
+}
+
+int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction)
+{
+    int retry_count = 0;
+    int max_retries = 5;
+    int status = XST_FAILURE;
+
+    while (retry_count < max_retries)
+    {
+        status = XAxiDma_SimpleTransfer(AxiDmaInstPtr, BuffAddr, Length, Direction);
+
+        if (status == XST_SUCCESS)
+        {
+            return XST_SUCCESS;
+        }
+
+        printf("CPU1: DMA transfer failed, retrying (%d)...\n", retry_count + 1);
+        retry_count++;
+        usleep(1000); // 短暂延迟
+    }
+
+    printf("CPU1: DMA transfer failed after %d retries\n", max_retries);
+    return status;
 }
 
 void adcS_intr_handler(void *callback)
 {
     // 进入到此中断代表ADC已经完成了一次采样任务（1024个点 或 2048个点）
-    // 继续开启新一次的ADC
-    //	printf("ADC_Handler\r\n");
-    if (ADC_ChannelEnable)
-    { // ADC_ChannelEnable不为0，则开启ADC
-        adc_start(sample_points, sample_points * Wave_Frequency);
-    }
-    // 同时开启DMA传输上一次的ADC结果到DDR rx_buffer_ptr
-    // sample_points个点 *16位*8个通道
-    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
+
     // 接下来进入rx_intr_handler函数
 }
 
@@ -174,19 +249,21 @@ void tx_intr_handler(void *callback)
     }
 }
 
-// 上溢：写满fifo后继续写则导致上溢
+// ADC FIFO上溢：写满fifo后继续写则导致上溢
+// 目前设定FIFO写入1000时发生满中断，此时ADC采样还未完成，所以ADC采样中断还未到来，运行这个函数之后下一个中断是ADC完成1024的中断。
 void overflow_handler()
 {
-    // xil_printf("overflow\r\n");
+    // 打印错误信息
+    xil_printf("CPU1 Error: ADC FIFO OverFlow! \r\n");
 }
 
-// 下溢：读空fifo后继续读则导致下溢
+// DAC FIFO溢：读空fifo后继续读则导致下溢
 void underflow_handler()
 {
     // xil_printf("underflow\r\n");
 
     //	Copy_Wave_to_tx_buffer_ptr();
-    Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, DATA_LEN * 16); // 刷新Data Cache
+    sync_dma_buffer((UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
 }
 
@@ -262,8 +339,8 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
 
     // 设置优先级和触发类型
     // ad
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 0xA0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, adcS_id, 0xA0, 0x03);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, adcS_id, 0, 0x03);
     // da
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 0xA0, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, overflow_id, 0xA0, 0x3); // 高电平有效
@@ -272,7 +349,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_SetPriorityTriggerType(int_ins_ptr, switch_id, 0xA0, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, amplifier_id, 0xA0, 0x3); // 高电平有效
     // 为定时器中断设置较高优先级
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3); // 设置更高优先级
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3);
 
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
@@ -284,6 +361,26 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_Connect(int_ins_ptr, amplifier_id, (Xil_ExceptionHandler)Amplifier_INT_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, SoftIntrCpu1_id, (Xil_ExceptionHandler)soft_intr_handler, (void *)int_ins_ptr); // CPU1软中断
     XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);         // 定时器
+
+    // 显式地将ADC和DMA中断映射到CPU1
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, adcS_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, overflow_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, switch_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, amplifier_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, SoftIntrCpu1_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, Timer_id);
+
+    // 同时从CPU0解除映射（防止Linux误处理）
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, adcS_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, overflow_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, switch_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, amplifier_id);
 
     // 使能
     // ad
@@ -348,59 +445,44 @@ bool AdcFinish_Flag = 0; // ADc完成标志，在中断处理函数中写1，主循环中读取
  * 4. 当ADC_Sampling_ddr减到1时，关闭AD功能。
  * 5. 当ADC_Sampling_ddr减到0时，重置ADC_Sampling_ddr为AD_SAMP_CYCLE_NUMBER，并设置AdcFinish_Flag标志为1，表示ADC数据处理完成。
  */
+
 void Adc_Data_processing()
 {
     /************************** 数据处理 *****************************/
+
     int k = 0;
-    // 确定当前写入的DDR区域
-    u32 current_share_addr = (Current_DDR_Region == 0) ? Share_addr_1 : Share_addr_2;
-
-    static int ADC_Sampling_ddr = AD_SAMP_CYCLE_NUMBER; // 向内存里写几个周期
-
     // 直接从rx_buffer_ptr处理数据并写入当前DDR区域
     for (int i = 0; i < sample_points; i++)
     {
         // 直接处理并写入DDR，跳过dma_rx_8数组
-        Xil_Out32(current_share_addr + 0 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 0 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 1])); // JUA
 
-        Xil_Out32(current_share_addr + 1 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 1 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 3])); // JUB
 
-        Xil_Out32(current_share_addr + 2 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 2 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 5])); // JUC
 
-        Xil_Out32(current_share_addr + 3 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 3 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 7])); // JUX
 
-        Xil_Out32(current_share_addr + 4 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 4 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k])); // JIA
 
-        Xil_Out32(current_share_addr + 5 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 5 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 2])); // JIB
 
-        Xil_Out32(current_share_addr + 6 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 6 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 4])); // JIC
 
-        Xil_Out32(current_share_addr + 7 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
+        Xil_Out32(Share_addr + 7 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
                   (u32)code_to_real(rx_buffer_ptr[k + 6])); // JIX
 
         k += 8; // 移动到下一组数据
     }
 
-    ADC_Sampling_ddr--;
-    if (ADC_Sampling_ddr == 1)
-    {
-        ADC_ChannelEnable = 0; // 关闭AD功能
-        AdcFinish_Flag = 1;    // 给ADc完成标志写1
-    }
-    else if (ADC_Sampling_ddr == 0)
-    {
-        // 说明AD_SAMP_CYCLE_NUMBER写完了一轮
-        ADC_Sampling_ddr = AD_SAMP_CYCLE_NUMBER; // 循环写AD_SAMP_CYCLE_NUMBER个波形
-
-        Current_DDR_Region = 1 - Current_DDR_Region; // 切换DDR区域(0->1或1->0)
-    }
+    ADC_Sampling_ddr -= 1;
 }
 
 void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress)

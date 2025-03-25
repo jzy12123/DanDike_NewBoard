@@ -24,9 +24,6 @@
 // 共享内存
 #define RTOS_base_addr 0x21000000
 #define Share_addr 0x3C000000
-#define Share_addr_1 0x3C000000 // 第一块共享DDR区域
-#define Share_addr_2 (Share_addr_1 + (sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER)) // 第二块共享DDR区域
-
 
 // 定时器
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID // 定时器ID
@@ -50,15 +47,16 @@
 #define ADCS_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_ADC_WHOLE_0_ADC_END_INTR_INTR // adc中断号，64
 #define sample_points 256                                                             // 一个周期采样256、1024、2048
 #define AD_SAMP_CYCLE_NUMBER 16                                                       // AD采样周期数
+#define FIFO_DEPTH 1024                                                               // FIFO深度1024
 
 // dma_dac
 #define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65
 #define Overflow_INTR_ID 66U                                                       // FIFO满中断
 #define Underflow_INTR_ID 67U                                                      // FIFO空中断
-#define DDR_BASE_ADDR RTOS_base_addr                                               // 0x00100000 XPAR_PS7_DDR_0_S_AXI_BASEADDR //0x21000000
-#define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // 0x01100000				//rtos内存的一半
-#define TX_BUFFER_BASE (MEM_BASE_ADDR + 0x00100000)                                // 0x01200000
-#define RX_BUFFER_BASE (MEM_BASE_ADDR + 0x00300000)                                // 0x01400000
+#define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
+#define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半
+#define TX_BUFFER_BASE MEM_BASE_ADDR                                               // TX_BUFFER_BASE：0x2E800000
+#define RX_BUFFER_BASE (TX_BUFFER_BASE + 0x00400000)                               // RX_BUFFER_BASE：0x2EC00000
 #define RESET_TIMEOUT_COUNTER 10000                                                // 复位时间
 #define DATA_LEN 1024                                                              // 波形采样长度
 #define Data_Width 65535
@@ -89,7 +87,6 @@ extern u32 enable;           // 使能通道输出
 extern float Wave_Frequency;
 extern float Wave_Amplitude[8];
 extern u32 Wave_Range[8];
-extern u8 ADC_ChannelEnable;
 
 extern int dma_rx_8[8][sample_points];
 extern XAxiDma axidma; // XAxiDma实例
@@ -121,9 +118,12 @@ extern double DA_Correct[8][3];
 // 电流量程: 0=5A, 1=1A, 2=0.2A
 extern double AD_Correct[8][3];
 // 函数
+void sync_dma_buffer(UINTPTR addr, size_t size, int direction);
+int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction);
 void dma_dac_init();
 void dds_dac_init();
-void adc_start(int SamplePoints, int SampleFrequency);
+void Adc_Start_OneBulk(int SamplePoints, int SampleFrequency);
+void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber);
 // adc
 int code_to_real(u16 x);
 void Adc_Data_processing();
@@ -159,7 +159,8 @@ void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees
 int get_voltage_range_index(unsigned char range_code);
 int get_current_range_index(unsigned char range_code);
 
-//通过档位获得参数
+// 通过档位获得参数
 int get_voltage_index_by_value(float voltage);
 int get_current_index_by_value(float current);
+
 #endif

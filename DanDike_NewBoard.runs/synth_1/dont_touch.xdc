@@ -180,119 +180,11 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_code
 # IP: bd/system/ip/system_util_vector_logic_0_1/system_util_vector_logic_0_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_util_vector_logic_0_1 || ORIG_REF_NAME==system_util_vector_logic_0_1} -quiet] -quiet
 
-# IP: bd/system/ip/system_onoff_config_axi_0_2/system_onoff_config_axi_0_2.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_onoff_config_axi_0_2 || ORIG_REF_NAME==system_onoff_config_axi_0_2} -quiet] -quiet
-
-# IP: bd/system/ip/system_axi_bram_ctrl_0_3/system_axi_bram_ctrl_0_3.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_bram_ctrl_0_3 || ORIG_REF_NAME==system_axi_bram_ctrl_0_3} -quiet] -quiet
-
-# IP: bd/system/ip/system_dac_whole_0_4/system_dac_whole_0_4.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_dac_whole_0_4 || ORIG_REF_NAME==system_dac_whole_0_4} -quiet] -quiet
-
-# IP: bd/system/ip/system_axis_data_fifo_0_3/system_axis_data_fifo_0_3.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axis_data_fifo_0_3 || ORIG_REF_NAME==system_axis_data_fifo_0_3} -quiet] -quiet
-
-# IP: bd/system/ip/system_axis_data_fifo_1_4/system_axis_data_fifo_1_4.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axis_data_fifo_1_4 || ORIG_REF_NAME==system_axis_data_fifo_1_4} -quiet] -quiet
-
-# IP: bd/system/ip/system_axi_dma_0_3/system_axi_dma_0_3.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_dma_0_3 || ORIG_REF_NAME==system_axi_dma_0_3} -quiet] -quiet
-
-# IP: bd/system/ip/system_adc_whole_0_3/system_adc_whole_0_3.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_adc_whole_0_3 || ORIG_REF_NAME==system_adc_whole_0_3} -quiet] -quiet
-
-# IP: bd/system/ip/system_blk_mem_gen_0_3/system_blk_mem_gen_0_3.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_blk_mem_gen_0_3 || ORIG_REF_NAME==system_blk_mem_gen_0_3} -quiet] -quiet
-
-# IP: bd/system/ip/system_smartconnect_0_0/system_smartconnect_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_smartconnect_0_0 || ORIG_REF_NAME==system_smartconnect_0_0} -quiet] -quiet
-
-# Block Designs: bd/system/ip/system_smartconnect_0_0/bd_0/bd_919a.bd
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_0/bd_919a_one_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_1/bd_919a_psr_aclk_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_2/bd_919a_arsw_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_3/bd_919a_rsw_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_4/bd_919a_awsw_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_5/bd_919a_wsw_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_6/bd_919a_bsw_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_7/bd_919a_s00mmu_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_8/bd_919a_s00tr_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_9/bd_919a_s00sic_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_10/bd_919a_s00a2s_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_11/bd_919a_sarn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_12/bd_919a_srn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_13/bd_919a_s01mmu_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_14/bd_919a_s01tr_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_15/bd_919a_s01sic_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_16/bd_919a_s01a2s_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_17/bd_919a_sawn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_18/bd_919a_swn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_19/bd_919a_sbn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_20/bd_919a_m00s2a_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_21/bd_919a_m00arn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_22/bd_919a_m00rn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_23/bd_919a_m00awn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_24/bd_919a_m00wn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_25/bd_919a_m00bn_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
-# IP: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_26/bd_919a_m00e_0.xci
-# DONT_TOUCH constraint suppressed by (parent) sub-design file.
-
 # IP: bd/system/ip/system_gmii2rgmii_0_0/system_gmii2rgmii_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_gmii2rgmii_0_0 || ORIG_REF_NAME==system_gmii2rgmii_0_0} -quiet] -quiet
+
+# IP: bd/system/ip/system_power_pulse_v1_AXI_0_0/system_power_pulse_v1_AXI_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_power_pulse_v1_AXI_0_0 || ORIG_REF_NAME==system_power_pulse_v1_AXI_0_0} -quiet] -quiet
 
 # IP: bd/system/ip/system_tier2_xbar_0_0/system_tier2_xbar_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_0_0 || ORIG_REF_NAME==system_tier2_xbar_0_0} -quiet] -quiet
@@ -306,11 +198,11 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier
 # IP: bd/system/ip/system_auto_pc_0_1/system_auto_pc_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_0 || ORIG_REF_NAME==system_auto_pc_0} -quiet] -quiet
 
+# IP: bd/system/ip/system_auto_pc_7_1/system_auto_pc_7.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_7 || ORIG_REF_NAME==system_auto_pc_7} -quiet] -quiet
+
 # IP: bd/system/ip/system_auto_pc_1_1/system_auto_pc_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_1 || ORIG_REF_NAME==system_auto_pc_1} -quiet] -quiet
-
-# IP: bd/system/ip/system_auto_pc_8/system_auto_pc_8.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_8 || ORIG_REF_NAME==system_auto_pc_8} -quiet] -quiet
 
 # IP: bd/system/ip/system_auto_pc_2/system_auto_pc_2.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_2 || ORIG_REF_NAME==system_auto_pc_2} -quiet] -quiet
@@ -327,14 +219,8 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto
 # IP: bd/system/ip/system_auto_pc_6/system_auto_pc_6.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_6 || ORIG_REF_NAME==system_auto_pc_6} -quiet] -quiet
 
-# IP: bd/system/ip/system_auto_pc_7_1/system_auto_pc_7.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_7 || ORIG_REF_NAME==system_auto_pc_7} -quiet] -quiet
-
-# IP: bd/system/ip/system_auto_pc_9/system_auto_pc_9.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_9 || ORIG_REF_NAME==system_auto_pc_9} -quiet] -quiet
-
-# IP: bd/system/ip/system_power_pulse_v1_AXI_0_0/system_power_pulse_v1_AXI_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_power_pulse_v1_AXI_0_0 || ORIG_REF_NAME==system_power_pulse_v1_AXI_0_0} -quiet] -quiet
+# IP: bd/system/ip/system_auto_pc_8/system_auto_pc_8.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_8 || ORIG_REF_NAME==system_auto_pc_8} -quiet] -quiet
 
 # XDC: bd/system/ip/system_processing_system7_0_0/system_processing_system7_0_0.xdc
 set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_processing_system7_0_0 || ORIG_REF_NAME==system_processing_system7_0_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
@@ -460,63 +346,11 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_axi_iic_0_0/system_axi_iic_0_0_ooc.xdc
 
-# XDC: bd/system/ip/system_axi_dma_0_3/system_axi_dma_0_3.xdc
-set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_dma_0_3 || ORIG_REF_NAME==system_axi_dma_0_3} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
-
-# XDC: bd/system/ip/system_axi_dma_0_3/system_axi_dma_0_3_clocks.xdc
-#dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_dma_0_3 || ORIG_REF_NAME==system_axi_dma_0_3} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
-
-# XDC: bd/system/ip/system_blk_mem_gen_0_3/system_blk_mem_gen_0_3_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_1/bd_919a_psr_aclk_0_board.xdc
-# DONT_TOUCH constraint suppressed by parent sub-design file.
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_1/bd_919a_psr_aclk_0.xdc
-# DONT_TOUCH constraint suppressed by parent sub-design file.
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_2/bd_919a_arsw_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_3/bd_919a_rsw_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_4/bd_919a_awsw_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_5/bd_919a_wsw_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_6/bd_919a_bsw_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_10/bd_919a_s00a2s_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_11/bd_919a_sarn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_12/bd_919a_srn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_16/bd_919a_s01a2s_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_17/bd_919a_sawn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_18/bd_919a_swn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_19/bd_919a_sbn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_20/bd_919a_m00s2a_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_21/bd_919a_m00arn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_22/bd_919a_m00rn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_23/bd_919a_m00awn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_24/bd_919a_m00wn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/bd_0/ip/ip_25/bd_919a_m00bn_0_ooc.xdc
-
-# XDC: bd/system/ip/system_smartconnect_0_0/ooc.xdc
-
 # XDC: bd/system/ip/system_auto_pc_0_1/system_auto_pc_0_ooc.xdc
 
-# XDC: bd/system/ip/system_auto_pc_1_1/system_auto_pc_1_ooc.xdc
+# XDC: bd/system/ip/system_auto_pc_7_1/system_auto_pc_7_ooc.xdc
 
-# XDC: bd/system/ip/system_auto_pc_8/system_auto_pc_8_ooc.xdc
+# XDC: bd/system/ip/system_auto_pc_1_1/system_auto_pc_1_ooc.xdc
 
 # XDC: bd/system/ip/system_auto_pc_2/system_auto_pc_2_ooc.xdc
 
@@ -528,8 +362,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_auto_pc_6/system_auto_pc_6_ooc.xdc
 
-# XDC: bd/system/ip/system_auto_pc_7_1/system_auto_pc_7_ooc.xdc
-
-# XDC: bd/system/ip/system_auto_pc_9/system_auto_pc_9_ooc.xdc
+# XDC: bd/system/ip/system_auto_pc_8/system_auto_pc_8_ooc.xdc
 
 # XDC: bd/system/system_ooc.xdc

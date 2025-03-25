@@ -105,7 +105,7 @@ system_processing_system7_0_0_sc::system_processing_system7_0_0_sc(const sc_core
     model_param_props.addLong("C_USE_S_AXI_GP1", "0");
     model_param_props.addLong("C_USE_S_AXI_HP0", "1");
     model_param_props.addLong("C_USE_S_AXI_HP1", "1");
-    model_param_props.addLong("C_USE_S_AXI_HP2", "1");
+    model_param_props.addLong("C_USE_S_AXI_HP2", "0");
     model_param_props.addLong("C_USE_S_AXI_HP3", "0");
     model_param_props.addLong("C_USE_S_AXI_ACP", "0");
     model_param_props.addLong("C_GP0_EN_MODIFIABLE_TXN", "1");

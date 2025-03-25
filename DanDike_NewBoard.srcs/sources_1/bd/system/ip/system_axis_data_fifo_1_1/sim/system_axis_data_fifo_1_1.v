@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2024 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -62,8 +62,7 @@ module system_axis_data_fifo_1_1 (
   m_axis_tvalid,
   m_axis_tready,
   m_axis_tdata,
-  prog_empty,
-  prog_full
+  prog_empty
 );
 
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_RSTIF, POLARITY ACTIVE_LOW, INSERT_VIP 0, TYPE INTERCONNECT" *)
@@ -87,7 +86,6 @@ input wire m_axis_tready;
 (* X_INTERFACE_INFO = "xilinx.com:interface:axis:1.0 M_AXIS TDATA" *)
 output wire [127 : 0] m_axis_tdata;
 output wire prog_empty;
-output wire prog_full;
 
   axis_data_fifo_v2_0_4_top #(
     .C_FAMILY("zynq"),
@@ -103,7 +101,7 @@ output wire prog_full;
     .C_ACLKEN_CONV_MODE(0),
     .C_ECC_MODE(0),
     .C_FIFO_MEMORY_TYPE("auto"),
-    .C_USE_ADV_FEATURES(825372722),
+    .C_USE_ADV_FEATURES(825372720),
     .C_PROG_EMPTY_THRESH(5),
     .C_PROG_FULL_THRESH(2043)
   ) inst (
@@ -135,7 +133,7 @@ output wire prog_full;
     .almost_empty(),
     .prog_empty(prog_empty),
     .almost_full(),
-    .prog_full(prog_full),
+    .prog_full(),
     .sbiterr(),
     .dbiterr(),
     .injectsbiterr(1'H0),
