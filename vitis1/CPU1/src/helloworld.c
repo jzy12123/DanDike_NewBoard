@@ -113,12 +113,9 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	// 测试中断控制器是否正常
-	u32 int_mask = XScuGic_DistReadReg(&intc, XSCUGIC_ENABLE_SET_OFFSET + ((ADCS_RX_INTR_ID / 32) * 4));
-	//
-	printf("CPU1: ADC interrupt enabled: %ld\n", (int_mask >> (ADCS_RX_INTR_ID % 32)) & 0x1);
-	xil_printf("CPU1: Initialization successfully\r\n");
 	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
+	xil_printf("CPU1: Initialization successfully \r\n");
+	
 	/************************** 测试FFT*****************************/
 	numHarmonics[0] = 6;
 	harmonics[0][0] = 0.0;
@@ -138,14 +135,6 @@ int main()
 	// 生成交流信号
 	str_wr_bram(PID_OFF);
 
-	// 控制二级DA
-	for (int i = 0; i < 8; i++)
-	{
-		setACS.Vals[i].U = 6.5;
-		setACS.Vals[i].UR = 6.5; // 测试 设置电压幅值的初始值
-		setACS.Vals[i].I_ = 5;	 // 测试 设置电流幅值的初始值
-		setACS.Vals[i].IR = 5;	 // 测试 设置电流幅值的初始值
-	}
 	// 修改二级DA 波形幅度 量程
 	for (int i = 0; i < 4; i++)
 	{
@@ -157,6 +146,8 @@ int main()
 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
 	/************************** 测试FFT*****************************/
+	//开启第一次
+	Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 
 	while (1)
 	{
@@ -308,17 +299,17 @@ int main()
 			//  printf("PhIB=%.4f\r\n", lineAC.phi[1]);
 			//  printf("SetB=%.4f\r\n", 150.00);
 			//  控制二级DA
-			printf("True UA= %.4f || ", lineAC.u[0]);
-			printf("UB= %.4f || ", lineAC.u[1]);
-			printf("UC= %.4f || ", lineAC.u[2]);
-			printf("UX= %.4f\n", lineAC.u[3]);
-			printf("SET  UA= %.4f\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
+			// printf("True UA= %.4f || ", lineAC.u[0]);
+			// printf("UB= %.4f || ", lineAC.u[1]);
+			// printf("UC= %.4f || ", lineAC.u[2]);
+			// printf("UX= %.4f\n", lineAC.u[3]);
+			// printf("SET  UA= %.4f\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
 
-			printf("True IA= %.4f || ", lineAC.i[0]);
-			printf("IB= %.4f || ", lineAC.i[1]);
-			printf("IC= %.4f || ", lineAC.i[2]);
-			printf("IX= %.4f\n", lineAC.i[3]);
-			printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
+			// printf("True IA= %.4f || ", lineAC.i[0]);
+			// printf("IB= %.4f || ", lineAC.i[1]);
+			// printf("IC= %.4f || ", lineAC.i[2]);
+			// printf("IX= %.4f\n", lineAC.i[3]);
+			// printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
 
 			power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 

@@ -98,7 +98,7 @@ void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
     AdcFinish_Flag = 0;
     ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
     AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
-    usleep(400000);
+    usleep(600000);
     // 下面进入adcS_intr_handler函数
 }
 

@@ -31,3 +31,10 @@ timestamp=[2025-03-25 20:09:54], mode=BUILD, duration=0:00:01.554, duration_ms=1
 timestamp=[2025-03-25 20:10:00], mode=BUILD, duration=0:00:00.458, duration_ms=458, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-03-25 20:40:48], mode=BUILD, duration=0:00:01.423, duration_ms=1423, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-03-25 20:41:15], mode=BUILD, duration=0:00:00.448, duration_ms=448, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-03-25 20:47:34], mode=BUILD, duration=0:00:01.440, duration_ms=1440, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-03-25 21:13:30], mode=BUILD, duration=0:00:01.832, duration_ms=1832, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-03-25 21:14:25], mode=BUILD, duration=0:00:01.156, duration_ms=1156, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-03-26 11:00:43], mode=WORKBENCH_START, duration=0:00:10.601, duration_ms=10601, data={}
+timestamp=[2025-03-26 11:00:44], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.055, duration_ms=55, data={}
+timestamp=[2025-03-26 11:00:45], mode=WORKBENCH_UI_INIT, duration=0:00:01.211, duration_ms=1211, data={editors_count=6, platform_editors_count=0, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK_system,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-03-26 11:00:58], mode=BUILD, duration=0:00:04.468, duration_ms=4468, data={name=CPU1, configuration=Debug, clean_build=false}

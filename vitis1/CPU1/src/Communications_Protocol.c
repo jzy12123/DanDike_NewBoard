@@ -443,7 +443,7 @@ void handle_GetDevState(cJSON *data)
     cJSON *doInfo = cJSON_CreateArray();
     for (int i = 0; i < ChnsBO; i++)
     {
-        cJSON_AddItemToArray(doInfo, cJSON_CreateNumber(lineDO.DO[i].v)); // 假设DO状态是0和1交替
+        cJSON_AddItemToArray(doInfo, cJSON_CreateNumber(lineDO.DO[i].v));
     }
     cJSON_AddItemToObject(dataObj, "DO", doInfo);
 
@@ -451,7 +451,7 @@ void handle_GetDevState(cJSON *data)
     cJSON *diInfo = cJSON_CreateArray();
     for (int i = 0; i < ChnsBI; i++)
     {
-        cJSON_AddItemToArray(diInfo, cJSON_CreateNumber(lineDI.DI[i].v)); // 假设DI状态是0和1交替
+        cJSON_AddItemToArray(diInfo, cJSON_CreateNumber(lineDI.DI[i].v));
     }
     cJSON_AddItemToObject(dataObj, "DI", diInfo);
 
@@ -892,9 +892,16 @@ void handle_SetACS(cJSON *data)
     write_reply_to_shared_memory(&replyData);
 
     /*数据映射到硬件 应该提出去单独开一个线程?*/
+
     // 更新 Wave_Frequency 的值
     Wave_Frequency = setACS.Vals[0].F; // 频率
-    // 遍历 setACS.Vals 数组，并更新 Phase_shift 数组的值
+    // 如果Wave_Frequency不在45到65Hz，添加报错提醒
+    if (Wave_Frequency < 45 || Wave_Frequency > 65)
+    {
+        xil_printf("Error: Frequency out of range. Expected between 45 and 65 Hz.\n");
+    }
+    // 设置 Phase_shift 数组的值，前四个为电压相位，后四个为电流相位
+    //  遍历 setACS.Vals 数组，并更新 Phase_shift 数组的值
     for (int i = 0; i < 4; i++)
     {
         Phase_shift[i] = setACS.Vals[i].PhU; // 相位
@@ -1295,7 +1302,6 @@ void handle_setCalibrateAC(cJSON *data)
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 }
-
 
 /**
  * @brief 处理回写校准点标准值命令
@@ -2084,8 +2090,39 @@ void write_UDP_to_shared_memory(UINTPTR base_addr, void *data, size_t size)
     Xil_DCacheFlushRange((INTPTR)UDP_ADDRESS, size);
 }
 
+// 初始化setACS结构体
+void init_setACS()
+{
+    // 遍历所有通道
+    for (int i = 0; i < LinesAC * ChnsAC; i++)
+    {
+        // 设置线路编号和通道编号
+        setACS.Vals[i].Line = i / ChnsAC + 1; // 线路编号从1开始
+        setACS.Vals[i].Chn = i % ChnsAC + 1;  // 通道编号从1开始
+
+        // 设置频率为50Hz
+        setACS.Vals[i].F = 50.0f;
+
+        // 设置电压相关参数
+        setACS.Vals[i].UR = 6.5f;  // 电压档位
+        setACS.Vals[i].U = 6.5f;   // 电压幅值
+        setACS.Vals[i].PhU = 0.0f; // 电压相位
+
+        // 设置电流相关参数
+        setACS.Vals[i].IR = 5.0f;  // 电流档位
+        setACS.Vals[i].I_ = 5.0f;  // 电流幅值
+        setACS.Vals[i].PhI = 0.0f; // 电流相位
+    }
+
+    // 打印初始化完成消息
+    // printf("CPU1: setACS.Vals initialization completed.\n");
+}
+
 void init_JsonUdp(void)
 {
+    //  初始化JSON结构体
+    init_setACS();
+
     // 初始化数据结构体
     initLineAC(&lineAC);
     initLineHarm(&lineHarm);
