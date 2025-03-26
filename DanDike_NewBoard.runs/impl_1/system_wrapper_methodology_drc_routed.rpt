@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Tue Mar 25 11:17:23 2025
+| Date         : Wed Mar 26 15:21:53 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_methodology -file system_wrapper_methodology_drc_routed.rpt -pb system_wrapper_methodology_drc_routed.pb -rpx system_wrapper_methodology_drc_routed.rpx
 | Design       : system_wrapper
@@ -23,7 +23,7 @@ Table of Contents
           Floorplan: design_1
       Design limits: <entire design considered>
              Max violations: <unlimited>
-             Violations found: 309
+             Violations found: 310
 +-----------+------------------+------------------------------------------------+------------+
 | Rule      | Severity         | Description                                    | Violations |
 +-----------+------------------+------------------------------------------------+------------+
@@ -34,6 +34,7 @@ Table of Contents
 | LUTAR-1   | Warning          | LUT drives async reset alert                   | 2          |
 | TIMING-9  | Warning          | Unknown CDC Logic                              | 1          |
 | TIMING-18 | Warning          | Missing input or output delay                  | 50         |
+| ULMTCS-1  | Warning          | Control Sets use limits recommend reduction    | 1          |
 +-----------+------------------+------------------------------------------------+------------+
 
 2. REPORT DETAILS
@@ -1600,6 +1601,11 @@ Related violations: <none>
 TIMING-18#50 Warning
 Missing input or output delay  
 An output delay is missing on pulse_q_out_0 relative to clock(s) clk_fpga_0
+Related violations: <none>
+
+ULMTCS-1#1 Warning
+Control Sets use limits recommend reduction  
+This design uses 1097 control sets (vs. available limit of 13300, determined by 1 control set per CLB). This exceeds the control set use guideline of 7.5 percent. This is at a level where reduction is RECOMMENDED (see UG949). Use report_control_sets to get more details.
 Related violations: <none>
 
 

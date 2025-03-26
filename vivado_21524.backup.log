@@ -1,0 +1,26 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Wed Mar 26 14:40:21 2025
+# Process ID: 21524
+# Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent24812 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+# Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
+CRITICAL WARNING: [Project 1-19] Could not find the file 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'.
+CRITICAL WARNING: [Project 1-19] Could not find the file 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v'.
+CRITICAL WARNING: [Project 1-19] Could not find the file 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc'.
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+open_project: Time (s): cpu = 00:00:11 ; elapsed = 00:00:06 . Memory (MB): peak = 1139.965 ; gain = 0.000
+update_compile_order -fileset sources_1
+exit
+INFO: [Common 17-206] Exiting Vivado at Wed Mar 26 14:42:22 2025...

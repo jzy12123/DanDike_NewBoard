@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Tue Mar 25 11:13:53 2025
+| Date         : Wed Mar 26 15:17:06 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
 | Design       : system_wrapper
@@ -30,16 +30,16 @@ Table of Contents
 +----------------------------+-------+-------+-----------+-------+
 |          Site Type         |  Used | Fixed | Available | Util% |
 +----------------------------+-------+-------+-----------+-------+
-| Slice LUTs*                | 14657 |     0 |     53200 | 27.55 |
-|   LUT as Logic             | 13333 |     0 |     53200 | 25.06 |
-|   LUT as Memory            |  1324 |     0 |     17400 |  7.61 |
+| Slice LUTs*                | 16432 |     0 |     53200 | 30.89 |
+|   LUT as Logic             | 14864 |     0 |     53200 | 27.94 |
+|   LUT as Memory            |  1568 |     0 |     17400 |  9.01 |
 |     LUT as Distributed RAM |   662 |     0 |           |       |
-|     LUT as Shift Register  |   662 |     0 |           |       |
-| Slice Registers            | 21004 |     0 |    106400 | 19.74 |
-|   Register as Flip Flop    | 21004 |     0 |    106400 | 19.74 |
+|     LUT as Shift Register  |   906 |     0 |           |       |
+| Slice Registers            | 24016 |     0 |    106400 | 22.57 |
+|   Register as Flip Flop    | 24016 |     0 |    106400 | 22.57 |
 |   Register as Latch        |     0 |     0 |    106400 |  0.00 |
-| F7 Muxes                   |   403 |     0 |     26600 |  1.52 |
-| F8 Muxes                   |    72 |     0 |     13300 |  0.54 |
+| F7 Muxes                   |   451 |     0 |     26600 |  1.70 |
+| F8 Muxes                   |    96 |     0 |     13300 |  0.72 |
 +----------------------------+-------+-------+-----------+-------+
 * Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
 
@@ -58,8 +58,8 @@ Table of Contents
 | 0     |          Yes |           - |            - |
 | 19    |          Yes |           - |          Set |
 | 357   |          Yes |           - |        Reset |
-| 775   |          Yes |         Set |            - |
-| 19853 |          Yes |       Reset |            - |
+| 784   |          Yes |         Set |            - |
+| 22856 |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -69,12 +69,12 @@ Table of Contents
 +-------------------+------+-------+-----------+-------+
 |     Site Type     | Used | Fixed | Available | Util% |
 +-------------------+------+-------+-----------+-------+
-| Block RAM Tile    | 45.5 |     0 |       140 | 32.50 |
-|   RAMB36/FIFO*    |   43 |     0 |       140 | 30.71 |
+| Block RAM Tile    |   36 |     0 |       140 | 25.71 |
+|   RAMB36/FIFO*    |   34 |     0 |       140 | 24.29 |
 |     FIFO36E1 only |    5 |       |           |       |
-|     RAMB36E1 only |   38 |       |           |       |
-|   RAMB18          |    5 |     0 |       280 |  1.79 |
-|     RAMB18E1 only |    5 |       |           |       |
+|     RAMB36E1 only |   29 |       |           |       |
+|   RAMB18          |    4 |     0 |       280 |  1.43 |
+|     RAMB18E1 only |    4 |       |           |       |
 +-------------------+------+-------+-----------+-------+
 * Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E1 or one FIFO18E1. However, if a FIFO18E1 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E1
 
@@ -155,34 +155,34 @@ Table of Contents
 +------------+-------+----------------------+
 |  Ref Name  |  Used |  Functional Category |
 +------------+-------+----------------------+
-| FDRE       | 19853 |         Flop & Latch |
-| LUT3       |  4569 |                  LUT |
-| LUT6       |  4445 |                  LUT |
-| LUT4       |  2313 |                  LUT |
-| LUT5       |  2243 |                  LUT |
-| LUT2       |  1558 |                  LUT |
+| FDRE       | 22856 |         Flop & Latch |
+| LUT3       |  5371 |                  LUT |
+| LUT6       |  5131 |                  LUT |
+| LUT5       |  2525 |                  LUT |
+| LUT4       |  2497 |                  LUT |
+| LUT2       |  1563 |                  LUT |
 | RAMD32     |   992 |   Distributed Memory |
-| LUT1       |   846 |                  LUT |
-| FDSE       |   775 |         Flop & Latch |
-| CARRY4     |   597 |           CarryLogic |
-| SRL16E     |   463 |   Distributed Memory |
-| MUXF7      |   403 |                MuxFx |
+| LUT1       |   956 |                  LUT |
+| FDSE       |   784 |         Flop & Latch |
+| CARRY4     |   661 |           CarryLogic |
+| SRL16E     |   567 |   Distributed Memory |
+| MUXF7      |   451 |                MuxFx |
 | FDCE       |   357 |         Flop & Latch |
+| SRLC32E    |   339 |   Distributed Memory |
 | RAMS32     |   330 |   Distributed Memory |
-| SRLC32E    |   199 |   Distributed Memory |
 | BIBUF      |   130 |                   IO |
-| MUXF8      |    72 |                MuxFx |
+| MUXF8      |    96 |                MuxFx |
 | IBUF       |    44 |                   IO |
 | OBUF       |    40 |                   IO |
-| RAMB36E1   |    38 |         Block Memory |
+| RAMB36E1   |    29 |         Block Memory |
 | OBUFT      |    27 |                   IO |
 | FDPE       |    19 |         Flop & Latch |
 | BUFG       |     9 |                Clock |
-| RAMB18E1   |     5 |         Block Memory |
 | ODDR       |     5 |                   IO |
 | IDELAYE2   |     5 |                   IO |
 | IDDR       |     5 |                   IO |
 | FIFO36E1   |     5 |         Block Memory |
+| RAMB18E1   |     4 |         Block Memory |
 | PS7        |     1 | Specialized Resource |
 | MMCME2_ADV |     1 |                Clock |
 | IDELAYCTRL |     1 |                   IO |

@@ -208,12 +208,6 @@ int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Di
     return status;
 }
 
-void adcS_intr_handler(void *callback)
-{
-    // 进入到此中断代表ADC已经完成了一次采样任务（1024个点 或 2048个点）
-
-    // 接下来进入rx_intr_handler函数
-}
 
 // DMA TX中断处理函数 dac
 void tx_intr_handler(void *callback)
@@ -249,13 +243,6 @@ void tx_intr_handler(void *callback)
     }
 }
 
-// ADC FIFO上溢：写满fifo后继续写则导致上溢
-// 目前设定FIFO写入1000时发生满中断，此时ADC采样还未完成，所以ADC采样中断还未到来，运行这个函数之后下一个中断是ADC完成1024的中断。
-void overflow_handler()
-{
-    // 打印错误信息
-    xil_printf("CPU1 Error: ADC FIFO OverFlow! \r\n");
-}
 
 // DAC FIFO溢：读空fifo后继续读则导致下溢
 void underflow_handler()
@@ -319,7 +306,7 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 adcS_id, u16 tx_intr_id, u16 overflow_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
+                      u16 rx_intr_id,  u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
 {
     int status;
     XScuGic_Config *intc_config;
@@ -340,10 +327,8 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     // 设置优先级和触发类型
     // ad
     XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, adcS_id, 0, 0x03);
     // da
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 0xA0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, overflow_id, 0xA0, 0x3); // 高电平有效
     XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 0xA0, 0x3);
     // switch amp
     XScuGic_SetPriorityTriggerType(int_ins_ptr, switch_id, 0xA0, 0x3);
@@ -353,9 +338,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
 
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
-    XScuGic_Connect(int_ins_ptr, adcS_id, (Xil_InterruptHandler)adcS_intr_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
-    XScuGic_Connect(int_ins_ptr, overflow_id, (Xil_InterruptHandler)overflow_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, switch_id, (Xil_ExceptionHandler)Switch_INT_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, amplifier_id, (Xil_ExceptionHandler)Amplifier_INT_handler, (void *)1);
@@ -364,9 +347,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
 
     // 显式地将ADC和DMA中断映射到CPU1
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, adcS_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, overflow_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, switch_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, amplifier_id);
@@ -375,9 +356,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
 
     // 同时从CPU0解除映射（防止Linux误处理）
     XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, adcS_id);
     XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, overflow_id);
     XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
     XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, switch_id);
     XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, amplifier_id);
@@ -385,10 +364,8 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     // 使能
     // ad
     XScuGic_Enable(int_ins_ptr, rx_intr_id);
-    XScuGic_Enable(int_ins_ptr, adcS_id);
     // da
     XScuGic_Enable(int_ins_ptr, tx_intr_id);
-    XScuGic_Enable(int_ins_ptr, overflow_id);
     XScuGic_Enable(int_ins_ptr, underflow_id);
     // switch amp
     XScuGic_Enable(int_ins_ptr, switch_id);

@@ -44,14 +44,12 @@
 
 // dma_adc
 #define DMA_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR    // DMA中断号，63
-#define ADCS_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_ADC_WHOLE_0_ADC_END_INTR_INTR // adc中断号，64
 #define sample_points 256                                                             // 一个周期采样256、1024、2048
 #define AD_SAMP_CYCLE_NUMBER 16                                                       // AD采样周期数
 #define FIFO_DEPTH 1024                                                               // FIFO深度1024
 
 // dma_dac
-#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65
-#define Overflow_INTR_ID 66U                                                       // FIFO满中断
+#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65                                                    // FIFO满中断
 #define Underflow_INTR_ID 67U                                                      // FIFO空中断
 #define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
 #define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半
@@ -129,10 +127,8 @@ int code_to_real(u16 x);
 void Adc_Data_processing();
 
 void rx_intr_handler(void *callback);
-void adcS_intr_handler(void *callback);
 // dma_dac
 void tx_intr_handler(void *callback);
-void overflow_handler();
 void underflow_handler();
 
 // 定时器
@@ -141,7 +137,7 @@ void timer_intr_handler(void *CallBackRef);
 
 // 中断初始化
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 adcS_id, u16 tx_intr_id, u16 overflow_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id);
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id);
 
 void start_dma_dac();
 // dds_dac

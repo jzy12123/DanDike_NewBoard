@@ -94,7 +94,7 @@ int main()
 
 	// 建立中断系统
 	status = setup_intr_system(&intc, &axidma, &Timer,
-							   DMA_RX_INTR_ID, ADCS_RX_INTR_ID, DMA_TX_INTR_ID, Overflow_INTR_ID, Underflow_INTR_ID, Switch_INT_ID, Amplifier_INT_ID, SOFT_INTR_ID_TO_CPU1, TIMER_IRPT_INTR);
+							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID, Switch_INT_ID, Amplifier_INT_ID, SOFT_INTR_ID_TO_CPU1, TIMER_IRPT_INTR);
 	if (status != XST_SUCCESS)
 	{
 		xil_printf("Failed intr setup\r\n");
@@ -115,7 +115,7 @@ int main()
 
 	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
 	xil_printf("CPU1: Initialization successfully \r\n");
-	
+
 	/************************** 测试FFT*****************************/
 	numHarmonics[0] = 6;
 	harmonics[0][0] = 0.0;
@@ -146,7 +146,7 @@ int main()
 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
 	/************************** 测试FFT*****************************/
-	//开启第一次
+	// 开启第一次
 	Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 
 	while (1)
@@ -296,21 +296,14 @@ int main()
 			// 生成交流信号
 			str_wr_bram(PID_OFF);
 			// 调试
-			//  printf("PhIB=%.4f\r\n", lineAC.phi[1]);
-			//  printf("SetB=%.4f\r\n", 150.00);
-			//  控制二级DA
-			// printf("True UA= %.4f || ", lineAC.u[0]);
-			// printf("UB= %.4f || ", lineAC.u[1]);
-			// printf("UC= %.4f || ", lineAC.u[2]);
-			// printf("UX= %.4f\n", lineAC.u[3]);
-			// printf("SET  UA= %.4f\n", lineAC.ur[0] * Wave_Amplitude[0] / 100);
+			printf("True PhUA= %3.4f || PhUB= %3.4f || PhUC= %3.4f || PhUX= %3.4f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
+			printf("True PhIA= %3.4f || PhIB= %3.4f || PhIC= %3.4f || PhIX= %3.4f\n", lineAC.phi[0], lineAC.phi[1], lineAC.phi[2], lineAC.phi[3]);
 
-			// printf("True IA= %.4f || ", lineAC.i[0]);
-			// printf("IB= %.4f || ", lineAC.i[1]);
-			// printf("IC= %.4f || ", lineAC.i[2]);
-			// printf("IX= %.4f\n", lineAC.i[3]);
-			// printf("SET  IA= %.4f\r\n\r\n", lineAC.ir[0] * Wave_Amplitude[4] / 100);
+			printf("True UA= %.4f || UB= %.4f || UC= %.4f || UX= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3]);
+			printf("True IA= %.4f || IB= %.4f || IC= %.4f || IX= %.4f\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3]);
+			printf("SET  UA= %.4f || SET  IA= %.4f\r\n\r\n", lineAC.ur[0] * Wave_Amplitude[0] / 100, lineAC.ir[0] * Wave_Amplitude[4] / 100);
 
+			//  控制功放
 			power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
 
 			/*4 读故障信号*/
