@@ -31,6 +31,7 @@
  ******************************************************************************************************/
 typedef enum
 {
+	DeviceState = 100,
 	BaseDataAC = 101,
 	HarmData = 102,
 	InterHarmData = 103,
@@ -46,6 +47,7 @@ typedef enum
 // 回报使能状态
 typedef struct
 {
+	bool DevState;
 	bool BaseDataAC;
 	bool HarmData;
 	bool InterHarmData;
@@ -59,21 +61,32 @@ typedef struct
 } ReportEnableStatus;
 extern ReportEnableStatus reportStatus;
 
-// 101=BaseDataAC，交流源/交流表基础数据
-// 交流线路——基本量                 ChnsAC*12*8+24 => 4通道=408
+// 100=DevState, 装置状态
 typedef struct
 {
-	// 添加八个字节，用来代表运行状态
-	uint8_t bACMeterMode; // 0=交流源状态;1=交流表状态
+	uint8_t bACMeterMode; // 1字节 // 0=交流源状态;1=交流表状态
 	uint8_t bACRunning;	  // 0=停止状态;1=运行状态
-	uint8_t Reserved1;
-	uint8_t Reserved2;
+	uint8_t bClosedLoop;  // 0=开环状态;1=闭环状态
 	uint8_t Reserved3;
 	uint8_t Reserved4;
 	uint8_t Reserved5;
 	uint8_t Reserved6;
+	uint8_t Reserved7;
+	uint8_t Reserved8;
+	uint8_t Reserved9;
+	uint8_t Reserved10;
+	uint8_t Reserved11;
+	uint8_t Reserved12;
+	uint8_t Reserved13;
+	uint8_t Reserved14;
+	uint8_t Reserved15;
 
+} DevState;
 
+// 101=BaseDataAC，交流源/交流表基础数据
+// 交流线路——基本量                 ChnsAC*12*8+24 => 4通道=408
+typedef struct
+{
 	double ur[ChnsAC]; // U档位[ChnsAC]
 	double ir[ChnsAC]; // I档位[ChnsAC]
 
@@ -286,6 +299,7 @@ extern LineDisoe lineDisoe;
 void ReportUDP_Structure(ReportEnableStatus ReportStatus);
 size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus);
 void write_UDP_to_shared_memory(UINTPTR base_addr, void *data, size_t size);
+void initDevState(DevState *devState);
 void initLineAC(LineAC *lineAC);
 void initLineHarm(LineHarm *lineHarm);
 void initLineDI(LineDI *lineDI);

@@ -497,7 +497,7 @@ void handle_GetDevState(cJSON *data)
     free(string);
 }
 
-ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true};
+ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true, true};
 /**
  * @brief 处理 handle_SetReportEnable 的逻辑
  *
@@ -1831,8 +1831,20 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
     size_t payload_size = 0;
     size_t header_size = sizeof(u32) * 2;
 
+    if (ReportStatus.DevState)
+    {
+        payload_size += header_size + sizeof(DevState);
+        //        printf("DevState size: %zu\n", header_size + sizeof(LineDevState));
+    }
+    else
+    {
+        payload_size += header_size;
+        //        printf("DevState header only: %zu\n", header_size);
+    }
+
     if (ReportStatus.BaseDataAC)
     {
+
         payload_size += header_size + sizeof(LineAC);
         //        printf("BaseDataAC size: %zu\n", header_size + sizeof(LineAC));
     }
@@ -1894,6 +1906,7 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
  * 回报UDP结构体顶层函数
  */
 // 初始化使能状态结构体
+DevState devState;
 LineAC lineAC;
 LineHarm lineHarm;
 LineDI lineDI;
@@ -1917,6 +1930,20 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     char *payload_ptr = udpPacket.payload;
     u32 structType;
     u32 structLength;
+
+    // DevState 100
+    Xil_DCacheFlushRange((INTPTR)&devState, sizeof(DevState));
+    structType = DeviceState;
+    structLength = ReportStatus.DevState ? sizeof(DevState) : 0;
+    memcpy(payload_ptr, &structType, sizeof(structType));
+    payload_ptr += sizeof(structType);
+    memcpy(payload_ptr, &structLength, sizeof(structLength));
+    payload_ptr += sizeof(structLength);
+    if (ReportStatus.DevState)
+    {
+        memcpy(payload_ptr, &devState, sizeof(DevState));
+        payload_ptr += sizeof(DevState);
+    }
 
     // LineAC 101
     // Flush the entire lineAC structure
@@ -1995,7 +2022,10 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     uint32_t last_byte_addr = UDP_ADDRESS + UDP_MEM_SIZE - 4; // 共享内存最后一个字地址
     Xil_Out32(last_byte_addr, 1);
     Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
+
+    // 写UDP到共享内存
     write_UDP_to_shared_memory(UDP_ADDRESS, &udpPacket, 16 + dynamic_payload_size + 4);
+
     // 设置共享内存最后一个字节为 0，标记空闲
     Xil_Out32(last_byte_addr, 0);
     Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
@@ -2007,6 +2037,27 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // printf("dynamic_payload_size: %zu bytes\n", dynamic_payload_size);
     // printf("UDP_PACKET_SIZE: %d bytes\n", sizeof(udpPacket));
     // printf("CPU1: UDP written to memory at: 0x%X\n", UDP_ADDRESS);
+}
+
+// Function to initialize DevState
+void initDevState(DevState *devState)
+{
+    devState->bACMeterMode = 0; // 交流源模式
+    devState->bACRunning = 0;   // 停止状态
+    devState->bClosedLoop = 0;  // 开环状态
+    devState->Reserved3 = 0;
+    devState->Reserved4 = 0;
+    devState->Reserved5 = 0;
+    devState->Reserved6 = 0;
+    devState->Reserved7 = 0;
+    devState->Reserved8 = 0;
+    devState->Reserved9 = 0;
+    devState->Reserved10 = 0;
+    devState->Reserved11 = 0;
+    devState->Reserved12 = 0;
+    devState->Reserved13 = 0;
+    devState->Reserved14 = 0;
+    devState->Reserved15 = 0;
 }
 
 // Function to initialize LineAC
@@ -2124,6 +2175,7 @@ void init_JsonUdp(void)
     init_setACS();
 
     // 初始化数据结构体
+    initDevState(&devState);
     initLineAC(&lineAC);
     initLineHarm(&lineHarm);
     initLineDI(&lineDI);
