@@ -20,3 +20,27 @@ domain active {zynq_fsbl}
 domain active {standalone_ps7_cortexa9_1}
 platform generate -quick
 platform generate
+platform active {system_wrapper}
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+domain active {zynq_fsbl}
+bsp reload
+catch {bsp regenerate}
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+catch {bsp regenerate}
+domain active {zynq_fsbl}
+bsp reload
+catch {bsp regenerate}
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+catch {bsp regenerate}
+domain active {zynq_fsbl}
+bsp reload
+catch {bsp regenerate}
+platform generate

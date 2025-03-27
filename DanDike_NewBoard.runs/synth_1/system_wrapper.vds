@@ -2,8 +2,8 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Wed Mar 26 15:11:21 2025
-# Process ID: 8828
+# Start of session at: Wed Mar 26 21:14:21 2025
+# Process ID: 55692
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1
 # Command line: vivado.exe -log system_wrapper.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source system_wrapper.tcl
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.vds
@@ -14,7 +14,6 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-add_files: Time (s): cpu = 00:00:04 ; elapsed = 00:00:06 . Memory (MB): peak = 1139.645 ; gain = 0.000
 Command: synth_design -top system_wrapper -part xc7z020clg400-2
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
@@ -22,9 +21,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020
 INFO: [Device 21-403] Loading part xc7z020clg400-2
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 27324
+INFO: [Synth 8-7075] Helper process launched with PID 33836
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:09 . Memory (MB): peak = 1232.496 ; gain = 92.852
+Starting RTL Elaboration : Time (s): cpu = 00:00:06 ; elapsed = 00:00:08 . Memory (MB): peak = 1233.523 ; gain = 91.250
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-2048] function gpo_bit_used does not always return a value [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1529/hdl/axi_iic_v2_0_vh_rfs.vhd:1147]
 INFO: [Synth 8-6157] synthesizing module 'system_wrapper' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v:12]
@@ -34,18 +33,18 @@ INFO: [Synth 8-6157] synthesizing module 'IOBUF' [E:/vivado/Vivado/2020.2/script
 	Parameter IOSTANDARD bound to: DEFAULT - type: string 
 	Parameter SLEW bound to: SLOW - type: string 
 INFO: [Synth 8-6155] done synthesizing module 'IOBUF' (1#1) [E:/vivado/Vivado/2020.2/scripts/rt/data/unisim_comp.v:36242]
-INFO: [Synth 8-6157] synthesizing module 'system' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8631]
+INFO: [Synth 8-6157] synthesizing module 'system' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8771]
 INFO: [Synth 8-6157] synthesizing module 'AC_8_channel_0_imp_1V5LWYH' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:12]
 INFO: [Synth 8-6157] synthesizing module 'adda_imp_1MMLK1Q' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:868]
 INFO: [Synth 8-6157] synthesizing module 'system_adc_whole_0_0' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_adc_whole_0_0_1/synth/system_adc_whole_0_0.v:58]
-INFO: [Synth 8-6157] synthesizing module 'adc_whole' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/adc_whole.v:18]
+INFO: [Synth 8-6157] synthesizing module 'adc_whole' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/adc_whole.v:18]
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 4 - type: integer 
 	Parameter ADDR_LSB bound to: 2 - type: integer 
 	Parameter OPT_MEM_ADDR_BITS bound to: 1 - type: integer 
-INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/adc_whole.v:271]
-INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/adc_whole.v:412]
-INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/ad7606_axis.v:3]
+INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/adc_whole.v:271]
+INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/adc_whole.v:412]
+INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/ad7606_axis.v:3]
 	Parameter WIDTH_OF_NUMBER_OF_OUTPUT_WORDS bound to: 22 - type: integer 
 	Parameter C_M_START_COUNT bound to: 10 - type: integer 
 	Parameter IDLE bound to: 7'b0000001 
@@ -55,15 +54,15 @@ INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/s
 	Parameter IN_ADC bound to: 7'b0010000 
 	Parameter SEND_STREAM bound to: 7'b0100000 
 	Parameter BULK_END bound to: 7'b1000000 
-INFO: [Synth 8-6157] synthesizing module 'ad7606_ser2par128bit' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/ad7606_ser2par128bit.v:5]
+INFO: [Synth 8-6157] synthesizing module 'ad7606_ser2par128bit' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/ad7606_ser2par128bit.v:5]
 	Parameter idle bound to: 3'b000 
 	Parameter s1 bound to: 3'b001 
 	Parameter s2 bound to: 3'b010 
 	Parameter s3 bound to: 3'b011 
 	Parameter s4 bound to: 3'b100 
-INFO: [Synth 8-6155] done synthesizing module 'ad7606_ser2par128bit' (2#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/ad7606_ser2par128bit.v:5]
-INFO: [Synth 8-6155] done synthesizing module 'ad7606_axis' (3#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/ad7606_axis.v:3]
-INFO: [Synth 8-6155] done synthesizing module 'adc_whole' (4#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/cff7/adc_whole.v:18]
+INFO: [Synth 8-6155] done synthesizing module 'ad7606_ser2par128bit' (2#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/ad7606_ser2par128bit.v:5]
+INFO: [Synth 8-6155] done synthesizing module 'ad7606_axis' (3#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/ad7606_axis.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'adc_whole' (4#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/3a96/adc_whole.v:18]
 INFO: [Synth 8-6155] done synthesizing module 'system_adc_whole_0_0' (5#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_adc_whole_0_0_1/synth/system_adc_whole_0_0.v:58]
 WARNING: [Synth 8-7071] port 'adc_end_intr' of module 'system_adc_whole_0_0' is unconnected for instance 'adc_whole_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1484]
 WARNING: [Synth 8-7071] port 'M_AXIS_TSTRB' of module 'system_adc_whole_0_0' is unconnected for instance 'adc_whole_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1484]
@@ -4019,8 +4018,8 @@ INFO: [Synth 8-256] done synthesizing module 'axi_iic' (229#1) [c:/Users/saber/D
 INFO: [Synth 8-256] done synthesizing module 'system_axi_iic_0_0' (230#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_0_1/synth/system_axi_iic_0_0.vhd:91]
 WARNING: [Synth 8-7071] port 'gpo' of module 'system_axi_iic_0_0' is unconnected for instance 'axi_iic_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:2868]
 WARNING: [Synth 8-7023] instance 'axi_iic_0' of module 'system_axi_iic_0_0' has 27 connections declared, but only 26 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:2868]
-WARNING: [Synth 8-7071] port 'Res' of module 'key_board_imp_6OSLU2' is unconnected for instance 'key_board' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9602]
-WARNING: [Synth 8-7023] instance 'key_board' of module 'key_board_imp_6OSLU2' has 28 connections declared, but only 27 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9602]
+WARNING: [Synth 8-7071] port 'Res' of module 'key_board_imp_6OSLU2' is unconnected for instance 'key_board' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9742]
+WARNING: [Synth 8-7023] instance 'key_board' of module 'key_board_imp_6OSLU2' has 28 connections declared, but only 27 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9742]
 	Parameter NUM_PWM bound to: 1 - type: integer 
 	Parameter POLARITY bound to: 1'b1 
 	Parameter C_PWM_AXI_DATA_WIDTH bound to: 32 - type: integer 
@@ -6346,9 +6345,9 @@ WARNING: [Synth 8-7023] instance 'v_tc_0' of module 'system_v_tc_0_0' has 33 con
 	Parameter OPT_MEM_ADDR_BITS bound to: 1 - type: integer 
 INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1858/power_pulse_v1_AXI.v:264]
 INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1858/power_pulse_v1_AXI.v:405]
-WARNING: [Synth 8-7071] port 'intrpt_p' of module 'system_power_pulse_v1_AXI_0_0' is unconnected for instance 'power_pulse_v1_AXI_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9746]
-WARNING: [Synth 8-7071] port 'intrpt_q' of module 'system_power_pulse_v1_AXI_0_0' is unconnected for instance 'power_pulse_v1_AXI_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9746]
-WARNING: [Synth 8-7023] instance 'power_pulse_v1_AXI_0' of module 'system_power_pulse_v1_AXI_0_0' has 27 connections declared, but only 25 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9746]
+WARNING: [Synth 8-7071] port 'intrpt_p' of module 'system_power_pulse_v1_AXI_0_0' is unconnected for instance 'power_pulse_v1_AXI_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9886]
+WARNING: [Synth 8-7071] port 'intrpt_q' of module 'system_power_pulse_v1_AXI_0_0' is unconnected for instance 'power_pulse_v1_AXI_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9886]
+WARNING: [Synth 8-7023] instance 'power_pulse_v1_AXI_0' of module 'system_power_pulse_v1_AXI_0_0' has 27 connections declared, but only 25 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9886]
 INFO: [Synth 8-638] synthesizing module 'system_proc_sys_reset_0_0' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0_1/synth/system_proc_sys_reset_0_0.vhd:74]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_EXT_RST_WIDTH bound to: 4 - type: integer 
@@ -6361,11 +6360,11 @@ INFO: [Synth 8-638] synthesizing module 'system_proc_sys_reset_0_0' [c:/Users/sa
 	Parameter C_NUM_PERP_ARESETN bound to: 1 - type: integer 
 INFO: [Synth 8-3491] module 'proc_sys_reset' declared at 'c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/8842/hdl/proc_sys_reset_v5_0_vh_rfs.vhd:1264' bound to instance 'U0' of component 'proc_sys_reset' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0_1/synth/system_proc_sys_reset_0_0.vhd:129]
 INFO: [Synth 8-256] done synthesizing module 'system_proc_sys_reset_0_0' (342#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0_1/synth/system_proc_sys_reset_0_0.vhd:74]
-WARNING: [Synth 8-7071] port 'mb_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9772]
-WARNING: [Synth 8-7071] port 'bus_struct_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9772]
-WARNING: [Synth 8-7071] port 'peripheral_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9772]
-WARNING: [Synth 8-7071] port 'interconnect_aresetn' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9772]
-WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_reset_0_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9772]
+WARNING: [Synth 8-7071] port 'mb_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9912]
+WARNING: [Synth 8-7071] port 'bus_struct_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9912]
+WARNING: [Synth 8-7071] port 'peripheral_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9912]
+WARNING: [Synth 8-7071] port 'interconnect_aresetn' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9912]
+WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_reset_0_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9912]
 	Parameter C_USE_DEFAULT_ACP_USER_VAL bound to: 0 - type: integer 
 	Parameter C_S_AXI_ACP_ARUSER_VAL bound to: 31 - type: integer 
 	Parameter C_S_AXI_ACP_AWUSER_VAL bound to: 31 - type: integer 
@@ -6436,26 +6435,26 @@ WARNING: [Synth 8-7071] port 'DMA1_RSTN' of module 'processing_system7_v5_5_proc
 WARNING: [Synth 8-7071] port 'DMA2_RSTN' of module 'processing_system7_v5_5_processing_system7' is unconnected for instance 'inst' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:689]
 WARNING: [Synth 8-7071] port 'DMA3_RSTN' of module 'processing_system7_v5_5_processing_system7' is unconnected for instance 'inst' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:689]
 WARNING: [Synth 8-7023] instance 'inst' of module 'processing_system7_v5_5_processing_system7' has 685 connections declared, but only 672 given [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:689]
-WARNING: [Synth 8-7071] port 'ENET1_GMII_TX_ER' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'USB0_PORT_INDCTL' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'USB0_VBUS_PWRSELECT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_AWREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BVALID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BRESP' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
-WARNING: [Synth 8-7023] instance 'processing_system7_0' of module 'system_processing_system7_0_0' has 183 connections declared, but only 164 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9781]
+WARNING: [Synth 8-7071] port 'ENET1_GMII_TX_ER' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'USB0_PORT_INDCTL' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'USB0_VBUS_PWRSELECT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_AWREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BVALID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BRESP' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
+WARNING: [Synth 8-7023] instance 'processing_system7_0' of module 'system_processing_system7_0_0' has 183 connections declared, but only 164 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9921]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_M_AXI_PROTOCOL bound to: 2 - type: integer 
 	Parameter C_S_AXI_PROTOCOL bound to: 0 - type: integer 
@@ -7204,10 +7203,10 @@ WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_4' has 60 c
 	Parameter P_SLVERR bound to: 2'b10 
 	Parameter P_PROTECTION bound to: 1 - type: integer 
 	Parameter P_CONVERSION bound to: 2 - type: integer 
-WARNING: [Synth 8-7071] port 'm_axi_awregion' of module 'system_auto_pc_7' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8550]
-WARNING: [Synth 8-7071] port 'm_axi_arregion' of module 'system_auto_pc_7' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8550]
+WARNING: [Synth 8-7071] port 'm_axi_awregion' of module 'system_auto_pc_7' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8690]
+WARNING: [Synth 8-7071] port 'm_axi_arregion' of module 'system_auto_pc_7' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8690]
 INFO: [Common 17-14] Message 'Synth 8-7071' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
-WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_7' has 79 connections declared, but only 77 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8550]
+WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_7' has 79 connections declared, but only 77 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8690]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_NUM_SLAVE_SLOTS bound to: 1 - type: integer 
 	Parameter C_NUM_MASTER_SLOTS bound to: 8 - type: integer 
@@ -8085,8 +8084,6 @@ INFO: [Synth 8-155] case statement is not full and has no default [c:/Users/sabe
 	Parameter C_MESG_WIDTH bound to: 75 - type: integer 
 	Parameter C_ARB_PRIORITY bound to: 0 - type: integer 
 	Parameter P_PRIO_MASK bound to: 1'b0 
-WARNING: [Synth 8-689] width (72) of port connection 'm_axi_arid' does not match port width (96) of module 'system_tier2_xbar_1_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:14959]
-WARNING: [Synth 8-689] width (72) of port connection 'm_axi_awid' does not match port width (96) of module 'system_tier2_xbar_1_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:14971]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_NUM_SLAVE_SLOTS bound to: 1 - type: integer 
 	Parameter C_NUM_MASTER_SLOTS bound to: 4 - type: integer 
@@ -8573,9 +8570,9 @@ WARNING: [Synth 8-7023] instance 'reg_slice_mi' of module 'axi_register_slice_v2
 	Parameter C_MESG_WIDTH bound to: 75 - type: integer 
 	Parameter C_ARB_PRIORITY bound to: 0 - type: integer 
 	Parameter P_PRIO_MASK bound to: 1'b0 
-WARNING: [Synth 8-689] width (4) of port connection 'm_axi_arregion' does not match port width (12) of module 'system_xbar_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:15123]
-WARNING: [Synth 8-689] width (4) of port connection 'm_axi_awregion' does not match port width (12) of module 'system_xbar_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:15135]
-WARNING: [Synth 8-7023] instance 'ps7_0_axi_periph' of module 'system_ps7_0_axi_periph_0' has 540 connections declared, but only 410 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9946]
+WARNING: [Synth 8-689] width (4) of port connection 'm_axi_arregion' does not match port width (12) of module 'system_xbar_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:15411]
+WARNING: [Synth 8-689] width (4) of port connection 'm_axi_awregion' does not match port width (12) of module 'system_xbar_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:15423]
+WARNING: [Synth 8-7023] instance 'ps7_0_axi_periph' of module 'system_ps7_0_axi_periph_0' has 560 connections declared, but only 420 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:10086]
 INFO: [Synth 8-638] synthesizing module 'system_rst_ps7_0_100M_0' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:74]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_EXT_RST_WIDTH bound to: 4 - type: integer 
@@ -8588,7 +8585,7 @@ INFO: [Synth 8-638] synthesizing module 'system_rst_ps7_0_100M_0' [c:/Users/sabe
 	Parameter C_NUM_PERP_ARESETN bound to: 1 - type: integer 
 INFO: [Synth 8-3491] module 'proc_sys_reset' declared at 'c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/8842/hdl/proc_sys_reset_v5_0_vh_rfs.vhd:1264' bound to instance 'U0' of component 'proc_sys_reset' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:129]
 INFO: [Synth 8-256] done synthesizing module 'system_rst_ps7_0_100M_0' (420#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:74]
-WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_100M_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:10357]
+WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_100M_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:10507]
 	Parameter IN0_WIDTH bound to: 1 - type: integer 
 	Parameter IN1_WIDTH bound to: 1 - type: integer 
 	Parameter IN2_WIDTH bound to: 1 - type: integer 
@@ -8720,18 +8717,18 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter dout_width bound to: 16 - type: integer 
 	Parameter NUM_PORTS bound to: 16 - type: integer 
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:42 ; elapsed = 00:00:51 . Memory (MB): peak = 2055.477 ; gain = 915.832
+Finished RTL Elaboration : Time (s): cpu = 00:00:37 ; elapsed = 00:00:41 . Memory (MB): peak = 2057.668 ; gain = 915.395
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:46 ; elapsed = 00:00:56 . Memory (MB): peak = 2074.820 ; gain = 935.176
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:41 ; elapsed = 00:00:45 . Memory (MB): peak = 2077.984 ; gain = 935.711
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:46 ; elapsed = 00:00:56 . Memory (MB): peak = 2074.820 ; gain = 935.176
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:41 ; elapsed = 00:00:45 . Memory (MB): peak = 2077.984 ; gain = 935.711
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2209.371 ; gain = 13.637
+Netlist sorting complete. Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2211.664 ; gain = 13.191
 INFO: [Netlist 29-17] Analyzing 668 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
@@ -8842,7 +8839,7 @@ Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapp
 INFO: [Project 1-1715] 8 XPM XDC files have been applied to the design.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.059 . Memory (MB): peak = 2912.629 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.047 . Memory (MB): peak = 2916.000 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 435 instances were transformed.
   FDR => FDRE: 366 instances
@@ -8851,16 +8848,16 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   MUXCY_L => MUXCY: 16 instances
   SRL16 => SRL16E: 4 instances
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2912.629 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2916.000 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:01:44 ; elapsed = 00:01:56 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Constraint Validation : Time (s): cpu = 00:01:34 ; elapsed = 00:01:35 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7z020clg400-2
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:01:44 ; elapsed = 00:01:56 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Loading Part and Timing Information : Time (s): cpu = 00:01:34 ; elapsed = 00:01:35 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
@@ -8990,7 +8987,7 @@ Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_w_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:45 ; elapsed = 00:01:57 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:35 ; elapsed = 00:01:36 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'ad7606_ser2par128bit'
 INFO: [Synth 8-802] inferred FSM for state register 'mst_exec_state_reg' in module 'ad7606_axis'
@@ -9498,7 +9495,7 @@ INFO: [Synth 8-3354] encoded FSM with state register 'gen_axi.write_cs_reg' usin
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'axi_data_fifo_v2_1_21_axic_reg_srl_fifo__parameterized0'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:13 ; elapsed = 00:02:27 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:01 ; elapsed = 00:02:05 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -9728,6 +9725,43 @@ Finished Part Resource Summary
 ---------------------------------------------------------------------------------
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.gen_upsizer.inst_upsizer/inst_upsizer_target_pipeline/gen_pipe[1].pipe_reg[1][3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_wr_addra/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_wr_addra/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_wr_addra/count_r_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_rd_addrb/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_rd_addrb/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_rd_addrb/count_r_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.gen_upsizer.inst_upsizer/gen_r_ch.accum_reg[sc_route][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_aw_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[0].inst_req_counter/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_aw_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[0].inst_req_counter/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_ar_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[1].inst_req_counter/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_ar_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[1].inst_req_counter/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_wr.inst_wr_addra_p1/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_wr.inst_wr_addra_p1/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[0].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_wr.inst_wr_addra_p1/count_r_reg[2] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_b_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_a_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s01_nodes/s01_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_b_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s01_nodes/s01_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_a_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\m00_nodes/m00_aw_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[0].inst_req_counter/is_zero_r_reg )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s00_nodes/s00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_b_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\s00_nodes/s00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_send/gen_AB_reg_slice.payld_a_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\m00_nodes/m00_ar_node/inst /\inst_si_handler/gen_si_handler.gen_request_counters.gen_req_counter[1].inst_req_counter/is_zero_r_reg )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /p_0_out_inferred__5/\inst_mi_handler/inst_ingress/inst_incoming_count/count_r_reg[2] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /p_0_out_inferred__5/\inst_mi_handler/inst_ingress/inst_incoming_count/count_r_reg[3] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /p_0_out_inferred__5/\inst_mi_handler/inst_ingress/inst_incoming_count/count_r_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_r_node/inst /p_0_out_inferred__5/\inst_mi_handler/inst_ingress/inst_incoming_count/count_r_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\m00_nodes/m00_r_node/inst /\inst_mi_handler/inst_ingress/inst_incoming_count/is_zero_r_reg )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d2 )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_aw_node/inst /\inst_si_handler/gen_si_handler.gen_arbiter_rr_normal_area.inst_arbiter/last_grant_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_ar_node/inst /\inst_si_handler/gen_si_handler.gen_arbiter_rr_normal_area.inst_arbiter/grant_i_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d3 )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m00_nodes/m00_ar_node/inst /\inst_mi_handler/inst_ingress/inst_pipeline_recv/gen_pipe[1].pipe_reg[1][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d4 )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/EXT_LPF[1].exr_lpf_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\clk_map/psr_aclk/U0/EXT_LPF/lpf_exr_reg )
 INFO: [Synth 8-4471] merging register 'GEN_RESET_FOR_S2MM.RESET_I/soft_reset_d1_reg' into 'GEN_RESET_FOR_MM2S.RESET_I/soft_reset_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/89d8/hdl/axi_dma_v7_1_vh_rfs.vhd:727]
 INFO: [Synth 8-4471] merging register 'GEN_ENABLE_INDET_BTT.I_SF_DATA_CNTL_STATUS_FIFO/sig_init_reg_reg' into 'I_WRESP_STATUS_FIFO/sig_init_reg_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4ab6/hdl/axi_datamover_v5_1_vh_rfs.vhd:1961]
 INFO: [Synth 8-4471] merging register 'GEN_ENABLE_INDET_BTT.I_SF_DATA_CNTL_STATUS_FIFO/sig_init_reg2_reg' into 'I_WRESP_STATUS_FIFO/sig_init_reg2_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4ab6/hdl/axi_datamover_v5_1_vh_rfs.vhd:1962]
@@ -9769,35 +9803,51 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-4652] Swapped enable and write-enable on 9 RAM instances of RAM gen_wr_a.gen_word_narrow.mem_reg to conserve power
 INFO: [Synth 8-5784] Optimized 36 bits of RAM "gen_wr_a.gen_word_narrow.mem_reg" due to constant propagation. Old ram width 164 bits, new ram width 128 bits.
 INFO: [Synth 8-4652] Swapped enable and write-enable on 8 RAM instances of RAM gen_wr_a.gen_word_narrow.mem_reg to conserve power
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/GEN_INCLUDE_MM2S_SF.I_RD_SF/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst /i_2/\gen_rd_b.gen_doutb_pipe.doutb_pipe_reg[0][146] )
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axis_data_fifo_1/\inst/gen_fifo.xpm_fifo_axis_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst /i_2/\gen_rd_b.gen_doutb_pipe.doutb_pipe_reg[0][163] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/ENABLE_AXIS_SKID.I_INDET_BTT_SKID_BUF/sig_data_skid_reg_reg[135] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_INCLUDE_REALIGNER.I_S2MM_REALIGNER/GEN_INCLUDE_SCATTER.I_S2MM_SCATTER/sig_max_first_increment_reg[22] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/I_MSTR_PCC/sig_addr_cntr_incr_ireg2_reg[15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/ENABLE_AXIS_SKID.I_INDET_BTT_SKID_BUF/sig_sstrb_stop_mask_reg[15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/\I_AXI_DMA_REG_MODULE/GEN_MM2S_REGISTERS.I_MM2S_DMA_REGISTER/sg_decerr_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/\I_AXI_DMA_REG_MODULE/GEN_S2MM_REGISTERS.I_S2MM_DMA_REGISTER/dmacr_i_reg[11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/\I_AXI_DMA_REG_MODULE/GEN_MM2S_REGISTERS.I_MM2S_DMA_REGISTER/dmacr_i_reg[11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/\I_AXI_DMA_REG_MODULE/GEN_S2MM_REGISTERS.I_S2MM_DMA_REGISTER/dmacr_i_reg[15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/\I_AXI_DMA_REG_MODULE/GEN_MM2S_REGISTERS.I_MM2S_DMA_REGISTER/dmacr_i_reg[15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_bram_ctrl_0/\U0/gext_inst.abcv4_0_ext_inst/GEN_AXI4.I_FULL_AXI/I_RD_CHNL/GEN_NO_RD_CMD_OPT.axi_b2b_brst_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (dac_whole_0/\inst/axi_rresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (dac_whole_0/\inst/axi_bresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_bram_ctrl_0/\U0/gext_inst.abcv4_0_ext_inst/GEN_AXI4.I_FULL_AXI/I_RD_CHNL/GEN_NO_RD_CMD_OPT.GEN_RRESP.axi_rresp_int_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_bram_ctrl_0/\U0/gext_inst.abcv4_0_ext_inst/GEN_AXI4.I_FULL_AXI/I_WR_CHNL/GEN_BRESP.axi_bresp_int_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (adc_whole_0/\inst/axi_rresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (adc_whole_0/\inst/axi_bresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/ENABLE_AXIS_SKID.I_INDET_BTT_SKID_BUF/sig_data_reg_out_reg[135] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/ENABLE_AXIS_SKID.I_INDET_BTT_SKID_BUF/sig_mvalid_stop_reg_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\I_ADDR_CNTL/sig_next_size_reg_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/I_ADDR_CNTL/sig_next_size_reg_reg[1] )
-INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d5) is unused and will be removed from module axi_dma.
-INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d6) is unused and will be removed from module axi_dma.
-INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST_OUT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d5) is unused and will be removed from module axi_dma.
-INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST_OUT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d6) is unused and will be removed from module axi_dma.
-INFO: [Synth 8-3332] Sequential element (GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/FSM_onehot_sig_csm_state_reg[3]) is unused and will be removed from module axi_datamover_s2mm_full_wrap.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[45][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[44][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][16] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\ram_reg[45][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[43][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[42][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[41][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[40][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[39][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[38][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[37][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[36][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[35][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[34][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[32][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[30][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[28][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[26][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[25][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[24][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[23][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[45][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[44][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][17] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][17] )
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-4471] merging register 'bus2ip_reset_reg' into 'AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/rst_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4318/hdl/axi_gpio_v2_0_vh_rfs.vhd:1677]
 INFO: [Synth 8-4471] merging register 'DYNAMIC_SLAVE_MODE_FRAME_CNT.valid_frame_sync_reg' into 'VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.mstrfrm_tstsync_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/7860/hdl/axi_vdma_v6_3_rfs.vhd:64573]
 INFO: [Synth 8-4471] merging register 'DYNAMIC_SLAVE_MODE_FRAME_CNT.tstvect_fsync_d1_reg' into 'I_SM/frame_sync_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/7860/hdl/axi_vdma_v6_3_rfs.vhd:64599]
@@ -10047,42 +10097,8 @@ INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[7] )
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[8] )
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[31] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/first_step_q_reg[14] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/first_step_q_reg[15] )
-INFO: [Synth 8-3333] propagating constant 1 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/NO_B_CHANNEL.cmd_b_empty_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/S_AXI_ALOCK_Q_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/S_AXI_ACACHE_Q_reg[3] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_gpio_0/U0/\AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/s_axi_rresp_i_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_gpio_0/U0/\AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/s_axi_rresp_i_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_gpio_0/U0/\AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/s_axi_bresp_i_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_gpio_0/U0/\AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/s_axi_bresp_i_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (PWM_0/\inst/PWM_AXI_inst/axi_rresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (PWM_0/\inst/PWM_AXI_inst/axi_bresp_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[3] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[4] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d2 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.MM2S_LINEBUFFER_I/GEN_LINEBUF_NO_SOF.GEN_LINEBUFFER.I_MSTR_SKID/sig_sready_stop_reg_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_upsizer_conversion.axisc_upsizer_0/gen_data_accumulator[1].acc_user_reg[6] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_upsizer_conversion.axisc_upsizer_0/acc_user_reg[2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\I_PRMRY_DATAMOVER/GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/I_ADDR_CNTL/sig_next_burst_reg_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/queue_id_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d3 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_downsizer_conversion.axisc_downsizer_0/r0_user_reg[2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/multiple_id_non_split_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/incr_need_to_split_q_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/S_AXI_ABURST_Q_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d4 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/split_ongoing_reg )
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-7067] Removed DRAM instance axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/i_0/i_3/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gdm.dm_gen.dm/RAM_reg_0_31_0_0 from module partition due to constant propagation
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/AUX_LPF[1].asr_lpf_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/lpf_asr_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst /i_0/\inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gdm.dm_gen.dm/gpr1.dout_i_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst /\inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/goreg_dm.dout_i_reg[0] )
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[31]) is unused and will be removed from module system_PWM_0_0.
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[30]) is unused and will be removed from module system_PWM_0_0.
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[29]) is unused and will be removed from module system_PWM_0_0.
@@ -10178,31 +10194,13 @@ INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CD
 INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d3) is unused and will be removed from module axi_vdma.
 INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d4) is unused and will be removed from module axi_vdma.
 INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d5) is unused and will be removed from module axi_vdma.
+INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d6) is unused and will be removed from module axi_vdma.
+INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d7) is unused and will be removed from module axi_vdma.
+INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_scndry_out) is unused and will be removed from module axi_vdma.
+INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.s_rst_d1) is unused and will be removed from module axi_vdma.
+INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.s_rst_d2) is unused and will be removed from module axi_vdma.
 INFO: [Common 17-14] Message 'Synth 8-3332' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3332' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][3] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][4] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][5] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][6] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][7] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][8] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][9] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][10] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][12] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][13] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][14] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][16] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][17] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][18] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][19] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][20] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][21] )
-INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_sasd.crossbar_sasd_0/reg_slice_r/m_payload_i_reg' and it is trimmed from '36' to '35' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
@@ -10215,12 +10213,14 @@ INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
-INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
-INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
+INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
+INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
+INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:11 ; elapsed = 00:03:35 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:02:53 ; elapsed = 00:02:59 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -10274,7 +10274,7 @@ Start Applying XDC Timing Constraints
 INFO: [Synth 8-5578] Moved timing constraint from pin 'system_i/lcd/clk_wiz_0/inst/clk_in1' to pin 'processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O'
 INFO: [Synth 8-5819] Moved 1 constraints on hierarchical pins to their respective driving/loading pins
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:22 ; elapsed = 00:03:49 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:05 ; elapsed = 00:03:11 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
@@ -10283,7 +10283,7 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:03:41 ; elapsed = 00:04:10 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Timing Optimization : Time (s): cpu = 00:03:18 ; elapsed = 00:03:24 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -10330,7 +10330,7 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:04:06 ; elapsed = 00:04:39 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Technology Mapping : Time (s): cpu = 00:03:39 ; elapsed = 00:03:47 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -10351,37 +10351,37 @@ WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int2_
 WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int_cdc_to_inferred:in0 to constant 0
 WARNING: [Synth 8-3295] tying undriven pin CDC_SINGLE_REMAP_UNDERFLOW_INST/xpm_cdc_single_inst:src_in to constant 0
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:04:16 ; elapsed = 00:04:51 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished IO Insertion : Time (s): cpu = 00:03:48 ; elapsed = 00:03:58 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:04:16 ; elapsed = 00:04:51 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Renaming Generated Instances : Time (s): cpu = 00:03:48 ; elapsed = 00:03:58 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:22 ; elapsed = 00:04:59 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:03:54 ; elapsed = 00:04:04 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:04:22 ; elapsed = 00:04:59 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Renaming Generated Ports : Time (s): cpu = 00:03:55 ; elapsed = 00:04:04 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:04:23 ; elapsed = 00:05:00 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Handling Custom Attributes : Time (s): cpu = 00:03:55 ; elapsed = 00:04:05 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:04:23 ; elapsed = 00:05:00 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Renaming Generated Nets : Time (s): cpu = 00:03:56 ; elapsed = 00:04:05 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -10445,17 +10445,17 @@ Report Cell Usage:
 |1     |BIBUF      |   130|
 |2     |BUFG       |     9|
 |3     |BUFIO      |     1|
-|4     |CARRY4     |   657|
+|4     |CARRY4     |   656|
 |5     |FIFO36E1   |     5|
 |6     |IDDR       |     5|
 |7     |IDELAYCTRL |     1|
 |8     |IDELAYE2   |     5|
-|9     |LUT1       |   956|
-|10    |LUT2       |  1563|
-|11    |LUT3       |  5371|
-|12    |LUT4       |  2497|
-|13    |LUT5       |  2525|
-|14    |LUT6       |  5131|
+|9     |LUT1       |   962|
+|10    |LUT2       |  1565|
+|11    |LUT3       |  5370|
+|12    |LUT4       |  2487|
+|13    |LUT5       |  2515|
+|14    |LUT6       |  5130|
 |15    |MMCME2_ADV |     1|
 |16    |MUXCY_L    |    12|
 |17    |MUXF7      |   451|
@@ -10480,20 +10480,20 @@ Report Cell Usage:
 |42    |OBUF       |    40|
 +------+-----------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:04:24 ; elapsed = 00:05:00 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Finished Writing Synthesis Report : Time (s): cpu = 00:03:56 ; elapsed = 00:04:05 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 204 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:02:46 ; elapsed = 00:04:08 . Memory (MB): peak = 2912.629 ; gain = 935.176
-Synthesis Optimization Complete : Time (s): cpu = 00:04:24 ; elapsed = 00:05:02 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+Synthesis Optimization Runtime : Time (s): cpu = 00:02:28 ; elapsed = 00:03:22 . Memory (MB): peak = 2916.000 ; gain = 935.711
+Synthesis Optimization Complete : Time (s): cpu = 00:03:56 ; elapsed = 00:04:07 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.963 . Memory (MB): peak = 2912.629 ; gain = 0.000
-INFO: [Netlist 29-17] Analyzing 1668 Unisim elements for replacement
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.893 . Memory (MB): peak = 2916.000 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1667 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 WARNING: [Opt 31-32] Removing redundant IBUF since it is not being driven by a top-level port. system_i/lcd/clk_wiz_0/inst/CLK_CORE_DRP_I/clk_inst/clkin1_ibufg 
 Resolution: The tool has removed redundant IBUF. To resolve this warning, check for redundant IBUF in the input design.
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.020 . Memory (MB): peak = 2912.629 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2916.000 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 386 instances were transformed.
   (MUXCY,XORCY) => CARRY4: 4 instances
@@ -10504,10 +10504,10 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   SRL16 => SRL16E: 4 instances
 
 INFO: [Common 17-83] Releasing license: Synthesis
-1516 Infos, 281 Warnings, 0 Critical Warnings and 0 Errors encountered.
+1519 Infos, 279 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:04:44 ; elapsed = 00:05:26 . Memory (MB): peak = 2912.629 ; gain = 1772.984
+synth_design: Time (s): cpu = 00:04:12 ; elapsed = 00:04:25 . Memory (MB): peak = 2916.000 ; gain = 1773.727
 INFO: [Common 17-1381] The checkpoint 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.dcp' has been generated.
-write_checkpoint: Time (s): cpu = 00:00:11 ; elapsed = 00:00:08 . Memory (MB): peak = 2912.629 ; gain = 0.000
+write_checkpoint: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 2916.000 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Wed Mar 26 15:17:06 2025...
+INFO: [Common 17-206] Exiting Vivado at Wed Mar 26 21:19:02 2025...

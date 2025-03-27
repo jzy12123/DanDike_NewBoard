@@ -43,13 +43,13 @@
 #define INTC_DEVICE_ID XPAR_SCUGIC_SINGLE_DEVICE_ID
 
 // dma_adc
-#define DMA_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR    // DMA中断号，63
-#define sample_points 256                                                             // 一个周期采样256、1024、2048
-#define AD_SAMP_CYCLE_NUMBER 16                                                       // AD采样周期数
-#define FIFO_DEPTH 1024                                                               // FIFO深度1024
+#define DMA_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR // DMA中断号，63
+#define sample_points 256                                                          // 一个周期采样256、1024、2048
+#define AD_SAMP_CYCLE_NUMBER 16                                                    // AD采样周期数
+#define FIFO_DEPTH 1024                                                            // FIFO深度1024
 
 // dma_dac
-#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65                                                    // FIFO满中断
+#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65                                                      // FIFO满中断
 #define Underflow_INTR_ID 67U                                                      // FIFO空中断
 #define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
 #define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半

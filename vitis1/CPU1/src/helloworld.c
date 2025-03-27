@@ -157,10 +157,11 @@ int main()
 			/************************** 测试FFT*****************************/
 			// 开启AD采样
 			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
-
+			
 			if (AdcFinish_Flag != 1)
 			{
-				printf("CPU1 Warning : ADC data is not ready\n");
+				printf("CPU1 Warning : ADC data is not ready || ");
+				printf("ADC Error Count = %d\n", error);
 			}
 			else
 			{
@@ -296,12 +297,11 @@ int main()
 			// 生成交流信号
 			str_wr_bram(PID_OFF);
 			// 调试
-			printf("True PhUA= %3.4f || PhUB= %3.4f || PhUC= %3.4f || PhUX= %3.4f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
-			printf("True PhIA= %3.4f || PhIB= %3.4f || PhIC= %3.4f || PhIX= %3.4f\n", lineAC.phi[0], lineAC.phi[1], lineAC.phi[2], lineAC.phi[3]);
+			// printf("True PhUA= %3.4f || PhUB= %3.4f || PhUC= %3.4f || PhUX= %3.4f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
+			// printf("True PhIA= %3.4f || PhIB= %3.4f || PhIC= %3.4f || PhIX= %3.4f\n", lineAC.phi[0], lineAC.phi[1], lineAC.phi[2], lineAC.phi[3]);
 
-			printf("True UA= %.4f || UB= %.4f || UC= %.4f || UX= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3]);
-			printf("True IA= %.4f || IB= %.4f || IC= %.4f || IX= %.4f\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3]);
-			printf("SET  UA= %.4f || SET  IA= %.4f\r\n\r\n", lineAC.ur[0] * Wave_Amplitude[0] / 100, lineAC.ir[0] * Wave_Amplitude[4] / 100);
+			// printf("True UA= %.6f || UB= %.6f || UC= %.6f || UX= %.6f || SET  UA= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3], lineAC.ur[0] * Wave_Amplitude[0] / 100);
+			// printf("True IA= %.4f || IB= %.4f || IC= %.4f || IX= %.4f || SET  IA= %.4f\n\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3], lineAC.ir[0] * Wave_Amplitude[4] / 100);
 
 			//  控制功放
 			power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);

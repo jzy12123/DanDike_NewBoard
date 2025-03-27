@@ -95,6 +95,7 @@ void AdcDma_Start_OneBulk(int SamplePoints, int SampleFrequency)
 }
 void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
 {
+    error = 0;
     AdcFinish_Flag = 0;
     ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
     AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
@@ -165,9 +166,12 @@ void rx_intr_handler(void *callback)
     if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
     {
         // 用户函数
-
+        //ADC错误计数
+        if((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
+        {
+            error += 1;
+        }
         // 继续开启新一次的ADC
-
         if (ADC_Sampling_ddr > 1)
         {
             // 启动下一次的ADC和DMA
@@ -208,7 +212,6 @@ int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Di
     return status;
 }
 
-
 // DMA TX中断处理函数 dac
 void tx_intr_handler(void *callback)
 {
@@ -242,7 +245,6 @@ void tx_intr_handler(void *callback)
         tx_done = 1;
     }
 }
-
 
 // DAC FIFO溢：读空fifo后继续读则导致下溢
 void underflow_handler()
@@ -306,7 +308,7 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id,  u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
+                      u16 rx_intr_id, u16 tx_intr_id,  u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
 {
     int status;
     XScuGic_Config *intc_config;

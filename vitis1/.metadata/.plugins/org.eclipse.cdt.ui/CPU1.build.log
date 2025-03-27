@@ -1,4 +1,4 @@
-16:22:52 **** Incremental Build of configuration Debug for project CPU1 ****
+14:58:42 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
@@ -17,9 +17,9 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 201664	   4752	21021456	21227872	143e960	CPU1.elf
+ 201168	   4752	21021456	21227376	143e770	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-16:22:54 Build Finished (took 1s.85ms)
+14:58:43 Build Finished (took 1s.62ms)
 

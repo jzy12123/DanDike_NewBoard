@@ -17,14 +17,14 @@ void PID_Init_All() {
     // 初始化幅值PID
     for (int i = 0; i < 8; i++) {
         // 对于每个幅值PID，假设你有一些默认的 Kp, Ki, Kd 参数
-        double Kp_amplitude = 0.02, Ki_amplitude = 0.00001, Kd_amplitude = 0.005;
+        double Kp_amplitude = 0.2, Ki_amplitude = 0.001, Kd_amplitude = 0.05;
         PID_Init(&amplitude_pid[i], Kp_amplitude, Ki_amplitude, Kd_amplitude);
     }
 
     // 初始化相位PID
     for (int i = 0; i < 8; i++) {
         // 对于每个相位PID，假设你有一些默认的 Kp, Ki, Kd 参数
-        double Kp_phase = 0.5, Ki_phase = 0.00, Kd_phase = 0.00;
+        double Kp_phase = 0.5, Ki_phase = 0.02, Kd_phase = 0.1;
         PID_Init(&phase_pid[i], Kp_phase, Ki_phase, Kd_phase);
     }
 }
@@ -116,8 +116,16 @@ double PID_adjust_phase(double setpoint_value, double actual_value, PID *phase_p
     // 如果误差足够大但不太大，执行PID调整
     if (fabs(phase_diff) > PHASE_ERROR_MIN_THRESHOLD_DEGREES)
     {
-        // 使用相位差进行PID计算
+        // 积分项添加限幅
         phase_pid->integral += phase_diff;
+
+        // 积分限幅，防止积分饱和
+        const double MAX_INTEGRAL = 50.0;
+        if (phase_pid->integral > MAX_INTEGRAL)
+            phase_pid->integral = MAX_INTEGRAL;
+        else if (phase_pid->integral < -MAX_INTEGRAL)
+            phase_pid->integral = -MAX_INTEGRAL;
+
         double derivative = phase_diff - phase_pid->prev_error;
         phase_pid->prev_error = phase_diff;
 

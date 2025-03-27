@@ -2,87 +2,34 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Wed Mar 26 14:47:01 2025
-# Process ID: 27464
+# Start of session at: Wed Mar 26 19:11:46 2025
+# Process ID: 30772
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
-# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent22088 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10084 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
 # Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
 #-----------------------------------------------------------
 start_gui
 open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0/system_processing_system7_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_vdma_0_0/system_axi_vdma_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_v_tc_0_0/system_v_tc_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_v_axi4s_vid_out_0_0/system_v_axi4s_vid_out_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_gpio_0_0/system_axi_gpio_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0/system_axi_smc_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0/system_rst_ps7_0_100M_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_ps7_0_axi_periph_0/system_ps7_0_axi_periph_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_clk_wiz_0_0/system_clk_wiz_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_PWM_0_0/system_PWM_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rgb2lcd_0_1/system_rgb2lcd_0_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_xlconcat_0_0/system_xlconcat_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_xbar_0/system_xbar_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_dma_0_0/system_axi_dma_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_adc_whole_0_0/system_adc_whole_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axis_data_fifo_0_0/system_axis_data_fifo_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_dac_whole_0_1/system_dac_whole_0_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axis_data_fifo_1_1/system_axis_data_fifo_1_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0/system_proc_sys_reset_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_blk_mem_gen_0_0/system_blk_mem_gen_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_bram_ctrl_0_0/system_axi_bram_ctrl_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_onoff_config_axi_0_0/system_onoff_config_axi_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_142M_0/system_rst_ps7_0_142M_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_mem_intercon_0/system_axi_mem_intercon_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_gpio_0_1/system_axi_gpio_0_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_uartlite_0_0/system_axi_uartlite_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_util_vector_logic_0_0/system_util_vector_logic_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_0/system_axi_iic_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_coder_0_0/system_coder_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_util_vector_logic_0_1/system_util_vector_logic_0_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_gmii2rgmii_0_0/system_gmii2rgmii_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_power_pulse_v1_AXI_0_0/system_power_pulse_v1_AXI_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_tier2_xbar_0_0/system_tier2_xbar_0_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_tier2_xbar_1_0/system_tier2_xbar_1_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_tier2_xbar_2_0/system_tier2_xbar_2_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_0_1/system_auto_pc_0.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_7_1/system_auto_pc_7.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_1_1/system_auto_pc_1.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_2/system_auto_pc_2.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_3_1/system_auto_pc_3.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_4_1/system_auto_pc_4.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_5/system_auto_pc_5.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_6/system_auto_pc_6.xci' referenced by design 'system' could not be found.
-WARNING: [BD 41-2576] File 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_8/system_auto_pc_8.xci' referenced by design 'system' could not be found.
 Scanning sources...
 Finished scanning sources
 INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-open_project: Time (s): cpu = 00:00:13 ; elapsed = 00:00:08 . Memory (MB): peak = 1121.395 ; gain = 0.000
+open_project: Time (s): cpu = 00:00:25 ; elapsed = 00:00:19 . Memory (MB): peak = 1138.965 ; gain = 0.000
 update_compile_order -fileset sources_1
 open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
 Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>...
 Adding component instance block -- xilinx.com:ip:processing_system7:5.5 - processing_system7_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_processing_system7_0_0 
 Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_ps7_0_100M
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_rst_ps7_0_100M_0 
 Adding component instance block -- xilinx.com:ip:axi_interconnect:2.1 - ps7_0_axi_periph
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_ps7_0_axi_periph_0 
 Adding component instance block -- xilinx.com:ip:axi_crossbar:2.1 - xbar
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_xbar_0 
 Adding component instance block -- xilinx.com:ip:axi_crossbar:2.1 - tier2_xbar_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_tier2_xbar_0_0 
 Adding component instance block -- xilinx.com:ip:axi_crossbar:2.1 - tier2_xbar_1
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_tier2_xbar_1_0 
 Adding component instance block -- xilinx.com:ip:axi_crossbar:2.1 - tier2_xbar_2
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_tier2_xbar_2_0 
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_auto_pc_0 
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_auto_pc_7 
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
@@ -90,119 +37,90 @@ Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - au
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
 Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - proc_sys_reset_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_proc_sys_reset_0_0 
 Adding component instance block -- xilinx.com:ip:xlconcat:2.1 - xlconcat_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_xlconcat_0_0 
 Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_ps7_0_142M
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_rst_ps7_0_142M_0 
 Adding component instance block -- xilinx.com:ip:axi_vdma:6.3 - axi_vdma_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_vdma_0_0 
 Adding component instance block -- xilinx.com:ip:axi_gpio:2.0 - axi_gpio_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_gpio_0_0 
 Adding component instance block -- xilinx.com:ip:v_axi4s_vid_out:4.0 - v_axi4s_vid_out_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_v_axi4s_vid_out_0_0 
 Adding component instance block -- xilinx.com:ip:v_tc:6.2 - v_tc_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_v_tc_0_0 
 Adding component instance block -- xilinx.com:ip:clk_wiz:6.0 - clk_wiz_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_clk_wiz_0_0 
 Adding component instance block -- digilentinc.com:IP:PWM:2.0 - PWM_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_PWM_0_0 
 Adding component instance block -- xilinx.com:ip:axi_interconnect:2.1 - axi_mem_intercon
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_mem_intercon_0 
 Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_auto_pc_8 
 Adding component instance block -- openedv.com:user:rgb2lcd:1.0 - rgb2lcd_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_rgb2lcd_0_1 
 Adding component instance block -- xilinx.com:ip:axi_gpio:2.0 - axi_gpio_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_gpio_0_1 
 Adding component instance block -- xilinx.com:ip:axi_uartlite:2.0 - axi_uartlite_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_uartlite_0_0 
 Adding component instance block -- xilinx.com:ip:axi_iic:2.0 - axi_iic_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_iic_0_0 
 Adding component instance block -- xilinx.com:ip:util_vector_logic:2.0 - util_vector_logic_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_util_vector_logic_0_0 
 Adding component instance block -- xilinx.com:user:coder:1.0 - coder_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_coder_0_0 
 Adding component instance block -- xilinx.com:ip:util_vector_logic:2.0 - util_vector_logic_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_util_vector_logic_0_1 
-Adding component instance block -- xilinx.com:ip:axi_bram_ctrl:4.1 - axi_bram_ctrl_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_bram_ctrl_0_0 
-INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] system_axi_bram_ctrl_0_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
-INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] system_axi_bram_ctrl_0_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
-Adding component instance block -- xilinx.com:user:dac_whole:1.0 - dac_whole_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_dac_whole_0_1 
-Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axis_data_fifo_0_0 
-Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_1
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axis_data_fifo_1_1 
-Adding component instance block -- xilinx.com:ip:axi_dma:7.1 - axi_dma_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_dma_0_0 
-Adding component instance block -- xilinx.com:ip:blk_mem_gen:8.4 - blk_mem_gen_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_blk_mem_gen_0_0 
-Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - axi_smc
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_axi_smc_0 
-Adding component instance block -- xilinx.com:user:adc_whole:1.0 - adc_whole_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_adc_whole_0_0 
-Adding component instance block -- xilinx.com:user:onoff_config_axi:1.0 - onoff_config_axi_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_onoff_config_axi_0_0 
 Adding component instance block -- xilinx.com:user:gmii2rgmii:1.0 - gmii2rgmii_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_gmii2rgmii_0_0 
 Adding component instance block -- xilinx.com:user:power_pulse_v1_AXI:1.0 - power_pulse_v1_AXI_0
-INFO: [BD 41-434] Could not find an IP with XCI file by name: system_power_pulse_v1_AXI_0_0 
+Adding component instance block -- xilinx.com:ip:axi_bram_ctrl:4.1 - axi_bram_ctrl_0
+Adding component instance block -- xilinx.com:user:dac_whole:1.0 - dac_whole_0
+Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_1
+Adding component instance block -- xilinx.com:ip:axi_dma:7.1 - axi_dma_0
+Adding component instance block -- xilinx.com:ip:blk_mem_gen:8.4 - blk_mem_gen_0
+Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - axi_smc
+Adding component instance block -- xilinx.com:user:adc_whole:1.0 - adc_whole_0
+Adding component instance block -- xilinx.com:user:onoff_config_axi:1.0 - onoff_config_axi_0
 Successfully read diagram <system> from block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>
-INFO: [BD 41-433] 
-Design successfully migrated to use XCI files...
-open_bd_design: Time (s): cpu = 00:00:30 ; elapsed = 00:00:29 . Memory (MB): peak = 1533.770 ; gain = 412.375
+open_bd_design: Time (s): cpu = 00:00:09 ; elapsed = 00:00:07 . Memory (MB): peak = 1279.539 ; gain = 140.375
+delete_bd_objs [get_bd_intf_nets AC_8_channel_0/adda/adc_whole_0_M_AXIS]
+copy_bd_objs /  [get_bd_cells {AC_8_channel_0/adda/axis_data_fifo_1}]
+set_property name axis_data_fifo_0 [get_bd_cells axis_data_fifo_1]
+move_bd_cells [get_bd_cells AC_8_channel_0/adda] [get_bd_cells axis_data_fifo_0]
+set_property -dict [list CONFIG.HAS_PROG_EMPTY {0} CONFIG.HAS_PROG_FULL {1} CONFIG.PROG_FULL_THRESH {2000}] [get_bd_cells AC_8_channel_0/adda/axis_data_fifo_0]
+connect_bd_intf_net [get_bd_intf_pins AC_8_channel_0/adda/adc_whole_0/M_AXIS] [get_bd_intf_pins AC_8_channel_0/adda/axis_data_fifo_0/S_AXIS]
+connect_bd_intf_net [get_bd_intf_pins AC_8_channel_0/adda/axi_dma_0/S_AXIS_S2MM] [get_bd_intf_pins AC_8_channel_0/adda/axis_data_fifo_0/M_AXIS]
+connect_bd_net [get_bd_pins AC_8_channel_0/adda/axis_data_fifo_0/prog_full] [get_bd_pins xlconcat_0/In5]
+connect_bd_net [get_bd_pins AC_8_channel_0/adda/s_axi_lite_aclk] [get_bd_pins AC_8_channel_0/adda/axis_data_fifo_0/s_axis_aclk]
+connect_bd_net [get_bd_pins AC_8_channel_0/adda/S_AXI_ARESETN] [get_bd_pins AC_8_channel_0/adda/axis_data_fifo_0/s_axis_aresetn]
 regenerate_bd_layout
-generate_target all [get_files  C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd]
-WARNING: [BD 41-2180] Resetting the memory initialization file of </AC_8_channel_0/adda/blk_mem_gen_0> to default.
+validate_bd_design
 INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
                     All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
 INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+CRITICAL WARNING: [xilinx.com:ip:axi_dma:7.1-9] /AC_8_channel_0/adda/axi_dma_0
+                   ########################################################### 
+                   Interface connected to S_AXIS_S2MM does not have TLAST port
+                   ###########################################################
+validate_bd_design: Time (s): cpu = 00:00:38 ; elapsed = 00:00:40 . Memory (MB): peak = 1805.652 ; gain = 157.859
+startgroup
+set_property -dict [list CONFIG.FIFO_MODE {2} CONFIG.HAS_TLAST {1}] [get_bd_cells AC_8_channel_0/adda/axis_data_fifo_0]
+endgroup
+validate_bd_design
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
 INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+validate_bd_design: Time (s): cpu = 00:00:33 ; elapsed = 00:00:37 . Memory (MB): peak = 1846.805 ; gain = 28.285
+startgroup
+set_property -dict [list CONFIG.PROG_FULL_THRESH {1024}] [get_bd_cells AC_8_channel_0/adda/axis_data_fifo_0]
+endgroup
+validate_bd_design
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+validate_bd_design: Time (s): cpu = 00:00:35 ; elapsed = 00:00:40 . Memory (MB): peak = 1877.457 ; gain = 6.297
+regenerate_bd_layout
+regenerate_bd_layout -routing
+save_bd_design
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+reset_run synth_1
+WARNING: [Vivado 12-1017] Problems encountered:
+1. Failed to delete one or more files in run directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1
+
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
-WARNING: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_GP0'. A default connection has been created.
-WARNING: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP0'. A default connection has been created.
-WARNING: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'S_AXI_HP1'. A default connection has been created.
-INFO: [BD 41-1029] Generation completed for the IP Integrator block processing_system7_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block rst_ps7_0_100M .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/xbar .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block proc_sys_reset_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block xlconcat_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/rst_ps7_0_142M .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_vdma_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_gpio_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/v_axi4s_vid_out_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/v_tc_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/clk_wiz_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/PWM_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/rgb2lcd_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_gpio_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_uartlite_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block key_board/axi_iic_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block key_board/util_vector_logic_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block coder/coder_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block coder/util_vector_logic_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axi_bram_ctrl_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/dac_whole_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axis_data_fifo_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axis_data_fifo_1 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axi_dma_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/blk_mem_gen_0 .
 Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
 Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
 Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axi_smc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/adc_whole_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/onoff_config_axi_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block gmii2rgmii_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block power_pulse_v1_AXI_0 .
 INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_0 .
 INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_1 .
 INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_2 .
@@ -215,31 +133,38 @@ INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_pe
 INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m13_couplers/auto_pc .
 INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m19_couplers/auto_pc .
 INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_intercon/s00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/axis_data_fifo_0 .
 Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
 Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
 Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
-generate_target: Time (s): cpu = 00:01:16 ; elapsed = 00:01:32 . Memory (MB): peak = 2139.500 ; gain = 300.660
-export_ip_user_files -of_objects [get_files C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd] -no_script -sync -force -quiet
-export_simulation -of_objects [get_files C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd] -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.ip_user_files/sim_scripts -ip_user_files_dir C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.ip_user_files -ipstatic_source_dir C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.ip_user_files/ipstatic -lib_map_path [list {modelsim=C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.cache/compile_simlib/modelsim} {questa=C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.cache/compile_simlib/questa} {riviera=C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.cache/compile_simlib/riviera} {activehdl=C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.cache/compile_simlib/activehdl}] -use_ip_compiled_libs -force -quiet
-make_wrapper -files [get_files C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd] -top
-launch_runs impl_1 -to_step write_bitstream -jobs 8
-[Wed Mar 26 14:51:51 2025] Launched synth_1...
+[Wed Mar 26 19:21:21 2025] Launched synth_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Wed Mar 26 14:51:51 2025] Launched impl_1...
+[Wed Mar 26 19:21:21 2025] Launched impl_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+launch_runs: Time (s): cpu = 00:00:10 ; elapsed = 00:00:14 . Memory (MB): peak = 2077.113 ; gain = 199.656
+reset_run impl_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+[Wed Mar 26 19:27:52 2025] Launched impl_1...
+Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
+regenerate_bd_layout
+regenerate_bd_layout -routing
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
+INFO: [Hsi 55-2053] elapsed time for repository (E:/vivado/Vivado/2020.2/data\embeddedsw) loading 0 seconds
+INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
+INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2349.211 ; gain = 145.496
 ipx::edit_ip_in_project -upgrade true -name adc_whole_v1_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v1_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml
 INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
 Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v1_0_project'
 INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1704] No user IP repositories specified
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-create_project: Time (s): cpu = 00:00:07 ; elapsed = 00:00:05 . Memory (MB): peak = 2293.230 ; gain = 13.246
 INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-795] Syncing license key meta-data
-ipx::edit_ip_in_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:07 . Memory (MB): peak = 2293.230 ; gain = 13.246
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 2349.211 ; gain = 0.000
 update_compile_order -fileset sources_1
 ipx::merge_project_changes files [ipx::current_core]
 WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml' ignored by IP packager.
@@ -248,7 +173,7 @@ WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/Dan
 INFO: [IP_Flow 19-3166] Bus Interface 'S_AXI': References existing memory map 'S_AXI'.
 ipx::update_checksums [ipx::current_core]
 ipx::save_core [ipx::current_core]
-set_property core_revision 6 [ipx::current_core]
+set_property core_revision 7 [ipx::current_core]
 ipx::update_source_project_archive -component [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
@@ -264,48 +189,39 @@ INFO: [IP_Flow 19-725] Reloaded user IP repository 'c:/Users/saber/Desktop/share
 report_ip_status -name ip_status 
 upgrade_ip -vlnv xilinx.com:user:adc_whole:1.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
 Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
-INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v1_0 1.0) from revision 5 to revision 6
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v1_0 1.0) from revision 6 to revision 7
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
 INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
 export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
 report_ip_status -name ip_status 
-delete_bd_objs [get_bd_nets AC_8_channel_0/adda/adc_whole_0_adc_end_intr]
-delete_bd_objs [get_bd_nets adc_whole_0_adc_end_intr]
-delete_bd_objs [get_bd_nets AC_8_channel_0/adc_whole_0_adc_end_intr]
-delete_bd_objs [get_bd_pins AC_8_channel_0/adda/adc_end_intr]
-delete_bd_objs [get_bd_nets axis_data_fifo_1_prog_empty] [get_bd_nets axi_dma_0_s2mm_introut] [get_bd_intf_nets onoff_config_axi_0_WrSerial] [get_bd_intf_nets ps7_0_axi_periph_M05_AXI] [get_bd_intf_nets ps7_0_axi_periph_M06_AXI] [get_bd_intf_nets adc_whole_0_AD] [get_bd_intf_nets adda_M00_AXI] [get_bd_nets proc_sys_reset_0_peripheral_aresetn] [get_bd_nets axis_data_fifo_1_prog_full] [get_bd_nets axi_dma_0_mm2s_introut] [get_bd_nets AC_8_channel_0_yad_os_0] [get_bd_intf_nets ps7_0_axi_periph_M09_AXI] [get_bd_intf_nets onoff_config_axi_0_OnOff] [get_bd_intf_nets onoff_config_axi_0_RdSerial] [get_bd_intf_nets ps7_0_axi_periph_M08_AXI] [get_bd_intf_nets ps7_0_axi_periph_M07_AXI] [get_bd_intf_nets dac_whole_0_DA] [get_bd_cells AC_8_channel_0]
-undo
-INFO: [Common 17-17] undo 'delete_bd_objs [get_bd_nets axis_data_fifo_1_prog_empty] [get_bd_nets axi_dma_0_s2mm_introut] [get_bd_intf_nets onoff_config_axi_0_WrSerial] [get_bd_intf_nets ps7_0_axi_periph_M05_AXI] [get_bd_intf_nets ps7_0_axi_periph_M06_AXI] [get_bd_intf_nets adc_whole_0_AD] [get_bd_intf_nets adda_M00_AXI] [get_bd_nets proc_sys_reset_0_peripheral_aresetn] [get_bd_nets axis_data_fifo_1_prog_full] [get_bd_nets axi_dma_0_mm2s_introut] [get_bd_nets AC_8_channel_0_yad_os_0] [get_bd_intf_nets ps7_0_axi_periph_M09_AXI] [get_bd_intf_nets onoff_config_axi_0_OnOff] [get_bd_intf_nets onoff_config_axi_0_RdSerial] [get_bd_intf_nets ps7_0_axi_periph_M08_AXI] [get_bd_intf_nets ps7_0_axi_periph_M07_AXI] [get_bd_intf_nets dac_whole_0_DA] [get_bd_cells AC_8_channel_0]'
-delete_bd_objs [get_bd_nets AC_8_channel_0/adda/axis_data_fifo_0_prog_full] [get_bd_intf_nets AC_8_channel_0/adda/axis_data_fifo_0_M_AXIS] [get_bd_intf_nets AC_8_channel_0/adda/adc_whole_0_M_AXIS] [get_bd_cells AC_8_channel_0/adda/axis_data_fifo_0]
-connect_bd_intf_net [get_bd_intf_pins AC_8_channel_0/adda/adc_whole_0/M_AXIS] [get_bd_intf_pins AC_8_channel_0/adda/axi_dma_0/S_AXIS_S2MM]
-delete_bd_objs [get_bd_nets axis_data_fifo_1_prog_full]
-delete_bd_objs [get_bd_nets AC_8_channel_0/axis_data_fifo_1_prog_full]
-delete_bd_objs [get_bd_pins AC_8_channel_0/prog_full]
-delete_bd_objs [get_bd_pins AC_8_channel_0/adda/prog_full]
-delete_bd_objs [get_bd_pins AC_8_channel_0/adc_end_intr]
-regenerate_bd_layout -routing
+report_ip_status -name ip_status 
 regenerate_bd_layout
-regenerate_bd_layout -routing
-save_bd_design
-Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
-Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+regenerate_bd_layout
+regenerate_bd_layout
 validate_bd_design
 INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
                     All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
 INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
-validate_bd_design: Time (s): cpu = 00:00:42 ; elapsed = 00:00:43 . Memory (MB): peak = 2402.688 ; gain = 0.000
+validate_bd_design: Time (s): cpu = 00:00:44 ; elapsed = 00:00:45 . Memory (MB): peak = 2367.352 ; gain = 0.000
+report_ip_status -name ip_status 
 save_bd_design
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
 reset_run synth_1
 launch_runs impl_1 -to_step write_bitstream -jobs 8
 INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
 Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
 Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
 Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
@@ -325,14 +241,115 @@ INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_
 Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
 Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
 Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
-[Wed Mar 26 15:11:19 2025] Launched synth_1...
+[Wed Mar 26 20:14:42 2025] Launched synth_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Wed Mar 26 15:11:19 2025] Launched impl_1...
+[Wed Mar 26 20:14:42 2025] Launched impl_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-launch_runs: Time (s): cpu = 00:00:08 ; elapsed = 00:00:12 . Memory (MB): peak = 2452.457 ; gain = 43.785
+launch_runs: Time (s): cpu = 00:00:08 ; elapsed = 00:00:11 . Memory (MB): peak = 2367.352 ; gain = 0.000
 write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
 INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
-INFO: [Hsi 55-2053] elapsed time for repository (E:/vivado/Vivado/2020.2/data\embeddedsw) loading 0 seconds
 INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
 INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2662.074 ; gain = 151.176
+write_hw_platform: Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 2474.301 ; gain = 78.594
+delete_bd_objs [get_bd_nets AC_8_channel_0/adda/axis_data_fifo_0_prog_full] [get_bd_intf_nets AC_8_channel_0/adda/adc_whole_0_M_AXIS] [get_bd_intf_nets AC_8_channel_0/adda/axis_data_fifo_0_M_AXIS] [get_bd_cells AC_8_channel_0/adda/axis_data_fifo_0]
+connect_bd_intf_net [get_bd_intf_pins AC_8_channel_0/adda/adc_whole_0/M_AXIS] [get_bd_intf_pins AC_8_channel_0/adda/axi_dma_0/S_AXIS_S2MM]
+delete_bd_objs [get_bd_nets AC_8_channel_0_prog_full]
+delete_bd_objs [get_bd_nets AC_8_channel_0/adda_prog_full] [get_bd_pins AC_8_channel_0/prog_full]
+delete_bd_objs [get_bd_pins AC_8_channel_0/adda/prog_full]
+ipx::edit_ip_in_project -upgrade true -name adc_whole_v1_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v1_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml
+INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
+Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v1_0_project'
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+INFO: [IP_Flow 19-795] Syncing license key meta-data
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2474.301 ; gain = 0.000
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+update_compile_order -fileset sources_1
+ipx::merge_project_changes files [ipx::current_core]
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml' ignored by IP packager.
+ipx::merge_project_changes hdl_parameters [ipx::current_core]
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml' ignored by IP packager.
+INFO: [IP_Flow 19-3166] Bus Interface 'S_AXI': References existing memory map 'S_AXI'.
+ipx::update_checksums [ipx::current_core]
+ipx::save_core [ipx::current_core]
+set_property core_revision 8 [ipx::current_core]
+ipx::update_source_project_archive -component [ipx::current_core]
+ipx::create_xgui_files [ipx::current_core]
+ipx::update_checksums [ipx::current_core]
+ipx::check_integrity [ipx::current_core]
+INFO: [IP_Flow 19-2181] Payment Required is not set for this core.
+INFO: [IP_Flow 19-2187] The Product Guide file is missing.
+INFO: [Ipptcl 7-1486] check_integrity: Integrity check passed.
+ipx::save_core [ipx::current_core]
+ipx::move_temp_component_back -component [ipx::current_core]
+close_project -delete
+update_ip_catalog -rebuild -repo_path c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo
+INFO: [IP_Flow 19-725] Reloaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'
+report_ip_status -name ip_status 
+upgrade_ip -vlnv xilinx.com:user:adc_whole:1.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
+Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v1_0 1.0) from revision 7 to revision 8
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
+INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
+export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
+report_ip_status -name ip_status 
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/blk_mem_gen_0/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_0/bram_addr_a'(14) - Only lower order bits will be connected.
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_70925c7f.ui> 
+Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
+Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
+Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/adc_whole_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_1 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_2 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/s00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m09_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m10_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m11_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m12_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m13_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m19_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_intercon/s00_couplers/auto_pc .
+Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
+Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
+Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
+[Wed Mar 26 21:14:18 2025] Launched synth_1...
+Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
+[Wed Mar 26 21:14:18 2025] Launched impl_1...
+Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
+launch_runs: Time (s): cpu = 00:00:47 ; elapsed = 00:00:53 . Memory (MB): peak = 2514.461 ; gain = 0.000
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
+INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
+INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2563.906 ; gain = 33.520
+exit
+INFO: [Common 17-206] Exiting Vivado at Wed Mar 26 22:18:16 2025...
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               WARNING: [Common 17-9] Error reading message records.
+WARNING: [Common 17-9] Error reading message records.
+WARNING: [Common 17-9] Error reading message records.
+reset_run impl_1
+exit
+INFO: [Common 17-206] Exiting Vivado at Wed Mar 26 19:27:13 2025...

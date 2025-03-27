@@ -48,11 +48,11 @@
 
 
 // IP VLNV: xilinx.com:user:adc_whole:1.0
-// IP Revision: 6
+// IP Revision: 8
 
 (* X_CORE_INFO = "adc_whole,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_adc_whole_0_0,adc_whole,{}" *)
-(* CORE_GENERATION_INFO = "system_adc_whole_0_0,adc_whole,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=adc_whole,x_ipVersion=1.0,x_ipCoreRevision=6,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
+(* CORE_GENERATION_INFO = "system_adc_whole_0_0,adc_whole,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=adc_whole,x_ipVersion=1.0,x_ipCoreRevision=8,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
 (* IP_DEFINITION_SOURCE = "package_project" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_adc_whole_0_0 (
