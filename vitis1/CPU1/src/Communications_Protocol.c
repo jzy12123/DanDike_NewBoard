@@ -2024,6 +2024,14 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
 
     // 写UDP到共享内存
+    // 检查是否超出限制
+    if (16 + dynamic_payload_size + 4 > UDP_MEM_SIZE)
+    {
+        printf("CPU1: ERROR - UDP data too large for shared memory: %zu > %d\n",
+               16 + dynamic_payload_size + 4, UDP_MEM_SIZE);
+        return; // 数据太大，直接返回不写入
+    }
+
     write_UDP_to_shared_memory(UDP_ADDRESS, &udpPacket, 16 + dynamic_payload_size + 4);
 
     // 设置共享内存最后一个字节为 0，标记空闲
@@ -2042,9 +2050,9 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 // Function to initialize DevState
 void initDevState(DevState *devState)
 {
-    devState->bACMeterMode = 0; // 交流源模式
-    devState->bACRunning = 0;   // 停止状态
-    devState->bClosedLoop = 0;  // 开环状态
+    devState->bACMeterMode = 0; // 0=交流源状态;1=交流表状态
+    devState->bACRunning = 0;   // 0=停止状态;1=运行状态
+    devState->bClosedLoop = 0;  // 0=开环状态;1=闭环状态
     devState->Reserved3 = 0;
     devState->Reserved4 = 0;
     devState->Reserved5 = 0;
@@ -2090,22 +2098,22 @@ void initLineHarm(LineHarm *lineHarm)
     {
         for (int j = 0; j < HarmNumberMax; j++)
         {
-            lineHarm->harm[i].u[j] = 10.0;
-            lineHarm->harm[i].i[j] = 20.0;
-            lineHarm->harm[i].phu[j] = 30.0;
-            lineHarm->harm[i].phi[j] = 40.0;
-            lineHarm->harm[i].p[j] = 50.0;
-            lineHarm->harm[i].q[j] = 60.0;
+            lineHarm->harm[i].u[j] = 0.0;
+            lineHarm->harm[i].i[j] = 0.0;
+            lineHarm->harm[i].phu[j] = 0.0;
+            lineHarm->harm[i].phi[j] = 0.0;
+            lineHarm->harm[i].p[j] = 0.0;
+            lineHarm->harm[i].q[j] = 0.0;
         }
-        lineHarm->harm[i].totalP = 300.0;
-        lineHarm->harm[i].totalQ = 400.0;
+        lineHarm->harm[i].totalP = 0.0;
+        lineHarm->harm[i].totalQ = 0.0;
     }
 }
 void initLineDI(LineDI *lineDI)
 {
     for (int i = 0; i < ChnsDI; i++)
     {
-        lineDI->DI[i].v = 1;
+        lineDI->DI[i].v = 0;
     }
 }
 
@@ -2122,9 +2130,9 @@ void initLineDisoe(LineDisoe *lineDisoe)
     for (int i = 0; i < DisoeMsgNum; i++)
     {
         lineDisoe->DISOE[i].Chn = i;
-        lineDisoe->DISOE[i].Val = 1;
-        lineDisoe->DISOE[i].MS = 999;
-        lineDisoe->DISOE[i].TIME = 9999;
+        lineDisoe->DISOE[i].Val = 0;
+        lineDisoe->DISOE[i].MS = 0;
+        lineDisoe->DISOE[i].TIME = 0;
     }
 }
 
@@ -2156,12 +2164,12 @@ void init_setACS()
 
         // 设置电压相关参数
         setACS.Vals[i].UR = 6.5f;  // 电压档位
-        setACS.Vals[i].U = 6.5f;   // 电压幅值
+        setACS.Vals[i].U = 0.0f;   // 电压幅值
         setACS.Vals[i].PhU = 0.0f; // 电压相位
 
         // 设置电流相关参数
         setACS.Vals[i].IR = 5.0f;  // 电流档位
-        setACS.Vals[i].I_ = 5.0f;  // 电流幅值
+        setACS.Vals[i].I_ = 0.0f;  // 电流幅值
         setACS.Vals[i].PhI = 0.0f; // 电流相位
     }
 

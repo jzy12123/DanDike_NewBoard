@@ -82,6 +82,7 @@ typedef struct
 	uint8_t Reserved15;
 
 } DevState;
+extern DevState devState;
 
 // 101=BaseDataAC，交流源/交流表基础数据
 // 交流线路——基本量                 ChnsAC*12*8+24 => 4通道=408
@@ -105,6 +106,7 @@ typedef struct
 	volatile double totalQ;
 	volatile double totalPF;
 } LineAC;
+extern LineAC lineAC;
 
 // 102=HarmData，谐波数据
 // 交流通道谐波       HarmNumberMax*6*8+16  => HarmNumberMax为32时=1552
@@ -125,6 +127,7 @@ typedef struct
 {
 	Harm harm[ChnsAC]; // harm[ChnsAC]
 } LineHarm;
+extern LineHarm lineHarm;
 
 // 501=DI,开入实时状态
 // ChnsDI * 1 => 32
@@ -136,6 +139,7 @@ typedef struct
 {
 	SingleDI DI[ChnsDI]; // 最大32个开入通道
 } LineDI;
+extern LineDI lineDI;
 
 // 502=DO,开出实时状态
 // ChnsDI * 1 => 32
@@ -147,6 +151,7 @@ typedef struct
 {
 	SingleDO DO[ChnsDO]; // 最大32个开出
 } LineDO;
+extern LineDO lineDO;
 
 // 510=DISOE, 开入量事件记录
 // 10 * （1+1+2+4）=> 80
@@ -161,19 +166,20 @@ typedef struct
 {
 	SingleDisoe DISOE[DisoeMsgNum];
 } LineDisoe;
+extern LineDisoe lineDisoe;
 
-#define MAXPAYLOAD 8 * 5 + sizeof(LineAC) + sizeof(LineHarm) + sizeof(LineDI) + sizeof(LineDO) + sizeof(LineDisoe) + 4
+#define MAXPAYLOAD (2 * sizeof(u32) + sizeof(DevState)) + (2 * sizeof(u32) + sizeof(LineAC)) + (2 * sizeof(u32) + sizeof(LineHarm)) + (2 * sizeof(u32) + sizeof(LineDI)) + (2 * sizeof(u32)) + (2 * sizeof(u32) + sizeof(LineDO)) + (2 * sizeof(u32) + sizeof(LineDisoe)) + sizeof(u32) // 数据区+帧尾区
 typedef struct
 {
 	// 帧头区
 	char syncHeader[4]; // D1D2D3D4
-	u32 dataLength1;	// Length of LineAC
-	u32 dataLength2;	// Length of LineHarm
-	u8 versionInfo;		// 1
-	u8 reserved[3];		// 00 00 00
+	u32 dataLength1;	// 数据长度
+	u32 dataLength2;	// 数据长度重复,冗余校验
+
+	u8 versionInfo; // 1
+	u8 reserved[3]; // 00 00 00
 	// 数据区
 	char payload[MAXPAYLOAD]; // 帧尾区也放进payload
-							  // 帧尾区
 							  //    char endFooter[4];			// E1E2E3E4
 } UDPPacket;
 
@@ -288,11 +294,6 @@ typedef struct
 	bool ClosedLoop;
 } ReplyData;
 
-extern LineAC lineAC;
-extern LineHarm lineHarm;
-extern LineDI lineDI;
-extern LineDO lineDO;
-extern LineDisoe lineDisoe;
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/

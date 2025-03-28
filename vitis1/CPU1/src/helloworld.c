@@ -117,21 +117,6 @@ int main()
 	xil_printf("CPU1: Initialization successfully \r\n");
 
 	/************************** 测试FFT*****************************/
-	numHarmonics[0] = 6;
-	harmonics[0][0] = 0.0;
-	harmonics[0][1] = 0.0;
-	harmonics[0][2] = 0.0;
-	harmonics[0][3] = 0.0;
-	harmonics[0][4] = 0.0;
-	harmonics[0][5] = 0.0;
-
-	numHarmonics[4] = 6;
-	harmonics[4][0] = 0.0;
-	harmonics[4][1] = 0.0;
-	harmonics[4][2] = 0.0;
-	harmonics[4][3] = 0.0;
-	harmonics[4][4] = 0.0;
-	harmonics[4][5] = 0.0;
 	// 生成交流信号
 	str_wr_bram(PID_OFF);
 
