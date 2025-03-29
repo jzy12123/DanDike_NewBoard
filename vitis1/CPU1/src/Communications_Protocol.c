@@ -782,7 +782,10 @@ void handle_SetACS(cJSON *data)
         // 更新 ClosedLoop 的值
         setACS.ClosedLoop = cJSON_IsTrue(closedLoop);
     }
-
+    else
+    {
+        setACS.ClosedLoop = true; // 默认闭环
+    }
     // 获取 vals 项
     cJSON *vals = cJSON_GetObjectItem(data, "vals");
     if (vals == NULL)
@@ -821,6 +824,10 @@ void handle_SetACS(cJSON *data)
             // 更新 F 的值
             setACS.Vals[i].F = (float)f->valuedouble;
         }
+        else
+        {
+            setACS.Vals[i].F = 50;
+        }
         // 获取 UR 项
         cJSON *ur = cJSON_GetObjectItem(val, "UR");
         if (ur)
@@ -835,12 +842,20 @@ void handle_SetACS(cJSON *data)
             // 更新 U 的值
             setACS.Vals[i].U = (float)u->valuedouble;
         }
+        else
+        {
+            setACS.Vals[i].U = 0;
+        }
         // 获取 PhU 项
         cJSON *phU = cJSON_GetObjectItem(val, "PhU");
         if (phU)
         {
             // 更新 PhU 的值
             setACS.Vals[i].PhU = (float)phU->valuedouble;
+        }
+        else
+        {
+            setACS.Vals[i].PhU = 0;
         }
         // 获取 IR 项
         cJSON *ir = cJSON_GetObjectItem(val, "IR");
@@ -856,12 +871,20 @@ void handle_SetACS(cJSON *data)
             // 更新 I 的值
             setACS.Vals[i].I_ = (float)i_->valuedouble;
         }
+        else
+        {
+            setACS.Vals[i].I_ = 0;
+        }
         // 获取 PhI 项
         cJSON *phI = cJSON_GetObjectItem(val, "PhI");
         if (phI)
         {
             // 更新 PhI 的值
             setACS.Vals[i].PhI = (float)phI->valuedouble;
+        }
+        else
+        {
+            setACS.Vals[i].PhI = 0;
         }
     }
 
@@ -877,7 +900,7 @@ void handle_SetACS(cJSON *data)
                setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
     }
 
-    // 回报JSON   提前到硬件处理之前
+    // 回报JSON
     // 初始化 ReplyData 结构体
     ReplyData replyData;
     // 设置 FunCode 为 "SetACS"
@@ -892,13 +915,13 @@ void handle_SetACS(cJSON *data)
     write_reply_to_shared_memory(&replyData);
 
     /*数据映射到硬件 应该提出去单独开一个线程?*/
-
     // 更新 Wave_Frequency 的值
     Wave_Frequency = setACS.Vals[0].F; // 频率
     // 如果Wave_Frequency不在45到65Hz，添加报错提醒
     if (Wave_Frequency < 45 || Wave_Frequency > 65)
     {
-        xil_printf("Error: Frequency out of range. Expected between 45 and 65 Hz.\n");
+        xil_printf("Error: Frequency out of range. Expected between 45 and 65 Hz.Set 50Hz\n");
+        Wave_Frequency = 50;
     }
     // 设置 Phase_shift 数组的值，前四个为电压相位，后四个为电流相位
     //  遍历 setACS.Vals 数组，并更新 Phase_shift 数组的值
@@ -907,8 +930,7 @@ void handle_SetACS(cJSON *data)
         Phase_shift[i] = setACS.Vals[i].PhU; // 相位
         Phase_shift[i + 4] = setACS.Vals[i].PhI;
     }
-    // 设置 enable 为 0xff，使能通道输出
-    enable = 0xff;
+
     // 清除 numHarmonics 数组
     memset(numHarmonics, 0, sizeof(numHarmonics));
     // 清除 harmonics 数组
@@ -916,8 +938,6 @@ void handle_SetACS(cJSON *data)
     // 清除 harmonics_phases 数组
     memset(harmonics_phases, 0, sizeof(harmonics_phases));
 
-    // 生成交流信号
-    str_wr_bram(PID_OFF);
     // 修改二级DA 波形幅度 量程
     for (int i = 0; i < 4; i++)
     {
@@ -926,7 +946,43 @@ void handle_SetACS(cJSON *data)
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+
+    // 判断是切换量程还是其他设置，如果是切换量程就不输出
+    uint8_t POWAMP_ENABLE = 0xff;
+    for (int i = 0; i < 8; i++)
+    {
+        if (Wave_Amplitude[i] == 0)
+        {
+            POWAMP_ENABLE &= ~(1 << i); // 清除对应位，关闭该通道的功放使能
+        }
+    }
+    if (POWAMP_ENABLE == 0)
+    {
+        // 不使能通道输出
+        enable = 0x00;
+        // 生成交流信号
+        str_wr_bram(PID_OFF);
+        // 设置功放
+        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+
+        // 更改UDP结构体100DevState的运行状态
+        devState.bACMeterMode = 0;
+        devState.bACRunning = 0;
+        devState.bClosedLoop = setACS.ClosedLoop;
+    }
+    else
+    {
+        // 使能通道输出
+        enable = 0xff;
+        // 生成交流信号
+        str_wr_bram(PID_OFF);
+        // 设置功放
+        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+        // 更改UDP结构体100DevState的运行状态
+        devState.bACMeterMode = 0;
+        devState.bACRunning = 1;
+        devState.bClosedLoop = setACS.ClosedLoop;
+    }
 }
 
 SetACM setACM;
@@ -964,6 +1020,9 @@ void handle_SetACM(cJSON *data)
     write_reply_to_shared_memory(&replyData);
 
     // 映射到硬件
+    // 更改UDP结构体100DevState的运行状态
+    devState.bACMeterMode = 1;
+    devState.bACRunning = 1;
 }
 
 SetHarm setHarm;
@@ -1127,38 +1186,35 @@ void handle_StopAC(cJSON *data)
     //  处理 handle_StopACS 的逻辑
     //    xil_printf("CPU1: Handling handle_StopAC...\r\n");
 
-    // 映射到硬件
-    // 关闭DA
-    Wave_Frequency = 50;                                   // 频率
-    memset(Phase_shift, 0, sizeof(Phase_shift));           // 清空基波相位
-    enable = 0x00;                                         // 关闭通道输出
-    memset(numHarmonics, 0, sizeof(numHarmonics));         // 清除谐波
-    memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
-    memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
-    str_wr_bram(PID_OFF);                                  // 生成交流信号
-    // 关闭AD
-
     // 回报JSON
     ReplyData replyData;
     strcpy(replyData.FunCode, "StopAC");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
-
     // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
+
+    // 映射到硬件
+
+    Wave_Frequency = 50;                         // 频率
+    memset(Phase_shift, 0, sizeof(Phase_shift)); // 清空基波相位
+
+    memset(numHarmonics, 0, sizeof(numHarmonics));         // 清除谐波
+    memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
+    memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
+    enable = 0x00;                                         // 关闭通道输出
+    str_wr_bram(PID_OFF);                                  // 生成交流信号
+
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+    // 更改UDP结构体100DevState的运行状态
+    devState.bACMeterMode = 0;
+    devState.bACRunning = 0;
 }
 
 void handle_ClearHarm(cJSON *data)
 {
     // 处理 handle_ClearHarm 的逻辑
     //    xil_printf("CPU1: Handling handle_ClearHarm...\r\n");
-
-    // 映射到硬件
-    memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
-    memset(harmonics, 0, sizeof(harmonics));
-    memset(harmonics_phases, 0, sizeof(harmonics_phases));
-    // 生成交流信号
-    str_wr_bram(PID_OFF);
 
     // 回报JSON
     ReplyData replyData;
@@ -1168,6 +1224,13 @@ void handle_ClearHarm(cJSON *data)
 
     // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
+
+    // 映射到硬件
+    memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
+    memset(harmonics, 0, sizeof(harmonics));
+    memset(harmonics_phases, 0, sizeof(harmonics_phases));
+    // 生成交流信号
+    str_wr_bram(PID_OFF);
 }
 
 void handle_ClearInterHarm(cJSON *data)
@@ -1290,9 +1353,8 @@ void handle_setCalibrateAC(cJSON *data)
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
-
     // 应用设置
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
     str_wr_bram(PID_OFF);
 
     // 返回成功响应
@@ -1438,7 +1500,7 @@ void handle_writeCalibrateAC(cJSON *data)
     }
 
     // 应用设置
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
     str_wr_bram(PID_OFF);
 
     // 返回成功响应
@@ -1658,7 +1720,10 @@ void report_protection_event(u8 ProectFault)
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF);
+    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+    // 更改UDP结构体100DevState的运行状态
+    devState.bACMeterMode = 0;
+    devState.bACRunning = 0;
 
     // Clean up
     free(finalString);
@@ -2052,7 +2117,7 @@ void initDevState(DevState *devState)
 {
     devState->bACMeterMode = 0; // 0=交流源状态;1=交流表状态
     devState->bACRunning = 0;   // 0=停止状态;1=运行状态
-    devState->bClosedLoop = 0;  // 0=开环状态;1=闭环状态
+    devState->bClosedLoop = 1;  // 0=开环状态;1=闭环状态
     devState->Reserved3 = 0;
     devState->Reserved4 = 0;
     devState->Reserved5 = 0;

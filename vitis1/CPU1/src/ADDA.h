@@ -74,7 +74,6 @@ typedef enum
     PID_OFF = 0,
     PID_ON = 1
 } PID_STATE;
-
 /*
  * ╠Да©
  */

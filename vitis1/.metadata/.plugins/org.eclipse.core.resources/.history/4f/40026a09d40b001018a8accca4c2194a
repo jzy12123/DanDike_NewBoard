@@ -123,7 +123,7 @@ int main()
 
 			/************************** 测试FFT*****************************/
 			// 开启AD采样
-			if (devState.bACRunning == true)
+			if (devState.bACRunning = 1)
 			{
 				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 
@@ -255,29 +255,15 @@ int main()
 						lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
 					}
 				}
-
-				/*2 PID闭环调整输出*/
-				// 生成交流信号
-				str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-				//  控制功放
-				power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
-			}
-			else
-			{
-				// 清空UDP结构体
-				initLineAC(&lineAC);
-				initLineHarm(&lineHarm);
-				for (int i = 0; i < 4; i++)
-				{
-					lineAC.ur[i] = setACS.Vals[i].UR;
-					lineAC.ir[i] = setACS.Vals[i].IR;
-				}
 			}
 
-			/*3 回报UDP结构体*/
+			/*2 回报UDP结构体*/
 			Timer_Flag = 0;
 			ReportUDP_Structure(reportStatus);
 
+			/*3 PID闭环调整输出*/
+			// 生成交流信号
+			str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
 			// 调试
 			// printf("True PhUA= %3.4f || PhUB= %3.4f || PhUC= %3.4f || PhUX= %3.4f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
 
@@ -285,6 +271,9 @@ int main()
 
 			// printf("True UA= %.6f || UB= %.6f || UC= %.6f || UX= %.6f || SET  UA= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3], lineAC.ur[0] * Wave_Amplitude[0] / 100);
 			// printf("True IA= %.4f || IB= %.4f || IC= %.4f || IX= %.4f || SET  IA= %.4f\n\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3], lineAC.ir[0] * Wave_Amplitude[4] / 100);
+
+			//  控制功放
+			power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
 
 			/*4 读故障信号*/
 			RdSerial();

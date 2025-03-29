@@ -18,10 +18,10 @@ u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
 volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
-float Phase_shift[8] = {0, 30, 60, 90, 120, 150, 180, 210}; // 8路波形相位偏移 单位度
+float Phase_shift[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // 8路波形相位偏移 单位度
 u32 enable = 0xff;                                          // 使能通道输出
 float Wave_Frequency = 50;
-float Wave_Amplitude[8] = {100, 100, 100, 100, 100, 100, 100, 100};
+float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 uint16_t Wave_NewData[8][DATA_LEN]; // 修改后8路通道所有数据
 
@@ -99,7 +99,7 @@ void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
     AdcFinish_Flag = 0;
     ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
     AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
-    usleep(600000);
+    usleep(400000);
     // 下面进入adcS_intr_handler函数
 }
 
