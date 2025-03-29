@@ -180,9 +180,23 @@ int main()
 						{
 							lineAC.phi[i] += 360;
 						}
-						lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(lineAC.phi[i] * M_PI / 180.0f)); // 有功功率
-						lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(lineAC.phi[i] * M_PI / 180.0f)); // 无功功率
-						lineAC.pf[i] = cos(lineAC.phi[i] * M_PI / 180.0f);								// 功率因数
+
+						// 计算电压与电流之间的相位差
+						double phase_diff = lineAC.phu[i] - lineAC.phi[i];
+						// 确保相位差在-180到180度之间
+						if (phase_diff > 180.0)
+						{
+							phase_diff -= 360.0;
+						}
+
+						else if (phase_diff < -180.0)
+						{
+							phase_diff += 360.0;
+						}
+
+						lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(phase_diff * M_PI / 180.0f));	// 有功功率
+						lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f));	// 无功功率
+						lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);									// 功率因数
 
 						// 累加到总功率
 						lineAC.totalP += lineAC.p[i];

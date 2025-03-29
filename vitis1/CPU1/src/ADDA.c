@@ -18,7 +18,7 @@ u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
 volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
-float Phase_shift[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // 8路波形相位偏移 单位度
+float Phase_shift[8] = {0, 120, 240, 0, 0, 120, 240, 0}; // 8路波形相位偏移 单位度
 u32 enable = 0xff;                                          // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
