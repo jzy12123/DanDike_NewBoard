@@ -24,9 +24,8 @@
 
 
 void AnalyzeWaveform(double harmonic_info[][3], int channel);
-void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, int SampleFrequency, double fundamental_frequency);
-void AnalyzeWaveform_WithDDR(double harmonic_info[][3], int channel, u32 ddr_addr,
-                             int SampleFrequency, double fundamental_frequency);
+void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_addr,
+                              int SampleFrequency, double fundamental_frequency);
 
 #endif
 

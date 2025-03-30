@@ -2116,8 +2116,8 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 void initDevState(DevState *devState)
 {
     devState->bACMeterMode = 0; // 0=½»Á÷Ô´×´Ì¬;1=½»Á÷±í×´Ì¬
-    devState->bACRunning = 0;   // 0=Í£Ö¹×´Ì¬;1=ÔËĞĞ×´Ì¬
-    devState->bClosedLoop = 1;  // 0=¿ª»·×´Ì¬;1=±Õ»·×´Ì¬
+    devState->bACRunning = 0;   // 0=Í£Ö¹×´Ì¬;1=ÔËĞĞ×´Ì¬    //Ä¬ÈÏÍ£Ö¹
+    devState->bClosedLoop = 1;  // 0=¿ª»·×´Ì¬;1=±Õ»·×´Ì¬    //Ä¬ÈÏ±Õ»·
     devState->Reserved3 = 0;
     devState->Reserved4 = 0;
     devState->Reserved5 = 0;

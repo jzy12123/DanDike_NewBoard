@@ -152,8 +152,8 @@ int main()
 						//				AnalyzeWaveform(harmonic_info_I, i + 5);
 
 						// 使用两块DDR地址交替进行FFT分析
-						AnalyzeWaveform_WithDDR(harmonic_info_U, i, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
-						AnalyzeWaveform_WithDDR(harmonic_info_I, i + 4, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
+						AnalyzeWaveform_AcSource(harmonic_info_U, i, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
+						AnalyzeWaveform_AcSource(harmonic_info_I, i + 4, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
 
 						if (i == 0)
 						{
@@ -194,9 +194,9 @@ int main()
 							phase_diff += 360.0;
 						}
 
-						lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(phase_diff * M_PI / 180.0f));	// 有功功率
-						lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f));	// 无功功率
-						lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);									// 功率因数
+						lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(phase_diff * M_PI / 180.0f)); // 有功功率
+						lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f)); // 无功功率
+						lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);								 // 功率因数
 
 						// 累加到总功率
 						lineAC.totalP += lineAC.p[i];
@@ -293,12 +293,16 @@ int main()
 			ReportUDP_Structure(reportStatus);
 
 			// 调试
-			// printf("True PhUA= %3.4f || PhUB= %3.4f || PhUC= %3.4f || PhUX= %3.4f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
+			// printf("True PhUA= %3.6f || PhUB= %3.6f || PhUC= %3.6f || PhUX= %3.6f\n", lineAC.phu[0], lineAC.phu[1], lineAC.phu[2], lineAC.phu[3]);
 
-			// printf("True PhIA= %3.4f || PhIB= %3.4f || PhIC= %3.4f || PhIX= %3.4f\n", lineAC.phi[0], lineAC.phi[1], lineAC.phi[2], lineAC.phi[3]);
+			// printf("True PhIA= %3.6f || PhIB= %3.6f || PhIC= %3.6f || PhIX= %3.6f\n", lineAC.phi[0], lineAC.phi[1], lineAC.phi[2], lineAC.phi[3]);
 
 			// printf("True UA= %.6f || UB= %.6f || UC= %.6f || UX= %.6f || SET  UA= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3], lineAC.ur[0] * Wave_Amplitude[0] / 100);
-			// printf("True IA= %.4f || IB= %.4f || IC= %.4f || IX= %.4f || SET  IA= %.4f\n\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3], lineAC.ir[0] * Wave_Amplitude[4] / 100);
+			// printf("True IA= %.6f || IB= %.6f || IC= %.6f || IX= %.6f || SET  IA= %.4f\n\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3], lineAC.ir[0] * Wave_Amplitude[4] / 100);
+
+			// printf("UA = %.6f\n", lineAC.u[0]);
+			// printf("UB = %.6f\n", lineAC.u[1]);
+			// printf("UC = %.6f\n", lineAC.u[2]);
 
 			/*4 读故障信号*/
 			RdSerial();

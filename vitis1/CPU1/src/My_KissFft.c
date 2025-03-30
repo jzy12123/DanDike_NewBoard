@@ -441,125 +441,9 @@ double normalize_phase(double phase)
     return phase;
 }
 
-void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, int SampleFrequency, double fundamental_frequency)
-{
-    const int N = sample_points * AD_SAMP_CYCLE_NUMBER; // 扩展后的数据长度
-    int extended_data[N];                               // 保存一个通道，16个周期的数据
-
-    // 读取数据
-    for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
-    {
-        for (int i = 0; i < sample_points; i++)
-        {
-            extended_data[i + j * sample_points] = Xil_In32(
-                Share_addr + channel * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
-        }
-    }
-
-    //	//打印原始波形
-    //	for(int i = 0;i < N;i++){
-    //		printf("x=%d\n", extended_data[i]);
-    //	}
-
-    // Allocate memory for FFT results
-    kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
-    kiss_fft_cpx *in = malloc(N * sizeof(kiss_fft_cpx));
-    if (in == NULL)
-    {
-        printf("fft_in malloc failed\r\n");
-    }
-    kiss_fft_cpx *out = malloc(N * sizeof(kiss_fft_cpx));
-    // 检查是否分配成功内存
-    if (out == NULL)
-    {
-        printf("fft_out malloc failed\r\n");
-        fprintf(stderr, "out malloc failed");
-    }
-
-    // Prepare input for FFT (convert extended_data to complex numbers)
-    for (int i = 0; i < N; i++)
-    {
-        in[i].r = extended_data[i]; // Real part
-        in[i].i = 0;                // Imaginary part is zero
-    }
-
-    // Perform FFT
-    kiss_fft(cfg, in, out);
-
-    // Frequency resolution
-    double freq_res = (double)SampleFrequency / N; // 计算频率分辨率
-
-    // Store the fundamental frequency in harmonic_info[0][0]
-    harmonic_info[0][0] = fundamental_frequency;
-
-    // Find the index corresponding to the fundamental frequency in the FFT output
-    int fundamental_index = (int)(fundamental_frequency / freq_res); // 基波对应的索引
-
-    // Calculate the magnitude of the fundamental frequency (基波幅值)
-    double fundamental_magnitude = sqrt(out[fundamental_index].r * out[fundamental_index].r + out[fundamental_index].i * out[fundamental_index].i);
-
-    // Initialize a variable to accumulate total magnitude of all harmonics
-    double total_magnitude = fundamental_magnitude;
-
-    // Analyze the FFT result and store harmonic information
-    for (int i = 0; i < 32; i++)
-    {
-        // Harmonic i corresponds to frequency i * fundamental_frequency
-        int index = fundamental_index * (i + 1); // Harmonic frequency corresponds to fundamental_index * (i + 1)
-
-        // Ensure that index is within the FFT result bounds
-        if (index >= N)
-        {
-            continue; // Skip if the index is out of bounds (avoid out-of-range access)
-        }
-
-        double frequency = fundamental_frequency * (i + 1); // Harmonic frequency = fundamental_frequency * (harmonic number)
-
-        // Find magnitude and phase for each harmonic
-        double magnitude = sqrt(out[index].r * out[index].r + out[index].i * out[index].i); // Magnitude
-        double phase = atan2(out[index].i, out[index].r);                                   // Phase in radians
-
-        // Store harmonic frequency and magnitude
-        harmonic_info[i][0] = frequency; // Store harmonic frequency
-        harmonic_info[i][1] = magnitude; // Store magnitude
-
-        // Convert phase from radians to degrees and store it
-        harmonic_info[i][2] = phase * 180.0 / M_PI; // Convert phase to degrees
-
-        // Accumulate the total magnitude for the percentage calculation
-        total_magnitude += magnitude;
-    }
-
-    //    // Print debug information
-    //    printf("Fundamental Frequency: %.2f Hz\n", fundamental_frequency);
-    //    printf("Fundamental Magnitude: %.2f\n", fundamental_magnitude);
-    //
-    //    // Print harmonics and their magnitude percentage relative to the fundamental
-    //    for (int i = 0; i < 32; i++) {
-    //        double harmonic_frequency = harmonic_info[i][0];
-    //        double harmonic_magnitude = harmonic_info[i][1];
-    //        double harmonic_phase = harmonic_info[i][2];
-    //
-    //        // Calculate the percentage of this harmonic's magnitude relative to the fundamental magnitude
-    //        double magnitude_percentage = (fundamental_magnitude > 0) ? (harmonic_magnitude / fundamental_magnitude) * 100.0 : 0.0;
-    //
-    //        printf("Harmonic %d:\n", i + 1);
-    //        printf("  Frequency: %.2f Hz\n", harmonic_frequency);
-    //        printf("  Magnitude: %.2f\n", harmonic_magnitude);
-    //        printf("  Magnitude Percentage: %.2f%% of fundamental\n", magnitude_percentage);
-    //        printf("  Phase: %.2f degrees\n", harmonic_phase);
-    //    }
-
-    // Free allocated memory
-    kiss_fft_free(cfg);
-
-    free(in);
-    free(out);
-}
-
 // 在My_KissFft.c中添加
-void AnalyzeWaveform_WithDDR(double harmonic_info[][3], int channel, u32 ddr_addr,
-                             int SampleFrequency, double fundamental_frequency)
+void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_addr,
+                              int SampleFrequency, double fundamental_frequency)
 {
     const int N = sample_points * AD_SAMP_CYCLE_NUMBER; // 扩展后的数据长度
     int extended_data[N];                               // 保存一个通道，16个周期的数据
@@ -577,33 +461,35 @@ void AnalyzeWaveform_WithDDR(double harmonic_info[][3], int channel, u32 ddr_add
         }
     }
 
-//    // 打印原始波形
-//    for (int i = 0; i < N; i++)
-//    {
-//        printf("x=%d\n", extended_data[i]);
-//    }
+    // 计算直流分量（平均值）
+    double dc_offset = 0.0;
+    for (int i = 0; i < N; i++)
+    {
+        dc_offset += extended_data[i];
+    }
+    dc_offset /= N;
 
     // 使用kiss_fft库进行FFT计算
     kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
     kiss_fft_cpx *in = malloc(N * sizeof(kiss_fft_cpx));
     if (in == NULL)
     {
-        printf("fft_in malloc failed\r\n");
+        printf("FFT input memory allocation failed\r\n");
         return;
     }
     kiss_fft_cpx *out = malloc(N * sizeof(kiss_fft_cpx));
     if (out == NULL)
     {
-        printf("fft_out malloc failed\r\n");
+        printf("FFT output memory allocation failed\r\n");
         free(in);
         return;
     }
 
-    // 准备FFT输入数据
+    // 准备FFT输入数据，并去除直流分量
     for (int i = 0; i < N; i++)
     {
-        in[i].r = extended_data[i]; // 实部
-        in[i].i = 0;                // 虚部为零
+        in[i].r = extended_data[i] - dc_offset; // 减去直流分量
+        in[i].i = 0;                            // 虚部为零
     }
 
     // 执行FFT
@@ -618,22 +504,46 @@ void AnalyzeWaveform_WithDDR(double harmonic_info[][3], int channel, u32 ddr_add
     // 找到对应基波频率的索引
     int fundamental_index = (int)(fundamental_frequency / freq_res);
 
+    // 在附近索引查找最大幅值（提高精度）
+    double max_magnitude = 0;
+    int best_index = fundamental_index;
+    for (int i = fundamental_index - 2; i <= fundamental_index + 2; i++)
+    {
+        if (i > 0 && i < N / 2)
+        { // 确保索引有效
+            double magnitude = sqrt(out[i].r * out[i].r + out[i].i * out[i].i);
+            if (magnitude > max_magnitude)
+            {
+                max_magnitude = magnitude;
+                best_index = i;
+            }
+        }
+    }
+    fundamental_index = best_index;
+
     // 计算基波幅值
     double fundamental_magnitude = sqrt(out[fundamental_index].r * out[fundamental_index].r +
                                         out[fundamental_index].i * out[fundamental_index].i);
 
+    // 归一化处理（考虑FFT的幅值缩放）
+    fundamental_magnitude = fundamental_magnitude * 2.0 / N;
+
     // 初始化总幅值变量
     double total_magnitude = fundamental_magnitude;
 
+    // 存储基波信息
+    harmonic_info[0][1] = fundamental_magnitude;
+    harmonic_info[0][2] = atan2(out[fundamental_index].i, out[fundamental_index].r) * 180.0 / M_PI;
+
     // 分析谐波
-    for (int i = 0; i < 32; i++)
+    for (int i = 1; i < 32; i++)
     {
         int index = fundamental_index * (i + 1);
-        if (index >= N)
-            continue;
+        if (index >= N / 2)
+            continue; // 防止索引越界
 
         double frequency = fundamental_frequency * (i + 1);
-        double magnitude = sqrt(out[index].r * out[index].r + out[index].i * out[index].i);
+        double magnitude = sqrt(out[index].r * out[index].r + out[index].i * out[index].i) * 2.0 / N;
         double phase = atan2(out[index].i, out[index].r);
 
         harmonic_info[i][0] = frequency;
@@ -647,4 +557,8 @@ void AnalyzeWaveform_WithDDR(double harmonic_info[][3], int channel, u32 ddr_add
     kiss_fft_free(cfg);
     free(in);
     free(out);
+
+    // // 输出调试信息
+    // printf("DC offset removed: %.2f, Fundamental freq: %.2f Hz, Amplitude: %.6f\r\n",
+    //        dc_offset, fundamental_frequency, fundamental_magnitude);
 }
