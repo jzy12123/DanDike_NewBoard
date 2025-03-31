@@ -19,7 +19,7 @@ volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
 float Phase_shift[8] = {0, 120, 240, 0, 0, 120, 240, 0}; // 8路波形相位偏移 单位度
-u32 enable = 0xff;                                          // 使能通道输出
+u32 enable = 0xff;                                       // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
@@ -30,7 +30,7 @@ float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅
 float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
 
 // 功放输出参数
-double DA_Correct[8][3] = {
+double DA_Correct_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
     {35740.445421, 35688.838937, 38472.249867}, // UA 111
     {35818.076424, 35754.250401, 38507.972835}, // UB 111
@@ -43,7 +43,35 @@ double DA_Correct[8][3] = {
     {35455.531774, 41026.379569, 41164.529778}, // IC 111
     {35462.627137, 41026.379569, 40960.744977}  // IX 111
 };
+// 功放20%幅值时的校准参数
+double DA_Correct_20[8][3] = {
+    // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
+    {35731.608731, 35708.515107, 38471.090857}, // UA 20%幅值校准参数
+    {35789.473684, 35806.869734, 38471.090857}, // UB 20%幅值校准参数
+    {35731.608731, 35702.746365, 38503.990878}, // UC 20%幅值校准参数
+    {35731.608731, 35702.746365, 38503.990878}, // UX 20%幅值校准参数
 
+    // 电流通道 (IA, IB, IC, IX) - 分别对应 5A, 1A, 0.2A
+    {35453.597497, 41052.631579, 41935.483871}, // IA 20%幅值校准参数
+    {35789.473684, 41031.036297, 41935.483871}, // IB 20%幅值校准参数
+    {35453.597497, 41052.631579, 41379.310345}, // IC 20%幅值校准参数
+    {35453.597497, 41052.631579, 41379.310345}  // IX 20%幅值校准参数
+};
+
+// 相位校准参数数组（单位：度）
+double DA_CorrectPhase_100[8][3] = {
+    // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
+    {0.0, 0.0, 0.0},          // UA 相位校准参数
+    {-0.012, -0.006, -0.003}, // UB 相位校准参数
+    {-0.017, -0.006, -0.001}, // UC 相位校准参数
+    {0.0, 0.0, 0.0},          // UX 相位校准参数
+
+    // 电流通道 (IA, IB, IC, IX) - 分别对应 5A, 1A, 0.2A
+    {-0.205, -0.310, -0.184},  // IA 相位校准参数
+    {-0.195, -0.293, -0.166}, // IB 相位校准参数
+    {-0.204, -0.304, -0.177}, // IC 相位校准参数
+    {0.0, 0.0, 0.0}           // IX 相位校准参数
+};
 // AD校准参数数组
 double AD_Correct[8][3] = {
     // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
@@ -166,8 +194,8 @@ void rx_intr_handler(void *callback)
     if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
     {
         // 用户函数
-        //ADC错误计数
-        if((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
+        // ADC错误计数
+        if ((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
         {
             error += 1;
         }
@@ -308,7 +336,7 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id,  u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
 {
     int status;
     XScuGic_Config *intc_config;
@@ -587,9 +615,24 @@ void str_wr_bram(PID_STATE pid_state)
         }
     }
 
+    // 修改波形数据
     for (int i = 0; i < CHANNL_MAX; i++)
     {
-        addHarmonics(Wave_NewData[i], DATA_LEN, Phase_shift[i] + Phase_PID_Increment[i], numHarmonics[i], harmonics[i], harmonics_phases[i]);
+        // 获取当前通道的量程索引
+        int range_idx;
+        if (i < 4)
+        { // 电压通道
+            range_idx = get_voltage_index_by_value(setACS.Vals[i].UR);
+        }
+        else
+        { // 电流通道
+            range_idx = get_current_index_by_value(setACS.Vals[i - 4].IR);
+        }
+
+        // 应用PID调节值和相位校准参数
+        addHarmonics(Wave_NewData[i], DATA_LEN,
+                     Phase_shift[i] + Phase_PID_Increment[i] + DA_CorrectPhase_100[i][range_idx],
+                     numHarmonics[i],harmonics[i],harmonics_phases[i]);
     }
 
     // 修改通道使能和分频系数

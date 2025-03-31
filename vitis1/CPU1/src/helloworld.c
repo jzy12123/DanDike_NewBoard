@@ -148,10 +148,7 @@ int main()
 						double harmonic_info_U[HarmNumberMax][3] = {0}; // 创建用于存储谐波的数组
 						double harmonic_info_I[HarmNumberMax][3] = {0};
 
-						//				AnalyzeWaveform(harmonic_info_U, i);	//分析谐波 交流表
-						//				AnalyzeWaveform(harmonic_info_I, i + 5);
-
-						// 使用两块DDR地址交替进行FFT分析
+						// AC交流源分析
 						AnalyzeWaveform_AcSource(harmonic_info_U, i, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
 						AnalyzeWaveform_AcSource(harmonic_info_I, i + 4, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
 
@@ -271,10 +268,14 @@ int main()
 				}
 
 				/*2 PID闭环调整输出*/
-				// 生成交流信号
-				str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-				//  控制功放
-				power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+				// // 生成交流信号
+				// str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+				// //  控制功放
+				// power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+
+				// 测试
+				str_wr_bram(PID_OFF);
+				power_amplifier_control(Wave_Amplitude, Wave_Range,PID_OFF, POWAMP_ON);
 			}
 			else
 			{

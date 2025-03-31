@@ -160,16 +160,24 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		int idx_ix = get_current_index_by_value(setACS.Vals[3].IR);
 
 		// 计算电压通道值
-		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (DA_Correct[0][idx_ua] + Amplifier_PID_Increment[0]));
-		u32 UB = ((u32)((Wave_Amplitude[1] / 100) * (DA_Correct[1][idx_ub] + Amplifier_PID_Increment[1]))) << 16;
-		u32 UC = (u32)((Wave_Amplitude[2] / 100) * (DA_Correct[2][idx_uc] + Amplifier_PID_Increment[2]));
-		u32 UX = ((u32)((Wave_Amplitude[3] / 100) * (DA_Correct[3][idx_ux] + Amplifier_PID_Increment[3]))) << 16;
+		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]);
+		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (correction_ua + Amplifier_PID_Increment[0]));
+		double correction_ub = calculate_correction(1, idx_ub, Wave_Amplitude[1]);
+		u32 UB = ((u32)((Wave_Amplitude[1] / 100) * (correction_ub + Amplifier_PID_Increment[1]))) << 16;
+		double correction_uc = calculate_correction(2, idx_uc, Wave_Amplitude[2]);
+		u32 UC = (u32)((Wave_Amplitude[2] / 100) * (correction_uc + Amplifier_PID_Increment[2]));
+		double correction_ux = calculate_correction(3, idx_ux, Wave_Amplitude[3]);
+		u32 UX = ((u32)((Wave_Amplitude[3] / 100) * (correction_ux + Amplifier_PID_Increment[3]))) << 16;
 
 		// 计算电流通道值
-		u32 IA = (u32)((Wave_Amplitude[4] / 100) * (DA_Correct[4][idx_ia] + Amplifier_PID_Increment[4]));
-		u32 IB = ((u32)((Wave_Amplitude[5] / 100) * (DA_Correct[5][idx_ib] + Amplifier_PID_Increment[5]))) << 16;
-		u32 IC = (u32)((Wave_Amplitude[6] / 100) * (DA_Correct[6][idx_ic] + Amplifier_PID_Increment[6]));
-		u32 IX = ((u32)((Wave_Amplitude[7] / 100) * (DA_Correct[7][idx_ix] + Amplifier_PID_Increment[7]))) << 16;
+		double correction_ia = calculate_correction(4, idx_ia, Wave_Amplitude[4]);
+		u32 IA = (u32)((Wave_Amplitude[4] / 100) * (correction_ia + Amplifier_PID_Increment[4]));
+		double correction_ib = calculate_correction(5, idx_ib, Wave_Amplitude[5]);
+		u32 IB = ((u32)((Wave_Amplitude[5] / 100) * (correction_ib + Amplifier_PID_Increment[5]))) << 16;
+		double correction_ic = calculate_correction(6, idx_ic, Wave_Amplitude[6]);
+		u32 IC = (u32)((Wave_Amplitude[6] / 100) * (correction_ic + Amplifier_PID_Increment[6]));
+		double correction_ix = calculate_correction(7, idx_ix, Wave_Amplitude[7]);
+		u32 IX = ((u32)((Wave_Amplitude[7] / 100) * (correction_ix + Amplifier_PID_Increment[7]))) << 16;
 
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, UB + UA); // din0发送，8000半幅值，ub + ua
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, UX + UC); // din1发送，半幅值，ux + uc
@@ -281,4 +289,36 @@ void Switch_INT_handler()
 void Amplifier_INT_handler()
 {
 	//	printf("Amplifier_Done");
+}
+
+/**
+ * @brief 线性拟合两个校准点计算校准参数
+ *
+ * 根据当前幅值百分比，使用20%幅值和100%幅值时的校准参数进行线性拟合
+ *
+ * @param channel 通道索引 (0-7)
+ * @param range_idx 量程索引 (0-2)
+ * @param amplitude_percentage 幅值百分比 (0-100)
+ * @return 经过线性拟合后的校准参数
+ */
+double calculate_correction(int channel, int range_idx, float amplitude_percentage)
+{
+	if (amplitude_percentage <= 20.0)
+	{
+		// 如果幅值小于等于20%，直接使用20%时的校准参数
+		return DA_Correct_20[channel][range_idx];
+	}
+	else if (amplitude_percentage >= 100.0)
+	{
+		// 如果幅值大于等于100%，直接使用100%时的校准参数
+		return DA_Correct_100[channel][range_idx];
+	}
+	else
+	{
+		// 在20%到100%之间进行线性拟合
+		double ratio = (amplitude_percentage - 20.0) / 80.0; // 归一化比例
+		double correction_20 = DA_Correct_20[channel][range_idx];
+		double correction_100 = DA_Correct_100[channel][range_idx];
+		return correction_20 + ratio * (correction_100 - correction_20);
+	}
 }

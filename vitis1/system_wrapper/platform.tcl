@@ -44,3 +44,10 @@ domain active {zynq_fsbl}
 bsp reload
 catch {bsp regenerate}
 platform generate
+platform active {system_wrapper}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+bsp reload
+platform generate
+platform clean
+platform generate

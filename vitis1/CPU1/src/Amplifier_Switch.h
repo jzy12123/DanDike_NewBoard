@@ -57,4 +57,6 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 void RdSerial();
 unsigned char voltage_to_output(float voltage);
 unsigned char current_to_output(float current);
+// 计算校准参数（线性拟合两个校准点）
+double calculate_correction(int channel, int range_idx, float amplitude_percentage);
 #endif /* SRC_AMPLIFIER_SWITCH_H_ */

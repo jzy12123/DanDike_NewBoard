@@ -106,7 +106,11 @@ extern float harmonics_phases[CHANNL_MAX][MAX_HARMONICS]; // Ã¿¸öÍ¨µÀÃ¿´ÎĞ³²¨µÄÏ
 // channels: 0=UA, 1=UB, 2=UC, 3=UX, 4=IA, 5=IB, 6=IC, 7=IX
 // ranges for voltage: 0=6.5V (0xC2), 1=3.25V (0xD4), 2=1.876V (0xA0)
 // ranges for current: 0=5A (0xC2), 1=1A (0x92), 2=0.2A (0xA4)
-extern double DA_Correct[8][3];
+extern double DA_Correct_100[8][3];
+extern double DA_Correct_20[8][3];
+
+// ÏàÎ»Ğ£×¼²ÎÊıÊı×é£¬´æ·ÅÃ¿¸öÍ¨µÀÃ¿¸öÁ¿³ÌµÄÏàÎ»Ğ£×¼Öµ£¨µ¥Î»£º¶È£©
+extern double DA_CorrectPhase_100[8][3];
 
 // ADĞ£×¼²ÎÊıÊı×é£¬Õë¶Ô²»Í¬Í¨µÀºÍÁ¿³Ì
 // [Í¨µÀ][Á¿³Ì]
