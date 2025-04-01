@@ -9,6 +9,7 @@
 #include "ADDA.h"
 #include "cJSON.h"
 #include "Msg_que.h"
+#include "Rc64.h"
 #include <math.h>
 
 #define JSON_ADDR 0x3AC00000
@@ -262,7 +263,7 @@ typedef struct
 {
 	int Line;
 	int Chn;
-	int HR;
+	int HN;
 	float U;
 	float PhU;
 	float I_;

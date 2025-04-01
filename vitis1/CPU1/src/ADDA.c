@@ -67,7 +67,7 @@ double DA_CorrectPhase_100[8][3] = {
     {0.0, 0.0, 0.0},          // UX 相位校准参数
 
     // 电流通道 (IA, IB, IC, IX) - 分别对应 5A, 1A, 0.2A
-    {-0.205, -0.310, -0.184},  // IA 相位校准参数
+    {-0.205, -0.310, -0.184}, // IA 相位校准参数
     {-0.195, -0.293, -0.166}, // IB 相位校准参数
     {-0.204, -0.304, -0.177}, // IC 相位校准参数
     {0.0, 0.0, 0.0}           // IX 相位校准参数
@@ -632,7 +632,7 @@ void str_wr_bram(PID_STATE pid_state)
         // 应用PID调节值和相位校准参数
         addHarmonics(Wave_NewData[i], DATA_LEN,
                      Phase_shift[i] + Phase_PID_Increment[i] + DA_CorrectPhase_100[i][range_idx],
-                     numHarmonics[i],harmonics[i],harmonics_phases[i]);
+                     numHarmonics[i], harmonics[i], harmonics_phases[i]);
     }
 
     // 修改通道使能和分频系数

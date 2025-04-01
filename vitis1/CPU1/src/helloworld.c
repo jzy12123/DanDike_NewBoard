@@ -44,6 +44,7 @@
 #include "Msg_que.h"
 #include "My_kissFft.h"
 #include "xgpiops.h" //包含 PS GPIO 的函数
+#include "Rc64.h"
 
 #define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
 #define MIO_USB 8 // 连接到 MIO8
@@ -62,10 +63,13 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
+	// 初始化RC64模块
+	RC64_Init();
+	// 从EEPROM读取校准参数
+	RC64_ReadCalibData();
+
 	sleep(17); // 必须要有等待linux启动
 
-	// 重置和重新初始化外设
-	reinitialize_dma_controller();
 	/************************** DMA初始化 *****************************/
 	int status;
 	XAxiDma_Config *config;
@@ -335,29 +339,4 @@ int main()
 			RdSerial();
 		}
 	}
-}
-
-void reinitialize_dma_controller()
-{
-	// 完全重置DMA控制器
-	XAxiDma_Reset(&axidma);
-
-	// 等待重置完成
-	int timeout = RESET_TIMEOUT_COUNTER;
-	while (timeout)
-	{
-		if (XAxiDma_ResetIsDone(&axidma))
-			break;
-		timeout -= 1;
-	}
-
-	// 重新配置DMA
-	XAxiDma_Config *config = XAxiDma_LookupConfig(DMA_DEV_ID);
-	XAxiDma_CfgInitialize(&axidma, config);
-
-	// 重新设置中断
-	XAxiDma_IntrDisable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
-	XAxiDma_IntrDisable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
-	XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
-	XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
 }

@@ -1048,12 +1048,12 @@ void handle_SetHarm(cJSON *data)
         // 获取基本必需参数
         cJSON *line = cJSON_GetObjectItem(item, "Line");
         cJSON *chn = cJSON_GetObjectItem(item, "Chn");
-        cJSON *hr = cJSON_GetObjectItem(item, "HR");
+        cJSON *hr = cJSON_GetObjectItem(item, "HN");
 
         // 如果缺少基本必需参数，则跳过此项
         if (!line || !chn || !hr)
         {
-            printf("CPU1: Harmonic setting error - Missing required parameters(Line, Chn, HR)\n");
+            printf("CPU1: Harmonic setting error - Missing required parameters(Line, Chn, HN)\n");
             continue;
         }
 
@@ -1077,7 +1077,7 @@ void handle_SetHarm(cJSON *data)
             {
                 setHarm.Vals[setHarmIndex].Line = line->valueint;
                 setHarm.Vals[setHarmIndex].Chn = chn->valueint;
-                setHarm.Vals[setHarmIndex].HR = hr->valueint;
+                setHarm.Vals[setHarmIndex].HN = hr->valueint;
 
                 // 只有在参数存在时才更新
                 if (u)
@@ -1126,7 +1126,7 @@ void handle_SetHarm(cJSON *data)
             }
 
             // 打印调试信息
-            printf("CPU1: Set harmonic - Line: %d, Chn: %d, HR: %d",
+            printf("CPU1: Set harmonic - Line: %d, Chn: %d, HN: %d",
                    line->valueint, chn->valueint, hr->valueint);
 
             if (u)
@@ -1157,7 +1157,6 @@ void handle_SetHarm(cJSON *data)
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
-
 }
 
 void handle_SetInterHarm(cJSON *data)
@@ -1412,7 +1411,6 @@ void handle_setCalibrateAC(cJSON *data)
     // 应用设置
     str_wr_bram(PID_OFF);
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
-    
 
     // 返回成功响应
     ReplyData replyData;
@@ -1626,6 +1624,9 @@ void handle_writeCalibrateAC(cJSON *data)
     str_wr_bram(PID_OFF);
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
 
+    // 将校准参数保存到EEPROM
+    RC64_WriteCalibData();
+
     // 返回成功响应
     ReplyData replyData;
     strcpy(replyData.FunCode, "writeCalibrateAC");
@@ -1633,7 +1634,6 @@ void handle_writeCalibrateAC(cJSON *data)
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 }
-
 
 // 生成JSON字符串并写入共享内存的函数
 void write_reply_to_shared_memory(ReplyData *replyData)
@@ -1963,22 +1963,22 @@ void write_command_to_shared_memory()
     //	    "\"FunType\": \"Cmd\","
     //	    "\"FunCode\": \"SetHarm\","
     //	    "\"Data\": ["
-    //	        "{\"Line\": 1, \"Chn\": 1, \"HR\": 2, \"U\": 0.0, \"PhU\": 0.0, \"I\": 0.1, \"PhI\": 0},"
-    //	        "{\"Line\": 1, \"Chn\": 1, \"HR\": 3, \"U\": 0.0, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 1, \"HR\": 4, \"U\": 0.0, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 1, \"HR\": 5, \"U\": 0.0, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.0, \"PhI\": 0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.0, \"PhI\": 0.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.0, \"PhI\": 0.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HR\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.3, \"PhI\": 0.0}"
+    //	        "{\"Line\": 1, \"Chn\": 1, \"HN\": 2, \"U\": 0.0, \"PhU\": 0.0, \"I\": 0.1, \"PhI\": 0},"
+    //	        "{\"Line\": 1, \"Chn\": 1, \"HN\": 3, \"U\": 0.0, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+    //			"{\"Line\": 1, \"Chn\": 1, \"HN\": 4, \"U\": 0.0, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+    //			"{\"Line\": 1, \"Chn\": 1, \"HN\": 5, \"U\": 0.0, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
+    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
+    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
+    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
+    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
+    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.0, \"PhI\": 0},"
+    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.0, \"PhI\": 0.0},"
+    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.0, \"PhI\": 0.0},"
+    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.3, \"PhI\": 0.0}"
     //	    "]"
     //	"}";
 

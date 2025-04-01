@@ -200,3 +200,22 @@ timestamp=[2025-04-01 11:10:10], mode=BUILD, duration=0:00:02.888, duration_ms=2
 timestamp=[2025-04-01 11:10:44], mode=BUILD, duration=0:00:01.772, duration_ms=1772, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-04-01 11:23:47], mode=BUILD, duration=0:00:03.125, duration_ms=3125, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-04-01 11:24:07], mode=BUILD, duration=0:00:00.815, duration_ms=815, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 14:59:10], mode=WORKBENCH_START, duration=0:00:14.805, duration_ms=14805, data={}
+timestamp=[2025-04-01 14:59:11], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.110, duration_ms=110, data={}
+timestamp=[2025-04-01 14:59:11], mode=WORKBENCH_UI_INIT, duration=0:00:01.084, duration_ms=1084, data={editors_count=5, platform_editors_count=0, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK_system,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-04-01 14:59:32], mode=BUILD, duration=0:00:01.488, duration_ms=1488, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:28:11], mode=BUILD, duration=0:00:02.589, duration_ms=2589, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:32:04], mode=BUILD, duration=0:00:02.460, duration_ms=2460, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:32:23], mode=BUILD, duration=0:00:01.141, duration_ms=1141, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:34:07], mode=BUILD, duration=0:00:03.724, duration_ms=3724, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:37:09], mode=BUILD, duration=0:00:02.784, duration_ms=2784, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 15:39:33], mode=BUILD, duration=0:00:02.204, duration_ms=2204, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 18:56:26], mode=BUILD, duration=0:00:01.485, duration_ms=1485, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:00:31], mode=BUILD, duration=0:00:01.343, duration_ms=1343, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:00:50], mode=BUILD, duration=0:00:00.403, duration_ms=403, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:52:42], mode=BUILD, duration=0:00:00.764, duration_ms=764, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:53:09], mode=BUILD, duration=0:00:02.717, duration_ms=2717, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:53:37], mode=BUILD, duration=0:00:00.595, duration_ms=595, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:53:48], mode=BUILD, duration=0:00:01.253, duration_ms=1253, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 19:54:08], mode=BUILD, duration=0:00:00.449, duration_ms=449, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-04-01 20:19:34], mode=BUILD, duration=0:00:01.648, duration_ms=1648, data={name=CPU1, configuration=Debug, clean_build=false}
