@@ -129,8 +129,8 @@ int main()
 
 				if (AdcFinish_Flag != 1)
 				{
-					printf("CPU1 Warning : ADC data is not ready || ");
-					printf("ADC Error Count = %d\n", error);
+					// printf("CPU1 Warning : ADC data is not ready || ");
+					// printf("ADC Error Count = %d\n", error);
 				}
 				else if (AdcFinish_Flag == 1)
 				{
@@ -246,13 +246,43 @@ int main()
 						lineAC.thdu[i] = thdu * 100.0;
 						lineAC.thdi[i] = thdi * 100.0;
 
-						// lineHarm
+						/*lineHarm*/
+						// 初始化该通道的总功率累加变量
+						lineHarm.harm[i].totalP = 0.0;
+						lineHarm.harm[i].totalQ = 0.0;
+
+						// 获取电压和电流量程索引
+						idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
+						idx_i = get_current_index_by_value(setACS.Vals[i].IR);
+
 						for (int j = 0; j < HarmNumberMax; j++)
 						{
-							lineHarm.harm[i].u[j] = (harmonic_info_U[j][1] / AD_UA_Correct) * setACS.Vals[0].UR;
-							lineHarm.harm[i].i[j] = (harmonic_info_I[j][1] / AD_IA_Correct) * setACS.Vals[0].IR;
+							// 使用AD_Correct数组代替AD_UA_Correct和AD_IA_Correct
+							lineHarm.harm[i].u[j] = (harmonic_info_U[j][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+							lineHarm.harm[i].i[j] = (harmonic_info_I[j][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
 							lineHarm.harm[i].phu[j] = harmonic_info_U[j][2];
 							lineHarm.harm[i].phi[j] = harmonic_info_I[j][2];
+
+							// 计算谐波的相位差（角度）
+							double phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
+
+							// 确保相位差在-180到180度之间
+							if (phase_diff > 180.0)
+							{
+								phase_diff -= 360.0;
+							}
+							else if (phase_diff < -180.0)
+							{
+								phase_diff += 360.0;
+							}
+
+							// 计算谐波的有功和无功功率
+							lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
+							lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(phase_diff * M_PI / 180.0);
+
+							// 累加到总功率
+							lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
+							lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 						}
 					}
 					// 总功率因数
@@ -268,14 +298,10 @@ int main()
 				}
 
 				/*2 PID闭环调整输出*/
-				// // 生成交流信号
-				// str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-				// //  控制功放
-				// power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
-
-				// 测试
-				str_wr_bram(PID_OFF);
-				power_amplifier_control(Wave_Amplitude, Wave_Range,PID_OFF, POWAMP_ON);
+				// 生成交流信号
+				str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+				//  控制功放
+				power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
 			}
 			else
 			{

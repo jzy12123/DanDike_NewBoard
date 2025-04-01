@@ -773,7 +773,7 @@ SetACS setACS;
 void handle_SetACS(cJSON *data)
 {
     // 处理 handle_SetACS 的逻辑
-    //	xil_printf("CPU1: Handling handle_SetACS...\r\n");
+    // xil_printf("CPU1: Handling handle_SetACS...\r\n");
 
     // 处理 ClosedLoop，如果存在则更新，否则保留原值
     cJSON *closedLoop = cJSON_GetObjectItem(data, "ClosedLoop");
@@ -786,106 +786,108 @@ void handle_SetACS(cJSON *data)
     {
         setACS.ClosedLoop = true; // 默认闭环
     }
+
     // 获取 vals 项
     cJSON *vals = cJSON_GetObjectItem(data, "vals");
-    if (vals == NULL)
+    if (vals != NULL)
     {
-        // 若不存在 vals 项，则打印错误信息并返回
-        xil_printf("No vals found in JSON.\n");
-        return;
+        // 获取 vals 数组的大小
+        int valsCount = cJSON_GetArraySize(vals);
+        for (int i = 0; i < valsCount; i++)
+        {
+            // 获取 vals 数组中的每个元素
+            cJSON *val = cJSON_GetArrayItem(vals, i);
+
+            // 只更新新来的有效数据
+            // 获取 Line 项
+            cJSON *line = cJSON_GetObjectItem(val, "Line");
+            if (line)
+            {
+                // 更新 Line 的值
+                setACS.Vals[i].Line = line->valueint;
+            }
+            // 获取 Chn 项
+            cJSON *chn = cJSON_GetObjectItem(val, "Chn");
+            if (chn)
+            {
+                // 更新 Chn 的值
+                setACS.Vals[i].Chn = chn->valueint;
+            }
+            // 获取 F 项
+            cJSON *f = cJSON_GetObjectItem(val, "F");
+            if (f)
+            {
+                // 更新 F 的值
+                setACS.Vals[i].F = (float)f->valuedouble;
+            }
+            else
+            {
+                setACS.Vals[i].F = 50;
+            }
+            // 获取 UR 项
+            cJSON *ur = cJSON_GetObjectItem(val, "UR");
+            if (ur)
+            {
+                // 更新 UR 的值
+                setACS.Vals[i].UR = (float)ur->valuedouble;
+            }
+            // 获取 U 项
+            cJSON *u = cJSON_GetObjectItem(val, "U");
+            if (u)
+            {
+                // 更新 U 的值
+                setACS.Vals[i].U = (float)u->valuedouble;
+            }
+            else
+            {
+                setACS.Vals[i].U = 0;
+            }
+            // 获取 PhU 项
+            cJSON *phU = cJSON_GetObjectItem(val, "PhU");
+            if (phU)
+            {
+                // 更新 PhU 的值
+                setACS.Vals[i].PhU = (float)phU->valuedouble;
+            }
+            else
+            {
+                setACS.Vals[i].PhU = 0;
+            }
+            // 获取 IR 项
+            cJSON *ir = cJSON_GetObjectItem(val, "IR");
+            if (ir)
+            {
+                // 更新 IR 的值
+                setACS.Vals[i].IR = (float)ir->valuedouble;
+            }
+            // 获取 I 项
+            cJSON *i_ = cJSON_GetObjectItem(val, "I");
+            if (i_)
+            {
+                // 更新 I 的值
+                setACS.Vals[i].I_ = (float)i_->valuedouble;
+            }
+            else
+            {
+                setACS.Vals[i].I_ = 0;
+            }
+            // 获取 PhI 项
+            cJSON *phI = cJSON_GetObjectItem(val, "PhI");
+            if (phI)
+            {
+                // 更新 PhI 的值
+                setACS.Vals[i].PhI = (float)phI->valuedouble;
+            }
+            else
+            {
+                setACS.Vals[i].PhI = 0;
+            }
+        }
     }
-
-    // 获取 vals 数组的大小
-    int valsCount = cJSON_GetArraySize(vals);
-    for (int i = 0; i < valsCount; i++)
+    else
     {
-        // 获取 vals 数组中的每个元素
-        cJSON *val = cJSON_GetArrayItem(vals, i);
-
-        // 只更新新来的有效数据
-        // 获取 Line 项
-        cJSON *line = cJSON_GetObjectItem(val, "Line");
-        if (line)
-        {
-            // 更新 Line 的值
-            setACS.Vals[i].Line = line->valueint;
-        }
-        // 获取 Chn 项
-        cJSON *chn = cJSON_GetObjectItem(val, "Chn");
-        if (chn)
-        {
-            // 更新 Chn 的值
-            setACS.Vals[i].Chn = chn->valueint;
-        }
-        // 获取 F 项
-        cJSON *f = cJSON_GetObjectItem(val, "F");
-        if (f)
-        {
-            // 更新 F 的值
-            setACS.Vals[i].F = (float)f->valuedouble;
-        }
-        else
-        {
-            setACS.Vals[i].F = 50;
-        }
-        // 获取 UR 项
-        cJSON *ur = cJSON_GetObjectItem(val, "UR");
-        if (ur)
-        {
-            // 更新 UR 的值
-            setACS.Vals[i].UR = (float)ur->valuedouble;
-        }
-        // 获取 U 项
-        cJSON *u = cJSON_GetObjectItem(val, "U");
-        if (u)
-        {
-            // 更新 U 的值
-            setACS.Vals[i].U = (float)u->valuedouble;
-        }
-        else
-        {
-            setACS.Vals[i].U = 0;
-        }
-        // 获取 PhU 项
-        cJSON *phU = cJSON_GetObjectItem(val, "PhU");
-        if (phU)
-        {
-            // 更新 PhU 的值
-            setACS.Vals[i].PhU = (float)phU->valuedouble;
-        }
-        else
-        {
-            setACS.Vals[i].PhU = 0;
-        }
-        // 获取 IR 项
-        cJSON *ir = cJSON_GetObjectItem(val, "IR");
-        if (ir)
-        {
-            // 更新 IR 的值
-            setACS.Vals[i].IR = (float)ir->valuedouble;
-        }
-        // 获取 I 项
-        cJSON *i_ = cJSON_GetObjectItem(val, "I");
-        if (i_)
-        {
-            // 更新 I 的值
-            setACS.Vals[i].I_ = (float)i_->valuedouble;
-        }
-        else
-        {
-            setACS.Vals[i].I_ = 0;
-        }
-        // 获取 PhI 项
-        cJSON *phI = cJSON_GetObjectItem(val, "PhI");
-        if (phI)
-        {
-            // 更新 PhI 的值
-            setACS.Vals[i].PhI = (float)phI->valuedouble;
-        }
-        else
-        {
-            setACS.Vals[i].PhI = 0;
-        }
+        // 即使没有找到 vals 项，也不返回，而是继续执行
+        printf("CPU1: No vals found in JSON, continuing with ClosedLoop change only.\n");
     }
 
     // 打印解析结果以验证
@@ -917,7 +919,7 @@ void handle_SetACS(cJSON *data)
     /*数据映射到硬件 应该提出去单独开一个线程?*/
     // 更新 Wave_Frequency 的值
     Wave_Frequency = setACS.Vals[0].F; // 频率
-    // 如果Wave_Frequency不在45到65Hz，添加报错提醒
+    // 如果Wave_Frequency不在45到65Hz，添加报错提示
     if (Wave_Frequency < 45 || Wave_Frequency > 65)
     {
         xil_printf("Error: Frequency out of range. Expected between 45 and 65 Hz.Set 50Hz\n");
@@ -1028,7 +1030,8 @@ void handle_SetACM(cJSON *data)
 SetHarm setHarm;
 void handle_SetHarm(cJSON *data)
 {
-    // xil_printf("CPU1: Handling handle_SetHarm...\r\n");
+    // 打印调试信息
+    // printf("CPU1: 处理谐波设置请求...\n");
 
     // 解析传入的数据
     int dataCount = cJSON_GetArraySize(data);
@@ -1042,17 +1045,31 @@ void handle_SetHarm(cJSON *data)
             continue;
         }
 
-        // 获取所有参数
+        // 获取基本必需参数
         cJSON *line = cJSON_GetObjectItem(item, "Line");
         cJSON *chn = cJSON_GetObjectItem(item, "Chn");
         cJSON *hr = cJSON_GetObjectItem(item, "HR");
+
+        // 如果缺少基本必需参数，则跳过此项
+        if (!line || !chn || !hr)
+        {
+            printf("CPU1: Harmonic setting error - Missing required parameters(Line, Chn, HR)\n");
+            continue;
+        }
+
+        // 获取可选参数
         cJSON *u = cJSON_GetObjectItem(item, "U");
         cJSON *phU = cJSON_GetObjectItem(item, "PhU");
         cJSON *iField = cJSON_GetObjectItem(item, "I");
         cJSON *phI = cJSON_GetObjectItem(item, "PhI");
 
-        // 确保所有必需参数都存在
-        if (line && chn && hr && u && phU && iField && phI)
+        // 计算通道和谐波索引（从0开始）
+        int channelIndex = chn->valueint - 1; // JSON中通道从1开始
+        int harmonicIndex = hr->valueint - 2; // 谐波索引从0开始，对应第2次谐波
+
+        // 检查数组边界以防溢出
+        if (channelIndex >= 0 && channelIndex < CHANNL_MAX &&
+            harmonicIndex >= 0 && harmonicIndex < MAX_HARMONICS)
         {
             // 存储在setHarm中用于记录
             int setHarmIndex = i;
@@ -1061,55 +1078,73 @@ void handle_SetHarm(cJSON *data)
                 setHarm.Vals[setHarmIndex].Line = line->valueint;
                 setHarm.Vals[setHarmIndex].Chn = chn->valueint;
                 setHarm.Vals[setHarmIndex].HR = hr->valueint;
-                setHarm.Vals[setHarmIndex].U = (float)u->valuedouble;
-                setHarm.Vals[setHarmIndex].PhU = (float)phU->valuedouble;
-                setHarm.Vals[setHarmIndex].I_ = (float)iField->valuedouble;
-                setHarm.Vals[setHarmIndex].PhI = (float)phI->valuedouble;
+
+                // 只有在参数存在时才更新
+                if (u)
+                    setHarm.Vals[setHarmIndex].U = (float)u->valuedouble;
+                if (phU)
+                    setHarm.Vals[setHarmIndex].PhU = (float)phU->valuedouble;
+                if (iField)
+                    setHarm.Vals[setHarmIndex].I_ = (float)iField->valuedouble;
+                if (phI)
+                    setHarm.Vals[setHarmIndex].PhI = (float)phI->valuedouble;
             }
 
-            // 计算通道和谐波索引（从0开始）
-            int channelIndex = chn->valueint - 1; // JSON中通道从1开始
-            int harmonicIndex = hr->valueint - 2; // 谐波索引从0开始，对应第2次谐波
-
-            // 检查数组边界以防溢出
-            if (channelIndex >= 0 && channelIndex < ChnsAC &&
-                harmonicIndex >= 0 && harmonicIndex < MAX_HARMONICS)
+            // 如果需要，更新最大谐波次数
+            if (hr->valueint > numHarmonics[channelIndex])
             {
+                numHarmonics[channelIndex] = hr->valueint;
+            }
 
-                // 更新电压(U)谐波
-                // 如果需要，更新最大谐波次数
-                if (hr->valueint > numHarmonics[channelIndex])
-                {
-                    numHarmonics[channelIndex] = hr->valueint;
-                }
+            // 电压谐波 - 只有在参数存在时才更新
+            if (u)
+            {
                 harmonics[channelIndex][harmonicIndex] = (float)u->valuedouble;
+            }
+            if (phU)
+            {
                 harmonics_phases[channelIndex][harmonicIndex] = (float)phU->valuedouble;
+            }
 
-                // 更新电流(I)谐波（通道偏移4）
+            // 电流谐波 - 只有在参数存在时才更新
+            if (iField || phI)
+            {
                 // 如果需要，更新最大谐波次数
                 if (hr->valueint > numHarmonics[channelIndex + 4])
                 {
                     numHarmonics[channelIndex + 4] = hr->valueint;
                 }
-                harmonics[channelIndex + 4][harmonicIndex] = (float)iField->valuedouble;
-                harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
 
-                // 打印调试信息
-                printf("CPU1:MsgRecv - Line: %d, Chn: %d, HR: %d, U: %.2f, PhU: %.2f, I: %.2f, PhI: %.2f\n",
-                       line->valueint,
-                       chn->valueint,
-                       hr->valueint,
-                       (float)u->valuedouble,
-                       (float)phU->valuedouble,
-                       (float)iField->valuedouble,
-                       (float)phI->valuedouble);
+                if (iField)
+                {
+                    harmonics[channelIndex + 4][harmonicIndex] = (float)iField->valuedouble;
+                }
+                if (phI)
+                {
+                    harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
+                }
             }
-            else
-            {
-                // 错误处理：通道或谐波索引超出范围
-                printf("CPU1:HarmRrror Chn: %d, HR: %d\n",
-                       chn->valueint, hr->valueint);
-            }
+
+            // 打印调试信息
+            printf("CPU1: Set harmonic - Line: %d, Chn: %d, HR: %d",
+                   line->valueint, chn->valueint, hr->valueint);
+
+            if (u)
+                printf(", U: %.2f", (float)u->valuedouble);
+            if (phU)
+                printf(", PhU: %.2f", (float)phU->valuedouble);
+            if (iField)
+                printf(", I: %.2f", (float)iField->valuedouble);
+            if (phI)
+                printf(", PhI: %.2f", (float)phI->valuedouble);
+
+            printf("\n");
+        }
+        else
+        {
+            // 错误处理：通道或谐波索引超出范围
+            printf("CPU1:Harmonic setting error channel: %d, harmonic number: %d out of range\n",
+                   chn->valueint, hr->valueint);
         }
     }
 
@@ -1122,6 +1157,7 @@ void handle_SetHarm(cJSON *data)
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
+
 }
 
 void handle_SetInterHarm(cJSON *data)
