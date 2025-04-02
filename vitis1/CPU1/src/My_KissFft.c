@@ -441,7 +441,48 @@ double normalize_phase(double phase)
     return phase;
 }
 
-// 在My_KissFft.c中添加
+
+/**
+ * @brief 计算给定中心点的幅值以及其左右各两个点的幅值之和
+ *
+ * 计算给定中心点以及其左右各两个点（共5个点）的幅值之和。
+ * 需要注意的是，中心点及其周围点的索引必须在有效范围内。
+ *
+ * @param out FFT结果的复数数组
+ * @param center_index 中心点的索引
+ * @param N FFT结果的长度
+ *
+ * @return 中心点及其左右各两个点的幅值之和
+ */
+double calculate_magnitude_with_neighbors(kiss_fft_cpx *out, int center_index, int N)
+{
+    const int Compensating_points = 0;
+    double total_magnitude = 0.0;
+
+    // 加总中心点及左右各Compensating_points个点的幅值
+    for (int i = center_index - Compensating_points; i <= center_index + Compensating_points; i++)
+    {
+        if (i > 0 && i < N / 2)
+        { // 确保索引有效
+            double magnitude = sqrt(out[i].r * out[i].r + out[i].i * out[i].i);
+            total_magnitude += magnitude;
+        }
+    }
+
+    return total_magnitude;
+}
+
+/**
+ * @brief 分析交流电源波形
+ *
+ * 从指定DDR地址读取波形数据，计算直流分量，并进行FFT变换以分析基波和谐波信息。
+ *
+ * @param harmonic_info 一个二维数组，用于存储谐波信息。每个元素包含频率、幅值和相位（单位：弧度）。
+ * @param channel 通道编号
+ * @param ddr_addr DDR地址，用于读取波形数据
+ * @param SampleFrequency 采样频率（单位：Hz）
+ * @param fundamental_frequency 基波频率（单位：Hz）
+ */
 void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_addr,
                               int SampleFrequency, double fundamental_frequency)
 {
@@ -521,9 +562,8 @@ void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_ad
     }
     fundamental_index = best_index;
 
-    // 计算基波幅值
-    double fundamental_magnitude = sqrt(out[fundamental_index].r * out[fundamental_index].r +
-                                        out[fundamental_index].i * out[fundamental_index].i);
+    // 计算基波幅值(包括邻近点)
+    double fundamental_magnitude = calculate_magnitude_with_neighbors(out, fundamental_index, N);
 
     // 归一化处理（考虑FFT的幅值缩放）
     fundamental_magnitude = fundamental_magnitude * 2.0 / N;
@@ -543,7 +583,7 @@ void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_ad
             continue; // 防止索引越界
 
         double frequency = fundamental_frequency * (i + 1);
-        double magnitude = sqrt(out[index].r * out[index].r + out[index].i * out[index].i) * 2.0 / N;
+        double magnitude = calculate_magnitude_with_neighbors(out, index, N) * 2.0 / N; // (包括邻近点)
         double phase = atan2(out[index].i, out[index].r);
 
         harmonic_info[i][0] = frequency;
