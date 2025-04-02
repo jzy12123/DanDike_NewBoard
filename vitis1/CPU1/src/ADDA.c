@@ -663,26 +663,48 @@ void str_wr_bram(PID_STATE pid_state)
 /*
  *    添加谐波
  */
+/**
+ * @brief 向数组中添加谐波分量
+ *
+ * 该函数将一个基本波形与多个谐波分量相加，并将结果存储到指定的数组中。
+ *
+ * @param NewData 存储结果的数组
+ * @param Array_length NewData数组的长度
+ * @param Base_Phase_Degrees 基本波形的相位偏移（以度为单位）
+ * @param numHarmonics 要添加的谐波数量
+ * @param harmonics 谐波幅值的数组，harmonics[0]为2次谐波
+ * @param harmonics_phases 谐波相位偏移的数组（以度为单位）
+ */
 void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[])
 {
     // harmonics[0]为2次谐波
+    // 遍历数组中的每个元素
     for (int i = 0; i < Array_length; i++)
     {
+        // 计算基本波形的相位
         double phase = 2 * M_PI * i / Array_length;                         // 基本波形的相位
+        // 添加基波相位偏移
         double shifted_phase = phase + (Base_Phase_Degrees * M_PI / 180.0); // 添加基波相位偏移
+        // 计算基本正弦波的值
         double sum = sin(shifted_phase);                                    // 基本正弦波
 
         // 添加谐波
+        // 遍历谐波数组
         for (int j = 0; j < numHarmonics; j++)
         {
+            // 计算谐波相位
             double harmonic_phase = (j + 2) * phase;                                               // 基波的整数倍
-            double shifted_harmonic_phase = harmonic_phase + (harmonics_phases[j]) * M_PI / 180.0; // 使用基波和谐波的相位偏移
+            // 添加谐波相位偏移
+            double shifted_harmonic_phase = harmonic_phase + harmonics_phases[j] * M_PI / 180.0; // 使用基波和谐波的相位偏移
+            // 计算谐波值
             double harmonic_value = sin(shifted_harmonic_phase);
 
+            // 添加谐波并乘以相应的幅值
             sum += harmonic_value * harmonics[j]; // 添加谐波并乘以相应的幅值
         }
 
         // 归一化并转换为 uint16_t 类型
+        // 对计算出的和进行归一化，并转换为 uint16_t 类型
         NewData[i] = (uint16_t)((sum / (1.0 + sumHarmonics(harmonics, numHarmonics))) * 32768 + 32767);
     }
 }

@@ -1030,11 +1030,11 @@ void handle_SetACM(cJSON *data)
 SetHarm setHarm;
 void handle_SetHarm(cJSON *data)
 {
-    // 打印调试信息
-    // printf("CPU1: 处理谐波设置请求...\n");
+    // printf("CPU1: 处理谐波设置命令...\r\n");
 
     // 解析传入的数据
     int dataCount = cJSON_GetArraySize(data);
+    printf("CPU1: %d harmonic Settings received\n", dataCount);
 
     // 处理请求中的所有谐波
     for (int i = 0; i < dataCount; i++)
@@ -1045,15 +1045,15 @@ void handle_SetHarm(cJSON *data)
             continue;
         }
 
-        // 获取基本必需参数
+        // 获取必要的参数：线路和通道编号和谐波次数
         cJSON *line = cJSON_GetObjectItem(item, "Line");
         cJSON *chn = cJSON_GetObjectItem(item, "Chn");
-        cJSON *hr = cJSON_GetObjectItem(item, "HN");
+        cJSON *hn = cJSON_GetObjectItem(item, "HN");
 
-        // 如果缺少基本必需参数，则跳过此项
-        if (!line || !chn || !hr)
+        // 至少需要通道号和谐波次数
+        if (!chn || !hn)
         {
-            printf("CPU1: Harmonic setting error - Missing required parameters(Line, Chn, HN)\n");
+            printf("CPU1: Missing required Chn or HN parameter, skipping\n");
             continue;
         }
 
@@ -1063,92 +1063,102 @@ void handle_SetHarm(cJSON *data)
         cJSON *iField = cJSON_GetObjectItem(item, "I");
         cJSON *phI = cJSON_GetObjectItem(item, "PhI");
 
-        // 计算通道和谐波索引（从0开始）
+        // 计算通道索引和谐波索引（从0开始）
         int channelIndex = chn->valueint - 1; // JSON中通道从1开始
-        int harmonicIndex = hr->valueint - 2; // 谐波索引从0开始，对应第2次谐波
+        int harmonicIndex = hn->valueint - 2; // 谐波索引从0开始，对应第2次谐波
 
         // 检查数组边界以防溢出
-        if (channelIndex >= 0 && channelIndex < CHANNL_MAX &&
-            harmonicIndex >= 0 && harmonicIndex < MAX_HARMONICS)
+        if (channelIndex < 0 || channelIndex >= CHANNL_MAX ||
+            harmonicIndex < 0 || harmonicIndex >= MAX_HARMONICS)
         {
-            // 存储在setHarm中用于记录
-            int setHarmIndex = i;
-            if (setHarmIndex < LinesAC * ChnsAC * HarmNumberMax)
-            {
-                setHarm.Vals[setHarmIndex].Line = line->valueint;
-                setHarm.Vals[setHarmIndex].Chn = chn->valueint;
-                setHarm.Vals[setHarmIndex].HN = hr->valueint;
+            printf("CPU1: Invalid Chn: %d, HN: %d - Index out of range\n",
+                   chn->valueint, hn->valueint);
+            continue;
+        }
 
-                // 只有在参数存在时才更新
-                if (u)
-                    setHarm.Vals[setHarmIndex].U = (float)u->valuedouble;
-                if (phU)
-                    setHarm.Vals[setHarmIndex].PhU = (float)phU->valuedouble;
-                if (iField)
-                    setHarm.Vals[setHarmIndex].I_ = (float)iField->valuedouble;
-                if (phI)
-                    setHarm.Vals[setHarmIndex].PhI = (float)phI->valuedouble;
-            }
+        // 存储在setHarm中用于记录
+        int setHarmIndex = i;
+        if (setHarmIndex < LinesAC * ChnsAC * HarmNumberMax)
+        {
+            if (line)
+                setHarm.Vals[setHarmIndex].Line = line->valueint;
+            setHarm.Vals[setHarmIndex].Chn = chn->valueint;
+            setHarm.Vals[setHarmIndex].HN = hn->valueint;
+
+            // 只更新提供的参数，其他保持不变
+            if (u)
+                setHarm.Vals[setHarmIndex].U = (float)u->valuedouble;
+            if (phU)
+                setHarm.Vals[setHarmIndex].PhU = (float)phU->valuedouble;
+            if (iField)
+                setHarm.Vals[setHarmIndex].I_ = (float)iField->valuedouble;
+            if (phI)
+                setHarm.Vals[setHarmIndex].PhI = (float)phI->valuedouble;
+        }
+
+        // 更新电压(U)谐波
+        if (u != NULL)
+        {
+            float uValue = (float)u->valuedouble;
 
             // 如果需要，更新最大谐波次数
-            if (hr->valueint > numHarmonics[channelIndex])
+            if (hn->valueint > numHarmonics[channelIndex])
             {
-                numHarmonics[channelIndex] = hr->valueint;
+                numHarmonics[channelIndex] = hn->valueint;
             }
 
-            // 电压谐波 - 只有在参数存在时才更新
-            if (u)
-            {
-                harmonics[channelIndex][harmonicIndex] = (float)u->valuedouble;
-            }
-            if (phU)
+            // 直接存储，因为harmonics中0.1表示10%
+            harmonics[channelIndex][harmonicIndex] = uValue / 100.0f;
+
+            // 如果提供了相位
+            if (phU != NULL)
             {
                 harmonics_phases[channelIndex][harmonicIndex] = (float)phU->valuedouble;
             }
 
-            // 电流谐波 - 只有在参数存在时才更新
-            if (iField || phI)
+            printf("CPU1: Updated voltage harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
+                   chn->valueint, hn->valueint, uValue, uValue / 100.0f);
+
+            if (phU != NULL)
             {
-                // 如果需要，更新最大谐波次数
-                if (hr->valueint > numHarmonics[channelIndex + 4])
-                {
-                    numHarmonics[channelIndex + 4] = hr->valueint;
-                }
-
-                if (iField)
-                {
-                    harmonics[channelIndex + 4][harmonicIndex] = (float)iField->valuedouble;
-                }
-                if (phI)
-                {
-                    harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
-                }
+                printf(", Phase: %.2f", (float)phU->valuedouble);
             }
-
-            // 打印调试信息
-            printf("CPU1: Set harmonic - Line: %d, Chn: %d, HN: %d",
-                   line->valueint, chn->valueint, hr->valueint);
-
-            if (u)
-                printf(", U: %.2f", (float)u->valuedouble);
-            if (phU)
-                printf(", PhU: %.2f", (float)phU->valuedouble);
-            if (iField)
-                printf(", I: %.2f", (float)iField->valuedouble);
-            if (phI)
-                printf(", PhI: %.2f", (float)phI->valuedouble);
-
             printf("\n");
         }
-        else
+
+        // 更新电流(I)谐波（通道偏移4）
+        if (iField != NULL)
         {
-            // 错误处理：通道或谐波索引超出范围
-            printf("CPU1:Harmonic setting error channel: %d, harmonic number: %d out of range\n",
-                   chn->valueint, hr->valueint);
+            float iValue = (float)iField->valuedouble;
+
+            // 如果需要，更新最大谐波次数
+            if (hn->valueint > numHarmonics[channelIndex + 4])
+            {
+                numHarmonics[channelIndex + 4] = hn->valueint;
+            }
+
+            // 直接存储，因为harmonics中0.1表示10%
+            harmonics[channelIndex + 4][harmonicIndex] = iValue / 100.0f;
+
+            // 如果提供了相位
+            if (phI != NULL)
+            {
+                harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
+            }
+
+            printf("CPU1: Updated current harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
+                   chn->valueint, hn->valueint, iValue, iValue / 100.0f);
+
+            if (phI != NULL)
+            {
+                printf(", Phase: %.2f", (float)phI->valuedouble);
+            }
+            printf("\n");
         }
     }
 
     // 使用更新后的谐波生成波形
+    printf("CPU1: Generating waveform with updated harmonics\n");
     str_wr_bram(PID_OFF);
 
     // 准备并发送回复
@@ -2328,14 +2338,28 @@ void initLineDisoe(LineDisoe *lineDisoe)
 // Function to write data to shared memory
 void write_UDP_to_shared_memory(UINTPTR base_addr, void *data, size_t size)
 {
-    u32 *data_ptr = (u32 *)data;
-    size_t words = size / 4;
+    // 改用字节级别操作，避免对齐问题
+    uint8_t *src = (uint8_t *)data;
 
-    for (size_t i = 0; i < words; i++)
+    // 按字节写入，确保不会因为对齐问题导致数据错位
+    for (size_t i = 0; i < size; i += 4)
     {
-        Xil_Out32(base_addr + (i * 4), data_ptr[i]);
+        // 每次写入4字节
+        uint32_t value = 0;
+        size_t bytes_to_copy = (i + 4 <= size) ? 4 : (size - i);
+
+        // 按字节构建32位值
+        for (size_t j = 0; j < bytes_to_copy; j++)
+        {
+            value |= ((uint32_t)src[i + j]) << (j * 8);
+        }
+
+        // 写入共享内存
+        Xil_Out32(base_addr + i, value);
     }
-    Xil_DCacheFlushRange((INTPTR)UDP_ADDRESS, size);
+
+    // 确保刷新整个缓存区域
+    Xil_DCacheFlushRange((INTPTR)base_addr, size);
 }
 
 // 初始化setACS结构体

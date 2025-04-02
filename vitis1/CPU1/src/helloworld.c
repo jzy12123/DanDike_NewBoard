@@ -259,26 +259,85 @@ int main()
 						idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
 						idx_i = get_current_index_by_value(setACS.Vals[i].IR);
 
-						for (int j = 0; j < HarmNumberMax; j++)
+						// 存储基波幅值和相位，用于计算百分比和相对相位
+						double baseU = harmonic_info_U[0][1];
+						double baseI = harmonic_info_I[0][1];
+
+						for (int j = 1; j < HarmNumberMax; j++)
 						{
-							// 使用AD_Correct数组代替AD_UA_Correct和AD_IA_Correct
-							lineHarm.harm[i].u[j] = (harmonic_info_U[j][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
-							lineHarm.harm[i].i[j] = (harmonic_info_I[j][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
-							lineHarm.harm[i].phu[j] = harmonic_info_U[j][2];
-							lineHarm.harm[i].phi[j] = harmonic_info_I[j][2];
+							// 电压和电流幅值处理
+							if (j == 1)
+							{
+								// 基波(j=0)特殊处理
+								lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+								lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+
+								// 基波相位直接采用相对于参考相位的值
+								lineHarm.harm[i].phu[j] = harmonic_info_U[j - 1][2] - Phase_reference;
+								lineHarm.harm[i].phi[j] = harmonic_info_I[j - 1][2] - Phase_reference;
+							}
+							else
+							{
+								// 谐波(j>0)计算为基波的百分比
+								if (baseU > 0.0001)
+								{ // 避免除以接近零的值
+									lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU) * 100.0;
+								}
+								else
+								{
+									lineHarm.harm[i].u[j] = 0.0;
+								}
+
+								if (baseI > 0.0001)
+								{ // 避免除以接近零的值
+									lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI) * 100.0;
+								}
+								else
+								{
+									lineHarm.harm[i].i[j] = 0.0;
+								}
+
+								// 谐波相位计算
+								double n = j; // 谐波次数
+								// 计算相对相位
+								double u_relative_phase = harmonic_info_U[j - 1][2] - n * Phase_reference;
+								double i_relative_phase = harmonic_info_I[j - 1][2] - n * Phase_reference;
+								// 确保相位在0到360度之间
+								lineHarm.harm[i].phu[j] = fmod(u_relative_phase + 360.0, 360.0);
+								lineHarm.harm[i].phi[j] = fmod(i_relative_phase + 360.0, 360.0);
+
+								switch ((j - 1) % 4)
+								{
+								case 0: // 1, 5, 7, 11, 13, 17, 19, 23, 25, 29, 31次
+									lineHarm.harm[i].phu[j] -= 0.0;
+									lineHarm.harm[i].phi[j] -= 0.0;
+									break;
+								case 1: // 2, 6, 8, 12, 14, 18, 20, 24, 26, 30次
+									lineHarm.harm[i].phu[j] -= 270.0;
+									lineHarm.harm[i].phi[j] -= 270.0;
+									break;
+								case 2: // 3, 7, 9, 13, 15, 19, 21, 25, 27, 31次
+									lineHarm.harm[i].phu[j] -= 180.0;
+									lineHarm.harm[i].phi[j] -= 180.0;
+									break;
+								case 3: // 4, 8, 10, 14, 16, 20, 22, 26, 28, 32次
+									lineHarm.harm[i].phu[j] -= 90.0;
+									lineHarm.harm[i].phi[j] -= 90.0;
+									break;
+								}
+								// 确保在0-360度
+								if (lineHarm.harm[i].phu[j] < 0)
+								{
+									lineHarm.harm[i].phu[j] += 360;
+								}
+								if (lineHarm.harm[i].phi[j] < 0)
+								{
+									lineHarm.harm[i].phi[j] += 360;
+								}
+							}
 
 							// 计算谐波的相位差（角度）
 							double phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
-
-							// 确保相位差在-180到180度之间
-							if (phase_diff > 180.0)
-							{
-								phase_diff -= 360.0;
-							}
-							else if (phase_diff < -180.0)
-							{
-								phase_diff += 360.0;
-							}
 
 							// 计算谐波的有功和无功功率
 							lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
