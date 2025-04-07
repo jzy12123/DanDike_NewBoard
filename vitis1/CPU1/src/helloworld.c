@@ -70,7 +70,7 @@ int main()
 	// // 从EEPROM读取校准参数
 	// RC64_ReadCalibData();
 
-	sleep(17); // 必须要有等待linux启动
+	sleep(20); // 必须要有等待linux启动
 
 	/************************** DMA初始化 *****************************/
 	int status;
@@ -120,7 +120,7 @@ int main()
 	PID_Init_All();
 
 	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
-	xil_printf("CPU1: Initialization successfully \r\n");
+	xil_printf("CPU1: Initialization successfully\r\nCPU1_Version: 2025.4.7 V3 \r\n");
 
 	while (1)
 	{
@@ -135,8 +135,8 @@ int main()
 
 				if (AdcFinish_Flag != 1)
 				{
-					// printf("CPU1 Warning : ADC data is not ready || ");
-					// printf("ADC Error Count = %d\n", error);
+					printf("CPU1 Warning : ADC data is not ready || ");
+					printf("ADC Error Count = %d\n", error);
 				}
 				else if (AdcFinish_Flag == 1)
 				{
