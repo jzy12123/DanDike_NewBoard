@@ -63,10 +63,12 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-	// 初始化RC64模块
-	RC64_Init();
-	// 从EEPROM读取校准参数
-	RC64_ReadCalibData();
+	// // 初始化RC64模块
+	// RC64_Init();
+	// // 将校准参数保存到EEPROM
+	// RC64_WriteCalibData();
+	// // 从EEPROM读取校准参数
+	// RC64_ReadCalibData();
 
 	sleep(17); // 必须要有等待linux启动
 
@@ -166,9 +168,21 @@ int main()
 						int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
 						int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
 
-						lineAC.f[i] = harmonic_info_U[0][0];												  // 频率
-						lineAC.ur[i] = setACS.Vals[0].UR;													  // 电压档位
-						lineAC.u[i] = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;	  // 电压幅值 V
+						lineAC.f[i] = harmonic_info_U[0][0]; // 频率
+						lineAC.ur[i] = setACS.Vals[0].UR;	 // 电压档位
+
+						if (AD_Correct[i][idx_u] == 0)
+						{
+							lineAC.u[i] = 0;
+							// 防止除数为0
+							printf("CPU1:Warning: Division by zero in lineAC.u[%d] calculation.\n", i);
+						}
+						else
+						{
+							// 电压幅值 V
+							lineAC.u[i] = harmonic_info_U[0][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+						}
+
 						lineAC.ir[i] = setACS.Vals[0].IR;													  // 电流档位
 						lineAC.i[i] = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR; // 电流 A
 						lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference;							  // 电压相位 角度制（UA为参考）
@@ -390,8 +404,8 @@ int main()
 			// printf("True UA= %.6f || UB= %.6f || UC= %.6f || UX= %.6f || SET  UA= %.4f\n", lineAC.u[0], lineAC.u[1], lineAC.u[2], lineAC.u[3], lineAC.ur[0] * Wave_Amplitude[0] / 100);
 			// printf("True IA= %.6f || IB= %.6f || IC= %.6f || IX= %.6f || SET  IA= %.4f\n\n", lineAC.i[0], lineAC.i[1], lineAC.i[2], lineAC.i[3], lineAC.ir[0] * Wave_Amplitude[4] / 100);
 
-			// printf("UA = %.6f\n", lineAC.u[0]);
-			// printf("UB = %.6f\n", lineAC.u[1]);
+			//			 printf("UA = %.6f\n", lineAC.u[0]);
+			//			 printf("UB = %.6f\n", lineAC.u[1]);
 			// printf("UC = %.6f\n", lineAC.u[2]);
 
 			/*4 读故障信号*/
