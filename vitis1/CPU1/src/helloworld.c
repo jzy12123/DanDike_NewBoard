@@ -120,7 +120,7 @@ int main()
 	PID_Init_All();
 
 	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
-	xil_printf("CPU1: Initialization successfully\r\nCPU1_Version: 2025.4.8 V3 \r\n");
+	xil_printf("CPU1: Initialization successfully\r\nCPU1_Version: 2025.4.8 V4 \r\n");
 
 	while (1)
 	{

@@ -1604,7 +1604,66 @@ void handle_WriteCalibrateAC(cJSON *data)
 
         printf("CPU1: Processing channel Line=%d, Chn=%d:", line, channel);
 
-        // 处理电压校准
+        // --- 开始 AD 校准 ---
+        // AD 电压校准
+        if (hasVoltageCalibration && actual_u_json && ur_idx >= 0) // 确保有电压校准请求、目标值和有效范围索引
+        {
+            float target_ad_u = (float)actual_u_json->valuedouble; // 目标值 (外部仪器测量)
+            float current_ad_u = lineAC.u[u_idx];                  // 当前值 (内部AD测量)
+
+            printf(" AD U Target=%.4f, Current=%.4f |", target_ad_u, current_ad_u);
+
+            // 避免除零错误，并确保目标值和当前值有意义
+            if (fabs(target_ad_u) > 0.001f && fabs(current_ad_u) > 0.001f)
+            {
+                float ad_u_ratio = current_ad_u / target_ad_u;           // 计算比例: 当前值 / 目标值
+                float old_ad_correct = AD_Correct[u_idx][ur_idx];        // 获取旧系数
+                AD_Correct[u_idx][ur_idx] = old_ad_correct * ad_u_ratio; // 更新系数
+                printf(" AD U Calib: Ratio=%.4f, OldCorr=%.6f -> NewCorr=%.6f |",
+                       ad_u_ratio, old_ad_correct, AD_Correct[u_idx][ur_idx]);
+            }
+            else
+            {
+                printf(" AD U Calib: Skipped (Target or Current too small) |");
+            }
+        }
+        else if (hasVoltageCalibration)
+        {
+            printf(" AD U Calib: Skipped (No actual_u or invalid ur_idx) |");
+        }
+
+        // AD 电流校准
+        if (hasCurrentCalibration && actual_i_json && ir_idx >= 0) // 确保有电流校准请求、目标值和有效范围索引
+        {
+            float target_ad_i = (float)actual_i_json->valuedouble; // 目标值 (外部仪器测量)
+            // *** 注意: 假设 lineAC.i[0..3] 对应 IA..IX ***
+            // *** 所以电流索引应该是 channel - 1 ***
+            float current_ad_i = lineAC.i[channel - 1]; // 当前值 (内部AD测量)
+
+            printf(" AD I Target=%.4f, Current=%.4f |", target_ad_i, current_ad_i);
+
+            // 避免除零错误，并确保目标值和当前值有意义
+            if (fabs(target_ad_i) > 0.001f && fabs(current_ad_i) > 0.001f)
+            {
+                float ad_i_ratio = current_ad_i / target_ad_i; // 计算比例: 当前值 / 目标值
+                // 使用 i_idx (4-7) 访问 AD_Correct
+                float old_ad_correct = AD_Correct[i_idx][ir_idx];        // 获取旧系数
+                AD_Correct[i_idx][ir_idx] = old_ad_correct * ad_i_ratio; // 更新系数
+                printf(" AD I Calib: Ratio=%.4f, OldCorr=%.6f -> NewCorr=%.6f |",
+                       ad_i_ratio, old_ad_correct, AD_Correct[i_idx][ir_idx]);
+            }
+            else
+            {
+                printf(" AD I Calib: Skipped (Target or Current too small) |");
+            }
+        }
+        else if (hasCurrentCalibration)
+        {
+            printf(" AD I Calib: Skipped (No actual_i or invalid ir_idx) |");
+        }
+        // --- 结束 AD 校准 ---
+
+        // --- 开始 DA 校准 ---
         if (hasVoltageCalibration && actual_u_json)
         {
             float actualU = (float)actual_u_json->valuedouble;
