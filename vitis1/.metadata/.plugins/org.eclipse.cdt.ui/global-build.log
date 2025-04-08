@@ -1,9 +1,29 @@
 Nothing to build in platform 'system_wrapper'
 
-20:03:46 **** Incremental Build of configuration Debug for project CPU1 ****
+16:04:28 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
-make[1]: Nothing to be done for 'main-build'.
+'Building file: ../src/Communications_Protocol.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Communications_Protocol.d" -MT"src/Communications_Protocol.o" -o "src/Communications_Protocol.o" "../src/Communications_Protocol.c"
+'Finished building: ../src/Communications_Protocol.c'
+' '
+'Building file: ../src/helloworld.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/helloworld.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/helloworld.d" -MT"src/helloworld.o" -o "src/helloworld.o" "../src/helloworld.c"
+'Finished building: ../src/helloworld.c'
+' '
+'Building target: CPU1.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/ADDA.o ./src/Amplifier_Switch.o ./src/Communications_Protocol.o ./src/Msg_Que.o ./src/My_KissFft.o ./src/PID.o ./src/Rc64.o ./src/cJSON.o ./src/helloworld.o   -lm -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+'Finished building target: CPU1.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 218060	   5128	21021632	21244820	1442b94	CPU1.elf
+'Finished building: CPU1.elf.size'
+' '

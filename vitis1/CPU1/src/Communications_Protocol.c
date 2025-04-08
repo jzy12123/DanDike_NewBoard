@@ -1301,11 +1301,11 @@ void handle_SetCalibrateAC(cJSON *data)
 
     if (!mode || !point)
     {
-        printf("CPU1: setCalibrateAC: 缺少 Mode 或 Point 数据\r\n");
+        printf("CPU1: SetCalibrateAC: The mode or point data is missing\r\n");
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.FunCode, "SetCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1320,11 +1320,11 @@ void handle_SetCalibrateAC(cJSON *data)
 
     if (!ur || !ir || !u || !i)
     {
-        printf("CPU1: setCalibrateAC: 缺少点数据值\r\n");
+        printf("CPU1: SetCalibrateAC: Missing point data value\r\n");
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.FunCode, "SetCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1366,13 +1366,13 @@ void handle_SetCalibrateAC(cJSON *data)
 
     if (!validURFound || !validIRFound)
     {
-        printf("CPU1: setCalibrateAC: 无效的 UR 或 IR 档位值\r\n");
-        printf("CPU1: UR=%f (有效值: 6.5, 3.25, 1.876), IR=%f (有效值: 5.0, 1.0, 0.2)\r\n",
+        printf("CPU1: SetCalibrateAC: Invalid ur or ir gear value\r\n");
+        printf("CPU1: UR=%f (Effective value: 6.5, 3.25, 1.876), IR=%f (Effective value: 5.0, 1.0, 0.2)\r\n",
                urValue, irValue);
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.FunCode, "SetCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1385,20 +1385,20 @@ void handle_SetCalibrateAC(cJSON *data)
 
     if (!is100PercentPoint && !is20PercentPoint)
     {
-        printf("CPU1: setCalibrateAC: 不是有效的校准点\r\n");
-        printf("CPU1: 校准点必须是100%%点(U=%f, I=%f)或20%%点(U=%f, I=%f)\r\n",
+        printf("CPU1: SetCalibrateAC: Not a valid calibration point\r\n");
+        printf("CPU1: The calibration point must be 100%% point(U=%f, I=%f)Or 20%% point(U=%f, I=%f)\r\n",
                urValue, irValue, urValue * 0.2f, irValue * 0.2f);
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "setCalibrateAC");
+        strcpy(replyData.FunCode, "SetCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
         return;
     }
 
-    printf("CPU1: setCalibrateAC: Set calibration points: UR=%f, IR=%f, U=%f, I=%f (Calibration point type: %s)\r\n",
+    printf("CPU1: SetCalibrateAC: Set calibration points: UR=%f, IR=%f, U=%f, I=%f (Calibration point type: %s)\r\n",
            urValue, irValue, uValue, iValue, is100PercentPoint ? "100%" : "20%");
 
     // 设置所有通道的输出
@@ -1424,7 +1424,7 @@ void handle_SetCalibrateAC(cJSON *data)
 
     // 返回成功响应
     ReplyData replyData;
-    strcpy(replyData.FunCode, "setCalibrateAC");
+    strcpy(replyData.FunCode, "SetCalibrateAC");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
@@ -1447,11 +1447,11 @@ void handle_WriteCalibrateAC(cJSON *data)
 
     if (!mode || !point || !chns)
     {
-        printf("CPU1: writeCalibrateAC: 缺少 Mode, Point 或 Chns \r\n");
+        printf("CPU1: WriteCalibrateAC: lack Mode, Point or Chns \r\n");
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.FunCode, "WriteCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1470,11 +1470,11 @@ void handle_WriteCalibrateAC(cJSON *data)
 
     if (!hasVoltageCalibration && !hasCurrentCalibration)
     {
-        printf("CPU1: writeCalibrateAC: 缺少必要的校准参数组合(需要UR+U或IR+I)\r\n");
+        printf("CPU1: WriteCalibrateAC:  Lack of necessary calibration parameter combination (ur+ u or ir+ i required)\r\n");
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.FunCode, "WriteCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1503,11 +1503,11 @@ void handle_WriteCalibrateAC(cJSON *data)
     int chnsCount = cJSON_GetArraySize(chns);
     if (chnsCount <= 0)
     {
-        printf("CPU1: writeCalibrateAC: 未提供通道数据\r\n");
+        printf("CPU1: WriteCalibrateAC: No channel data is provided\r\n");
 
         // 返回失败响应
         ReplyData replyData;
-        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.FunCode, "WriteCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1526,8 +1526,8 @@ void handle_WriteCalibrateAC(cJSON *data)
 
         if (!isVoltage100PercentPoint && !isVoltage20PercentPoint)
         {
-            printf("CPU1: writeCalibrateAC: 无效的电压校准点 U=%f, UR=%f\r\n", uValue, urValue);
-            printf("CPU1: 电压校准点必须是100%%点(U≈%f)或20%%点(U≈%f)\r\n", urValue, urValue * 0.2f);
+            printf("CPU1: WriteCalibrateAC: Invalid voltage calibration point U=%f, UR=%f\r\n", uValue, urValue);
+            printf("CPU1: Voltage calibration point must be 100%% point (u≈%f) or 20%% point (u≈%f)\r\n", urValue, urValue * 0.2f);
 
             // 取消电压校准
             hasVoltageCalibration = false;
@@ -1541,8 +1541,8 @@ void handle_WriteCalibrateAC(cJSON *data)
 
         if (!isCurrent100PercentPoint && !isCurrent20PercentPoint)
         {
-            printf("CPU1: writeCalibrateAC: 无效的电流校准点 I=%f, IR=%f\r\n", iValue, irValue);
-            printf("CPU1: 电流校准点必须是100%%点(I≈%f)或20%%点(I≈%f)\r\n", irValue, irValue * 0.2f);
+            printf("CPU1: WriteCalibrateAC: Invalid current calibration point I=%f, IR=%f\r\n", iValue, irValue);
+            printf("CPU1: The current calibration point must be 100%%point(I≈%f)or 20%%point(I≈%f)\r\n", irValue, irValue * 0.2f);
 
             // 取消电流校准
             hasCurrentCalibration = false;
@@ -1553,7 +1553,7 @@ void handle_WriteCalibrateAC(cJSON *data)
     if (!hasVoltageCalibration && !hasCurrentCalibration)
     {
         ReplyData replyData;
-        strcpy(replyData.FunCode, "writeCalibrateAC");
+        strcpy(replyData.FunCode, "WriteCalibrateAC");
         strcpy(replyData.Result, "Failure");
         replyData.hasClosedLoop = false;
         write_reply_to_shared_memory(&replyData);
@@ -1561,15 +1561,15 @@ void handle_WriteCalibrateAC(cJSON *data)
     }
 
     // 打印将执行的校准信息
-    printf("CPU1: writeCalibrateAC: 执行校准 - ");
+    printf("CPU1: WriteCalibrateAC: Execution calibration - ");
     if (hasVoltageCalibration)
     {
-        printf("电压校准 (UR=%f, U=%f, 类型:%s) ",
+        printf("Voltage calibration (UR=%f, U=%f, type:%s) ||",
                urValue, uValue, isVoltage100PercentPoint ? "100%" : "20%");
     }
     if (hasCurrentCalibration)
     {
-        printf("电流校准 (IR=%f, I=%f, 类型:%s)",
+        printf(" Current calibration (IR=%f, I=%f, type:%s)",
                irValue, iValue, isCurrent100PercentPoint ? "100%" : "20%");
     }
     printf("\r\n");
@@ -1591,7 +1591,7 @@ void handle_WriteCalibrateAC(cJSON *data)
 
         if (!line_json || !channel_json)
         {
-            printf("CPU1: writeCalibrateAC: 通道 %d 缺少数据\r\n", j);
+            printf("CPU1: WriteCalibrateAC: channel %d Missing data\r\n", j);
             continue; // 跳过无效项
         }
 
@@ -1602,13 +1602,13 @@ void handle_WriteCalibrateAC(cJSON *data)
         int u_idx = channel - 1;     // 0-3 对应 UA, UB, UC, UX
         int i_idx = channel - 1 + 4; // 4-7 对应 IA, IB, IC, IX
 
-        printf("CPU1: 处理通道 Line=%d, Chn=%d:", line, channel);
+        printf("CPU1: Processing channel Line=%d, Chn=%d:", line, channel);
 
         // 处理电压校准
         if (hasVoltageCalibration && actual_u_json)
         {
             float actualU = (float)actual_u_json->valuedouble;
-            printf(" 电压实测值=%f", actualU);
+            printf(" Voltage measured value=%f", actualU);
 
             if (actualU > 0.001)
             { // 避免除以接近零的值
@@ -1617,7 +1617,7 @@ void handle_WriteCalibrateAC(cJSON *data)
                     // 100%校准点更新
                     float ratio = uValue / actualU;
                     DA_Correct_100[u_idx][ur_idx] = DA_Correct_100[u_idx][ur_idx] * ratio;
-                    printf(" (更新100%%校准系数DA_Correct_100[%d][%d]=%f)",
+                    printf(" (Updated 100%% calibration coefficient DA_Correct_100[%d][%d]=%f)",
                            u_idx, ur_idx, DA_Correct_100[u_idx][ur_idx]);
                 }
                 else if (isVoltage20PercentPoint)
@@ -1625,27 +1625,27 @@ void handle_WriteCalibrateAC(cJSON *data)
                     // 20%校准点更新
                     float ratio = uValue / actualU;
                     DA_Correct_20[u_idx][ur_idx] = DA_Correct_20[u_idx][ur_idx] * ratio;
-                    printf(" (更新20%%校准系数DA_Correct_20[%d][%d]=%f)",
+                    printf(" (Updated 20%% calibration coefficient DA_Correct_20[%d][%d]=%f)",
                            u_idx, ur_idx, DA_Correct_20[u_idx][ur_idx]);
                 }
             }
+        }
 
-            // 只在100%校准点和提供相位值时更新相位校准
-            if (isVoltage100PercentPoint && actual_phu_json)
-            {
-                float actualPhU = (float)actual_phu_json->valuedouble;
-                float phaseOffset = Phase_shift[u_idx] - actualPhU;
-                DA_CorrectPhase_100[u_idx][ur_idx] = phaseOffset;
-                printf(" 电压相位=%f (更新相位校准DA_CorrectPhase_100[%d][%d]=%f)",
-                       actualPhU, u_idx, ur_idx, DA_CorrectPhase_100[u_idx][ur_idx]);
-            }
+        // 只在100%校准点和提供相位值时更新相位校准
+        if (isVoltage100PercentPoint && actual_phu_json)
+        {
+            float actualPhU = (float)actual_phu_json->valuedouble;
+            float phaseOffset = Phase_shift[u_idx] - actualPhU;
+            DA_CorrectPhase_100[u_idx][ur_idx] = phaseOffset;
+            printf(" Voltage phase=%f (Update phase calibration DA_CorrectPhase_100[%d][%d]=%f)",
+                   actualPhU, u_idx, ur_idx, DA_CorrectPhase_100[u_idx][ur_idx]);
         }
 
         // 处理电流校准
         if (hasCurrentCalibration && actual_i_json)
         {
             float actualI = (float)actual_i_json->valuedouble;
-            printf(" 电流实测值=%f", actualI);
+            printf(" Current measurement value=%f", actualI);
 
             if (actualI > 0.001)
             { // 避免除以接近零的值
@@ -1654,7 +1654,7 @@ void handle_WriteCalibrateAC(cJSON *data)
                     // 100%校准点更新
                     float ratio = iValue / actualI;
                     DA_Correct_100[i_idx][ir_idx] = DA_Correct_100[i_idx][ir_idx] * ratio;
-                    printf(" (更新100%%校准系数DA_Correct_100[%d][%d]=%f)",
+                    printf(" (Updated 100%% calibration coefficient DA_Correct_100[%d][%d]=%f)",
                            i_idx, ir_idx, DA_Correct_100[i_idx][ir_idx]);
                 }
                 else if (isCurrent20PercentPoint)
@@ -1662,20 +1662,19 @@ void handle_WriteCalibrateAC(cJSON *data)
                     // 20%校准点更新
                     float ratio = iValue / actualI;
                     DA_Correct_20[i_idx][ir_idx] = DA_Correct_20[i_idx][ir_idx] * ratio;
-                    printf(" (更新20%%校准系数DA_Correct_20[%d][%d]=%f)",
+                    printf(" (Updated 20%% calibration coefficient DA_Correct_20[%d][%d]=%f)",
                            i_idx, ir_idx, DA_Correct_20[i_idx][ir_idx]);
                 }
             }
-
-            // 只在100%校准点和提供相位值时更新相位校准
-            if (isCurrent100PercentPoint && actual_phi_json)
-            {
-                float actualPhI = (float)actual_phi_json->valuedouble;
-                float phaseOffset = Phase_shift[i_idx] - actualPhI;
-                DA_CorrectPhase_100[i_idx][ir_idx] = phaseOffset;
-                printf(" 电流相位=%f (更新相位校准DA_CorrectPhase_100[%d][%d]=%f)",
-                       actualPhI, i_idx, ir_idx, DA_CorrectPhase_100[i_idx][ir_idx]);
-            }
+        }
+        // 只在100%校准点和提供相位值时更新相位校准
+        if (isCurrent100PercentPoint && actual_phi_json)
+        {
+            float actualPhI = (float)actual_phi_json->valuedouble;
+            float phaseOffset = Phase_shift[i_idx] - actualPhI;
+            DA_CorrectPhase_100[i_idx][ir_idx] = phaseOffset;
+            printf(" Current phase=%f (Update phase calibration DA_CorrectPhase_100[%d][%d]=%f)",
+                   actualPhI, i_idx, ir_idx, DA_CorrectPhase_100[i_idx][ir_idx]);
         }
 
         printf("\r\n");
@@ -1694,13 +1693,14 @@ void handle_WriteCalibrateAC(cJSON *data)
     // 应用设置
     str_wr_bram(PID_OFF);
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
-
-    // 将校准参数保存到EEPROM
-    RC64_WriteCalibData();
+    // 打印成功标识
+    printf("CPU1: WriteCalibrateAC: Calibration data updated successfully.\r\n");
+    // // 将校准参数保存到EEPROM
+    // RC64_WriteCalibData();
 
     // 返回成功响应
     ReplyData replyData;
-    strcpy(replyData.FunCode, "writeCalibrateAC");
+    strcpy(replyData.FunCode, "WriteCalibrateAC");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
