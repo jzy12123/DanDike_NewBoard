@@ -236,11 +236,6 @@ int RC64_WriteArrayToEEPROM(double *array, int arraySize, u16 eepromAddr)
 
         int bytesToWrite = (totalBytes - bytesWritten) > remainingInPage ? remainingInPage : (totalBytes - bytesWritten);
 
-        if (bytesToWrite > (EEPROM_PAGE_SIZE - 2))
-        {
-            bytesToWrite = EEPROM_PAGE_SIZE - 2; // 保留两字节用于EEPROM地址
-        }
-
         // 设置EEPROM地址
         WriteBuffer[0] = (u8)((eepromAddr + bytesWritten) >> 8);   // 高字节
         WriteBuffer[1] = (u8)((eepromAddr + bytesWritten) & 0xFF); // 低字节

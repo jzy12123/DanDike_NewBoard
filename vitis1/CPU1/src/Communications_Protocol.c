@@ -232,8 +232,8 @@ void handle_GetDevBaseInfo(cJSON *data)
     cJSON *dataObj = cJSON_CreateObject();
     cJSON_AddStringToObject(dataObj, "Model", "xxx");
     cJSON_AddStringToObject(dataObj, "InnerModel", "DK-34B1");
-    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "1.0.1");
-    cJSON_AddStringToObject(dataObj, "ARM_Ver", "1.0.1");
+    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "V1.250409.1012");
+    cJSON_AddStringToObject(dataObj, "ARM_Ver", "V1.250409.1012");
 
     const char *syncModes[] = {"GPS", "BD", "IRIG-B", "SNTP", "Manual"};
     cJSON *syncMode = cJSON_CreateStringArray(syncModes, 5);
@@ -1419,6 +1419,9 @@ void handle_SetCalibrateAC(cJSON *data)
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
     // 应用设置
+    devState.bACMeterMode = 0;  //源模式
+    devState.bACRunning = 1;    //AC运行
+    devState.bClosedLoop = 0;   //开环
     str_wr_bram(PID_OFF);
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
 

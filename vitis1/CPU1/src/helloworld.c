@@ -63,14 +63,14 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-	// // 初始化RC64模块
-	// RC64_Init();
-	// // 将校准参数保存到EEPROM
+	// 初始化RC64模块
+	RC64_Init();
+	// 将校准参数保存到EEPROM
 	// RC64_WriteCalibData();
-	// // 从EEPROM读取校准参数
-	// RC64_ReadCalibData();
+	// 从EEPROM读取校准参数
+	RC64_ReadCalibData();
 
-	sleep(20); // 必须要有等待linux启动
+	sleep(25); // 必须要有等待linux启动
 
 	/************************** DMA初始化 *****************************/
 	int status;
@@ -119,8 +119,7 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	Xil_Out32(CPU1_PRIORITY_REG, 0xF0); // 提高CPU1优先级
-	xil_printf("CPU1: Initialization successfully\r\nCPU1_Version: 2025.4.8 V4 \r\n");
+	xil_printf("CPU1: Initialization successfully\r\n V1.250409.1709\r\n");
 
 	while (1)
 	{

@@ -5,33 +5,46 @@
 #include "xiicps.h"
 #include "xil_printf.h"
 #include "sleep.h"
-#include "ADDA.h"
 
 // EEPROM设备相关常量定义
 #define I2C_DEVICE_ID XPAR_XIICPS_0_DEVICE_ID // IIC控制器设备ID
-#define EEPROM_SLAVE_ADDR 0x50                // EEPROM设备地址
-#define IIC_SCLK_RATE 100000                  // IIC时钟速率
-#define EEPROM_PAGE_SIZE 32                   // EEPROM页大小(字节)
-#define EEPROM_WRITE_DELAY 10000              // EEPROM写入延时(微秒)
+#define EEPROM_SLAVE_ADDR 0x50                // EEPROM设备地址 (Make sure this matches your hardware)
+#define IIC_SCLK_RATE 100000                  // IIC时钟速率 (100kHz)
+#define EEPROM_PAGE_SIZE 32                   // EEPROM页大小(字节) - Check your EEPROM datasheet!
+#define EEPROM_WRITE_DELAY 10000              // EEPROM写入延时(微秒) - Check datasheet, 5ms to 10ms is common
 
-// 校准数据在EEPROM中的地址映射
-#define EEPROM_ADDR_DA_CORRECT_100 0x0000      // DA_Correct_100的起始地址
-#define EEPROM_ADDR_DA_CORRECT_20 0x0300       // DA_Correct_20的起始地址
-#define EEPROM_ADDR_DA_CORRECTPHASE_100 0x0600 // DA_CorrectPhase_100的起始地址
-#define EEPROM_ADDR_AD_CORRECT 0x0900          // AD_Correct的起始地址
+// --- Array Dimensions (Matching eeprom_test.c) ---
+#define ROWS 8
+#define COLS 3
+#define DOUBLE_SIZE sizeof(double) // Typically 8 bytes
 
-// 校准数据的尺寸(双精度浮点数占8字节)
-#define CALIB_ARRAY_SIZE (8 * 3)                         // 每个数组的元素数量
-#define DOUBLE_SIZE sizeof(double)                       // 双精度浮点数大小
-#define CALIB_DATA_SIZE (CALIB_ARRAY_SIZE * DOUBLE_SIZE) // 每个校准数组的总字节数
+// --- Calculated Sizes (Matching eeprom_test.c) ---
+// Total number of double elements in one array
+#define ARRAY_ELEMENT_COUNT (ROWS * COLS)
+// Total number of bytes occupied by one array
+#define ARRAY_BYTES (ARRAY_ELEMENT_COUNT * DOUBLE_SIZE) // Should be 8 * 3 * 8 = 192 bytes
 
-// 函数声明
+// --- EEPROM Address Mapping (Matching eeprom_test.c) ---
+// These addresses MUST match the layout used by the Linux eeprom_test.c application
+#define EEPROM_ADDR_DA_CORRECT_100 (0)                                            // Start at address 0
+#define EEPROM_ADDR_DA_CORRECT_20 (EEPROM_ADDR_DA_CORRECT_100 + ARRAY_BYTES)      // 0 + 192 = 192 (0xC0)
+#define EEPROM_ADDR_DA_CORRECTPHASE_100 (EEPROM_ADDR_DA_CORRECT_20 + ARRAY_BYTES) // 192 + 192 = 384 (0x180)
+#define EEPROM_ADDR_AD_CORRECT (EEPROM_ADDR_DA_CORRECTPHASE_100 + ARRAY_BYTES)    // 384 + 192 = 576 (0x240)
+#define EEPROM_TOTAL_CALIB_BYTES (EEPROM_ADDR_AD_CORRECT + ARRAY_BYTES)           // 576 + 192 = 768 (0x300)
+
+// Compatibility Definitions (If Rc64.c uses these)
+#define CALIB_ARRAY_SIZE ARRAY_ELEMENT_COUNT // Keep CALIB_ARRAY_SIZE for compatibility if needed (represents element count)
+#define CALIB_DATA_SIZE ARRAY_BYTES          // Keep CALIB_DATA_SIZE for compatibility if needed (represents size in bytes)
+
+// --- Function Declarations ---
 int RC64_Init(void);
+
+// Functions to read/write ALL calibration data based on the defined map
 int RC64_ReadCalibData(void);
 int RC64_WriteCalibData(void);
 
-// 这些函数是内部辅助函数
-int RC64_ReadArrayFromEEPROM(double *array, int arraySize, u16 eepromAddr);
-int RC64_WriteArrayToEEPROM(double *array, int arraySize, u16 eepromAddr);
+// Internal helper functions to read/write a single array (now using ARRAY_ELEMENT_COUNT)
+int RC64_ReadArrayFromEEPROM(double *array, int elementCount, u16 eepromAddr);
+int RC64_WriteArrayToEEPROM(double *array, int elementCount, u16 eepromAddr);
 
 #endif /* RC64_H */
