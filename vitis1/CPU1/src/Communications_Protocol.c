@@ -232,8 +232,8 @@ void handle_GetDevBaseInfo(cJSON *data)
     cJSON *dataObj = cJSON_CreateObject();
     cJSON_AddStringToObject(dataObj, "Model", "xxx");
     cJSON_AddStringToObject(dataObj, "InnerModel", "DK-34B1");
-    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "V1.250409.1012");
-    cJSON_AddStringToObject(dataObj, "ARM_Ver", "V1.250409.1012");
+    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "V1.250410.2037");
+    cJSON_AddStringToObject(dataObj, "ARM_Ver", "V1.250410.2037");
 
     const char *syncModes[] = {"GPS", "BD", "IRIG-B", "SNTP", "Manual"};
     cJSON *syncMode = cJSON_CreateStringArray(syncModes, 5);
@@ -772,218 +772,261 @@ SetACS setACS;
  */
 void handle_SetACS(cJSON *data)
 {
-    // 处理 handle_SetACS 的逻辑
     // xil_printf("CPU1: Handling handle_SetACS...\r\n");
+
+    bool onlyRangeFieldsFound = true; // 标记是否只找到了量程相关字段
+    bool valsPresent = false;         // 标记 vals 数组是否存在
+    bool closedLoopPresent = false;   // 标记 ClosedLoop 是否存在
 
     // 处理 ClosedLoop，如果存在则更新，否则保留原值
     cJSON *closedLoop = cJSON_GetObjectItem(data, "ClosedLoop");
     if (closedLoop != NULL)
     {
-        // 更新 ClosedLoop 的值
         setACS.ClosedLoop = cJSON_IsTrue(closedLoop);
+        onlyRangeFieldsFound = false; // 发现非量程字段
+        closedLoopPresent = true;
+        // printf("CPU1: Debug: ClosedLoop found in JSON.\n");
     }
-    else
-    {
-        setACS.ClosedLoop = true; // 默认闭环
-    }
+    // 注意：如果 ClosedLoop 未在 JSON 中提供，setACS.ClosedLoop 会保持其之前的值
 
     // 获取 vals 项
     cJSON *vals = cJSON_GetObjectItem(data, "vals");
     if (vals != NULL)
     {
+        valsPresent = true;
+        // printf("CPU1: Debug: 'vals' array found in JSON.\n");
         // 获取 vals 数组的大小
         int valsCount = cJSON_GetArraySize(vals);
         for (int i = 0; i < valsCount; i++)
         {
             // 获取 vals 数组中的每个元素
             cJSON *val = cJSON_GetArrayItem(vals, i);
+            if (!val)
+                continue; // 跳过无效元素
 
-            // 只更新新来的有效数据
-            // 获取 Line 项
+            // --- 解析并更新 setACS 结构体，仅当 JSON 中存在对应项时 ---
+
+            // 获取 Line 项 (通常不需要标记为非量程字段)
             cJSON *line = cJSON_GetObjectItem(val, "Line");
-            if (line)
+            if (line && cJSON_IsNumber(line))
             {
-                // 更新 Line 的值
                 setACS.Vals[i].Line = line->valueint;
             }
-            // 获取 Chn 项
+            // 获取 Chn 项 (通常不需要标记为非量程字段)
             cJSON *chn = cJSON_GetObjectItem(val, "Chn");
-            if (chn)
+            if (chn && cJSON_IsNumber(chn))
             {
-                // 更新 Chn 的值
                 setACS.Vals[i].Chn = chn->valueint;
             }
+
             // 获取 F 项
             cJSON *f = cJSON_GetObjectItem(val, "F");
-            if (f)
+            if (f && cJSON_IsNumber(f))
             {
-                // 更新 F 的值
                 setACS.Vals[i].F = (float)f->valuedouble;
+                onlyRangeFieldsFound = false; // 发现非量程字段 F
+                // printf("CPU1: Debug: Field 'F' found in vals[%d].\n", i);
             }
-            else
-            {
-                setACS.Vals[i].F = 50;
-            }
-            // 获取 UR 项
+
+            // 获取 UR 项 (量程字段)
             cJSON *ur = cJSON_GetObjectItem(val, "UR");
-            if (ur)
+            if (ur && cJSON_IsNumber(ur))
             {
-                // 更新 UR 的值
                 setACS.Vals[i].UR = (float)ur->valuedouble;
+                // printf("CPU1: Debug: Field 'UR' found in vals[%d].\n", i);
             }
+
             // 获取 U 项
             cJSON *u = cJSON_GetObjectItem(val, "U");
-            if (u)
+            if (u && cJSON_IsNumber(u))
             {
-                // 更新 U 的值
                 setACS.Vals[i].U = (float)u->valuedouble;
+                onlyRangeFieldsFound = false; // 发现非量程字段 U
+                // printf("CPU1: Debug: Field 'U' found in vals[%d].\n", i);
             }
-            else
-            {
-                setACS.Vals[i].U = 0;
-            }
+
             // 获取 PhU 项
             cJSON *phU = cJSON_GetObjectItem(val, "PhU");
-            if (phU)
+            if (phU && cJSON_IsNumber(phU))
             {
-                // 更新 PhU 的值
                 setACS.Vals[i].PhU = (float)phU->valuedouble;
+                onlyRangeFieldsFound = false; // 发现非量程字段 PhU
+                // printf("CPU1: Debug: Field 'PhU' found in vals[%d].\n", i);
             }
-            else
-            {
-                setACS.Vals[i].PhU = 0;
-            }
-            // 获取 IR 项
+
+            // 获取 IR 项 (量程字段)
             cJSON *ir = cJSON_GetObjectItem(val, "IR");
-            if (ir)
+            if (ir && cJSON_IsNumber(ir))
             {
-                // 更新 IR 的值
                 setACS.Vals[i].IR = (float)ir->valuedouble;
+                // printf("CPU1: Debug: Field 'IR' found in vals[%d].\n", i);
             }
-            // 获取 I 项
-            cJSON *i_ = cJSON_GetObjectItem(val, "I");
-            if (i_)
+
+            // 获取 I 项 (注意 JSON 键名为 "I")
+            cJSON *i_json = cJSON_GetObjectItem(val, "I");
+            if (i_json && cJSON_IsNumber(i_json))
             {
-                // 更新 I 的值
-                setACS.Vals[i].I_ = (float)i_->valuedouble;
+                setACS.Vals[i].I_ = (float)i_json->valuedouble;
+                onlyRangeFieldsFound = false; // 发现非量程字段 I
+                // printf("CPU1: Debug: Field 'I' found in vals[%d].\n", i);
             }
-            else
-            {
-                setACS.Vals[i].I_ = 0;
-            }
+
             // 获取 PhI 项
             cJSON *phI = cJSON_GetObjectItem(val, "PhI");
-            if (phI)
+            if (phI && cJSON_IsNumber(phI))
             {
-                // 更新 PhI 的值
                 setACS.Vals[i].PhI = (float)phI->valuedouble;
-            }
-            else
-            {
-                setACS.Vals[i].PhI = 0;
+                onlyRangeFieldsFound = false; // 发现非量程字段 PhI
+                // printf("CPU1: Debug: Field 'PhI' found in vals[%d].\n", i);
             }
         }
     }
     else
     {
-        // 即使没有找到 vals 项，也不返回，而是继续执行
-        printf("CPU1: No vals found in JSON, continuing with ClosedLoop change only.\n");
+        // printf("CPU1: Debug: 'vals' array not found in JSON.\n");
+        // 如果 vals 数组不存在，则不能是“仅量程切换”指令（除非只改变 ClosedLoop）
+        if (closedLoopPresent)
+        {
+            onlyRangeFieldsFound = false;
+        }
+        else
+        {
+            // 如果 vals 和 ClosedLoop 都不存在，则认为不是量程切换（而是无效或空指令）
+            onlyRangeFieldsFound = false; // 或者可以保持 true 并依赖 valsPresent 判断
+        }
     }
 
-    // 打印解析结果以验证
-    // 打印 ClosedLoop 的值
+    // --- 打印最终的 setACS 状态 (用于调试) ---
+    xil_printf("CPU1: Final setACS State:\r\n");
     xil_printf("ClosedLoop: %d\r\n", setACS.ClosedLoop);
-    // 遍历 setACS.Vals 数组，并打印每个元素的值
     for (int i = 0; i < LinesAC * ChnsAC; i++)
     {
-        printf("Line: %d, CHn: %d, F: %.2f, UR: %.2f, U: %.2f, PhU: %.2f, IR: %.2f, I: %.2f, PhI: %.2f\n",
-               setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
+        printf("  vals[%d]: Line=%d, Chn=%d, F=%.2f, UR=%.2f, U=%.2f, PhU=%.2f, IR=%.2f, I=%.2f, PhI=%.2f\n",
+               i, setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
                setACS.Vals[i].UR, setACS.Vals[i].U, setACS.Vals[i].PhU,
                setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
     }
+    // xil_printf("CPU1: Debug: valsPresent=%d, onlyRangeFieldsFound=%d\n", valsPresent, onlyRangeFieldsFound);
 
-    // 回报JSON
-    // 初始化 ReplyData 结构体
+    // --- 回报 JSON ---
     ReplyData replyData;
-    // 设置 FunCode 为 "SetACS"
     strcpy(replyData.FunCode, "SetACS");
-    // 设置 Result 为 "Success"
     strcpy(replyData.Result, "Success");
-    // 设置 hasClosedLoop 为 true
-    replyData.hasClosedLoop = true;
-    // 设置 ClosedLoop 的值
+    replyData.hasClosedLoop = true; // SetACS 的回复总是包含 ClosedLoop 状态
     replyData.ClosedLoop = setACS.ClosedLoop;
-    // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
 
-    /*数据映射到硬件 应该提出去单独开一个线程?*/
-    // 更新 Wave_Frequency 的值
-    Wave_Frequency = setACS.Vals[0].F; // 频率
-    // 如果Wave_Frequency不在45到65Hz，添加报错提示
-    if (Wave_Frequency < 45 || Wave_Frequency > 65)
+    // --- 数据映射到硬件 ---
+
+    // 更新全局变量 (这些变量会被 power_amplifier_control 和 str_wr_bram 使用)
+    Wave_Frequency = setACS.Vals[0].F; // 频率 (假设所有通道频率一致)
+    // 如果 Wave_Frequency 不在 45 到 65Hz，添加报错提示并修正
+    if (Wave_Frequency < 45.0f || Wave_Frequency > 65.0f)
     {
-        xil_printf("Error: Frequency out of range. Expected between 45 and 65 Hz.Set 50Hz\n");
-        Wave_Frequency = 50;
-    }
-    // 设置 Phase_shift 数组的值，前四个为电压相位，后四个为电流相位
-    //  遍历 setACS.Vals 数组，并更新 Phase_shift 数组的值
-    for (int i = 0; i < 4; i++)
-    {
-        Phase_shift[i] = setACS.Vals[i].PhU; // 相位
-        Phase_shift[i + 4] = setACS.Vals[i].PhI;
+        xil_printf("CPU1 Warning: Frequency out of range (%.2f Hz). Expected 45-65 Hz. Setting to 50 Hz.\n", Wave_Frequency);
+        Wave_Frequency = 50.0f;
+        // 同步修正 setACS 内部的值，以便下次读取时一致
+        for (int i = 0; i < LinesAC * ChnsAC; i++)
+        {
+            setACS.Vals[i].F = 50.0f;
+        }
     }
 
-    // 清除 numHarmonics 数组
-    memset(numHarmonics, 0, sizeof(numHarmonics));
-    // 清除 harmonics 数组
-    memset(harmonics, 0, sizeof(harmonics));
-    // 清除 harmonics_phases 数组
-    memset(harmonics_phases, 0, sizeof(harmonics_phases));
-
-    // 修改二级DA 波形幅度 量程
-    for (int i = 0; i < 4; i++)
+    // 更新相位、幅值、量程
+    for (int i = 0; i < 4; i++) // 假设 ChnsAC 是 4
     {
-        Wave_Amplitude[i] = (float)(setACS.Vals[i].U / setACS.Vals[i].UR) * 100;
-        Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
+        Phase_shift[i] = setACS.Vals[i].PhU;     // 电压相位
+        Phase_shift[i + 4] = setACS.Vals[i].PhI; // 电流相位
+
+        // 幅值计算 (%): (设定值 / 档位) * 100
+        // 防止除零错误
+        if (fabs(setACS.Vals[i].UR) > 1e-6)
+        {
+            Wave_Amplitude[i] = (setACS.Vals[i].U / setACS.Vals[i].UR) * 100.0f;
+        }
+        else
+        {
+            Wave_Amplitude[i] = 0.0f; // 如果档位为0，幅值百分比也为0
+                                      // xil_printf("CPU1 Warning: Voltage range UR for channel %d is zero or close to zero.\n", i);
+        }
+
+        if (fabs(setACS.Vals[i].IR) > 1e-6)
+        {
+            Wave_Amplitude[i + 4] = (setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100.0f;
+        }
+        else
+        {
+            Wave_Amplitude[i + 4] = 0.0f; // 如果档位为0，幅值百分比也为0
+                                          // xil_printf("CPU1 Warning: Current range IR for channel %d is zero or close to zero.\n", i);
+        }
+
+        // 量程代码转换
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
 
-    // 判断是切换量程还是其他设置，如果是切换量程就不输出
-    uint8_t POWAMP_ENABLE = 0xff;
-    for (int i = 0; i < 8; i++)
-    {
-        if (Wave_Amplitude[i] == 0)
-        {
-            POWAMP_ENABLE &= ~(1 << i); // 清除对应位，关闭该通道的功放使能
-        }
-    }
-    if (POWAMP_ENABLE == 0)
-    {
-        // 不使能通道输出
-        enable = 0x00;
-        // 生成交流信号
-        str_wr_bram(PID_OFF);
-        // 设置功放
-        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+    // 清除谐波相关设置 (因为 SetACS 只处理基波)
+    memset(numHarmonics, 0, sizeof(numHarmonics));
+    memset(harmonics, 0, sizeof(harmonics));
+    memset(harmonics_phases, 0, sizeof(harmonics_phases));
 
-        // 更改UDP结构体100DevState的运行状态
-        devState.bACMeterMode = 0;
-        devState.bACRunning = 0;
-        devState.bClosedLoop = setACS.ClosedLoop;
+    // --- 新的量程切换/输出控制逻辑 ---
+    if (valsPresent && onlyRangeFieldsFound) // 确保 vals 存在且只包含量程字段
+    {
+        // 判定为仅切换量程指令
+        printf("CPU1: Range switching command detected. Disabling output.\n");
+        enable = 0x00;        // 关闭所有通道输出
+        str_wr_bram(PID_OFF); // 确保PID关闭 (即使不开环也要生成波形数据到 BRAM)
+        // power_amplifier_control 需要最新的 Wave_Amplitude (即使是0) 和 Wave_Range 来设置硬件
+        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF); // 关闭功放
+
+        // 更新设备状态 (UDP 结构体)
+        devState.bACMeterMode = 0;                // 量程切换通常意味着处于源模式
+        devState.bACRunning = 0;                  // 切换量程时停止运行状态
+        devState.bClosedLoop = setACS.ClosedLoop; // 保持 JSON 中指定的 (或之前的) 闭环状态
     }
     else
     {
-        // 使能通道输出
-        enable = 0xff;
-        // 生成交流信号
-        str_wr_bram(PID_OFF);
-        // 设置功放
-        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
-        // 更改UDP结构体100DevState的运行状态
-        devState.bACMeterMode = 0;
-        devState.bACRunning = 1;
-        devState.bClosedLoop = setACS.ClosedLoop;
+        // 正常设置指令 (包含幅值/相位/频率等) 或仅改变 ClosedLoop
+        uint8_t powamp_state = POWAMP_OFF; // 默认关闭功放
+        enable = 0x00;                     // 默认关闭所有通道
+
+        // 检查是否有任何通道需要输出 (幅值大于一个很小的阈值)
+        for (int i = 0; i < 8; i++)
+        {
+            if (Wave_Amplitude[i] > 0.001) // 幅值百分比 > 0.001% 才认为需要输出
+            {
+                enable |= (1 << i);       // 使能该通道
+                powamp_state = POWAMP_ON; // 只要有一个通道输出，就打开功放
+            }
+        }
+
+        if (powamp_state == POWAMP_ON)
+        {
+            printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\n", enable);
+            // 根据 setACS.ClosedLoop 决定 PID 状态
+            PID_STATE pid_state = setACS.ClosedLoop ? PID_ON : PID_OFF;
+            str_wr_bram(pid_state);
+            power_amplifier_control(Wave_Amplitude, Wave_Range, pid_state, powamp_state);
+
+            // 更新设备状态 (UDP 结构体)
+            devState.bACMeterMode = 0; // 正常设置通常是源模式
+            devState.bACRunning = 1;   // 运行状态
+            devState.bClosedLoop = setACS.ClosedLoop;
+        }
+        else
+        {
+            // 所有通道幅值都为 0 或指令无效/仅改变ClosedLoop且幅值为0
+            printf("CPU1: Normal ACS setting but all amplitudes are zero. Disabling output.\n");
+            enable = 0x00;
+            str_wr_bram(PID_OFF);
+            power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+
+            // 更新设备状态 (UDP 结构体)
+            devState.bACMeterMode = 0;
+            devState.bACRunning = 0; // 停止运行状态
+            devState.bClosedLoop = setACS.ClosedLoop;
+        }
     }
 }
 
@@ -1419,11 +1462,12 @@ void handle_SetCalibrateAC(cJSON *data)
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
     // 应用设置
-    devState.bACMeterMode = 0;  //源模式
-    devState.bACRunning = 1;    //AC运行
-    devState.bClosedLoop = 0;   //开环
-    str_wr_bram(PID_OFF);
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+    enable = 0xff;
+    devState.bACMeterMode = 0; // 源模式
+    devState.bACRunning = 1;   // AC运行
+    devState.bClosedLoop = 0;  // 开环
+    str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+    power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
 
     // 返回成功响应
     ReplyData replyData;
@@ -1753,8 +1797,11 @@ void handle_WriteCalibrateAC(cJSON *data)
     }
 
     // 应用设置
-    str_wr_bram(PID_OFF);
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+    devState.bACMeterMode = 0; // 源模式
+    devState.bACRunning = 1;   // AC运行
+    devState.bClosedLoop = 0;  // 开环
+    str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+    power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
     // 打印成功标识
     printf("CPU1: WriteCalibrateAC: Calibration data updated successfully.\r\n");
     // // 将校准参数保存到EEPROM

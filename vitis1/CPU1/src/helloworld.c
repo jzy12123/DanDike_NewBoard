@@ -68,7 +68,7 @@ int main()
 	// 将校准参数保存到EEPROM
 	// RC64_WriteCalibData();
 	// 从EEPROM读取校准参数
-	RC64_ReadCalibData();
+	// RC64_ReadCalibData();
 
 	sleep(25); // 必须要有等待linux启动
 
@@ -119,7 +119,7 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	xil_printf("CPU1: Initialization successfully\r\n V1.250409.1709\r\n");
+	xil_printf("CPU1: Initialization successfully\r\n V1.250410.2037\r\n");
 
 	while (1)
 	{

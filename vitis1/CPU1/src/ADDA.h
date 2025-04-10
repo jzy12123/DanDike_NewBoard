@@ -80,7 +80,7 @@ typedef enum
 // 波形修改参数
 extern uint16_t Wave_NewData[8][DATA_LEN];
 extern float Phase_shift[8]; // 8路波形相位偏移 单位度
-extern u32 enable;           // 使能通道输出
+extern uint16_t enable;      // 使能通道输出
 extern float Wave_Frequency;
 extern float Wave_Amplitude[8];
 extern u32 Wave_Range[8];
