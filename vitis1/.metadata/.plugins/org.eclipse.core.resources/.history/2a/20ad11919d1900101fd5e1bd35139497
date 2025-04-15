@@ -1,0 +1,283 @@
+#include "Rc64.h"
+
+// AXI IIC 控制器实例
+// static XIicPs IicInstance; // <-- 注释掉 PS IIC 实例
+static XIic IicInstance; // <-- 使用 AXI IIC 实例类型
+
+// 读写缓冲区 (保持不变)
+static u8 WriteBuffer[EEPROM_PAGE_SIZE + 2]; // 额外2字节用于EEPROM地址
+
+// 外部校准参数数组 (保持不变)
+extern double DA_Correct_100[8][3];
+extern double DA_Correct_20[8][3];
+extern double DA_CorrectPhase_100[8][3];
+extern double AD_Correct[8][3];
+
+/**
+ * @brief 初始化 AXI IIC 控制器
+ *
+ * @return XST_SUCCESS 如果初始化成功，否则返回XST_FAILURE
+ * @comment 将 PS IIC 初始化改为 AXI IIC 初始化
+ */
+int RC64_Init(void)
+{
+    // XIicPs_Config *ConfigPtr; // <-- 注释掉 PS IIC 配置指针类型
+    XIic_Config *ConfigPtr; // <-- 使用 AXI IIC 配置指针类型
+    int Status;
+
+    // 查找 AXI IIC 控制器配置
+    // ConfigPtr = XIicPs_LookupConfig(I2C_DEVICE_ID); // <-- 注释掉 PS IIC 查找函数
+    ConfigPtr = XIic_LookupConfig(I2C_DEVICE_ID); // <-- 使用 AXI IIC 查找函数
+    if (ConfigPtr == NULL)
+    {
+        xil_printf("RC64_Init: AXI IIC device configuration could not be found for ID %d\r\n", I2C_DEVICE_ID); // 更明确的错误信息
+        return XST_FAILURE;
+    }
+
+    // 初始化 AXI IIC 控制器
+    // Status = XIicPs_CfgInitialize(&IicInstance, ConfigPtr, ConfigPtr->BaseAddress); // <-- 注释掉 PS IIC 初始化函数
+    Status = XIic_CfgInitialize(&IicInstance, ConfigPtr, ConfigPtr->BaseAddress); // <-- 使用 AXI IIC 初始化函数
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("RC64_Init: AXI IIC controller initialization failed\r\n");
+        return XST_FAILURE;
+    }
+
+    /*
+     * 执行自检以确保硬件构建正确
+     */
+    Status = XIic_SelfTest(&IicInstance);
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("RC64_Init: AXI IIC controller self-test failed\r\n");
+        return XST_FAILURE;
+    }
+
+    // 设置 AXI IIC 时钟速率 (通常在IP核配置时完成，这里可以省略或作为验证)
+    // Status = XIic_SetSClk(&IicInstance, IIC_SCLK_RATE); // AXI IIC 驱动没有直接设置SCLK的函数，速率在 Vivado IP 配置中设置
+
+    // 启动 AXI IIC 控制器
+    Status = XIic_Start(&IicInstance);
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("RC64_Init: Failed to start the AXI IIC controller\r\n");
+        return XST_FAILURE;
+    }
+
+    // AXI IIC 可能需要设置为 Master，但这通常是默认或在 IP 配置中完成
+    XIic_SetRole(&IicInstance, XII_MASTER_ROLE); // 确认是否需要
+
+    xil_printf("RC64_Init: AXI IIC controller initialization succeeded\r\n");
+
+    return XST_SUCCESS;
+}
+
+/**
+ * @brief 从EEPROM读取所有校准数据 (函数逻辑不变)
+ *
+ * @return XST_SUCCESS 如果读取成功，否则返回XST_FAILURE
+ */
+int RC64_ReadCalibData(void)
+{
+    int Status;
+
+    xil_printf("Start reading calibration data from EEPROM via AXI IIC...\r\n"); // 更新打印信息
+
+    // 读取DA_Correct_100数据
+    Status = RC64_ReadArrayFromEEPROM((double *)DA_Correct_100, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECT_100); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to read DA_Correct_100 data from EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 读取DA_Correct_20数据
+    Status = RC64_ReadArrayFromEEPROM((double *)DA_Correct_20, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECT_20); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to read DA_Correct_20 data from EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 读取DA_CorrectPhase_100数据
+    Status = RC64_ReadArrayFromEEPROM((double *)DA_CorrectPhase_100, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECTPHASE_100); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to read DA_CorrectPhase_100 data from EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 读取AD_Correct数据
+    Status = RC64_ReadArrayFromEEPROM((double *)AD_Correct, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_AD_CORRECT); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to read AD_Correct data from EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    xil_printf("CPU1: All calibration data read successfully via AXI IIC\r\n"); // 更新打印信息
+
+    // 打印读取的校准数据 (保持不变)
+    xil_printf("--- Read Calibration Data Dump ---\r\n");
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            printf("DA_Correct_100[%d][%d] = %f\r\n", i, j, DA_Correct_100[i][j]);
+            printf("DA_Correct_20[%d][%d] = %f\r\n", i, j, DA_Correct_20[i][j]);
+            printf("DA_CorrectPhase_100[%d][%d] = %f\r\n", i, j, DA_CorrectPhase_100[i][j]);
+            printf("AD_Correct[%d][%d] = %f\r\n", i, j, AD_Correct[i][j]);
+        }
+    }
+    xil_printf("--- End Calibration Data Dump ---\r\n");
+
+    return XST_SUCCESS;
+}
+
+/**
+ * @brief 将所有校准数据写入EEPROM (函数逻辑不变)
+ *
+ * @return XST_SUCCESS 如果写入成功，否则返回XST_FAILURE
+ */
+int RC64_WriteCalibData(void)
+{
+    int Status;
+
+    xil_printf("Start writing calibration data to EEPROM via AXI IIC...\r\n"); // 更新打印信息
+
+    // 写入DA_Correct_100数据
+    Status = RC64_WriteArrayToEEPROM((double *)DA_Correct_100, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECT_100); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to write data DA_Correct_100 to EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 写入DA_Correct_20数据
+    Status = RC64_WriteArrayToEEPROM((double *)DA_Correct_20, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECT_20); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to write data DA_Correct_20 to EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 写入DA_CorrectPhase_100数据
+    Status = RC64_WriteArrayToEEPROM((double *)DA_CorrectPhase_100, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_DA_CORRECTPHASE_100); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to write data DA_CorrectPhase_100 to EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    // 写入AD_Correct数据
+    Status = RC64_WriteArrayToEEPROM((double *)AD_Correct, ARRAY_ELEMENT_COUNT, EEPROM_ADDR_AD_CORRECT); // 使用 ARRAY_ELEMENT_COUNT
+    if (Status != XST_SUCCESS)
+    {
+        xil_printf("Failed to write data AD_Correct to EEPROM\r\n");
+        return XST_FAILURE;
+    }
+
+    xil_printf("CPU1: All calibration data written successfully via AXI IIC\r\n"); // 更新打印信息
+    return XST_SUCCESS;
+}
+
+/**
+ * @brief 从EEPROM读取数组数据 (使用 AXI IIC 函数)
+ *
+ * @param array 目标数组指针
+ * @param elementCount 数组元素数量 (double类型)
+ * @param eepromAddr EEPROM起始地址
+ * @return XST_SUCCESS 如果读取成功，否则返回XST_FAILURE
+ * @comment 修改了IIC读写函数和错误处理，使用 XIIC_STOP 和 XIIC_REPEATED_START
+ */
+int RC64_ReadArrayFromEEPROM(double *array, int elementCount, u16 eepromAddr)
+{
+    // int Status; // Status 变量在此函数中未使用，可以移除
+    u8 *byteArray = (u8 *)array;
+    int totalBytes = elementCount * DOUBLE_SIZE;
+    int bytesRead = 0;
+    unsigned int SentByteCount;
+
+    // 在读取前，先发送要读取的EEPROM内部地址
+    WriteBuffer[0] = (u8)(eepromAddr >> 8);   // 地址高字节
+    WriteBuffer[1] = (u8)(eepromAddr & 0xFF); // 地址低字节
+
+    // 发送地址，不带 STOP 条件，因为之后要立即读取
+    // SentByteCount = XIic_Send(&IicInstance, EEPROM_SLAVE_ADDR, WriteBuffer, 2, XII_REPEATED_START_OPTION); // <-- 使用旧宏
+    SentByteCount = XIic_Send(&IicInstance, EEPROM_SLAVE_ADDR, WriteBuffer, 2, XIIC_REPEATED_START); // <-- 使用 XIIC_REPEATED_START
+    if (SentByteCount != 2)
+    {
+        xil_printf("RC64_Read: Error sending EEPROM address (sent %d bytes)\r\n", SentByteCount);
+        XIic_Stop(&IicInstance);  // 尝试停止总线
+        XIic_Start(&IicInstance); // 尝试重启控制器
+        return XST_FAILURE;
+    }
+
+    // 从EEPROM接收数据，带 STOP 条件
+    // bytesRead = XIic_Recv(&IicInstance, EEPROM_SLAVE_ADDR, byteArray, totalBytes, XII_STOP_OPTION); // <-- 使用旧宏
+    bytesRead = XIic_Recv(&IicInstance, EEPROM_SLAVE_ADDR, byteArray, totalBytes, XIIC_STOP); // <-- 使用 XIIC_STOP
+    if (bytesRead != totalBytes)
+    {
+        xil_printf("RC64_Read: Error receiving data from EEPROM (expected %d, got %d bytes)\r\n", totalBytes, bytesRead);
+        XIic_Stop(&IicInstance);  // 尝试停止总线
+        XIic_Start(&IicInstance); // 尝试重启控制器
+        return XST_FAILURE;
+    }
+
+    return XST_SUCCESS;
+}
+
+/**
+ * @brief 将数组数据写入EEPROM (使用 AXI IIC 函数)
+ *
+ * @param array 源数组指针
+ * @param elementCount 数组元素数量 (double类型)
+ * @param eepromAddr EEPROM起始地址
+ * @return XST_SUCCESS 如果写入成功，否则返回XST_FAILURE
+ * @comment 修改了IIC写函数和错误处理，使用 XIIC_STOP
+ */
+int RC64_WriteArrayToEEPROM(double *array, int elementCount, u16 eepromAddr)
+{
+    // int Status; // Status 变量在此函数中未使用，可以移除
+    u8 *byteArray = (u8 *)array;
+    int totalBytes = elementCount * DOUBLE_SIZE;
+    int bytesWrittenTotal = 0; // 已写入的总字节数
+    unsigned int SentByteCount;
+
+    while (bytesWrittenTotal < totalBytes)
+    {
+        // 计算当前页的起始地址和结束地址
+        u16 currentPageStartAddr = (eepromAddr + bytesWrittenTotal) & (~(EEPROM_PAGE_SIZE - 1));
+        u16 nextPageStartAddr = currentPageStartAddr + EEPROM_PAGE_SIZE;
+
+        // 计算本次可以写入的字节数（不能超过页边界，也不能超过总剩余字节数）
+        int bytesRemainingInPage = nextPageStartAddr - (eepromAddr + bytesWrittenTotal);
+        int bytesRemainingTotal = totalBytes - bytesWrittenTotal;
+        int bytesToWriteInCurrentOp = (bytesRemainingTotal < bytesRemainingInPage) ? bytesRemainingTotal : bytesRemainingInPage;
+
+        // 准备写入缓冲区 (地址 + 数据)
+        WriteBuffer[0] = (u8)((eepromAddr + bytesWrittenTotal) >> 8);   // 地址高字节
+        WriteBuffer[1] = (u8)((eepromAddr + bytesWrittenTotal) & 0xFF); // 地址低字节
+
+        // 复制数据到写缓冲区
+        memcpy(&WriteBuffer[2], &byteArray[bytesWrittenTotal], bytesToWriteInCurrentOp);
+
+        // 发送数据到EEPROM (地址+数据，带STOP)
+        // SentByteCount = XIic_Send(&IicInstance, EEPROM_SLAVE_ADDR, WriteBuffer, bytesToWriteInCurrentOp + 2, XII_STOP_OPTION); // <-- 使用旧宏
+        SentByteCount = XIic_Send(&IicInstance, EEPROM_SLAVE_ADDR, WriteBuffer, bytesToWriteInCurrentOp + 2, XIIC_STOP); // <-- 使用 XIIC_STOP
+        if (SentByteCount != (bytesToWriteInCurrentOp + 2))
+        {
+            xil_printf("RC64_Write: Error sending data to EEPROM (Op: %d bytes, Sent: %d bytes)\r\n", bytesToWriteInCurrentOp + 2, SentByteCount);
+            XIic_Stop(&IicInstance);  // 尝试停止总线
+            XIic_Start(&IicInstance); // 尝试重启控制器
+            return XST_FAILURE;
+        }
+
+        // EEPROM写入需要时间，等待写入完成
+        usleep(EEPROM_WRITE_DELAY);
+
+        bytesWrittenTotal += bytesToWriteInCurrentOp; // 更新已写入的总字节数
+    }
+
+    return XST_SUCCESS;
+}

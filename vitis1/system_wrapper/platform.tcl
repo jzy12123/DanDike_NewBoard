@@ -52,3 +52,7 @@ platform generate
 platform clean
 platform generate
 platform generate
+platform active {system_wrapper}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+platform generate -domains 

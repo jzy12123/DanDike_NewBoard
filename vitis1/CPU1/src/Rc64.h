@@ -2,49 +2,52 @@
 #define RC64_H
 
 #include "xparameters.h"
-#include "xiicps.h"
+#include "xiic.h" // Keep AXI IIC header
 #include "xil_printf.h"
-#include "sleep.h"
+#include "sleep.h"     // Keep sleep for potential delays if needed, though example polls
+#include "xil_types.h" // Include for types like u8, u16
 
-// EEPROM设备相关常量定义
-#define I2C_DEVICE_ID XPAR_XIICPS_0_DEVICE_ID // IIC控制器设备ID
-#define EEPROM_SLAVE_ADDR 0x50                // EEPROM设备地址 (Make sure this matches your hardware)
-#define IIC_SCLK_RATE 100000                  // IIC时钟速率 (100kHz)
-#define EEPROM_PAGE_SIZE 32                   // EEPROM页大小(字节) - Check your EEPROM datasheet!
-#define EEPROM_WRITE_DELAY 10000              // EEPROM写入延时(微秒) - Check datasheet, 5ms to 10ms is common
+// --- Base Address Definition ---
+// Define the base address using the value from xparameters.h
+#define IIC_BASE_ADDRESS XPAR_IIC_0_BASEADDR // <-- Use Base Address from parameters
 
-// --- Array Dimensions (Matching eeprom_test.c) ---
+// --- EEPROM Device Definitions ---
+#define I2C_DEVICE_ID XPAR_IIC_0_DEVICE_ID // Keep AXI IIC Device ID
+#define EEPROM_ADDRESS 0x50                // EEPROM 7-bit Slave Address (Matches your original setting)
+#define EEPROM_PAGE_SIZE 32                // EEPROM Page Size (Bytes) - Matches your original setting
+// #define EEPROM_WRITE_DELAY 10000            // Optional: Can be removed if using ACK polling exclusively
+
+// --- Array Dimensions (Matching original Rc64.h) ---
 #define ROWS 8
 #define COLS 3
-#define DOUBLE_SIZE sizeof(double) // Typically 8 bytes
+#define DOUBLE_SIZE sizeof(double)
 
-// --- Calculated Sizes (Matching eeprom_test.c) ---
-// Total number of double elements in one array
+// --- Calculated Sizes (Matching original Rc64.h) ---
 #define ARRAY_ELEMENT_COUNT (ROWS * COLS)
-// Total number of bytes occupied by one array
-#define ARRAY_BYTES (ARRAY_ELEMENT_COUNT * DOUBLE_SIZE) // Should be 8 * 3 * 8 = 192 bytes
+#define ARRAY_BYTES (ARRAY_ELEMENT_COUNT * DOUBLE_SIZE) // 192 bytes
 
-// --- EEPROM Address Mapping (Matching eeprom_test.c) ---
-// These addresses MUST match the layout used by the Linux eeprom_test.c application
-#define EEPROM_ADDR_DA_CORRECT_100 (0)                                            // Start at address 0
-#define EEPROM_ADDR_DA_CORRECT_20 (EEPROM_ADDR_DA_CORRECT_100 + ARRAY_BYTES)      // 0 + 192 = 192 (0xC0)
-#define EEPROM_ADDR_DA_CORRECTPHASE_100 (EEPROM_ADDR_DA_CORRECT_20 + ARRAY_BYTES) // 192 + 192 = 384 (0x180)
-#define EEPROM_ADDR_AD_CORRECT (EEPROM_ADDR_DA_CORRECTPHASE_100 + ARRAY_BYTES)    // 384 + 192 = 576 (0x240)
-#define EEPROM_TOTAL_CALIB_BYTES (EEPROM_ADDR_AD_CORRECT + ARRAY_BYTES)           // 576 + 192 = 768 (0x300)
+// --- EEPROM Address Mapping (Matching original Rc64.h) ---
+// These define the layout within the EEPROM for the calibration arrays
+#define EEPROM_ADDR_DA_CORRECT_100 (0)
+#define EEPROM_ADDR_DA_CORRECT_20 (EEPROM_ADDR_DA_CORRECT_100 + ARRAY_BYTES)
+#define EEPROM_ADDR_DA_CORRECTPHASE_100 (EEPROM_ADDR_DA_CORRECT_20 + ARRAY_BYTES)
+#define EEPROM_ADDR_AD_CORRECT (EEPROM_ADDR_DA_CORRECTPHASE_100 + ARRAY_BYTES)
+#define EEPROM_TOTAL_CALIB_BYTES (EEPROM_ADDR_AD_CORRECT + ARRAY_BYTES)
 
-// Compatibility Definitions (If Rc64.c uses these)
-#define CALIB_ARRAY_SIZE ARRAY_ELEMENT_COUNT // Keep CALIB_ARRAY_SIZE for compatibility if needed (represents element count)
-#define CALIB_DATA_SIZE ARRAY_BYTES          // Keep CALIB_DATA_SIZE for compatibility if needed (represents size in bytes)
+// --- Type Definition for EEPROM Internal Address ---
+// Your EEPROM likely uses 2-byte internal addressing
+typedef u16 AddressType; // <-- Define AddressType as u16
 
 // --- Function Declarations ---
 int RC64_Init(void);
 
-// Functions to read/write ALL calibration data based on the defined map
+// Read/Write all calibration data functions (Prototypes remain the same)
 int RC64_ReadCalibData(void);
 int RC64_WriteCalibData(void);
 
-// Internal helper functions to read/write a single array (now using ARRAY_ELEMENT_COUNT)
-int RC64_ReadArrayFromEEPROM(double *array, int elementCount, u16 eepromAddr);
-int RC64_WriteArrayToEEPROM(double *array, int elementCount, u16 eepromAddr);
+// Internal helper functions to read/write a single array
+// Use low-level functions based on the example
+int EepromWriteData(AddressType Address, u8 *BufferPtr, u16 ByteCount);
+int EepromReadData(AddressType Address, u8 *BufferPtr, u16 ByteCount);
 
 #endif /* RC64_H */
