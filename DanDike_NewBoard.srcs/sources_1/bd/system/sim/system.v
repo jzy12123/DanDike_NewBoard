@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Tue Apr 15 09:27:17 2025
+//Date        : Wed Apr 16 15:10:57 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -8841,6 +8841,7 @@ module system
     gpio0_tri_i,
     gpio0_tri_o,
     gpio0_tri_t,
+    key_BoardINT0,
     lcd_bl,
     lcd_clk,
     lcd_de,
@@ -8926,6 +8927,7 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_I" *) input [2:0]gpio0_tri_i;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_O" *) output [2:0]gpio0_tri_o;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_T" *) output [2:0]gpio0_tri_t;
+  input [0:0]key_BoardINT0;
   output [0:0]lcd_bl;
   (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 CLK.LCD_CLK CLK" *) (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME CLK.LCD_CLK, CLK_DOMAIN /lcd/clk_wiz_0_clk_out1, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, INSERT_VIP 0, PHASE 0.0" *) output lcd_clk;
   output lcd_de;
@@ -8940,7 +8942,10 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_T" *) output [18:0]rgb_data_tri_t;
   output [1:0]yad_os_0;
 
+  wire AC_8_channel_0_mm2s_introut;
+  wire AC_8_channel_0_prog_empty;
   wire [1:0]AC_8_channel_0_yad_os_0;
+  wire [0:0]Op1_0_0_1;
   wire [0:0]Op1_0_2;
   wire [0:0]PWM_0_pwm;
   wire a_in_0_1;
@@ -8984,7 +8989,6 @@ module system
   wire adda_M00_AXI_WREADY;
   wire [7:0]adda_M00_AXI_WSTRB;
   wire adda_M00_AXI_WVALID;
-  wire axi_dma_0_mm2s_introut;
   wire axi_dma_0_s2mm_introut;
   wire [0:0]axi_gpio_0_GPIO_TRI_O;
   wire [31:0]axi_mem_intercon_M00_AXI_ARADDR;
@@ -9006,7 +9010,6 @@ module system
   wire axi_uartlite_0_UART_TxD;
   wire axi_uartlite_0_interrupt;
   wire axi_vdma_0_mm2s_introut;
-  wire axis_data_fifo_1_prog_empty;
   wire b_in_0_1;
   wire clk_wiz_0_clk_out1;
   wire [0:0]coder_Res;
@@ -9026,6 +9029,7 @@ module system
   wire key_board_IIC_0_SDA_I;
   wire key_board_IIC_0_SDA_O;
   wire key_board_IIC_0_SDA_T;
+  wire [0:0]key_board_Res;
   wire key_board_iic2intc_irpt;
   wire onoff_config_axi_0_OnOff_onoff_cs;
   wire onoff_config_axi_0_OnOff_onoff_sclk;
@@ -9417,7 +9421,7 @@ module system
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
   wire v_tc_0_irq;
-  wire [15:0]xlconcat_0_dout;
+  wire [9:0]xlconcat_0_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -9441,6 +9445,7 @@ module system
   assign OnOff_0_onoff_cs = onoff_config_axi_0_OnOff_onoff_cs;
   assign OnOff_0_onoff_sclk = onoff_config_axi_0_OnOff_onoff_sclk;
   assign OnOff_0_onoff_sdo = onoff_config_axi_0_OnOff_onoff_sdo;
+  assign Op1_0_0_1 = key_BoardINT0[0];
   assign Op1_0_2 = Coder_Int[0];
   assign RGMII_0_td[3:0] = gmii2rgmii_0_RGMII_TD;
   assign RGMII_0_tx_ctl = gmii2rgmii_0_RGMII_TX_CTL;
@@ -9648,8 +9653,8 @@ module system
         .WrSerial_0_wr_load(onoff_config_axi_0_WrSerial_wr_load),
         .WrSerial_0_wr_sclk(onoff_config_axi_0_WrSerial_wr_sclk),
         .WrSerial_0_wr_sdo(onoff_config_axi_0_WrSerial_wr_sdo),
-        .mm2s_introut(axi_dma_0_mm2s_introut),
-        .prog_empty(axis_data_fifo_1_prog_empty),
+        .mm2s_introut(AC_8_channel_0_mm2s_introut),
+        .prog_empty(AC_8_channel_0_prog_empty),
         .s2mm_introut(axi_dma_0_s2mm_introut),
         .s_axi_lite_aclk(processing_system7_0_FCLK_CLK0),
         .yad_os_0(AC_8_channel_0_yad_os_0));
@@ -9746,7 +9751,8 @@ module system
         .IIC_0_sda_i(key_board_IIC_0_SDA_I),
         .IIC_0_sda_o(key_board_IIC_0_SDA_O),
         .IIC_0_sda_t(key_board_IIC_0_SDA_T),
-        .Op1_0(1'b0),
+        .Op1_0(Op1_0_0_1),
+        .Res(key_board_Res),
         .S_AXI_araddr(ps7_0_axi_periph_M12_AXI_ARADDR),
         .S_AXI_arready(ps7_0_axi_periph_M12_AXI_ARREADY),
         .S_AXI_arvalid(ps7_0_axi_periph_M12_AXI_ARVALID),
@@ -10514,20 +10520,14 @@ module system
   system_xlconcat_0_0 xlconcat_0
        (.In0(axi_vdma_0_mm2s_introut),
         .In1(v_tc_0_irq),
-        .In10(coder_Res),
-        .In11(1'b0),
-        .In12(key_board_iic2intc_irpt),
-        .In13(1'b0),
-        .In14(1'b0),
-        .In15(1'b0),
         .In2(axi_dma_0_s2mm_introut),
-        .In3(1'b0),
-        .In4(axi_dma_0_mm2s_introut),
-        .In5(1'b0),
-        .In6(axis_data_fifo_1_prog_empty),
-        .In7(axi_uartlite_0_interrupt),
-        .In8(1'b0),
-        .In9(coder_intrpt),
+        .In3(AC_8_channel_0_mm2s_introut),
+        .In4(AC_8_channel_0_prog_empty),
+        .In5(axi_uartlite_0_interrupt),
+        .In6(key_board_iic2intc_irpt),
+        .In7(key_board_Res),
+        .In8(coder_intrpt),
+        .In9(coder_Res),
         .dout(xlconcat_0_dout));
 endmodule
 

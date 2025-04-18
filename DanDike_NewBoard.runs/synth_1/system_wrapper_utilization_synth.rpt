@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Wed Mar 26 21:19:02 2025
+| Date         : Wed Apr 16 15:22:36 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
 | Design       : system_wrapper
@@ -30,8 +30,8 @@ Table of Contents
 +----------------------------+-------+-------+-----------+-------+
 |          Site Type         |  Used | Fixed | Available | Util% |
 +----------------------------+-------+-------+-----------+-------+
-| Slice LUTs*                | 16425 |     0 |     53200 | 30.87 |
-|   LUT as Logic             | 14857 |     0 |     53200 | 27.93 |
+| Slice LUTs*                | 16426 |     0 |     53200 | 30.88 |
+|   LUT as Logic             | 14858 |     0 |     53200 | 27.93 |
 |   LUT as Memory            |  1568 |     0 |     17400 |  9.01 |
 |     LUT as Distributed RAM |   662 |     0 |           |       |
 |     LUT as Shift Register  |   906 |     0 |           |       |
@@ -95,7 +95,7 @@ Table of Contents
 +-----------------------------+------+-------+-----------+--------+
 |          Site Type          | Used | Fixed | Available |  Util% |
 +-----------------------------+------+-------+-----------+--------+
-| Bonded IOB                  |   84 |     0 |       125 |  67.20 |
+| Bonded IOB                  |   85 |     0 |       125 |  68.00 |
 | Bonded IPADs                |    0 |     0 |         2 |   0.00 |
 | Bonded IOPADs               |  130 |     0 |       130 | 100.00 |
 | PHY_CONTROL                 |    0 |     0 |         4 |   0.00 |
@@ -162,7 +162,7 @@ Table of Contents
 | LUT4       |  2487 |                  LUT |
 | LUT2       |  1565 |                  LUT |
 | RAMD32     |   992 |   Distributed Memory |
-| LUT1       |   962 |                  LUT |
+| LUT1       |   963 |                  LUT |
 | FDSE       |   784 |         Flop & Latch |
 | CARRY4     |   660 |           CarryLogic |
 | SRL16E     |   567 |   Distributed Memory |
@@ -172,7 +172,7 @@ Table of Contents
 | RAMS32     |   330 |   Distributed Memory |
 | BIBUF      |   130 |                   IO |
 | MUXF8      |    96 |                MuxFx |
-| IBUF       |    44 |                   IO |
+| IBUF       |    45 |                   IO |
 | OBUF       |    40 |                   IO |
 | RAMB36E1   |    29 |         Block Memory |
 | OBUFT      |    27 |                   IO |

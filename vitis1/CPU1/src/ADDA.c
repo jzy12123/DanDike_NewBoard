@@ -284,11 +284,6 @@ void underflow_handler()
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
 }
 
-// 软件中断函数
-void soft_intr_handler()
-{
-    xil_printf("CPU1: CPU1 Soft Interrupt\r\n");
-}
 
 // 定时器中断处理函数
 void timer_intr_handler(void *CallBackRef)
@@ -336,7 +331,7 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id)
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id,u16 Timer_id)
 {
     int status;
     XScuGic_Config *intc_config;
@@ -358,38 +353,22 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     // ad
     XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
     // da
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 0xA0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 0xA0, 0x3);
-    // switch amp
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, switch_id, 0xA0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, amplifier_id, 0xA0, 0x3); // 高电平有效
-    // 为定时器中断设置较高优先级
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
+    // 为定时器中断设置较低优先级
     XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3);
 
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, switch_id, (Xil_ExceptionHandler)Switch_INT_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, amplifier_id, (Xil_ExceptionHandler)Amplifier_INT_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, SoftIntrCpu1_id, (Xil_ExceptionHandler)soft_intr_handler, (void *)int_ins_ptr); // CPU1软中断
     XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);         // 定时器
 
     // 显式地将ADC和DMA中断映射到CPU1
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, switch_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, amplifier_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, SoftIntrCpu1_id);
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, Timer_id);
-
-    // 同时从CPU0解除映射（防止Linux误处理）
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, switch_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, amplifier_id);
 
     // 使能
     // ad
@@ -397,11 +376,6 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     // da
     XScuGic_Enable(int_ins_ptr, tx_intr_id);
     XScuGic_Enable(int_ins_ptr, underflow_id);
-    // switch amp
-    XScuGic_Enable(int_ins_ptr, switch_id);
-    XScuGic_Enable(int_ins_ptr, amplifier_id);
-    // CPU1软中断
-    XScuGic_Enable(int_ins_ptr, SoftIntrCpu1_id); // CPU1软件中断
     // 定时器
     XScuGic_Enable(int_ins_ptr, Timer_id);
     // 启用来自硬件的中断

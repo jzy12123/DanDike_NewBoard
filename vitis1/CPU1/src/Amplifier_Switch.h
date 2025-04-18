@@ -49,8 +49,6 @@ typedef enum
 } POWER_AMP_STATE;
 
 
-void Switch_INT_handler();
-void Amplifier_INT_handler();
 u32 invert_Binary (u32 num);
 void Write_Read_Switch(u32 Data_width,u32 Data);
 void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp);

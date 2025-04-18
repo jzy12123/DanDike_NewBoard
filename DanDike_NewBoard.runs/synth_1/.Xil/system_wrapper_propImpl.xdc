@@ -32,13 +32,13 @@ set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory
 set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl rfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl id:32 order:LATE scoped_inst:{system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory} unmanaged:yes} [current_design]
 current_instance system_i/processing_system7_0/inst
 set_property src_info {type:SCOPED_XDC file:1 line:21 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_3 0.15
+set_input_jitter clk_fpga_0 0.3
 set_property src_info {type:SCOPED_XDC file:1 line:24 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_1 1.2
 set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_0 0.3
-set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_2 0.21
+set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_input_jitter clk_fpga_3 0.15
 set_property src_info {type:SCOPED_XDC file:1 line:40 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN "C11" [get_ports "MIO[53]"]
 set_property src_info {type:SCOPED_XDC file:1 line:47 export:INPUT save:INPUT read:READ} [current_design]
@@ -553,16 +553,18 @@ set_property PACKAGE_PIN U8 [get_ports IIC_LCD_0_scl_io]
 set_property src_info {type:XDC file:5 line:214 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN V8 [get_ports IIC_LCD_0_sda_io]
 set_property src_info {type:XDC file:5 line:220 export:INPUT save:INPUT read:READ} [current_design]
-set_property PACKAGE_PIN V13 [get_ports KeyBoard_IIC_scl_io]
+set_property PACKAGE_PIN P14 [get_ports KeyBoard_IIC_scl_io]
 set_property src_info {type:XDC file:5 line:221 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN R14 [get_ports KeyBoard_IIC_sda_io]
-set_property src_info {type:XDC file:5 line:229 export:INPUT save:INPUT read:READ} [current_design]
-set_property PACKAGE_PIN M14 [get_ports pulse_p_in_0]
-set_property src_info {type:XDC file:5 line:230 export:INPUT save:INPUT read:READ} [current_design]
-set_property PACKAGE_PIN J14 [get_ports pulse_p_out_0]
+set_property src_info {type:XDC file:5 line:222 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN V13 [get_ports {key_BoardINT0[0]}]
 set_property src_info {type:XDC file:5 line:231 export:INPUT save:INPUT read:READ} [current_design]
-set_property PACKAGE_PIN M15 [get_ports pulse_q_in_0]
+set_property PACKAGE_PIN M14 [get_ports pulse_p_in_0]
 set_property src_info {type:XDC file:5 line:232 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN J14 [get_ports pulse_p_out_0]
+set_property src_info {type:XDC file:5 line:233 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN M15 [get_ports pulse_q_in_0]
+set_property src_info {type:XDC file:5 line:234 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN L16 [get_ports pulse_q_out_0]
 current_instance system_i/lcd/v_tc_0/U0
 set_property src_info {type:SCOPED_XDC file:6 line:5 export:INPUT save:INPUT read:READ} [current_design]

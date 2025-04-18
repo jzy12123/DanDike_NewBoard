@@ -63,7 +63,6 @@ int main()
 	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-
 	sleep(25); // 必须要有等待linux启动
 	// // 初始化RC64模块
 	// RC64_Init();
@@ -99,7 +98,7 @@ int main()
 
 	// 建立中断系统
 	status = setup_intr_system(&intc, &axidma, &Timer,
-							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID, Switch_INT_ID, Amplifier_INT_ID, SOFT_INTR_ID_TO_CPU1, TIMER_IRPT_INTR);
+							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID, TIMER_IRPT_INTR);
 	if (status != XST_SUCCESS)
 	{
 		xil_printf("Failed intr setup\r\n");
@@ -118,7 +117,7 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	xil_printf("CPU1: Initialization successfully\r\n V1.250415.1700\r\n");
+	xil_printf("CPU1: Initialization successfully\r\n V1.250418.1044\r\n");
 
 	while (1)
 	{

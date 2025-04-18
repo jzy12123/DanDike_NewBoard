@@ -282,14 +282,7 @@ u32 invert_Binary(u32 num)
 
 	return num;
 }
-void Switch_INT_handler()
-{
-	//	printf("Switch_Done");
-}
-void Amplifier_INT_handler()
-{
-	//	printf("Amplifier_Done");
-}
+
 
 /**
  * @brief 线性拟合两个校准点计算校准参数

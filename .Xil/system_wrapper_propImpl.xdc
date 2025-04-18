@@ -31,13 +31,13 @@ set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory
 set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl rfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl id:31 order:LATE scoped_inst:{system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory} unmanaged:yes} [current_design]
 current_instance system_i/processing_system7_0/inst
 set_property src_info {type:SCOPED_XDC file:1 line:21 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_3 0.15
+set_input_jitter clk_fpga_0 0.3
 set_property src_info {type:SCOPED_XDC file:1 line:24 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_1 1.2
 set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_0 0.3
-set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_2 0.21
+set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_input_jitter clk_fpga_3 0.15
 current_instance
 current_instance system_i/lcd/axi_vdma_0/U0
 set_property src_info {type:SCOPED_XDC file:2 line:65 export:INPUT save:INPUT read:READ} [current_design]

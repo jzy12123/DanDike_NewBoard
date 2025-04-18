@@ -33,8 +33,6 @@
 // 软中断
 #define CPU0_ID XSCUGIC_SPI_CPU0_MASK // CPU0 ID
 #define CPU1_ID XSCUGIC_SPI_CPU1_MASK // CPU1 ID
-#define SOFT_INTR_ID_TO_CPU0 14       // 软件中断号 14 ,范围：0~15
-#define SOFT_INTR_ID_TO_CPU1 15       // 软件中断号 15 ,范围：0~15
 
 // dma中断
 #define dac_whole_base_addr XPAR_AC_8_CHANNEL_0_ADDA_DAC_WHOLE_0_BASEADDR
@@ -43,14 +41,14 @@
 #define INTC_DEVICE_ID XPAR_SCUGIC_SINGLE_DEVICE_ID
 
 // dma_adc
-#define DMA_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR // DMA中断号，63
+#define DMA_RX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR // DMA中断号
 #define sample_points 256                                                          // 一个周期采样256、1024、2048
 #define AD_SAMP_CYCLE_NUMBER 16                                                    // AD采样周期数
 #define FIFO_DEPTH 1024                                                            // FIFO深度1024
 
 // dma_dac
-#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号，65                                                      // FIFO满中断
-#define Underflow_INTR_ID 67U                                                      // FIFO空中断
+#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号                                                  
+#define Underflow_INTR_ID 65U                                                      // FIFO空中断
 #define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
 #define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半
 #define TX_BUFFER_BASE MEM_BASE_ADDR                                               // TX_BUFFER_BASE：0x2E800000
@@ -64,9 +62,6 @@
 #define CHANNL_MAX 8
 #define MAX_HARMONICS 32 // 最大谐波次数
 
-// ADDA Correction coefficient
-#define AD_UA_Correct 9.8373
-#define AD_IA_Correct 11.31158
 
 // 定义PID状态枚举
 typedef enum
@@ -140,7 +135,7 @@ void timer_intr_handler(void *CallBackRef);
 
 // 中断初始化
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 switch_id, u16 amplifier_id, u16 SoftIntrCpu1_id, u16 Timer_id);
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 Timer_id);
 
 void start_dma_dac();
 // dds_dac
@@ -148,7 +143,6 @@ void str_wr_bram(PID_STATE pid_state);
 void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress);
 void Write_Wave_to_Wave_NewData();
 void Copy_Wave_to_tx_buffer_ptr();
-void soft_intr_handler();
 
 double sumHarmonics(float harmonics[], int numHarmonics);
 void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[]);

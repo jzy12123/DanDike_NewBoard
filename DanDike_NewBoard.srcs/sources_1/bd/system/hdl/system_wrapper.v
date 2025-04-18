@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Tue Apr 15 09:27:17 2025
+//Date        : Wed Apr 16 15:10:57 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -70,6 +70,7 @@ module system_wrapper
     WrSerial_0_wr_sclk,
     WrSerial_0_wr_sdo,
     gpio0_tri_io,
+    key_BoardINT0,
     lcd_bl,
     lcd_clk,
     lcd_de,
@@ -141,6 +142,7 @@ module system_wrapper
   output WrSerial_0_wr_sclk;
   output WrSerial_0_wr_sdo;
   inout [2:0]gpio0_tri_io;
+  input [0:0]key_BoardINT0;
   output [0:0]lcd_bl;
   output lcd_clk;
   output lcd_de;
@@ -239,6 +241,7 @@ module system_wrapper
   wire [0:0]gpio0_tri_t_0;
   wire [1:1]gpio0_tri_t_1;
   wire [2:2]gpio0_tri_t_2;
+  wire [0:0]key_BoardINT0;
   wire [0:0]lcd_bl;
   wire lcd_clk;
   wire lcd_de;
@@ -534,6 +537,7 @@ module system_wrapper
         .gpio0_tri_i({gpio0_tri_i_2,gpio0_tri_i_1,gpio0_tri_i_0}),
         .gpio0_tri_o({gpio0_tri_o_2,gpio0_tri_o_1,gpio0_tri_o_0}),
         .gpio0_tri_t({gpio0_tri_t_2,gpio0_tri_t_1,gpio0_tri_t_0}),
+        .key_BoardINT0(key_BoardINT0),
         .lcd_bl(lcd_bl),
         .lcd_clk(lcd_clk),
         .lcd_de(lcd_de),

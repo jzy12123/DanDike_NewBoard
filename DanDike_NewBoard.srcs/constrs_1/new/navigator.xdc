@@ -217,12 +217,14 @@ set_property IOSTANDARD LVCMOS33 [get_ports IIC_LCD_0_scl_io]
 set_property IOSTANDARD LVCMOS33 [get_ports IIC_LCD_0_sda_io]
 
 # 键盘I2C接口
-set_property PACKAGE_PIN V13 [get_ports KeyBoard_IIC_scl_io]
+set_property PACKAGE_PIN P14 [get_ports KeyBoard_IIC_scl_io]
 set_property PACKAGE_PIN R14 [get_ports KeyBoard_IIC_sda_io]
+set_property PACKAGE_PIN V13 [get_ports {key_BoardINT0[0]}]
+
 
 set_property IOSTANDARD LVCMOS33 [get_ports KeyBoard_IIC_scl_io]
 set_property IOSTANDARD LVCMOS33 [get_ports KeyBoard_IIC_sda_io]
-
+set_property IOSTANDARD LVCMOS33 [get_ports {key_BoardINT0[0]}]
 # =============================================================================
 # 脉冲相关引脚
 # =============================================================================
@@ -259,3 +261,13 @@ set_property SLEW SLOW [get_ports KeyBoard_IIC_scl_io]
 set_property SLEW FAST [get_ports IIC_LCD_0_scl_io]
 set_property SLEW FAST [get_ports IIC_LCD_0_sda_io]
 set_property DRIVE 12 [get_ports KeyBoard_IIC_sda_io]
+
+
+
+
+# =============================================================================
+# 测试
+# =============================================================================
+
+
+

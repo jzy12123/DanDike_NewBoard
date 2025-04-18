@@ -1,3 +1,1 @@
-使用ZYNQ7020，其中第一个CPU0用来运行linux系统，第二个CPU1用来运行裸机程序，代码文件夹（src）是裸机的运行代码。两个CPU通过JSON、UDP以共享内存的方式交互数据。
-在CPU1中，程序开始会等待一定时间让linux启动，然后是一些初始化函数。初始化结束后每0.5秒检查一次是否接收到新的JSON指令，如果有就执行新的JSON指令。
-在主循环中主要是进行AD采样、FFT计算、UDP结构体填充（lineAC和lineHarm），并且控制装置输出设置的波形，最后上送UDP结构体、检测故障。
+Empty application. Add your own sources.
