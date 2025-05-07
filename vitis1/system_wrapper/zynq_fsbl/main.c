@@ -211,6 +211,16 @@ extern u32 QspiFlashSize;
 * @note
 *
 ****************************************************************************/
+#define sev() __asm__ ("sev") // C 语言内嵌汇编写法
+#define CPU1_RUN_ADDR 0x21000000U
+#define CPU1_COPY_ADDR 0xFFFFFFF0U
+static void StartCpu1(void)
+{
+ Xil_Out32(CPU1_COPY_ADDR, CPU1_RUN_ADDR); // 将 0x10000000 拷贝到 0xFFFFFFF0 地址处
+ dmb(); // 等待内存写入完成（同步）
+// sev(); // 执行 sev 指令唤醒 CPU1//备注掉，等启动linux内核时会自动启动CPU1
+}
+
 int main(void)
 {
 	u32 BootModeRegister = 0;
@@ -546,7 +556,8 @@ int main(void)
 	 * Load boot image
 	 */
 	HandoffAddress = LoadBootImage();
-
+	//启动CPU1
+	StartCpu1();
 	fsbl_printf(DEBUG_INFO,"Handoff Address: 0x%08lx\r\n",HandoffAddress);
 
 	/*

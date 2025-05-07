@@ -232,8 +232,8 @@ void handle_GetDevBaseInfo(cJSON *data)
     cJSON *dataObj = cJSON_CreateObject();
     cJSON_AddStringToObject(dataObj, "Model", "xxx");
     cJSON_AddStringToObject(dataObj, "InnerModel", "DK-34B1");
-    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "V1.250410.2037");
-    cJSON_AddStringToObject(dataObj, "ARM_Ver", "V1.250410.2037");
+    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "[Ver]=V1.250418.1106");
+    cJSON_AddStringToObject(dataObj, "ARM_Ver", "[Ver]=V1.250507.1610");
 
     const char *syncModes[] = {"GPS", "BD", "IRIG-B", "SNTP", "Manual"};
     cJSON *syncMode = cJSON_CreateStringArray(syncModes, 5);
@@ -1804,7 +1804,7 @@ void handle_WriteCalibrateAC(cJSON *data)
     power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
     // 打印成功标识
     printf("CPU1: WriteCalibrateAC: Calibration data updated successfully.\r\n");
-    // // 将校准参数保存到EEPROM
+    // 将校准参数保存到EEPROM
     // RC64_WriteCalibData();
 
     // 返回成功响应

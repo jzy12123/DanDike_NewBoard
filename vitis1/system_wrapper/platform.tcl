@@ -22,3 +22,10 @@ platform generate -quick
 platform generate
 platform clean
 platform generate
+platform active {system_wrapper}
+domain active {zynq_fsbl}
+bsp reload
+bsp reload
+platform generate -domains 
+platform generate -domains zynq_fsbl 
+platform generate -domains zynq_fsbl 

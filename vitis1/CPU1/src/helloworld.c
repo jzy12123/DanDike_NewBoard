@@ -53,6 +53,7 @@
 void reinitialize_dma_controller();
 int main()
 {
+	xil_printf("CPU1: Start\r\n");
 	xil_printf("CPU1: initializing\r\n");
 	/************************** USB初始化 *****************************/
 	XGpioPs Gpio; // GPIO 设备的驱动程序实例
@@ -66,8 +67,6 @@ int main()
 	sleep(25); // 必须要有等待linux启动
 	// // 初始化RC64模块
 	// RC64_Init();
-	// // 将校准参数保存到EEPROM
-	// RC64_WriteCalibData();
 	// // 从EEPROM读取校准参数
 	// RC64_ReadCalibData();
 	/************************** DMA初始化 *****************************/
@@ -117,7 +116,7 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	xil_printf("CPU1: Initialization successfully\r\n V1.250418.1044\r\n");
+	xil_printf("CPU1: Initialization successfully\r\n [Ver]=V1.250507.1610\r\n");
 
 	while (1)
 	{

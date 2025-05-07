@@ -31,10 +31,6 @@
 
 #define RdSerial_ADDR			8
 
-#define INTC_DEVICE_ID			XPAR_SCUGIC_SINGLE_DEVICE_ID   //中断控制器器件ID，0
-#define	Switch_INT_ID			68U 		 	//PL端的中断ID
-#define Amplifier_INT_ID		69U		 		//PL端的中断ID
-
 enum Write_Read{
 	bit_8 = 0,
 	bit_16,
