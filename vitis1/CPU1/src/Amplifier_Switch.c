@@ -64,8 +64,8 @@ unsigned char voltage_to_output(float voltage)
 	}
 	else
 	{
-		xil_printf("CPU1: UR NOT CORRECT\n");
-		return 0x00; // 默认返回值，表示输入无效
+		xil_printf("CPU1: UR NOT CORRECT SET 6.5V\n");
+		return 0xC2; // 默认返回值，表示输入无效
 	}
 }
 
@@ -86,8 +86,8 @@ unsigned char current_to_output(float current)
 	}
 	else
 	{
-		xil_printf("CPU1: IR NOT CORRECT\n");
-		return 0x00; // 默认返回值，表示输入无效
+		xil_printf("CPU1: IR NOT CORRECT SET 5A\n");
+		return 0xC2; // 默认返回值，表示输入无效
 	}
 }
 

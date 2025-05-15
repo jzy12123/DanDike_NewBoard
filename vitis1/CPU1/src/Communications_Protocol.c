@@ -31,7 +31,7 @@
 *版本信息
 */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250515.1827";
+const char ARM_Ver_Full[] = "[Ver]=V1.250515.1934";
 
 
 
@@ -858,8 +858,12 @@ void handle_SetACS(cJSON *data)
             cJSON *ur = cJSON_GetObjectItem(val, "UR");
             if (ur && cJSON_IsNumber(ur))
             {
-                setACS.Vals[i].UR = (float)ur->valuedouble;
-                // printf("CPU1: Debug: Field 'UR' found in vals[%d].\n", i);
+                //如果ur不为0
+                if (ur->valuedouble != 0)
+                {
+                    setACS.Vals[i].UR = (float)ur->valuedouble;
+                    // printf("CPU1: Debug: Field 'UR' found in vals[%d].\n", i);
+                }
             }
 
             // 获取 U 项
@@ -884,8 +888,12 @@ void handle_SetACS(cJSON *data)
             cJSON *ir = cJSON_GetObjectItem(val, "IR");
             if (ir && cJSON_IsNumber(ir))
             {
-                setACS.Vals[i].IR = (float)ir->valuedouble;
-                // printf("CPU1: Debug: Field 'IR' found in vals[%d].\n", i);
+                //如果ir不为0
+                if (ir->valuedouble != 0)
+                {
+                    setACS.Vals[i].IR = (float)ir->valuedouble;
+                    // printf("CPU1: Debug: Field 'IR' found in vals[%d].\n", i);
+                }
             }
 
             // 获取 I 项 (注意 JSON 键名为 "I")
