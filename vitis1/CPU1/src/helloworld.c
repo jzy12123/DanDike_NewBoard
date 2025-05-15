@@ -53,18 +53,19 @@
 void reinitialize_dma_controller();
 int main()
 {
-	xil_printf("CPU1: Start\r\n");
-	xil_printf("CPU1: initializing\r\n");
-	/************************** USB初始化 *****************************/
-	XGpioPs Gpio; // GPIO 设备的驱动程序实例
-	XGpioPs_Config *ConfigPtr;
-	ConfigPtr = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
-	XGpioPs_CfgInitialize(&Gpio, ConfigPtr, ConfigPtr->BaseAddr);
-	XGpioPs_SetDirectionPin(&Gpio, MIO_USB, 1);
-	XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
-	XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
+	sleep(30); // 必须要有等待linux启动
+	// xil_printf("CPU1: Start\r\n");
+	// xil_printf("CPU1: initializing\r\n");
+	/************************** USB初始化  不需要了已经断开了Mio连接*****************************/
+	// XGpioPs Gpio; // GPIO 设备的驱动程序实例
+	// XGpioPs_Config *ConfigPtr;
+	// ConfigPtr = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
+	// XGpioPs_CfgInitialize(&Gpio, ConfigPtr, ConfigPtr->BaseAddr);
+	// XGpioPs_SetDirectionPin(&Gpio, MIO_USB, 1);
+	// XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
+	// XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
 
-	sleep(25); // 必须要有等待linux启动
+	
 	// // 初始化RC64模块
 	// RC64_Init();
 	// // 从EEPROM读取校准参数
@@ -116,7 +117,9 @@ int main()
 	init_JsonUdp();
 	PID_Init_All();
 
-	xil_printf("CPU1: Initialization successfully\r\n [Ver]=V1.250507.1610\r\n");
+	xil_printf("CPU1: Initialization successfully\r\n");
+	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
+	xil_printf("CPU1: ARM Version: %s\r\n", arm_version_for_print);
 
 	while (1)
 	{

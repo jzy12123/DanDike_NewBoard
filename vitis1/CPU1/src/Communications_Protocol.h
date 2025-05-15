@@ -295,9 +295,12 @@ typedef struct
 	bool ClosedLoop;
 } ReplyData;
 
+extern const char FPGA_Ver_Full[];
+extern const char ARM_Ver_Full[];
 /******************************************************************************************************
  * º¯ÊýÉêÃ÷
  ******************************************************************************************************/
+const char *get_version_string(const char *full_version_str);
 void ReportUDP_Structure(ReportEnableStatus ReportStatus);
 size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus);
 void write_UDP_to_shared_memory(UINTPTR base_addr, void *data, size_t size);

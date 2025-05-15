@@ -27,7 +27,6 @@ void RdSerial()
 			// 上报后重置标志,避免重复上报同一故障
 			faultDetected = false;
 			// 要清除二级功放电压电流的EN,清除故障锁存
-			
 		}
 		else if (!faultDetected)
 		{
@@ -200,13 +199,13 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		usleep(100);
 		//	xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
-		// 修改Wave_Range,全部清0，为了清空二级功放的硬件保护
+		// 修改Wave_Range,把第7位清0，为了清空二级功放的硬件保护：
 		for (int i = 0; i < CHANNL_MAX; i++)
 		{
-			Wave_Range[i] = 0;
+			Wave_Range[i] &= ~(1 << 7);
 		}
 
-		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送 
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (u32)(Wave_Range[5] << 24) | (Wave_Range[4] << 8)); // ib + ia din2发送
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (u32)(Wave_Range[7] << 24) | (Wave_Range[6] << 8)); // ix + ic din3发送

@@ -27,6 +27,14 @@
  */
 #include "Communications_Protocol.h"
 
+/*
+*版本信息
+*/
+const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
+const char ARM_Ver_Full[] = "[Ver]=V1.250515.1827";
+
+
+
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -60,7 +68,7 @@ void extractContentBetweenPipes(char *buffer)
         // 在末尾添加字符串结束符
         buffer[contentLength] = '\0';
 
-        printf("CPU1: Remove | \n");
+        // printf("CPU1: Remove | \n");
     }
     else
     {
@@ -97,7 +105,7 @@ int Parse_JsonCommand(char *buffer)
     extractContentBetweenPipes(buffer);
 
     // 打印buffer里的数据
-    printf("CPU1: Recived_JSON: %s\n", buffer);
+    // printf("CPU1: Recived_JSON: %s\n", buffer);
 
     // 使用cJSON解析JSON字符串
     cJSON *json = cJSON_Parse(buffer);
@@ -218,10 +226,27 @@ void handle_GetFunCodeList(cJSON *data)
     free(string);
 }
 
+
+// 辅助函数，用于提取版本号
+const char *get_version_string(const char *full_version_str)
+{
+    const char *prefix = "[Ver]=";
+    const char *version_ptr = strstr(full_version_str, prefix); // 查找前缀
+    if (version_ptr != NULL)
+    {
+        return version_ptr + strlen(prefix); // 返回前缀之后的部分
+    }
+    return full_version_str; // 如果找不到前缀，返回原始字符串 (或可以返回 NULL 或错误提示)
+}
+
 void handle_GetDevBaseInfo(cJSON *data)
 {
     // 处理 GetDevBaseInfo 的逻辑
     //    xil_printf("Handling handle_GetDevBaseInfo...\n");
+
+    // 提取版本号
+    const char *fpga_version = get_version_string(FPGA_Ver_Full);
+    const char *arm_version = get_version_string(ARM_Ver_Full);
 
     // 创建上行指令的 JSON 对象
     cJSON *reply = cJSON_CreateObject();
@@ -232,8 +257,9 @@ void handle_GetDevBaseInfo(cJSON *data)
     cJSON *dataObj = cJSON_CreateObject();
     cJSON_AddStringToObject(dataObj, "Model", "xxx");
     cJSON_AddStringToObject(dataObj, "InnerModel", "DK-34B1");
-    cJSON_AddStringToObject(dataObj, "FPGA_Ver", "[Ver]=V1.250418.1106");
-    cJSON_AddStringToObject(dataObj, "ARM_Ver", "[Ver]=V1.250507.1610");
+    // 使用提取出的版本号字符串
+    cJSON_AddStringToObject(dataObj, "FPGA_Ver", fpga_version);
+    cJSON_AddStringToObject(dataObj, "ARM_Ver", arm_version);
 
     const char *syncModes[] = {"GPS", "BD", "IRIG-B", "SNTP", "Manual"};
     cJSON *syncMode = cJSON_CreateStringArray(syncModes, 5);
@@ -896,16 +922,16 @@ void handle_SetACS(cJSON *data)
         }
     }
 
-    // --- 打印最终的 setACS 状态 (用于调试) ---
-    xil_printf("CPU1: Final setACS State:\r\n");
-    xil_printf("ClosedLoop: %d\r\n", setACS.ClosedLoop);
-    for (int i = 0; i < LinesAC * ChnsAC; i++)
-    {
-        printf("  vals[%d]: Line=%d, Chn=%d, F=%.2f, UR=%.2f, U=%.2f, PhU=%.2f, IR=%.2f, I=%.2f, PhI=%.2f\n",
-               i, setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
-               setACS.Vals[i].UR, setACS.Vals[i].U, setACS.Vals[i].PhU,
-               setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
-    }
+    // // --- 打印最终的 setACS 状态 (用于调试) ---
+    // xil_printf("CPU1: Final setACS State:\r\n");
+    // xil_printf("ClosedLoop: %d\r\n", setACS.ClosedLoop);
+    // for (int i = 0; i < LinesAC * ChnsAC; i++)
+    // {
+    //     printf("  vals[%d]: Line=%d, Chn=%d, F=%.2f, UR=%.2f, U=%.2f, PhU=%.2f, IR=%.2f, I=%.2f, PhI=%.2f\n",
+    //            i, setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
+    //            setACS.Vals[i].UR, setACS.Vals[i].U, setACS.Vals[i].PhU,
+    //            setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
+    // }
     // xil_printf("CPU1: Debug: valsPresent=%d, onlyRangeFieldsFound=%d\n", valsPresent, onlyRangeFieldsFound);
 
     // --- 回报 JSON ---
@@ -1003,7 +1029,7 @@ void handle_SetACS(cJSON *data)
 
         if (powamp_state == POWAMP_ON)
         {
-            printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\n", enable);
+            // printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\n", enable);
             // 根据 setACS.ClosedLoop 决定 PID 状态
             PID_STATE pid_state = setACS.ClosedLoop ? PID_ON : PID_OFF;
             str_wr_bram(pid_state);
@@ -1159,14 +1185,14 @@ void handle_SetHarm(cJSON *data)
                 harmonics_phases[channelIndex][harmonicIndex] = (float)phU->valuedouble;
             }
 
-            printf("CPU1: Updated voltage harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
-                   chn->valueint, hn->valueint, uValue, uValue / 100.0f);
+            // printf("CPU1: Updated voltage harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
+            //        chn->valueint, hn->valueint, uValue, uValue / 100.0f);
 
             if (phU != NULL)
             {
-                printf(", Phase: %.2f", (float)phU->valuedouble);
+                // printf(", Phase: %.2f", (float)phU->valuedouble);
             }
-            printf("\n");
+            // printf("\n");
         }
 
         // 更新电流(I)谐波（通道偏移4）
@@ -1189,14 +1215,14 @@ void handle_SetHarm(cJSON *data)
                 harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
             }
 
-            printf("CPU1: Updated current harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
-                   chn->valueint, hn->valueint, iValue, iValue / 100.0f);
+            // printf("CPU1: Updated current harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
+            //        chn->valueint, hn->valueint, iValue, iValue / 100.0f);
 
             if (phI != NULL)
             {
-                printf(", Phase: %.2f", (float)phI->valuedouble);
+                // printf(", Phase: %.2f", (float)phI->valuedouble);
             }
-            printf("\n");
+            // printf("\n");
         }
     }
 
@@ -1898,10 +1924,10 @@ void report_protection_event(u8 ProectFault)
     // Create the Data object
     cJSON *data = cJSON_CreateObject();
 
-    // Check for IOPEN
+    // Check for IOpen
     if ((ProectFault & 0x0F) != 0x0F)
     {
-        cJSON *IOPEN = cJSON_CreateArray();
+        cJSON *IOpen = cJSON_CreateArray();
 
         // Correct bit mapping: Bit 0 for IX, Bit 1 for IC, Bit 2 for IB, Bit 3 for IA
         for (int i = 0; i < 4; i++)
@@ -1915,24 +1941,24 @@ void report_protection_event(u8 ProectFault)
                 int channelMap[4] = {4, 3, 2, 1}; // IX IC IB IA
 
                 cJSON_AddNumberToObject(fault, "Chn", channelMap[i]);
-                cJSON_AddItemToArray(IOPEN, fault);
+                cJSON_AddItemToArray(IOpen, fault);
             }
         }
 
-        if (cJSON_GetArraySize(IOPEN) > 0)
+        if (cJSON_GetArraySize(IOpen) > 0)
         {
-            cJSON_AddItemToObject(data, "IOPEN", IOPEN);
+            cJSON_AddItemToObject(data, "IOpen", IOpen);
         }
         else
         {
-            cJSON_Delete(IOPEN);
+            cJSON_Delete(IOpen);
         }
     }
 
-    // Check for USHORT
+    // Check for UShort
     if ((ProectFault & 0xF0) != 0xF0)
     {
-        cJSON *USHORT = cJSON_CreateArray();
+        cJSON *UShort = cJSON_CreateArray();
 
         for (int i = 0; i < 4; i++)
         {
@@ -1944,17 +1970,17 @@ void report_protection_event(u8 ProectFault)
 
                 int channelMap[4] = {4, 3, 2, 1}; // UX UC UB UA
                 cJSON_AddNumberToObject(fault, "Chn", channelMap[i]);
-                cJSON_AddItemToArray(USHORT, fault);
+                cJSON_AddItemToArray(UShort, fault);
             }
         }
 
-        if (cJSON_GetArraySize(USHORT) > 0)
+        if (cJSON_GetArraySize(UShort) > 0)
         {
-            cJSON_AddItemToObject(data, "USHORT", USHORT);
+            cJSON_AddItemToObject(data, "UShort", UShort);
         }
         else
         {
-            cJSON_Delete(USHORT);
+            cJSON_Delete(UShort);
         }
     }
 

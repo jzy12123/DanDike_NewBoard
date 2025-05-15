@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.c": "c",
-        "rc64.h": "c"
-    }
+        "rc64.h": "c",
+        "communications_protocol.h": "c"
+    },
+    "cmake.ignoreCMakeListsMissing": true
 }
