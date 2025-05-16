@@ -28,12 +28,10 @@
 #include "Communications_Protocol.h"
 
 /*
-*版本信息
-*/
+ *版本信息
+ */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250515.1934";
-
-
+const char ARM_Ver_Full[] = "[Ver]=V1.250516.0941";
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -225,7 +223,6 @@ void handle_GetFunCodeList(cJSON *data)
     cJSON_Delete(reply);
     free(string);
 }
-
 
 // 辅助函数，用于提取版本号
 const char *get_version_string(const char *full_version_str)
@@ -858,7 +855,7 @@ void handle_SetACS(cJSON *data)
             cJSON *ur = cJSON_GetObjectItem(val, "UR");
             if (ur && cJSON_IsNumber(ur))
             {
-                //如果ur不为0
+                // 如果ur不为0
                 if (ur->valuedouble != 0)
                 {
                     setACS.Vals[i].UR = (float)ur->valuedouble;
@@ -888,7 +885,7 @@ void handle_SetACS(cJSON *data)
             cJSON *ir = cJSON_GetObjectItem(val, "IR");
             if (ir && cJSON_IsNumber(ir))
             {
-                //如果ir不为0
+                // 如果ir不为0
                 if (ir->valuedouble != 0)
                 {
                     setACS.Vals[i].IR = (float)ir->valuedouble;
@@ -2317,8 +2314,8 @@ LineDO lineDO;
 LineDisoe lineDisoe;
 void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 {
-    UDPPacket udpPacket;
 
+    UDPPacket udpPacket;
     // 动态计算 payload 大小
     size_t dynamic_payload_size = calculate_dynamic_payload_size(ReportStatus);
 
@@ -2425,7 +2422,6 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     uint32_t last_byte_addr = UDP_ADDRESS + UDP_MEM_SIZE - 4; // 共享内存最后一个字地址
     Xil_Out32(last_byte_addr, 1);
     Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
-
     // 写UDP到共享内存
     // 检查是否超出限制
     if (16 + dynamic_payload_size + 4 > UDP_MEM_SIZE)
@@ -2441,8 +2437,19 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     Xil_Out32(last_byte_addr, 0);
     Xil_DCacheFlushRange((INTPTR)last_byte_addr, sizeof(u32));
 
-    // 刷新整个UDP
-    Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
+    // 当前发送计数器
+    static uint32_t udpReportCount = 0; // Read from shared memory
+    udpReportCount++;
+    if (udpReportCount >= 0xFFFFFFFF)
+    { // Check for overflow (max uint32_t value)
+        udpReportCount = 0;
+    }
+    // 更新计数器
+    Xil_Out32(UDP_ADDRESS + UDP_MEM_SIZE - 8, udpReportCount);                       // Write back to shared memory
+    Xil_DCacheFlushRange((INTPTR)(UDP_ADDRESS + UDP_MEM_SIZE - 8), sizeof(uint32_t)); // Flush cache
+    // printf("UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
+    // // 刷新整个UDP
+    // Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
     // 打印调试信息
     // printf("lineAC size: %zu bytes\n", sizeof(LineAC));
     // printf("dynamic_payload_size: %zu bytes\n", dynamic_payload_size);
