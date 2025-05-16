@@ -1,6 +1,7 @@
 #ifndef COMMUNICATIONS_PROTOCOL_H
 #define COMMUNICATIONS_PROTOCOL_H
 
+#include "string.h"
 #include "stdio.h"
 #include "stdint.h"
 #include "stdlib.h"
@@ -295,8 +296,10 @@ typedef struct
 	bool ClosedLoop;
 } ReplyData;
 
+extern volatile u8 udp_data_changed_flag; // UDP数据变化标志位
 extern const char FPGA_Ver_Full[];
 extern const char ARM_Ver_Full[];
+
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/

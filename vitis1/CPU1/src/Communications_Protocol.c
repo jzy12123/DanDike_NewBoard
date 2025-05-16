@@ -27,11 +27,13 @@
  */
 #include "Communications_Protocol.h"
 
+// 定义全局变量，用于标记数据是否改变并需要发送。初始化为1是为了确保第一次会发送。
+volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
 /*
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250516.0941";
+const char ARM_Ver_Full[] = "[Ver]=V1.250516.1125";
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -1015,6 +1017,15 @@ void handle_SetACS(cJSON *data)
         devState.bACMeterMode = 0;                // 量程切换通常意味着处于源模式
         devState.bACRunning = 0;                  // 切换量程时停止运行状态
         devState.bClosedLoop = setACS.ClosedLoop; // 保持 JSON 中指定的 (或之前的) 闭环状态
+
+        // 清空UDP结构体
+        initLineAC(&lineAC);
+        initLineHarm(&lineHarm);
+        for (int i = 0; i < 4; i++)
+        {
+            lineAC.ur[i] = setACS.Vals[i].UR;
+            lineAC.ir[i] = setACS.Vals[i].IR;
+        }
     }
     else
     {
@@ -1057,8 +1068,18 @@ void handle_SetACS(cJSON *data)
             devState.bACMeterMode = 0;
             devState.bACRunning = 0; // 停止运行状态
             devState.bClosedLoop = setACS.ClosedLoop;
+
+            // 清空UDP结构体
+            initLineAC(&lineAC);
+            initLineHarm(&lineHarm);
+            for (int i = 0; i < 4; i++)
+            {
+                lineAC.ur[i] = setACS.Vals[i].UR;
+                lineAC.ir[i] = setACS.Vals[i].IR;
+            }
         }
     }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 SetACM setACM;
@@ -1099,6 +1120,8 @@ void handle_SetACM(cJSON *data)
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 1;
     devState.bACRunning = 1;
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 SetHarm setHarm;
@@ -1241,6 +1264,8 @@ void handle_SetHarm(cJSON *data)
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void handle_SetInterHarm(cJSON *data)
@@ -1283,6 +1308,8 @@ void handle_SetDO(cJSON *data)
     replyData.hasClosedLoop = false;
     // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void handle_StopDCS(cJSON *data)
@@ -1328,6 +1355,15 @@ void handle_StopAC(cJSON *data)
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 0;
     devState.bACRunning = 0;
+    // 清空UDP结构体
+    initLineAC(&lineAC);
+    initLineHarm(&lineHarm);
+    for (int i = 0; i < 4; i++)
+    {
+        lineAC.ur[i] = setACS.Vals[i].UR;
+        lineAC.ir[i] = setACS.Vals[i].IR;
+    }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void handle_ClearHarm(cJSON *data)
@@ -1350,6 +1386,8 @@ void handle_ClearHarm(cJSON *data)
     memset(harmonics_phases, 0, sizeof(harmonics_phases));
     // 生成交流信号
     str_wr_bram(PID_OFF);
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void handle_ClearInterHarm(cJSON *data)
@@ -1506,6 +1544,8 @@ void handle_SetCalibrateAC(cJSON *data)
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 /**
@@ -1844,6 +1884,8 @@ void handle_WriteCalibrateAC(cJSON *data)
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
+
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 // 生成JSON字符串并写入共享内存的函数
@@ -2064,6 +2106,15 @@ void report_protection_event(u8 ProectFault)
     free(finalString);
     cJSON_Delete(report);
     free(string);
+    // 清空UDP结构体
+    initLineAC(&lineAC);
+    initLineHarm(&lineHarm);
+    for (int i = 0; i < 4; i++)
+    {
+        lineAC.ur[i] = setACS.Vals[i].UR;
+        lineAC.ir[i] = setACS.Vals[i].IR;
+    }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void write_command_to_shared_memory()
@@ -2314,6 +2365,12 @@ LineDO lineDO;
 LineDisoe lineDisoe;
 void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 {
+    if (udp_data_changed_flag == 0)
+    {
+        // 如果数据未发生变化，返回
+        return;
+    }
+    udp_data_changed_flag = 0;
 
     UDPPacket udpPacket;
     // 动态计算 payload 大小
@@ -2445,9 +2502,9 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
         udpReportCount = 0;
     }
     // 更新计数器
-    Xil_Out32(UDP_ADDRESS + UDP_MEM_SIZE - 8, udpReportCount);                       // Write back to shared memory
+    Xil_Out32(UDP_ADDRESS + UDP_MEM_SIZE - 8, udpReportCount);                        // Write back to shared memory
     Xil_DCacheFlushRange((INTPTR)(UDP_ADDRESS + UDP_MEM_SIZE - 8), sizeof(uint32_t)); // Flush cache
-    // printf("UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
+    printf("CPU1:UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
     // // 刷新整个UDP
     // Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
     // 打印调试信息
@@ -2476,6 +2533,7 @@ void initDevState(DevState *devState)
     devState->Reserved13 = 0;
     devState->Reserved14 = 0;
     devState->Reserved15 = 0;
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 // Function to initialize LineAC
@@ -2499,6 +2557,7 @@ void initLineAC(LineAC *lineAC)
     lineAC->totalP = 0.0;
     lineAC->totalQ = 0.0;
     lineAC->totalPF = 0.0;
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 // Function to initialize LineHarm
@@ -2518,6 +2577,7 @@ void initLineHarm(LineHarm *lineHarm)
         lineHarm->harm[i].totalP = 0.0;
         lineHarm->harm[i].totalQ = 0.0;
     }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 void initLineDI(LineDI *lineDI)
 {
@@ -2525,6 +2585,7 @@ void initLineDI(LineDI *lineDI)
     {
         lineDI->DI[i].v = 0;
     }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void initLineDO(LineDO *lineDO)
@@ -2533,6 +2594,7 @@ void initLineDO(LineDO *lineDO)
     {
         lineDO->DO[i].v = 0;
     }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 void initLineDisoe(LineDisoe *lineDisoe)
@@ -2544,6 +2606,7 @@ void initLineDisoe(LineDisoe *lineDisoe)
         lineDisoe->DISOE[i].MS = 0;
         lineDisoe->DISOE[i].TIME = 0;
     }
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
 
 // Function to write data to shared memory
@@ -2597,6 +2660,7 @@ void init_setACS()
         setACS.Vals[i].PhI = 0.0f; // 电流相位
     }
 
+    udp_data_changed_flag = 1; // 更新UDP标志
     // 打印初始化完成消息
     // printf("CPU1: setACS.Vals initialization completed.\n");
 }
@@ -2613,4 +2677,5 @@ void init_JsonUdp(void)
     initLineDI(&lineDI);
     initLineDO(&lineDO);
     initLineDisoe(&lineDisoe);
+    udp_data_changed_flag = 1; // 更新UDP标志
 }
