@@ -71,7 +71,6 @@ proc create_report { reportName command } {
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param chipscope.maxJobs 2
-set_param synth.incrementalSynthesisCache C:/Users/saber/Desktop/share/DanDike_NewBoard/.Xil/Vivado-3104-DESKTOP-L4NOM67/incrSyn
 set_msg_config -id {Synth 8-256} -limit 10000
 set_msg_config -id {Synth 8-638} -limit 10000
 OPTRACE "Creating in-memory project" START { }
@@ -147,15 +146,25 @@ set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_24/bd_44e3_m00wn_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_25/bd_44e3_m00bn_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_board.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_15/system_auto_pc_15_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_0_2/system_auto_pc_0_ooc.xdc]
-set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_7_2/system_auto_pc_7_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_1_2/system_auto_pc_1_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_2_1/system_auto_pc_2_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_3_2/system_auto_pc_3_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_4_2/system_auto_pc_4_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_5_1/system_auto_pc_5_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_6_1/system_auto_pc_6_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_7_2/system_auto_pc_7_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_8_1/system_auto_pc_8_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_9/system_auto_pc_9_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_10/system_auto_pc_10_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_11/system_auto_pc_11_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_12/system_auto_pc_12_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_13/system_auto_pc_13_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_14/system_auto_pc_14_ooc.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_auto_pc_16/system_auto_pc_16_ooc.xdc]
 set_property used_in_implementation false [get_files -all C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system_ooc.xdc]
 
 OPTRACE "Adding files" END { }

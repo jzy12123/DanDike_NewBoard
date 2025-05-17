@@ -1,0 +1,129 @@
+/*
+
+Xilinx Vivado v2020.2 (64-bit) [Major: 2020, Minor: 2]
+SW Build: 3064766 on Wed Nov 18 09:12:45 MST 2020
+IP Build: 3064653 on Wed Nov 18 14:17:31 MST 2020
+
+Process ID (PID): 21984
+License: Customer
+Mode: GUI Mode
+
+Current time: 	Sat May 17 15:24:23 CST 2025
+Time zone: 	China Standard Time (Asia/Shanghai)
+
+OS: Windows 10
+OS Version: 10.0
+OS Architecture: amd64
+Available processors (cores): 8
+
+Screen size: 3840x2160
+Screen resolution (DPI): 175
+Available screens: 2
+Default font: family=Dialog,name=Dialog,style=plain,size=21
+Scale size: 37
+
+Java version: 	11.0.2 64-bit
+Java home: 	E:/vivado/Vivado/2020.2/tps/win64/jre11.0.2
+Java executable location: 	E:/vivado/Vivado/2020.2/tps/win64/jre11.0.2/bin/java.exe
+Java initial memory (-Xms): 	128 MB
+Java maximum memory (-Xmx):	 3 GB
+
+
+User name: 	saber
+User home directory: C:/Users/saber
+User working directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+User country: 	CN
+User language: 	zh
+User locale: 	zh_CN
+
+RDI_BASEROOT: E:/vivado/Vivado
+HDI_APPROOT: E:/vivado/Vivado/2020.2
+RDI_DATADIR: E:/vivado/Vivado/2020.2/data
+RDI_BINDIR: E:/vivado/Vivado/2020.2/bin
+
+Vivado preferences file location: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/vivado.xml
+Vivado preferences directory: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/
+Vivado layouts directory: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/data/layouts
+PlanAhead jar file location: 	E:/vivado/Vivado/2020.2/lib/classes/planAhead.jar
+Vivado log file location: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+Vivado journal file location: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.jou
+Engine tmp dir: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/.Xil/Vivado-21984-DESKTOP-L4NOM67
+
+Xilinx Environment Variables
+----------------------------
+XILINX: E:/vivado/Vivado/2020.2/ids_lite/ISE
+XILINX_DSP: E:/vivado/Vivado/2020.2/ids_lite/ISE
+XILINX_HLS: E:/vivado/Vitis_HLS/2020.2
+XILINX_PLANAHEAD: E:/vivado/Vivado/2020.2
+XILINX_SDK: E:/vivado/Vitis/2020.2
+XILINX_VITIS: E:/vivado/Vitis/2020.2
+XILINX_VIVADO: E:/vivado/Vivado/2020.2
+XILINX_VIVADO_HLS: E:/vivado/Vivado/2020.2
+
+
+GUI allocated memory:	144 MB
+GUI max memory:		3,072 MB
+Engine allocated memory: 1,134 MB
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+
+*/
+
+// TclEventType: START_GUI
+// Tcl Message: start_gui 
+// TclEventType: PROJECT_OPEN_DIALOG
+// [GUI Memory]: 124 MB (+127524kb) [00:00:09]
+// [Engine Memory]: 1,134 MB (+1037920kb) [00:00:09]
+// bz (cr):  Open Project : addNotify
+// Opening Vivado Project: C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr. Version: Vivado v2020.2 
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// Tcl Message: open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr 
+// HMemoryUtils.trashcanNow. Engine heap size: 1,134 MB. GUI used memory: 80 MB. Current time: 5/17/25, 3:24:24 PM CST
+// TclEventType: MSGMGR_MOVEMSG
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILE_SET_NEW
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: RUN_CURRENT
+// TclEventType: PROJECT_DASHBOARD_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: PROJECT_NEW
+// WARNING: HEventQueue.dispatchEvent() is taking  4081 ms.
+// Tcl Message: open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr 
+// Tcl Message: Scanning sources... Finished scanning sources 
+// Tcl Message: INFO: [IP_Flow 19-234] Refreshing IP repositories INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'. INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'. INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'. 
+// [GUI Memory]: 131 MB (+934kb) [00:00:30]
+// [GUI Memory]: 143 MB (+5161kb) [00:00:30]
+// Tcl Message: open_project: Time (s): cpu = 00:00:21 ; elapsed = 00:00:21 . Memory (MB): peak = 1138.453 ; gain = 0.000 
+// Project name: DanDike_NewBoard; location: C:/Users/saber/Desktop/share/DanDike_NewBoard; part: xc7z020clg400-2
+dismissDialog("Open Project"); // bz
+// Tcl Command: 'rdi::info_commands {device::*}'
+// Tcl Command: 'rdi::info_commands {debug::*}'
+// Tcl Command: 'rdi::info_commands {*}'
+// [GUI Memory]: 175 MB (+26412kb) [00:00:36]
+// Tcl Message: update_compile_order -fileset sources_1 
+selectTree(PAResourceEtoH.FlowNavigatorTreePanel_FLOW_NAVIGATOR_TREE, "[, IP Integrator, Open Block Design]", 7, false); // u
+// Run Command: PAResourceCommand.PACommandNames_OPEN_BLOCK_DESIGN
+// bz (cr):  Open Block Design : addNotify
+// Tcl Message: open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd} 
+// TclEventType: LOAD_FEATURE
+// TclEventType: RSB_SCRIPT_TASK
+// Tcl Message: Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>... 

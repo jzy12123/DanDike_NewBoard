@@ -578,7 +578,7 @@
 /******************************************************************/
 
 /* Definitions for driver IIC */
-#define XPAR_XIIC_NUM_INSTANCES 1
+#define XPAR_XIIC_NUM_INSTANCES 2
 
 /* Definitions for peripheral KEY_BOARD_AXI_IIC_0 */
 #define XPAR_KEY_BOARD_AXI_IIC_0_DEVICE_ID 0
@@ -586,6 +586,14 @@
 #define XPAR_KEY_BOARD_AXI_IIC_0_HIGHADDR 0x4160FFFF
 #define XPAR_KEY_BOARD_AXI_IIC_0_TEN_BIT_ADR 0
 #define XPAR_KEY_BOARD_AXI_IIC_0_GPO_WIDTH 1
+
+
+/* Definitions for peripheral RTC_EEPROM_AXI_IIC_0 */
+#define XPAR_RTC_EEPROM_AXI_IIC_0_DEVICE_ID 1
+#define XPAR_RTC_EEPROM_AXI_IIC_0_BASEADDR 0x41610000
+#define XPAR_RTC_EEPROM_AXI_IIC_0_HIGHADDR 0x4161FFFF
+#define XPAR_RTC_EEPROM_AXI_IIC_0_TEN_BIT_ADR 0
+#define XPAR_RTC_EEPROM_AXI_IIC_0_GPO_WIDTH 1
 
 
 /******************************************************************/
@@ -596,6 +604,13 @@
 #define XPAR_IIC_0_HIGHADDR 0x4160FFFF
 #define XPAR_IIC_0_TEN_BIT_ADR 0
 #define XPAR_IIC_0_GPO_WIDTH 1
+
+/* Canonical definitions for peripheral RTC_EEPROM_AXI_IIC_0 */
+#define XPAR_IIC_1_DEVICE_ID XPAR_RTC_EEPROM_AXI_IIC_0_DEVICE_ID
+#define XPAR_IIC_1_BASEADDR 0x41610000
+#define XPAR_IIC_1_HIGHADDR 0x4161FFFF
+#define XPAR_IIC_1_TEN_BIT_ADR 0
+#define XPAR_IIC_1_GPO_WIDTH 1
 
 
 /******************************************************************/
@@ -668,6 +683,7 @@
 #define XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR 64U
 #define XPAR_FABRIC_AXI_UARTLITE_0_INTERRUPT_INTR 66U
 #define XPAR_FABRIC_KEY_BOARD_AXI_IIC_0_IIC2INTC_IRPT_INTR 67U
+#define XPAR_FABRIC_RTC_EEPROM_AXI_IIC_0_IIC2INTC_IRPT_INTR 86U
 
 /******************************************************************/
 
@@ -678,6 +694,7 @@
 #define XPAR_FABRIC_AXIDMA_0_MM2S_INTROUT_VEC_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR
 #define XPAR_FABRIC_UARTLITE_0_VEC_ID XPAR_FABRIC_AXI_UARTLITE_0_INTERRUPT_INTR
 #define XPAR_FABRIC_IIC_0_VEC_ID XPAR_FABRIC_KEY_BOARD_AXI_IIC_0_IIC2INTC_IRPT_INTR
+#define XPAR_FABRIC_IIC_1_VEC_ID XPAR_FABRIC_RTC_EEPROM_AXI_IIC_0_IIC2INTC_IRPT_INTR
 
 /******************************************************************/
 

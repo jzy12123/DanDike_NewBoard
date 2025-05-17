@@ -33,7 +33,7 @@ volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250516.1125";
+const char ARM_Ver_Full[] = "[Ver]=V1.250517.1616";
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -1873,10 +1873,8 @@ void handle_WriteCalibrateAC(cJSON *data)
     devState.bClosedLoop = 0;  // 开环
     str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
     power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
-    // 打印成功标识
-    printf("CPU1: WriteCalibrateAC: Calibration data updated successfully.\r\n");
     // 将校准参数保存到EEPROM
-    // RC64_WriteCalibData();
+    RC64_WriteCalibData();
 
     // 返回成功响应
     ReplyData replyData;
@@ -2504,7 +2502,7 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // 更新计数器
     Xil_Out32(UDP_ADDRESS + UDP_MEM_SIZE - 8, udpReportCount);                        // Write back to shared memory
     Xil_DCacheFlushRange((INTPTR)(UDP_ADDRESS + UDP_MEM_SIZE - 8), sizeof(uint32_t)); // Flush cache
-    printf("CPU1:UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
+    // printf("CPU1:UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
     // // 刷新整个UDP
     // Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
     // 打印调试信息

@@ -183,20 +183,14 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_gmii
 # IP: bd/system/ip/system_power_pulse_v1_AXI_0_0_1/system_power_pulse_v1_AXI_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_power_pulse_v1_AXI_0_0 || ORIG_REF_NAME==system_power_pulse_v1_AXI_0_0} -quiet] -quiet
 
-# IP: bd/system/ip/system_tier2_xbar_0_0_1/system_tier2_xbar_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_0_0 || ORIG_REF_NAME==system_tier2_xbar_0_0} -quiet] -quiet
+# IP: bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_iic_0_1 || ORIG_REF_NAME==system_axi_iic_0_1} -quiet] -quiet
 
-# IP: bd/system/ip/system_tier2_xbar_1_0_1/system_tier2_xbar_1_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_1_0 || ORIG_REF_NAME==system_tier2_xbar_1_0} -quiet] -quiet
-
-# IP: bd/system/ip/system_tier2_xbar_2_0_1/system_tier2_xbar_2_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_2_0 || ORIG_REF_NAME==system_tier2_xbar_2_0} -quiet] -quiet
+# IP: bd/system/ip/system_auto_pc_15/system_auto_pc_15.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_15 || ORIG_REF_NAME==system_auto_pc_15} -quiet] -quiet
 
 # IP: bd/system/ip/system_auto_pc_0_2/system_auto_pc_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_0 || ORIG_REF_NAME==system_auto_pc_0} -quiet] -quiet
-
-# IP: bd/system/ip/system_auto_pc_7_2/system_auto_pc_7.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_7 || ORIG_REF_NAME==system_auto_pc_7} -quiet] -quiet
 
 # IP: bd/system/ip/system_auto_pc_1_2/system_auto_pc_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_1 || ORIG_REF_NAME==system_auto_pc_1} -quiet] -quiet
@@ -216,8 +210,32 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto
 # IP: bd/system/ip/system_auto_pc_6_1/system_auto_pc_6.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_6 || ORIG_REF_NAME==system_auto_pc_6} -quiet] -quiet
 
+# IP: bd/system/ip/system_auto_pc_7_2/system_auto_pc_7.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_7 || ORIG_REF_NAME==system_auto_pc_7} -quiet] -quiet
+
 # IP: bd/system/ip/system_auto_pc_8_1/system_auto_pc_8.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_8 || ORIG_REF_NAME==system_auto_pc_8} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_9/system_auto_pc_9.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_9 || ORIG_REF_NAME==system_auto_pc_9} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_10/system_auto_pc_10.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_10 || ORIG_REF_NAME==system_auto_pc_10} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_11/system_auto_pc_11.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_11 || ORIG_REF_NAME==system_auto_pc_11} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_12/system_auto_pc_12.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_12 || ORIG_REF_NAME==system_auto_pc_12} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_13/system_auto_pc_13.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_13 || ORIG_REF_NAME==system_auto_pc_13} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_14/system_auto_pc_14.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_14 || ORIG_REF_NAME==system_auto_pc_14} -quiet] -quiet
+
+# IP: bd/system/ip/system_auto_pc_16/system_auto_pc_16.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_16 || ORIG_REF_NAME==system_auto_pc_16} -quiet] -quiet
 
 # XDC: bd/system/ip/system_processing_system7_0_0_1/system_processing_system7_0_0.xdc
 set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_processing_system7_0_0 || ORIG_REF_NAME==system_processing_system7_0_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
@@ -343,9 +361,14 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_axi_smc_0_1/ooc.xdc
 
-# XDC: bd/system/ip/system_auto_pc_0_2/system_auto_pc_0_ooc.xdc
+# XDC: bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_board.xdc
+set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_iic_0_1 || ORIG_REF_NAME==system_axi_iic_0_1} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
 
-# XDC: bd/system/ip/system_auto_pc_7_2/system_auto_pc_7_ooc.xdc
+# XDC: bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_15/system_auto_pc_15_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_0_2/system_auto_pc_0_ooc.xdc
 
 # XDC: bd/system/ip/system_auto_pc_1_2/system_auto_pc_1_ooc.xdc
 
@@ -359,6 +382,22 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_auto_pc_6_1/system_auto_pc_6_ooc.xdc
 
+# XDC: bd/system/ip/system_auto_pc_7_2/system_auto_pc_7_ooc.xdc
+
 # XDC: bd/system/ip/system_auto_pc_8_1/system_auto_pc_8_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_9/system_auto_pc_9_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_10/system_auto_pc_10_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_11/system_auto_pc_11_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_12/system_auto_pc_12_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_13/system_auto_pc_13_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_14/system_auto_pc_14_ooc.xdc
+
+# XDC: bd/system/ip/system_auto_pc_16/system_auto_pc_16_ooc.xdc
 
 # XDC: bd/system/system_ooc.xdc

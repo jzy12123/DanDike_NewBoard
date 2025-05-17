@@ -271,3 +271,14 @@ set_property DRIVE 12 [get_ports KeyBoard_IIC_sda_io]
 
 
 
+
+set_property PACKAGE_PIN H15 [get_ports RTCEEPROM_IIC_scl_io]
+set_property PACKAGE_PIN J15 [get_ports RTCEEPROM_IIC_sda_io]
+set_property IOSTANDARD LVCMOS33 [get_ports RTCEEPROM_IIC_scl_io]
+set_property IOSTANDARD LVCMOS33 [get_ports RTCEEPROM_IIC_sda_io]
+set_property PULLUP true [get_ports RTCEEPROM_IIC_scl_io]
+set_property PULLUP true [get_ports RTCEEPROM_IIC_sda_io]
+
+set_property PULLUP true [get_ports AD_0_ad_sa]
+set_property PULLUP true [get_ports AD_0_ad_sb]
+set_property PULLDOWN true [get_ports AD_0_ad_busy]

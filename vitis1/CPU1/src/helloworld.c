@@ -1,33 +1,5 @@
 /******************************************************************************
- *
- * Copyright (C) 2009 - 2014 Xilinx, Inc.  All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * Use of the Software is limited solely to applications:
- * (a) running on a Xilinx device, or
- * (b) that interact with a Xilinx device through a bus or interconnect.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * XILINX  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
- * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * Except as contained in this notice, the name of the Xilinx shall not be used
- * in advertising or otherwise to promote the sale, use or other dealings in
- * this Software without prior written authorization from Xilinx.
- *
+
  ******************************************************************************/
 
 #include <stdio.h>
@@ -46,11 +18,6 @@
 #include "xgpiops.h" //包含 PS GPIO 的函数
 #include "Rc64.h"
 
-#define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
-#define MIO_USB 8 // 连接到 MIO8
-// 在FFT计算开始前
-#define CPU1_PRIORITY_REG 0xF8F00104
-void reinitialize_dma_controller();
 int main()
 {
 	sleep(30); // 必须要有等待linux启动
@@ -64,12 +31,15 @@ int main()
 	// XGpioPs_SetDirectionPin(&Gpio, MIO_USB, 1);
 	// XGpioPs_SetOutputEnablePin(&Gpio, MIO_USB, 1);
 	// XGpioPs_WritePin(&Gpio, MIO_USB, 0x1);
+	xil_printf("\r\n-----------------------------------------------------------------------------\r\n");
+	xil_printf("CPU1: Starting...\r\n");
+	// 初始化RC64模块
+	RC64_Init();
+	// 从EEPROM读取校准参数
+	RC64_ReadCalibData();
 
-	// // 初始化RC64模块
-	// RC64_Init();
-	// // 从EEPROM读取校准参数
-	// RC64_ReadCalibData();
 	/************************** DMA初始化 *****************************/
+	xil_printf("CPU1: Initializing DMA...\r\n");
 	int status;
 	XAxiDma_Config *config;
 	config = XAxiDma_LookupConfig(DMA_DEV_ID);
@@ -88,6 +58,7 @@ int main()
 	error = 0;
 
 	/************************** 定时器初始化 *****************************/
+	xil_printf("CPU1: Initializing Timer...\r\n");
 	status = timer_init(&Timer); // 定时器初始化
 	if (status != XST_SUCCESS)
 	{
@@ -95,7 +66,8 @@ int main()
 	}
 	Timer_Flag = 0;
 
-	// 建立中断系统
+	/************************** 建立中断系统 *****************************/
+	xil_printf("CPU1: Initializing Interrupt System...\r\n");
 	status = setup_intr_system(&intc, &axidma, &Timer,
 							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID, TIMER_IRPT_INTR);
 	if (status != XST_SUCCESS)
@@ -111,14 +83,16 @@ int main()
 	Xil_SetTlbAttributes(0x40400000, 0xC02); // DMA控制器寄存器区域
 	Xil_SetTlbAttributes(0x43C30000, 0xC02); // ADC控制器寄存器区域
 
-	XScuTimer_Start(&Timer); // 启动定时器
+	xil_printf("CPU1: Initializing Json...\r\n");
 	InitializeQueues();
 	init_JsonUdp();
 	PID_Init_All();
 
-	xil_printf("CPU1: Initialization successfully\r\n");
+	xil_printf("CPU1: Start Timer...\r\n");
+	XScuTimer_Start(&Timer); // 启动定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
-	xil_printf("CPU1: ARM Version: %s\r\n", arm_version_for_print);
+	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
+	xil_printf("-----------------------------------------------------------------------------\r\n");
 
 	while (1)
 	{
@@ -131,9 +105,13 @@ int main()
 			{
 				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 
+				if (AdcFinish_Flag != 1)
+				{
+					// 直接不进行计算
+					goto ReportUDP;
+				}
 				// 刷新共享内存的缓存，保证数据的一致性
 				Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-
 				// 重置计算值
 				double Phase_reference = 0; // 定义相位基准
 				lineAC.totalP = 0.0;
@@ -373,19 +351,19 @@ int main()
 
 				udp_data_changed_flag = 1; // 标记数据已更新
 			}
-			// else
-			// {
-			// 	// 清空UDP结构体
-			// 	initLineAC(&lineAC);
-			// 	initLineHarm(&lineHarm);
-			// 	for (int i = 0; i < 4; i++)
-			// 	{
-			// 		lineAC.ur[i] = setACS.Vals[i].UR;
-			// 		lineAC.ir[i] = setACS.Vals[i].IR;
-			// 	}
-			// 	udp_data_changed_flag = 1; // 标记数据已更新
-			// }
-
+		// else
+		// {
+		// 	// 清空UDP结构体
+		// 	initLineAC(&lineAC);
+		// 	initLineHarm(&lineHarm);
+		// 	for (int i = 0; i < 4; i++)
+		// 	{
+		// 		lineAC.ur[i] = setACS.Vals[i].UR;
+		// 		lineAC.ir[i] = setACS.Vals[i].IR;
+		// 	}
+		// 	udp_data_changed_flag = 1; // 标记数据已更新
+		// }
+		ReportUDP:
 			/*3 回报UDP结构体*/
 			Timer_Flag = 0;
 			ReportUDP_Structure(reportStatus);

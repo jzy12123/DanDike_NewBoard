@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Wed Apr 16 15:10:57 2025
+//Date        : Fri May 16 15:06:41 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -61,6 +61,8 @@ module system_wrapper
     RGMII_0_td,
     RGMII_0_tx_ctl,
     RGMII_0_txc,
+    RTCEEPROM_IIC_scl_io,
+    RTCEEPROM_IIC_sda_io,
     RdSerial_0_rd_load,
     RdSerial_0_rd_sclk,
     RdSerial_0_rd_sdi,
@@ -133,6 +135,8 @@ module system_wrapper
   output [3:0]RGMII_0_td;
   output RGMII_0_tx_ctl;
   output RGMII_0_txc;
+  inout RTCEEPROM_IIC_scl_io;
+  inout RTCEEPROM_IIC_sda_io;
   output RdSerial_0_rd_load;
   output RdSerial_0_rd_sclk;
   input RdSerial_0_rd_sdi;
@@ -221,6 +225,14 @@ module system_wrapper
   wire [3:0]RGMII_0_td;
   wire RGMII_0_tx_ctl;
   wire RGMII_0_txc;
+  wire RTCEEPROM_IIC_scl_i;
+  wire RTCEEPROM_IIC_scl_io;
+  wire RTCEEPROM_IIC_scl_o;
+  wire RTCEEPROM_IIC_scl_t;
+  wire RTCEEPROM_IIC_sda_i;
+  wire RTCEEPROM_IIC_sda_io;
+  wire RTCEEPROM_IIC_sda_o;
+  wire RTCEEPROM_IIC_sda_t;
   wire RdSerial_0_rd_load;
   wire RdSerial_0_rd_sclk;
   wire RdSerial_0_rd_sdi;
@@ -354,6 +366,16 @@ module system_wrapper
         .IO(MDIO_ETHERNET_1_0_mdio_io),
         .O(MDIO_ETHERNET_1_0_mdio_i),
         .T(MDIO_ETHERNET_1_0_mdio_t));
+  IOBUF RTCEEPROM_IIC_scl_iobuf
+       (.I(RTCEEPROM_IIC_scl_o),
+        .IO(RTCEEPROM_IIC_scl_io),
+        .O(RTCEEPROM_IIC_scl_i),
+        .T(RTCEEPROM_IIC_scl_t));
+  IOBUF RTCEEPROM_IIC_sda_iobuf
+       (.I(RTCEEPROM_IIC_sda_o),
+        .IO(RTCEEPROM_IIC_sda_io),
+        .O(RTCEEPROM_IIC_sda_i),
+        .T(RTCEEPROM_IIC_sda_t));
   IOBUF gpio0_tri_iobuf_0
        (.I(gpio0_tri_o_0),
         .IO(gpio0_tri_io[0]),
@@ -526,6 +548,12 @@ module system_wrapper
         .RGMII_0_td(RGMII_0_td),
         .RGMII_0_tx_ctl(RGMII_0_tx_ctl),
         .RGMII_0_txc(RGMII_0_txc),
+        .RTCEEPROM_IIC_scl_i(RTCEEPROM_IIC_scl_i),
+        .RTCEEPROM_IIC_scl_o(RTCEEPROM_IIC_scl_o),
+        .RTCEEPROM_IIC_scl_t(RTCEEPROM_IIC_scl_t),
+        .RTCEEPROM_IIC_sda_i(RTCEEPROM_IIC_sda_i),
+        .RTCEEPROM_IIC_sda_o(RTCEEPROM_IIC_sda_o),
+        .RTCEEPROM_IIC_sda_t(RTCEEPROM_IIC_sda_t),
         .RdSerial_0_rd_load(RdSerial_0_rd_load),
         .RdSerial_0_rd_sclk(RdSerial_0_rd_sclk),
         .RdSerial_0_rd_sdi(RdSerial_0_rd_sdi),

@@ -12,10 +12,10 @@
 
 // --- Base Address Definition ---
 // 使用 xparameters.h 中定义的 AXI IIC 控制器基地址
-#define IIC_BASE_ADDRESS XPAR_IIC_0_BASEADDR
+#define IIC_BASE_ADDRESS XPAR_IIC_1_BASEADDR
 
 // --- EEPROM Device Definitions ---
-#define I2C_DEVICE_ID XPAR_IIC_0_DEVICE_ID // AXI IIC 设备ID (低层级驱动可能不直接使用)
+#define I2C_DEVICE_ID XPAR_IIC_1_DEVICE_ID // AXI IIC 设备ID (低层级驱动可能不直接使用)
 #define EEPROM_ADDRESS 0x50                // EEPROM 的 7 位 I2C 从设备地址
 #define EEPROM_PAGE_SIZE 32                // EEPROM 的页大小 (字节)
 

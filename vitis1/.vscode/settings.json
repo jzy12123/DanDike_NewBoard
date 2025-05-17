@@ -2,7 +2,8 @@
     "files.associations": {
         "*.c": "c",
         "rc64.h": "c",
-        "communications_protocol.h": "c"
+        "communications_protocol.h": "c",
+        "xil_mmu.h": "c"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

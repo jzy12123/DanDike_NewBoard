@@ -18,7 +18,7 @@ static u8 WriteBuffer[EEPROM_PAGE_SIZE + sizeof(AddressType)];
 // 读缓冲区，大小至少能容纳单次最大读取量 (这里用页大小示例，但实际可能读更大块)
 //static u8 ReadBuffer[EEPROM_PAGE_SIZE]; // 示例，实际 EepromReadData 会直接写到目标 BufferPtr
 
-// 外部校准数组声明 (定义需要在其他文件中)
+// 外部校准数组声明 
 extern double DA_Correct_100[ROWS][COLS];
 extern double DA_Correct_20[ROWS][COLS];
 extern double DA_CorrectPhase_100[ROWS][COLS];
