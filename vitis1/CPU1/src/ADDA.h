@@ -47,7 +47,7 @@
 #define FIFO_DEPTH 1024                                                            // FIFO深度1024
 
 // dma_dac
-#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号                                                  
+#define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号
 #define Underflow_INTR_ID 65U                                                      // FIFO空中断
 #define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
 #define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半
@@ -61,7 +61,6 @@
 #define BRAM_DATA_BYTE 4 // BRAM数据字节个数
 #define CHANNL_MAX 8
 #define MAX_HARMONICS 32 // 最大谐波次数
-
 
 // 定义PID状态枚举
 typedef enum
@@ -85,8 +84,6 @@ extern XAxiDma axidma; // XAxiDma实例
 extern XScuGic intc;   // 中断控制器的实例
 extern XScuTimer Timer;
 
-extern volatile int tx_done;   // 发送完成标志
-extern volatile int error;     // 传输出错标志
 extern volatile u8 Timer_Flag; // 定时器完成标志
 
 extern bool AdcFinish_Flag;            // ADC采样完成标志

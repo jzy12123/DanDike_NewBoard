@@ -2,13 +2,12 @@
 /*
  * 变量
  */
-XAxiDma axidma;                     // XAxiDma实例
-XScuGic intc;                       // 中断控制器的实例
-XScuTimer Timer;                    // 定时器驱动程序实例
-volatile int tx_done;               // 发送完成标志
-volatile int error = 0;             // 传输出错标志
+XAxiDma axidma;  // XAxiDma实例
+XScuGic intc;    // 中断控制器的实例
+XScuTimer Timer; // 定时器驱动程序实例
+
 volatile int adcS_done;             // adc发送完成标志
-volatile u8 Timer_Flag;             // 定时器完成标志
+volatile u8 Timer_Flag = 0;             // 定时器完成标志
 volatile u8 Current_DDR_Region = 0; // 0表示使用Share_addr_1，1表示使用Share_addr_2
 
 // ad
@@ -19,7 +18,7 @@ volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
 float Phase_shift[8] = {0, 120, 240, 0, 0, 120, 240, 0}; // 8路波形相位偏移 单位度
-uint16_t enable = 0xff;                                       // 使能通道输出
+uint16_t enable = 0xff;                                  // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
@@ -123,11 +122,10 @@ void AdcDma_Start_OneBulk(int SamplePoints, int SampleFrequency)
 }
 void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
 {
-    error = 0;
     AdcFinish_Flag = 0;
     ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
     AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
-    usleep(500000);
+    // usleep(500000);
     // 下面进入adcS_intr_handler函数
 }
 
@@ -177,7 +175,7 @@ void rx_intr_handler(void *callback)
     // Rx出错
     if ((irq_status & XAXIDMA_IRQ_ERROR_MASK))
     {
-        error = 1;
+
         XAxiDma_Reset(axidma_inst);
         timeout = RESET_TIMEOUT_COUNTER;
         printf("CPU1:DMA RX Interrupt Handler: Error Transfer\n");
@@ -195,10 +193,9 @@ void rx_intr_handler(void *callback)
     {
         // 用户函数
         // ADC错误计数
-        if ((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
-        {
-            error += 1;
-        }
+        // if ((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
+        // {
+        // }
         // 继续开启新一次的ADC
         if (ADC_Sampling_ddr > 1)
         {
@@ -255,7 +252,7 @@ void tx_intr_handler(void *callback)
     // Tx出错
     if ((irq_status & XAXIDMA_IRQ_ERROR_MASK))
     {
-        error = 1;
+
         XAxiDma_Reset(axidma_inst);
         timeout = RESET_TIMEOUT_COUNTER;
         while (timeout)
@@ -270,7 +267,6 @@ void tx_intr_handler(void *callback)
     // Tx完成
     if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
     {
-        tx_done = 1;
     }
 }
 
@@ -283,7 +279,6 @@ void underflow_handler()
     sync_dma_buffer((UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
 }
-
 
 // 定时器中断处理函数
 void timer_intr_handler(void *CallBackRef)
@@ -331,7 +326,7 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
 int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id,u16 Timer_id)
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 Timer_id)
 {
     int status;
     XScuGic_Config *intc_config;
@@ -362,7 +357,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);         // 定时器
+    XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr); // 定时器
 
     // 显式地将ADC和DMA中断映射到CPU1
     XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
@@ -656,18 +651,18 @@ void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees
     for (int i = 0; i < Array_length; i++)
     {
         // 计算基本波形的相位
-        double phase = 2 * M_PI * i / Array_length;                         // 基本波形的相位
+        double phase = 2 * M_PI * i / Array_length; // 基本波形的相位
         // 添加基波相位偏移
         double shifted_phase = phase + (Base_Phase_Degrees * M_PI / 180.0); // 添加基波相位偏移
         // 计算基本正弦波的值
-        double sum = sin(shifted_phase);                                    // 基本正弦波
+        double sum = sin(shifted_phase); // 基本正弦波
 
         // 添加谐波
         // 遍历谐波数组
         for (int j = 0; j < numHarmonics; j++)
         {
             // 计算谐波相位
-            double harmonic_phase = (j + 2) * phase;                                               // 基波的整数倍
+            double harmonic_phase = (j + 2) * phase; // 基波的整数倍
             // 添加谐波相位偏移
             double shifted_harmonic_phase = harmonic_phase + harmonics_phases[j] * M_PI / 180.0; // 使用基波和谐波的相位偏移
             // 计算谐波值

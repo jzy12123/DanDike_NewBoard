@@ -34,7 +34,7 @@ int RC64_Init(void)
     u32 CtrlReg;
     volatile u32 Timeout = IIC_TIMEOUT_COUNT; // 使用头文件中定义的超时计数器
 
-    xil_printf("RC64_Init: Initializing AXI IIC using low-level access...\r\n");
+    // xil_printf("CPU1: RC64_Init: Initializing AXI IIC using low-level access...\r\n");
 
     // 检查控制器是否已使能，如果未使能则使能
     CtrlReg = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET);
@@ -61,7 +61,7 @@ int RC64_Init(void)
         usleep(1); // 短暂延时避免CPU空转
     }
 
-    xil_printf("RC64_Init: AXI IIC hardware assumed ready (low-level).\r\n");
+    xil_printf("CPU1: RC64_Init: AXI IIC hardware ready.\r\n");
     return XST_SUCCESS;
 }
 
@@ -74,7 +74,7 @@ int RC64_ReadCalibData(void)
 {
     int Status;
 
-    xil_printf("Start reading calibration data from EEPROM via AXI IIC (low-level)...\r\n");
+    xil_printf("CPU1: Start reading calibration data from EEPROM via AXI IIC...\r\n");
 
     // 读取 DA_Correct_100 数据
     Status = EepromReadData(EEPROM_ADDR_DA_CORRECT_100, (u8 *)DA_Correct_100, ARRAY_BYTES);
@@ -108,7 +108,7 @@ int RC64_ReadCalibData(void)
         return XST_FAILURE;
     }
 
-    xil_printf("CPU1: All calibration data read successfully via AXI IIC (low-level)\r\n");
+    xil_printf("CPU1: All calibration data read successfully via AXI IIC\r\n");
     // 可选：取消下面的注释以打印读取的数据进行验证
     /*
     xil_printf("--- Read Calibration Data Dump ---\r\n");

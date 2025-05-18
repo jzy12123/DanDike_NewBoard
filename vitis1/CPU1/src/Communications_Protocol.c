@@ -33,7 +33,7 @@ volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250517.1616";
+const char ARM_Ver_Full[] = "[Ver]=V1.250518.1127";
 
 void extractContentBetweenPipes(char *buffer)
 {
