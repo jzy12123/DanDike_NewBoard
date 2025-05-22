@@ -62,6 +62,12 @@
 #define CHANNL_MAX 8
 #define MAX_HARMONICS 32 // 最大谐波次数
 
+// 定义ADC状态
+typedef enum
+{
+    ADC_STATE_IDLE,
+    ADC_STATE_SAMPLING
+} ADC_Process_State;
 // 定义PID状态枚举
 typedef enum
 {

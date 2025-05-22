@@ -1,14 +1,11 @@
 /******************************************************************************
 
  ******************************************************************************/
-
-#include <stdio.h>
-
 /* Xilinx includes. */
 #include "xil_printf.h"
+#include "xil_mmu.h"
 #include "xparameters.h"
 /*user includes*/
-#include "xil_mmu.h"
 #include "Amplifier_Switch.h"
 #include "ADDA.h"
 #include "Communications_Protocol.h"
@@ -83,40 +80,105 @@ int main()
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 
+	// // 测试ADC原始数据
+	// while (1)
+	// {
+	// 	//  生成交流信号
+	// 	str_wr_bram(PID_OFF);
+	// 	//  控制功放
+	// 	for (int i = 0; i < CHANNL_MAX; i++)
+	// 	{
+	// 		Wave_Amplitude[i] = 100;
+	// 	}
+	// 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+	// 	usleep(500000); // 500ms
+	// 	Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+	// 	usleep(500000); // 500ms
+
+	// 	// RunADCPIDCycle();
+	// 	// printf("1 UA= %.4f\r\n", lineAC.u[0]);
+	// 	// RunADCPIDCycle();
+	// 	// printf("2 UA= %.4f\r\n", lineAC.u[0]);
+	// 	// RunADCPIDCycle();
+	// 	// printf("3 UA= %.4f\r\n", lineAC.u[0]);
+	// 	// 刷新共享内存的缓存，保证数据的一致性
+	// 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+	// 	// 在读取DDR数据前先使缓存失效
+	// 	Xil_DCacheInvalidateRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+
+	// 	int extended_data[sample_points * AD_SAMP_CYCLE_NUMBER];
+	// 	int channel = 0;
+	// 	// 从指定DDR地址读取数据
+	// 	for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
+	// 	{
+	// 		for (int i = 0; i < sample_points; i++)
+	// 		{
+	// 			extended_data[i + j * sample_points] =
+	// 				Xil_In32(Share_addr + channel * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
+	// 		}
+	// 	}
+
+	// 	// // 打印extended_data，用来测试波形是否正确
+	// 	for (int i = 0; i < sample_points * AD_SAMP_CYCLE_NUMBER; i++)
+	// 	{
+	// 		printf("x=%d\n", extended_data[i]);
+	// 	}
+	// 	sleep(3);
+	// }
+
 	/************************** 变量*****************************/
-	volatile bool adc_awaiting_completion = false; // 标志：ADC已启动，等待下一个周期来检查结果
+	ADC_Process_State adcState = ADC_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
 
 	while (1)
 	{
-		if (Timer_Flag)
+		if (Timer_Flag) // 定时器中断标志，由timer_intr_handler设置
 		{
-			Timer_Flag = 0; // 清除500ms定时器标志
+			Timer_Flag = 0; // 清除定时器标志
 
-			/*AC交流源*/
-			if (devState.bACRunning == true)
+			/*1 AC交流源 ADC采集与处理 */
+			if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
 			{
-				if (adc_awaiting_completion == false) // ADC未启动
+				if (adcState == ADC_STATE_IDLE)
 				{
-					adc_awaiting_completion = true;
-					Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+					// 当前为空闲状态，可以启动新的ADC采集															// 清除完成标志，为新的采集做准备
+					Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); //
+					adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
 				}
-				else if (AdcFinish_Flag != 1) // ADC启动了，但是ADC未完成
+				else
 				{
-					adc_awaiting_completion = false;
-					printf("CPU1: ADC Not Finished ...\r\n");
-				}
-				else // ADC启动了，ADC完成了
-				{
-					adc_awaiting_completion = false;
-					RunADCPIDCycle();
+					// 当前正在采集中，检查是否完成
+					if (AdcFinish_Flag == 1)
+					{
+						// ADC采集和初步数据处理已完成
+						RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+						printf("UA = %.4f\r\n", lineAC.u[0]);
+						adcState = ADC_STATE_IDLE;
+					}
+					else
+					{
+						printf("ADC NotReady !\r\n");
+						adcState = ADC_STATE_IDLE;
+					}
 				}
 			}
+			else // AC交流源关闭
+			{
+				// 如果AC源停止了，确保ADC状态也重置为空闲
+				if (adcState == ADC_STATE_SAMPLING)
+				{
+					// 如果之前正在采样，现在AC停止了，可能需要中止或忽略当前采样
+					// （具体行为取决于需求，这里简单重置状态）
+					xil_printf("CPU1: AC source stopped during sampling. Resetting ADC state.\r\n");
+				}
+				adcState = ADC_STATE_IDLE;
+				AdcFinish_Flag = 0; // 清空标志
+			}
 
-			/*回报UDP结构体*/
-			ReportUDP_Structure(reportStatus);
+			/*2 回报UDP结构体*/
+			ReportUDP_Structure(reportStatus); //
 
-			/*读故障信号*/
-			RdSerial();
+			/*3 读故障信号*/
+			RdSerial(); // 读取并处理硬件故障信号
 		}
 	}
 }

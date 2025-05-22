@@ -1,0 +1,157 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Thu May 22 09:17:54 2025
+# Process ID: 6692
+# Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10272 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+# Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+open_project: Time (s): cpu = 00:00:18 ; elapsed = 00:00:22 . Memory (MB): peak = 1098.730 ; gain = 31.906
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>...
+Adding component instance block -- xilinx.com:ip:processing_system7:5.5 - processing_system7_0
+Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_ps7_0_100M
+Adding component instance block -- xilinx.com:ip:axi_interconnect:2.1 - ps7_0_axi_periph
+Adding component instance block -- xilinx.com:ip:axi_crossbar:2.1 - xbar
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - proc_sys_reset_0
+Adding component instance block -- xilinx.com:ip:xlconcat:2.1 - xlconcat_0
+Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_ps7_0_142M
+Adding component instance block -- xilinx.com:ip:axi_vdma:6.3 - axi_vdma_0
+Adding component instance block -- xilinx.com:ip:axi_gpio:2.0 - axi_gpio_0
+Adding component instance block -- xilinx.com:ip:v_axi4s_vid_out:4.0 - v_axi4s_vid_out_0
+Adding component instance block -- xilinx.com:ip:v_tc:6.2 - v_tc_0
+Adding component instance block -- xilinx.com:ip:clk_wiz:6.0 - clk_wiz_0
+Adding component instance block -- digilentinc.com:IP:PWM:2.0 - PWM_0
+Adding component instance block -- xilinx.com:ip:axi_interconnect:2.1 - axi_mem_intercon
+Adding component instance block -- xilinx.com:ip:axi_protocol_converter:2.1 - auto_pc
+Adding component instance block -- openedv.com:user:rgb2lcd:1.0 - rgb2lcd_0
+Adding component instance block -- xilinx.com:ip:axi_gpio:2.0 - axi_gpio_0
+Adding component instance block -- xilinx.com:ip:axi_uartlite:2.0 - axi_uartlite_0
+Adding component instance block -- xilinx.com:ip:axi_iic:2.0 - axi_iic_0
+Adding component instance block -- xilinx.com:ip:util_vector_logic:2.0 - util_vector_logic_0
+Adding component instance block -- xilinx.com:user:coder:1.0 - coder_0
+Adding component instance block -- xilinx.com:ip:util_vector_logic:2.0 - util_vector_logic_0
+Adding component instance block -- xilinx.com:user:gmii2rgmii:1.0 - gmii2rgmii_0
+Adding component instance block -- xilinx.com:user:power_pulse_v1_AXI:1.0 - power_pulse_v1_AXI_0
+Adding component instance block -- xilinx.com:ip:axi_bram_ctrl:4.1 - axi_bram_ctrl_0
+Adding component instance block -- xilinx.com:user:dac_whole:1.0 - dac_whole_0
+Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_1
+Adding component instance block -- xilinx.com:ip:axi_dma:7.1 - axi_dma_0
+Adding component instance block -- xilinx.com:ip:blk_mem_gen:8.4 - blk_mem_gen_0
+Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - axi_smc
+Adding component instance block -- xilinx.com:user:adc_whole:1.0 - adc_whole_0
+Adding component instance block -- xilinx.com:user:onoff_config_axi:1.0 - onoff_config_axi_0
+Adding component instance block -- xilinx.com:ip:axi_iic:2.0 - axi_iic_0
+Successfully read diagram <system> from block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>
+open_bd_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:10 . Memory (MB): peak = 1262.883 ; gain = 107.328
+update_compile_order -fileset sources_1
+ipx::edit_ip_in_project -upgrade true -name adc_whole_v1_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v1_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml
+INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
+Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v1_0_project'
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+create_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:05 . Memory (MB): peak = 1595.379 ; gain = 0.000
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+INFO: [IP_Flow 19-795] Syncing license key meta-data
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:11 ; elapsed = 00:00:07 . Memory (MB): peak = 1595.379 ; gain = 0.000
+update_compile_order -fileset sources_1
+close_project
+regenerate_bd_layout
+update_ip_catalog -rebuild
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+ipx::edit_ip_in_project -upgrade true -name adc_whole_v1_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v1_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml
+INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
+Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v1_0_project'
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+INFO: [IP_Flow 19-795] Syncing license key meta-data
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 1696.402 ; gain = 15.113
+update_compile_order -fileset sources_1
+ipx::merge_project_changes hdl_parameters [ipx::current_core]
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole/component.xml' ignored by IP packager.
+INFO: [IP_Flow 19-3166] Bus Interface 'S_AXI': References existing memory map 'S_AXI'.
+set_property core_revision 13 [ipx::current_core]
+ipx::update_source_project_archive -component [ipx::current_core]
+ipx::create_xgui_files [ipx::current_core]
+ipx::update_checksums [ipx::current_core]
+ipx::check_integrity [ipx::current_core]
+INFO: [IP_Flow 19-2181] Payment Required is not set for this core.
+INFO: [IP_Flow 19-2187] The Product Guide file is missing.
+INFO: [Ipptcl 7-1486] check_integrity: Integrity check passed.
+ipx::save_core [ipx::current_core]
+ipx::move_temp_component_back -component [ipx::current_core]
+close_project -delete
+update_ip_catalog -rebuild -repo_path c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo
+INFO: [IP_Flow 19-725] Reloaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'
+report_ip_status -name ip_status 
+upgrade_ip -vlnv xilinx.com:user:adc_whole:1.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
+Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v1_0 1.0) from revision 12 to revision 13
+WARNING: [IP_Flow 19-4700] Upgrade has removed port 'yad_busy'
+WARNING: [IP_Flow 19-3298] Detected external port differences while upgrading 'system_adc_whole_0_0'. These changes may impact your design.
+CRITICAL WARNING: [Coretcl 2-1279] The upgrade of 'system_adc_whole_0_0' has identified issues that may require user intervention. Please review the upgrade log 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log', and verify that the upgraded IP is correctly configured.
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
+export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
+generate_target all [get_files C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd]
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+WARNING: [BD 41-927] Following properties on pin /power_pulse_v1_AXI_0/S_AXI_ACLK have been updated from connected ip, but BD cell '/power_pulse_v1_AXI_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </power_pulse_v1_AXI_0> to completely resolve these warnings.
+WARNING: [BD 41-927] Following properties on pin /AC_8_channel_0/onoff_config_axi_0/S_AXI_ACLK have been updated from connected ip, but BD cell '/AC_8_channel_0/onoff_config_axi_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </AC_8_channel_0/onoff_config_axi_0> to completely resolve these warnings.
+WARNING: [BD 41-927] Following properties on pin /AC_8_channel_0/adda/dac_whole_0/S_AXIS_ACLK have been updated from connected ip, but BD cell '/AC_8_channel_0/adda/dac_whole_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </AC_8_channel_0/adda/dac_whole_0> to completely resolve these warnings.
+WARNING: [BD 41-927] Following properties on pin /AC_8_channel_0/adda/dac_whole_0/S_AXI_ACLK have been updated from connected ip, but BD cell '/AC_8_channel_0/adda/dac_whole_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </AC_8_channel_0/adda/dac_whole_0> to completely resolve these warnings.
+WARNING: [BD 41-927] Following properties on pin /AC_8_channel_0/adda/adc_whole_0/M_AXIS_ACLK have been updated from connected ip, but BD cell '/AC_8_channel_0/adda/adc_whole_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </AC_8_channel_0/adda/adc_whole_0> to completely resolve these warnings.
+WARNING: [BD 41-927] Following properties on pin /AC_8_channel_0/adda/adc_whole_0/S_AXI_ACLK have been updated from connected ip, but BD cell '/AC_8_channel_0/adda/adc_whole_0' does not accept parameter changes, so they may not be synchronized with cell properties:
+	FREQ_HZ = 1e+08 
+Please resolve any mismatches by directly setting properties on BD cell </AC_8_channel_0/adda/adc_whole_0> to completely resolve these warnings.
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 

@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------
 | Tool Version              : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date                      : Fri May 16 17:39:24 2025
+| Date                      : Thu May 22 09:36:27 2025
 | Host                      : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command                   : report_io -file system_wrapper_io_placed.rpt
 | Design                    : system_wrapper
@@ -25,7 +25,7 @@ Table of Contents
 +---------------+
 | Total User IO |
 +---------------+
-|           217 |
+|           216 |
 +---------------+
 
 
@@ -309,7 +309,7 @@ Table of Contents
 | P12        |                           |            | VCCINT                  | VCCINT      |                   |         |            |      |                     |                      |         |            |           |          |      |                  |              |                   |              |
 | P13        |                           |            | GND                     | GND         |                   |         |            |      |                     |                      |     0.0 |            |           |          |      |                  |              |                   |              |
 | P14        | KeyBoard_IIC_scl_io       | High Range | IO_L6P_T0_34            | BIDIR       | LVCMOS33          |      34 |         12 | SLOW |                     |            FP_VTT_50 |         | FIXED      | PULLUP    |          |      | NONE             |              |                   |              |
-| P15        | AD_0_ad_busy              | High Range | IO_L24P_T3_34           | INPUT       | LVCMOS33          |      34 |            |      |                     |                 NONE |         | FIXED      | PULLDOWN  |          |      | NONE             |              |                   |              |
+| P15        |                           | High Range | IO_L24P_T3_34           | User IO     |                   |      34 |            |      |                     |                      |         |            |           |          |      |                  |              |                   |              |
 | P16        |                           | High Range | IO_L24N_T3_34           | User IO     |                   |      34 |            |      |                     |                      |         |            |           |          |      |                  |              |                   |              |
 | P17        |                           |            | GND                     | GND         |                   |         |            |      |                     |                      |     0.0 |            |           |          |      |                  |              |                   |              |
 | P18        | AD_0_ad_rst               | High Range | IO_L23N_T3_34           | OUTPUT      | LVCMOS33          |      34 |         12 | SLOW |                     |            FP_VTT_50 |         | FIXED      |           |          |      | NONE             |              |                   |              |

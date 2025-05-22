@@ -441,7 +441,6 @@ double normalize_phase(double phase)
     return phase;
 }
 
-
 /**
  * @brief 计算给定中心点的幅值以及其左右各两个点的幅值之和
  *
@@ -502,7 +501,12 @@ void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_ad
         }
     }
 
-    // 计算直流分量（平均值）
+    // // 打印extended_data，用来测试波形是否正确
+    // for (int i = 0; i < N; i++)
+    // {
+    //     printf("x=%d\n", extended_data[i]);
+    // }
+    //  计算直流分量（平均值）
     double dc_offset = 0.0;
     for (int i = 0; i < N; i++)
     {
@@ -597,8 +601,4 @@ void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_ad
     kiss_fft_free(cfg);
     free(in);
     free(out);
-
-    // // 输出调试信息
-    // printf("DC offset removed: %.2f, Fundamental freq: %.2f Hz, Amplitude: %.6f\r\n",
-    //        dc_offset, fundamental_frequency, fundamental_magnitude);
 }

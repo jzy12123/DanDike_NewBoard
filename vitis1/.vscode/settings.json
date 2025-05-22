@@ -1,11 +1,13 @@
 {
-    "files.associations": {
-        "*.c": "c",
-        "rc64.h": "c",
-        "communications_protocol.h": "c",
-        "xil_mmu.h": "c",
-        "adda.h": "c",
-        "xplatform_info.h": "c"
-    },
-    "cmake.ignoreCMakeListsMissing": true
+  "files.associations": {
+    "*.c": "c",
+    "rc64.h": "c",
+    "communications_protocol.h": "c",
+    "xil_mmu.h": "c",
+    "adda.h": "c",
+    "xplatform_info.h": "c",
+    "amplifier_switch.h": "c",
+    "cmath": "c"
+  },
+  "cmake.ignoreCMakeListsMissing": true
 }

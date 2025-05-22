@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Fri May 16 15:06:40 2025
+//Date        : Thu May 22 09:26:05 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -10,8 +10,7 @@
 `timescale 1 ps / 1 ps
 
 module AC_8_channel_0_imp_1V5LWYH
-   (AD_0_ad_busy,
-    AD_0_ad_ck,
+   (AD_0_ad_ck,
     AD_0_ad_cs,
     AD_0_ad_cvn,
     AD_0_ad_rst,
@@ -179,7 +178,6 @@ module AC_8_channel_0_imp_1V5LWYH
     s2mm_introut,
     s_axi_lite_aclk,
     yad_os_0);
-  input AD_0_ad_busy;
   output AD_0_ad_ck;
   output AD_0_ad_cs;
   output AD_0_ad_cvn;
@@ -349,7 +347,6 @@ module AC_8_channel_0_imp_1V5LWYH
   input s_axi_lite_aclk;
   output [1:0]yad_os_0;
 
-  wire adc_whole_0_AD_ad_busy;
   wire adc_whole_0_AD_ad_ck;
   wire adc_whole_0_AD_ad_cs;
   wire adc_whole_0_AD_ad_cvn;
@@ -601,7 +598,6 @@ module AC_8_channel_0_imp_1V5LWYH
   assign WrSerial_0_wr_load = onoff_config_axi_0_WrSerial_wr_load;
   assign WrSerial_0_wr_sclk = onoff_config_axi_0_WrSerial_wr_sclk;
   assign WrSerial_0_wr_sdo = onoff_config_axi_0_WrSerial_wr_sdo;
-  assign adc_whole_0_AD_ad_busy = AD_0_ad_busy;
   assign adc_whole_0_AD_ad_sa = AD_0_ad_sa;
   assign adc_whole_0_AD_ad_sb = AD_0_ad_sb;
   assign adda_M00_AXI_ARREADY = M00_AXI_arready;
@@ -689,8 +685,7 @@ module AC_8_channel_0_imp_1V5LWYH
   assign s2mm_introut = axi_dma_0_s2mm_introut;
   assign yad_os_0[1:0] = adda_yad_os_0;
   adda_imp_1MMLK1Q adda
-       (.AD_0_ad_busy(adc_whole_0_AD_ad_busy),
-        .AD_0_ad_ck(adc_whole_0_AD_ad_ck),
+       (.AD_0_ad_ck(adc_whole_0_AD_ad_ck),
         .AD_0_ad_cs(adc_whole_0_AD_ad_cs),
         .AD_0_ad_cvn(adc_whole_0_AD_ad_cvn),
         .AD_0_ad_rst(adc_whole_0_AD_ad_rst),
@@ -1002,8 +997,7 @@ module RTC_EEPROM_imp_HBPX1R
 endmodule
 
 module adda_imp_1MMLK1Q
-   (AD_0_ad_busy,
-    AD_0_ad_ck,
+   (AD_0_ad_ck,
     AD_0_ad_cs,
     AD_0_ad_cvn,
     AD_0_ad_rst,
@@ -1142,7 +1136,6 @@ module adda_imp_1MMLK1Q
     s2mm_introut,
     s_axi_lite_aclk,
     yad_os_0);
-  input AD_0_ad_busy;
   output AD_0_ad_ck;
   output AD_0_ad_cs;
   output AD_0_ad_cvn;
@@ -1316,7 +1309,6 @@ module adda_imp_1MMLK1Q
   wire Conn1_WREADY;
   wire [7:0]Conn1_WSTRB;
   wire Conn1_WVALID;
-  wire adc_whole_0_AD_ad_busy;
   wire adc_whole_0_AD_ad_ck;
   wire adc_whole_0_AD_ad_cs;
   wire adc_whole_0_AD_ad_cvn;
@@ -1552,7 +1544,6 @@ module adda_imp_1MMLK1Q
   assign S_AXI_rresp[1:0] = ps7_0_axi_periph_M08_AXI_RRESP;
   assign S_AXI_rvalid = ps7_0_axi_periph_M08_AXI_RVALID;
   assign S_AXI_wready = ps7_0_axi_periph_M08_AXI_WREADY;
-  assign adc_whole_0_AD_ad_busy = AD_0_ad_busy;
   assign adc_whole_0_AD_ad_sa = AD_0_ad_sa;
   assign adc_whole_0_AD_ad_sb = AD_0_ad_sb;
   assign mm2s_introut = axi_dma_0_mm2s_introut;
@@ -1645,7 +1636,6 @@ module adda_imp_1MMLK1Q
         .S_AXI_WREADY(ps7_0_axi_periph_M06_AXI_WREADY),
         .S_AXI_WSTRB(ps7_0_axi_periph_M06_AXI_WSTRB),
         .S_AXI_WVALID(ps7_0_axi_periph_M06_AXI_WVALID),
-        .yad_busy(adc_whole_0_AD_ad_busy),
         .yad_ck(adc_whole_0_AD_ad_ck),
         .yad_cs(adc_whole_0_AD_ad_cs),
         .yad_cvn(adc_whole_0_AD_ad_cvn),
@@ -8257,8 +8247,7 @@ endmodule
 
 (* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=73,numReposBlks=47,numNonXlnxBlks=2,numHierBlks=26,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=30,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
 module system
-   (AD_0_ad_busy,
-    AD_0_ad_ck,
+   (AD_0_ad_ck,
     AD_0_ad_cs,
     AD_0_ad_cvn,
     AD_0_ad_rst,
@@ -8349,7 +8338,6 @@ module system
     rgb_data_tri_o,
     rgb_data_tri_t,
     yad_os_0);
-  (* X_INTERFACE_INFO = "xilinx.com:user:AD:1.0 AD_0 ad_busy" *) input AD_0_ad_busy;
   (* X_INTERFACE_INFO = "xilinx.com:user:AD:1.0 AD_0 ad_ck" *) output AD_0_ad_ck;
   (* X_INTERFACE_INFO = "xilinx.com:user:AD:1.0 AD_0 ad_cs" *) output AD_0_ad_cs;
   (* X_INTERFACE_INFO = "xilinx.com:user:AD:1.0 AD_0 ad_cvn" *) output AD_0_ad_cvn;
@@ -8410,12 +8398,12 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:interface:rgmii:1.0 RGMII_0 TD" *) output [3:0]RGMII_0_td;
   (* X_INTERFACE_INFO = "xilinx.com:interface:rgmii:1.0 RGMII_0 TX_CTL" *) output RGMII_0_tx_ctl;
   (* X_INTERFACE_INFO = "xilinx.com:interface:rgmii:1.0 RGMII_0 TXC" *) output RGMII_0_txc;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) input RTCEEPROM_IIC_scl_i;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) output RTCEEPROM_IIC_scl_o;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) output RTCEEPROM_IIC_scl_t;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) input RTCEEPROM_IIC_sda_i;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) output RTCEEPROM_IIC_sda_o;
-  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC " *) output RTCEEPROM_IIC_sda_t;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SCL_I" *) input RTCEEPROM_IIC_scl_i;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SCL_O" *) output RTCEEPROM_IIC_scl_o;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SCL_T" *) output RTCEEPROM_IIC_scl_t;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SDA_I" *) input RTCEEPROM_IIC_sda_i;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SDA_O" *) output RTCEEPROM_IIC_sda_o;
+  (* X_INTERFACE_INFO = "xilinx.com:interface:iic:1.0 RTCEEPROM_IIC SDA_T" *) output RTCEEPROM_IIC_sda_t;
   (* X_INTERFACE_INFO = "xilinx.com:user:RdSerial:1.0 RdSerial_0 rd_load" *) output RdSerial_0_rd_load;
   (* X_INTERFACE_INFO = "xilinx.com:user:RdSerial:1.0 RdSerial_0 rd_sclk" *) output RdSerial_0_rd_sclk;
   (* X_INTERFACE_INFO = "xilinx.com:user:RdSerial:1.0 RdSerial_0 rd_sdi" *) input RdSerial_0_rd_sdi;
@@ -8456,7 +8444,6 @@ module system
   wire RTC_EEPROM_IIC_0_SDA_T;
   wire RTC_EEPROM_iic2intc_irpt;
   wire a_in_0_1;
-  wire adc_whole_0_AD_ad_busy;
   wire adc_whole_0_AD_ad_ck;
   wire adc_whole_0_AD_ad_cs;
   wire adc_whole_0_AD_ad_cvn;
@@ -8987,7 +8974,6 @@ module system
   assign WrSerial_0_wr_sclk = onoff_config_axi_0_WrSerial_wr_sclk;
   assign WrSerial_0_wr_sdo = onoff_config_axi_0_WrSerial_wr_sdo;
   assign a_in_0_1 = Coder_A;
-  assign adc_whole_0_AD_ad_busy = AD_0_ad_busy;
   assign adc_whole_0_AD_ad_sa = AD_0_ad_sa;
   assign adc_whole_0_AD_ad_sb = AD_0_ad_sb;
   assign axi_uartlite_0_UART_RxD = UART_GPS_rxd;
@@ -9019,8 +9005,7 @@ module system
   assign rgb_data_tri_t[18:0] = rgb2lcd_0_rgb_data_TRI_T;
   assign yad_os_0[1:0] = AC_8_channel_0_yad_os_0;
   AC_8_channel_0_imp_1V5LWYH AC_8_channel_0
-       (.AD_0_ad_busy(adc_whole_0_AD_ad_busy),
-        .AD_0_ad_ck(adc_whole_0_AD_ad_ck),
+       (.AD_0_ad_ck(adc_whole_0_AD_ad_ck),
         .AD_0_ad_cs(adc_whole_0_AD_ad_cs),
         .AD_0_ad_cvn(adc_whole_0_AD_ad_cvn),
         .AD_0_ad_rst(adc_whole_0_AD_ad_rst),

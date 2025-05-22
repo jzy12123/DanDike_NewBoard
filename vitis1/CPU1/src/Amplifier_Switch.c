@@ -91,18 +91,8 @@ unsigned char current_to_output(float current)
 	}
 }
 
-/**
- * @brief 功率放大器控制函数
- *
- * @param Wave_Amplitude 波形幅度数组，包含8个通道的幅度
- * @param Wave_Range 波形范围数组，包含8个通道的范围
- * @param PIDmode PID模式设置（PID_ON或PID_OFF）
- * @param enable_amp 功放使能标志，1表示开启，0表示关闭
- */
 void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp)
 {
-	double Amplifier_PID_Increment[CHANNL_MAX] = {0};
-
 	if (enable_amp == POWAMP_ON)
 	{
 		/*1 配置595 开启使能最高位写1*/
@@ -110,7 +100,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002);
 		usleep(100);
-		//	xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送 00000000为高电平
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送 ff00为低电平
@@ -120,23 +110,22 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		// 595置1 1595置0;  功放start置1
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
 		usleep(100);
-		//	xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 
 		/*2 PID调整幅值(修改1595)*/
-
+		double Amplifier_PID_Increment[8] = {0};
 		if (pid_state == PID_ON)
 		{
 			for (int i = 0; i < 4; i++)
 			{
-				Amplifier_PID_Increment[i] = PID_adjust_amplitude(lineAC.ur[i] * Wave_Range[i], lineAC.u[i], &amplitude_pid[i]);
-				Amplifier_PID_Increment[i + 4] = PID_adjust_amplitude(lineAC.ir[i] * Wave_Range[i + 4], lineAC.i[i], &amplitude_pid[i + 4]);
+				Amplifier_PID_Increment[i] = PID_adjust_amplitude((lineAC.ur[i] * Wave_Amplitude[i]) / 100, lineAC.u[i], &amplitude_pid[i]);
+				Amplifier_PID_Increment[i + 4] = PID_adjust_amplitude((lineAC.ir[i] * Wave_Amplitude[i + 4]) / 100, lineAC.i[i], &amplitude_pid[i + 4]);
 			}
 		}
 		else
 		{
-			for (int i = 0; i < 4; i++)
-			{
-				Amplifier_PID_Increment[i] = 0; // 清空PID累计值
+			for (int i = 0; i < 8; i++)
+			{ // 清空PID累计值
 				amplitude_pid[i].integral = 0;
 				amplitude_pid[i].prev_error = 0;
 			}
@@ -147,7 +136,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000001);
 		usleep(100);
-		//	xil_printf("CPU1:1595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+		//  xil_printf("CPU1:1595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
 		// 获取每个通道的量程索引
 		int idx_ua = get_voltage_index_by_value(setACS.Vals[0].UR);
@@ -161,24 +150,32 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		int idx_ix = get_current_index_by_value(setACS.Vals[3].IR);
 
 		// 计算电压通道值
-		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]);
-		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (correction_ua + Amplifier_PID_Increment[0]));
+		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]); // DAC原始输出
+		double PID_correction_ua = (32767 / setACS.Vals[0].UR) * Amplifier_PID_Increment[0]; //PID原始输出
+		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (correction_ua + PID_correction_ua));
 		double correction_ub = calculate_correction(1, idx_ub, Wave_Amplitude[1]);
-		u32 UB = ((u32)((Wave_Amplitude[1] / 100) * (correction_ub + Amplifier_PID_Increment[1]))) << 16;
+		double PID_correction_ub = (32767 / setACS.Vals[1].UR) * Amplifier_PID_Increment[1]; // PID原始输出
+		u32 UB = ((u32)((Wave_Amplitude[1] / 100) * (correction_ub + PID_correction_ub))) << 16;
 		double correction_uc = calculate_correction(2, idx_uc, Wave_Amplitude[2]);
-		u32 UC = (u32)((Wave_Amplitude[2] / 100) * (correction_uc + Amplifier_PID_Increment[2]));
+		double PID_correction_uc = (32767 / setACS.Vals[2].UR) * Amplifier_PID_Increment[2]; // PID原始输出
+		u32 UC = (u32)((Wave_Amplitude[2] / 100) * (correction_uc + PID_correction_uc));
 		double correction_ux = calculate_correction(3, idx_ux, Wave_Amplitude[3]);
-		u32 UX = ((u32)((Wave_Amplitude[3] / 100) * (correction_ux + Amplifier_PID_Increment[3]))) << 16;
+		double PID_correction_ux = (32767 / setACS.Vals[3].UR) * Amplifier_PID_Increment[3]; // PID原始输出
+		u32 UX = ((u32)((Wave_Amplitude[3] / 100) * (correction_ux + PID_correction_ux))) << 16;
 
 		// 计算电流通道值
 		double correction_ia = calculate_correction(4, idx_ia, Wave_Amplitude[4]);
-		u32 IA = (u32)((Wave_Amplitude[4] / 100) * (correction_ia + Amplifier_PID_Increment[4]));
+		double PID_correction_ia = (32767 / setACS.Vals[0].IR) * Amplifier_PID_Increment[4]; // PID原始输出
+		u32 IA = (u32)((Wave_Amplitude[4] / 100) * (correction_ia + PID_correction_ia));
 		double correction_ib = calculate_correction(5, idx_ib, Wave_Amplitude[5]);
-		u32 IB = ((u32)((Wave_Amplitude[5] / 100) * (correction_ib + Amplifier_PID_Increment[5]))) << 16;
+		double PID_correction_ib = (32767 / setACS.Vals[1].IR) * Amplifier_PID_Increment[5]; // PID原始输出
+		u32 IB = ((u32)((Wave_Amplitude[5] / 100) * (correction_ib + PID_correction_ib))) << 16;
 		double correction_ic = calculate_correction(6, idx_ic, Wave_Amplitude[6]);
-		u32 IC = (u32)((Wave_Amplitude[6] / 100) * (correction_ic + Amplifier_PID_Increment[6]));
+		double PID_correction_ic = (32767 / setACS.Vals[2].IR) * Amplifier_PID_Increment[6]; // PID原始输出
+		u32 IC = (u32)((Wave_Amplitude[6] / 100) * (correction_ic + PID_correction_ic));
 		double correction_ix = calculate_correction(7, idx_ix, Wave_Amplitude[7]);
-		u32 IX = ((u32)((Wave_Amplitude[7] / 100) * (correction_ix + Amplifier_PID_Increment[7]))) << 16;
+		double PID_correction_ix = (32767 / setACS.Vals[3].IR) * Amplifier_PID_Increment[7]; // PID原始输出
+		u32 IX = ((u32)((Wave_Amplitude[7] / 100) * (correction_ix + PID_correction_ix))) << 16;
 
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, UB + UA); // din0发送，8000半幅值，ub + ua
 		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, UX + UC); // din1发送，半幅值，ux + uc
@@ -188,7 +185,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		// 595置0 1595置1;  功放start置1
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000101);
 		usleep(100);
-		//	xil_printf("CPU1:1595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+		//  xil_printf("CPU1:1595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 	}
 	else
 	{
@@ -197,7 +194,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002);
 		usleep(100);
-		//	xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
 		// 修改Wave_Range,把第7位清0，为了清空二级功放的硬件保护：
 		for (int i = 0; i < CHANNL_MAX; i++)
@@ -213,7 +210,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		// 595置1 1595置0 功放start置1
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
 		usleep(100);
-		//	xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 		print("CPU1: POWAMP Closed!\n");
 
 		/*2 清空PID累计值*/

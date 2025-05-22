@@ -1,0 +1,380 @@
+/*
+ * Amplifier_Switch.c
+ *
+ *  Created on: 2024年2月1日
+ *      Author: saber
+ */
+#include "Amplifier_Switch.h"
+
+void RdSerial()
+{
+	static u8 lastProectFault = 0xFF;  // 保存上一次的故障状态，初始为无故障
+	static bool faultDetected = false; // 是否已经检测到一次故障
+
+	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000200); // slv_reg0 的 rdserial—enable 置 1
+
+	// ProectFault前4位代表IXICIBIA 后四位代表UXUCUBUA,如果正常则为11111111，出现故障对应的位会变0.
+	u8 ProectFault = (u8)Xil_In32(Amplifier_Switch_BASEADDR + RdSerial_ADDR); // 读 slv_reg2 的 rdserial——dataout
+
+	// 如果当前检测到故障信号
+	if (ProectFault != 0xFF)
+	{
+		// 如果之前已经检测到过一次故障，并且当前故障与上次故障相同
+		if (faultDetected && (ProectFault == lastProectFault))
+		{
+			// 连续两次检测到相同故障，上报
+			report_protection_event(ProectFault);
+			// 上报后重置标志,避免重复上报同一故障
+			faultDetected = false;
+			// 要清除二级功放电压电流的EN,清除故障锁存
+		}
+		else if (!faultDetected)
+		{
+			// 第一次检测到故障，记录并设置标志
+			faultDetected = true;
+			lastProectFault = ProectFault;
+		}
+		// 如果故障不同，更新为新的故障
+		else if (ProectFault != lastProectFault)
+		{
+			lastProectFault = ProectFault;
+		}
+	}
+	else
+	{
+		// 当前无故障，重置标志
+		faultDetected = false;
+	}
+}
+
+// 根据输入电压返回对应的输出值
+unsigned char voltage_to_output(float voltage)
+{
+	if (voltage >= 6) // 6.5V
+	{
+		return 0xC2;
+	}
+	else if (voltage >= 3) // 3.25V
+	{
+		return 0xD4;
+	}
+	else if (voltage >= 1) // 1.625V
+	{
+		return 0xA0;
+	}
+	else
+	{
+		xil_printf("CPU1: UR NOT CORRECT SET 6.5V\n");
+		return 0xC2; // 默认返回值，表示输入无效
+	}
+}
+
+// 根据输入电流返回对应的输出值
+unsigned char current_to_output(float current)
+{
+	if (current >= 4) // 5A
+	{
+		return 0xC2;
+	}
+	else if (current >= 0.5) // 1A
+	{
+		return 0x92;
+	}
+	else if (current >= 0.1) // 0.2A
+	{
+		return 0xA4;
+	}
+	else
+	{
+		xil_printf("CPU1: IR NOT CORRECT SET 5A\n");
+		return 0xC2; // 默认返回值，表示输入无效
+	}
+}
+
+/**
+ * @brief 功率放大器控制函数 (修改版)
+ *
+ * @param Wave_Amplitude 波形幅度数组（0-100%），对应各通道的目标输出占当前档位的百分比
+ * @param Wave_Range 波形范围数组，包含8个通道的595芯片配置字
+ * @param pid_state PID模式设置（PID_ON或PID_OFF）
+ * @param enable_amp 功放使能标志，POWAMP_ON (1) 表示开启，POWAMP_OFF (0) 表示关闭
+ */
+void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp)
+{
+	// DAC特性常量 (可以放在这里或者 .h 文件)
+	const double DAC_ZERO_REF_COUNT_CONST = 32767.5;
+	const double DAC_PEAK_COUNTS_FROM_ZERO_CONST = 32767.5;
+	const double DAC_MAX_OUTPUT_COUNT_CONST = 65535.0;
+	const double DAC_MIN_OUTPUT_COUNT_CONST = 0.0;
+
+	// 这些变量用于存储最终要写入1595芯片的DAC计数值
+	u32 UA_dac = 0, UB_dac = 0, UC_dac = 0, UX_dac = 0;
+	u32 IA_dac = 0, IB_dac = 0, IC_dac = 0, IX_dac = 0;
+
+	if (enable_amp == POWAMP_ON)
+	{
+		/* 1. 配置595芯片设定硬件量程 (与原逻辑相同) */
+		// 595置1 1595置0;功放start清0
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000); // 清零之前可能存在的1595配置启动位
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002); // bit1=1 (sel_1595_595 = 0 -> 595)
+		usleep(100);																// 等待配置稳定
+
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // UB + UA
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // UX + UC
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (u32)(Wave_Range[5] << 24) | (Wave_Range[4] << 8)); // IB + IA
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (u32)(Wave_Range[7] << 24) | (Wave_Range[6] << 8)); // IX + IC
+
+		// 595置1 1595置0; 功放start置1 (启动595数据锁存)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102); // bit8=1 (start_ctrl=1), bit1=1 (sel_1595_595 = 0 -> 595)
+		usleep(100);
+		// xil_printf("CPU1:595 config done = %d\r\n", (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15); // 检查完成标志
+
+		/* 2. 计算各通道的目标DAC值，应用PID调整（如果启用） */
+		double pid_voltage_increment[8] = {0.0}; // 存储PID输出的电压调整量
+
+		if (pid_state == PID_ON)
+		{
+			// 调用PID调整函数获取电压调整量
+			// 注意：setACS.Vals[i].U 和 .I_ 是绝对目标值, lineAC.u[i] 和 .i[i] 是当前测量绝对值
+			for (int i = 0; i < 4; i++) // 4个电压通道
+			{
+				pid_voltage_increment[i] = PID_adjust_amplitude(setACS.Vals[i].U, lineAC.u[i], &amplitude_pid[i]);
+			}
+			for (int i = 0; i < 4; i++) // 4个电流通道 (PID数组索引是 i+4)
+			{
+				pid_voltage_increment[i + 4] = PID_adjust_amplitude(setACS.Vals[i].I_, lineAC.i[i], &amplitude_pid[i + 4]);
+			}
+		}
+		else
+		{ // PID_OFF, 清除PID累计状态 (如果尚未在其他地方清除)
+			for (int i = 0; i < 8; i++)
+			{
+				amplitude_pid[i].integral = 0.0;
+				amplitude_pid[i].prev_error = 0.0;
+			}
+		}
+
+		// 获取各通道的量程索引，用于 calculate_correction 和 Counts_Per_Volt 计算
+		int idx_u_ch[4], idx_i_ch[4];
+		for (int i = 0; i < 4; ++i)
+		{
+			idx_u_ch[i] = get_voltage_index_by_value(setACS.Vals[i].UR);
+			idx_i_ch[i] = get_current_index_by_value(setACS.Vals[i].IR);
+		}
+
+		// 计算每个通道最终的DAC设定值
+		double base_dac_target_counts[8];
+		double final_dac_float_values[8];
+
+		// 电压通道 UA, UB, UC, UX (索引 0-3)
+		for (int i = 0; i < 4; ++i)
+		{
+			// 1. 获取未经PID精调的基础DAC目标计数值
+			// Wave_Amplitude[i] 是 (setACS.Vals[i].U / setACS.Vals[i].UR) * 100.0
+			base_dac_target_counts[i] = calculate_correction(i, idx_u_ch[i], Wave_Amplitude[i]);
+
+			// 2. 将PID输出的电压调整量转换为DAC计数值调整量
+			double counts_per_volt = 0;
+			if (setACS.Vals[i].UR > 1e-9)
+			{ // 避免除零
+				counts_per_volt = DAC_PEAK_COUNTS_FROM_ZERO_CONST / setACS.Vals[i].UR;
+			}
+			double pid_dac_counts_increment = pid_voltage_increment[i] * counts_per_volt;
+
+			// 3. 最终DAC值 = 基础值 + PID调整量
+			final_dac_float_values[i] = base_dac_target_counts[i] + pid_dac_counts_increment;
+
+			// 4. 限幅
+			if (final_dac_float_values[i] > DAC_MAX_OUTPUT_COUNT_CONST)
+				final_dac_float_values[i] = DAC_MAX_OUTPUT_COUNT_CONST;
+			if (final_dac_float_values[i] < DAC_MIN_OUTPUT_COUNT_CONST)
+				final_dac_float_values[i] = DAC_MIN_OUTPUT_COUNT_CONST;
+		}
+
+		// 电流通道 IA, IB, IC, IX (索引 4-7)
+		for (int i = 0; i < 4; ++i)
+		{
+			int original_channel_idx = i + 4; // 在 Wave_Amplitude, pid_voltage_increment 中的索引
+			// 1. 获取基础DAC目标计数值
+			// Wave_Amplitude[original_channel_idx] 是 (setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100.0
+			base_dac_target_counts[original_channel_idx] = calculate_correction(original_channel_idx, idx_i_ch[i], Wave_Amplitude[original_channel_idx]);
+
+			// 2. 转换电压调整量 (PID输出仍是电压或等效电压) 到DAC计数值调整量
+			double counts_per_current_unit = 0; // 每安培(或其他电流单位)对应的DAC计数值
+			if (setACS.Vals[i].IR > 1e-9)
+			{ // 避免除零
+				// 假设PID输出的针对电流通道的 pid_voltage_increment[original_channel_idx]
+				// 实质上是代表了一个“等效的电压调整量”，或者说，其大小与电流误差成正比。
+				// 我们需要知道电流1A（或1个电流单位）对应多少DAC counts。这通常由硬件设计决定，
+				// 或者也通过一个类似于电压的满量程值来标定。
+				// 为简化，此处假设电流档位值 setACS.Vals[i].IR 对应DAC的峰值摆幅，类似于电压。
+				counts_per_current_unit = DAC_PEAK_COUNTS_FROM_ZERO_CONST / setACS.Vals[i].IR;
+			}
+			double pid_dac_counts_increment = pid_voltage_increment[original_channel_idx] * counts_per_current_unit;
+
+			// 3. 最终DAC值
+			final_dac_float_values[original_channel_idx] = base_dac_target_counts[original_channel_idx] + pid_dac_counts_increment;
+
+			// 4. 限幅
+			if (final_dac_float_values[original_channel_idx] > DAC_MAX_OUTPUT_COUNT_CONST)
+				final_dac_float_values[original_channel_idx] = DAC_MAX_OUTPUT_COUNT_CONST;
+			if (final_dac_float_values[original_channel_idx] < DAC_MIN_OUTPUT_COUNT_CONST)
+				final_dac_float_values[original_channel_idx] = DAC_MIN_OUTPUT_COUNT_CONST;
+		}
+
+		// 赋值给用于发送到1595的变量 (四舍五入到整数)
+		UA_dac = (u32)round(final_dac_float_values[0]);
+		UB_dac = (u32)round(final_dac_float_values[1]);
+		UC_dac = (u32)round(final_dac_float_values[2]);
+		UX_dac = (u32)round(final_dac_float_values[3]);
+		IA_dac = (u32)round(final_dac_float_values[4]);
+		IB_dac = (u32)round(final_dac_float_values[5]);
+		IC_dac = (u32)round(final_dac_float_values[6]);
+		IX_dac = (u32)round(final_dac_float_values[7]);
+
+		/* 3. 配置1595芯片，发送计算出的DAC值 (与原逻辑相似，但使用新的DAC值) */
+		// 595置0 1595置1; 功放start清0
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000001); // bit0=1 (sel_1595_595 = 1 -> 1595)
+		usleep(100);
+		// xil_printf("CPU1:1595 config clear = %d\r\n", (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);
+
+		// 发送DAC数据到1595的Din寄存器
+		// 假设1595每个Din接收两个16位的通道数据，高16位是第二个通道，低16位是第一个通道
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (UB_dac << 16) | UA_dac); // Din0: UB (high) + UA (low)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (UX_dac << 16) | UC_dac); // Din1: UX (high) + UC (low)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (IB_dac << 16) | IA_dac); // Din2: IB (high) + IA (low)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (IX_dac << 16) | IC_dac); // Din3: IX (high) + IC (low)
+
+		// 595置0 1595置1; 功放start置1 (启动1595数据锁存)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000101); // bit8=1 (start_ctrl=1), bit0=1 (sel_1595_595 = 1 -> 1595)
+		usleep(100);
+		// xil_printf("CPU1:1595 config done = %d\r\n", (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);
+	}
+	else // enable_amp == POWAMP_OFF
+	{
+		/* 关闭功放 (与原逻辑相同) */
+		// 595置1 1595置0 功放start清0
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000000);
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000002); // sel_1595_595 = 0 (595)
+		usleep(100);
+
+		// 修改Wave_Range, 将第7位(使能位)清0来关闭硬件通道
+		u32 Temp_Wave_Range[8];
+		for (int i = 0; i < CHANNL_MAX; i++)
+		{
+			Temp_Wave_Range[i] = Wave_Range[i] & ~(1 << 7); // 清除最高位(假设是使能位)
+		}
+
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din0_ADDR, (u32)(Temp_Wave_Range[1] << 24) | (Temp_Wave_Range[0] << 8));
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din1_ADDR, (u32)(Temp_Wave_Range[3] << 24) | (Temp_Wave_Range[2] << 8));
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din2_ADDR, (u32)(Temp_Wave_Range[5] << 24) | (Temp_Wave_Range[4] << 8));
+		Xil_Out32(Amplifier_Switch_BASEADDR + Amplifier_Din3_ADDR, (u32)(Temp_Wave_Range[7] << 24) | (Temp_Wave_Range[6] << 8));
+
+		// 595置1 1595置0 功放start置1 (锁存关闭指令)
+		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
+		usleep(100);
+		// xil_printf("CPU1: Amplifier Output Disabled (via 595).\r\n");
+
+		// 清空PID累计值 (因为功放已关闭，下次启动应从新状态开始)
+		for (int i = 0; i < 8; i++) // 假设有8个幅值PID控制器
+		{
+			amplitude_pid[i].integral = 0.0;
+			amplitude_pid[i].prev_error = 0.0;
+			// 如果相位PID也在这里控制，也应清零
+			phase_pid[i].integral = 0.0;
+			phase_pid[i].prev_error = 0.0;
+		}
+	}
+}
+void Write_Read_Switch(u32 Data_width, u32 Data)
+{
+	u32 Read_Switch;
+
+	// 开关量为8位 开关量start清0  关闭595 1595使能  功放start清0
+	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)(0x00000000 | (Data_width + 1) << 16));
+	usleep(10000);
+	// 开关量为8位 开关量start置1  关闭595 1595使能  功放start清0
+	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)(0x01000000 | (Data_width + 1) << 16));
+	usleep(10000);
+	///////////////////////////////////////////////////////////////////
+	// 模块进行一次读写
+	///////////////////////////////////////////////////////////////////
+	// 开关量为8位 开关量start清0  关闭595 1595使能  功放start清0
+	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)(0x00000000 | (Data_width + 1) << 16));
+	usleep(10000);
+	// 开关量为8位 开关量start置1  关闭595 1595使能  功放start清0
+	Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)(0x01000000 | (Data_width + 1) << 16));
+	usleep(10000);
+
+	// 开关量模块输出
+	Xil_Out32(Amplifier_Switch_BASEADDR + Switch_Write_ADDR, (u32)Data);
+	// 开关量模块输入
+	switch (Data_width)
+	{
+	case 0:
+		Read_Switch = (u8)invert_Binary(Xil_In32(Amplifier_Switch_BASEADDR + Switch_Read_ADDR));
+		break;
+	case 1:
+		Read_Switch = (u16)invert_Binary(Xil_In32(Amplifier_Switch_BASEADDR + Switch_Read_ADDR));
+		break;
+	case 2:
+		Read_Switch = (u32)invert_Binary(Xil_In32(Amplifier_Switch_BASEADDR + Switch_Read_ADDR));
+		break;
+	case 3:
+		Read_Switch = (u32)invert_Binary(Xil_In32(Amplifier_Switch_BASEADDR + Switch_Read_ADDR));
+		break;
+	default:
+		break;
+	}
+	char s[32];
+	itoa(Read_Switch, s, 2);
+	xil_printf("Read switch_mudule Data : %s\n", s);
+}
+u32 invert_Binary(u32 num)
+{
+	u32 m1 = 0x55555555; // 01010101...
+	u32 m2 = 0x33333333; // 00110011...
+	u32 m4 = 0x0f0f0f0f; // 00001111...
+						 //	u32 m8 = 0x00ff00ff; // 0000000011111111
+
+	num = ((num >> 1) & m1) | ((num & m1) << 1);
+	num = ((num >> 2) & m2) | ((num & m2) << 2);
+	num = ((num >> 4) & m4) | ((num & m4) << 4);
+	//	num = ((num >> 8) & m8 )| ((num & m8) << 8);
+	//	num = num >> 16 | num << 16;
+
+	return num;
+}
+
+/**
+ * @brief 线性拟合两个校准点计算校准参数
+ *
+ * 根据当前幅值百分比，使用20%幅值和100%幅值时的校准参数进行线性拟合
+ *
+ * @param channel 通道索引 (0-7)
+ * @param range_idx 量程索引 (0-2)
+ * @param amplitude_percentage 幅值百分比 (0-100)
+ * @return 经过线性拟合后的校准参数
+ */
+double calculate_correction(int channel, int range_idx, float amplitude_percentage)
+{
+	if (amplitude_percentage <= 20.0)
+	{
+		// 如果幅值小于等于20%，直接使用20%时的校准参数
+		return DA_Correct_20[channel][range_idx];
+	}
+	else if (amplitude_percentage >= 100.0)
+	{
+		// 如果幅值大于等于100%，直接使用100%时的校准参数
+		return DA_Correct_100[channel][range_idx];
+	}
+	else
+	{
+		// 在20%到100%之间进行线性拟合
+		double ratio = (amplitude_percentage - 20.0) / 80.0; // 归一化比例
+		double correction_20 = DA_Correct_20[channel][range_idx];
+		double correction_100 = DA_Correct_100[channel][range_idx];
+		return correction_20 + ratio * (correction_100 - correction_20);
+	}
+}

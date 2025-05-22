@@ -8,6 +8,7 @@ typedef struct {
     double Kd;    // 微分系数
     double prev_error; // 上一个误差
     double integral;   // 积分值
+    double last_valid_output; // 新增：用于存储上一次有效的PID输出
 } PID;
 
 

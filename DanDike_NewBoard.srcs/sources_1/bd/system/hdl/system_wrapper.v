@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Fri May 16 15:06:41 2025
+//Date        : Thu May 22 09:26:05 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -10,8 +10,7 @@
 `timescale 1 ps / 1 ps
 
 module system_wrapper
-   (AD_0_ad_busy,
-    AD_0_ad_ck,
+   (AD_0_ad_ck,
     AD_0_ad_cs,
     AD_0_ad_cvn,
     AD_0_ad_rst,
@@ -84,7 +83,6 @@ module system_wrapper
     pulse_q_out_0,
     rgb_data_tri_io,
     yad_os_0);
-  input AD_0_ad_busy;
   output AD_0_ad_ck;
   output AD_0_ad_cs;
   output AD_0_ad_cvn;
@@ -159,7 +157,6 @@ module system_wrapper
   inout [18:0]rgb_data_tri_io;
   output [1:0]yad_os_0;
 
-  wire AD_0_ad_busy;
   wire AD_0_ad_ck;
   wire AD_0_ad_cs;
   wire AD_0_ad_cvn;
@@ -487,8 +484,7 @@ module system_wrapper
         .O(rgb_data_tri_i_9),
         .T(rgb_data_tri_t_9));
   system system_i
-       (.AD_0_ad_busy(AD_0_ad_busy),
-        .AD_0_ad_ck(AD_0_ad_ck),
+       (.AD_0_ad_ck(AD_0_ad_ck),
         .AD_0_ad_cs(AD_0_ad_cs),
         .AD_0_ad_cvn(AD_0_ad_cvn),
         .AD_0_ad_rst(AD_0_ad_rst),

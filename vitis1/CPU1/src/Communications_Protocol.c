@@ -32,8 +32,8 @@ volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.250418.1106";
-const char ARM_Ver_Full[] = "[Ver]=V1.250518.1127";
+const char FPGA_Ver_Full[] = "[Ver]=V1.250522.0947";
+const char ARM_Ver_Full[] = "[Ver]=V1.250522.0954";
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -998,11 +998,6 @@ void handle_SetACS(cJSON *data)
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
 
-    // 清除谐波相关设置 (因为 SetACS 只处理基波)
-    memset(numHarmonics, 0, sizeof(numHarmonics));
-    memset(harmonics, 0, sizeof(harmonics));
-    memset(harmonics_phases, 0, sizeof(harmonics_phases));
-
     // --- 新的量程切换/输出控制逻辑 ---
     if (valsPresent && onlyRangeFieldsFound) // 确保 vals 存在且只包含量程字段
     {
@@ -1352,6 +1347,7 @@ void handle_StopAC(cJSON *data)
     str_wr_bram(PID_OFF);                                  // 生成交流信号
 
     power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 0;
     devState.bACRunning = 0;

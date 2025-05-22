@@ -2,7 +2,7 @@
 # =============================================================================
 # AD模块 (模数转换器) 相关引脚
 # =============================================================================
-set_property PACKAGE_PIN P15 [get_ports AD_0_ad_busy]
+#set_property PACKAGE_PIN P15 [get_ports AD_0_ad_busy]
 set_property PACKAGE_PIN R16 [get_ports AD_0_ad_ck]
 set_property PACKAGE_PIN R17 [get_ports AD_0_ad_cs]
 set_property PACKAGE_PIN R19 [get_ports AD_0_ad_cvn]
@@ -12,7 +12,7 @@ set_property PACKAGE_PIN R18 [get_ports AD_0_ad_sb]
 set_property PACKAGE_PIN N17 [get_ports {yad_os_0[0]}]
 set_property PACKAGE_PIN P19 [get_ports {yad_os_0[1]}]
 
-set_property IOSTANDARD LVCMOS33 [get_ports AD_0_ad_busy]
+#set_property IOSTANDARD LVCMOS33 [get_ports AD_0_ad_busy]
 set_property IOSTANDARD LVCMOS33 [get_ports AD_0_ad_ck]
 set_property IOSTANDARD LVCMOS33 [get_ports AD_0_ad_cs]
 set_property IOSTANDARD LVCMOS33 [get_ports AD_0_ad_cvn]
@@ -279,6 +279,6 @@ set_property IOSTANDARD LVCMOS33 [get_ports RTCEEPROM_IIC_sda_io]
 set_property PULLUP true [get_ports RTCEEPROM_IIC_scl_io]
 set_property PULLUP true [get_ports RTCEEPROM_IIC_sda_io]
 
-set_property PULLUP true [get_ports AD_0_ad_sa]
+
 set_property PULLUP true [get_ports AD_0_ad_sb]
-set_property PULLDOWN true [get_ports AD_0_ad_busy]
+set_property PULLUP true [get_ports AD_0_ad_sa]

@@ -7,7 +7,7 @@ XScuGic intc;    // 中断控制器的实例
 XScuTimer Timer; // 定时器驱动程序实例
 
 volatile int adcS_done;             // adc发送完成标志
-volatile u8 Timer_Flag = 0;             // 定时器完成标志
+volatile u8 Timer_Flag = 0;         // 定时器完成标志
 volatile u8 Current_DDR_Region = 0; // 0表示使用Share_addr_1，1表示使用Share_addr_2
 
 // ad
@@ -90,26 +90,24 @@ double AD_Correct[8][3] = {
  * 函数输入为采样频率
  * 自动设置IP核的采样点和采样频率
  */
-void AdcDma_Start_OneBulk(int SamplePoints, int SampleFrequency)
+void AdcDma_Start_OneBulk(int TotalSamplePointsPerChannel, int SampleFrequency)
 {
     // 关闭所有中断
-    Xil_ExceptionDisable();
+    // Xil_ExceptionDisable();
 
     /*1 开启ADC采样，设置采样点数和采样频率*/
-    if (sample_points == 256)
-    {
-        Xil_Out32(adc_whole_base_addr + 8, SamplePoints);               // 采样点：sample_points写256
-        Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency); // 7812，对应采样频率50*256
-    }
+    Xil_Out32(adc_whole_base_addr + 8, TotalSamplePointsPerChannel + 4); // 采样点：sample_points写256
+    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency);      // 7812，对应采样频率50*256
 
     Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
     Xil_Out32(adc_whole_base_addr + 0, 1);
 
     /*2 开启DMA传输*/
     // 同时开启DMA传输ADC结果到DDR rx_buffer_ptr
-    // sample_points个点 *16位*8个通道
-    sync_dma_buffer((UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
-    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, sample_points * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
+    // TotalSamplePointsPerChannel *16位*8个通道
+    uint32_t total_dma_bytes = TotalSamplePointsPerChannel * CHANNL_MAX * 16;
+
+    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
     if (status != XST_SUCCESS)
     {
         // 处理DMA传输失败情况
@@ -117,16 +115,22 @@ void AdcDma_Start_OneBulk(int SamplePoints, int SampleFrequency)
     }
 
     // 重新启用中断
-    Xil_ExceptionEnable();
-    // 接下来进入adcS_intr_handler中断函数
+    // Xil_ExceptionEnable();
+    // 接下来进入DMA传输完成函数。
 }
-void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber)
+
+/**
+ * @brief 启动一次ADC硬件采样和DMA传输 (单次批量操作)
+ * @param TotalSamplePointsPerChannel 每个通道在此次采集中需要获取的总样本点数
+ * @param SampleFrequency ADC的实际采样频率 (Hz)
+ * @comment 此函数配置ADC IP核进行一次包含所有周期的连续采样，并启动DMA将所有数据传输到内存。
+ */
+void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPeriods)
 {
     AdcFinish_Flag = 0;
-    ADC_Sampling_ddr = SamplingPeriodNumber;             // 要采样多少个周期
-    AdcDma_Start_OneBulk(SamplePoints, SampleFrequency); // 设置每个周期的采样点数和采样频率
-    // usleep(500000);
-    // 下面进入adcS_intr_handler函数
+    // 计算本次ADC和DMA操作需要处理的总采样点数（对于每个通道而言）
+    int total_sample_points_for_bulk_transfer = SamplePointsPerPeriod * NumSamplingPeriods;
+    AdcDma_Start_OneBulk(total_sample_points_for_bulk_transfer, SampleFrequency); // 设置每个周期的采样点数和采样频率
 }
 
 void dma_dac_init()
@@ -134,7 +138,6 @@ void dma_dac_init()
     // dma_dac
     start_dma_dac();
 }
-
 void dds_dac_init()
 {
 
@@ -165,7 +168,7 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
 void rx_intr_handler(void *callback)
 {
     // 进入到该中断函数中代表DMA已经完成了一次传输
-    u32 irq_status;
+    uint32_t irq_status;
     int timeout;
     XAxiDma *axidma_inst = (XAxiDma *)callback;
 
@@ -191,25 +194,13 @@ void rx_intr_handler(void *callback)
     // Rx完成
     if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
     {
-        // 用户函数
-        // ADC错误计数
-        // if ((Xil_In32(adc_whole_base_addr + 0) && 0x1) != 1)
-        // {
-        // }
-        // 继续开启新一次的ADC
-        if (ADC_Sampling_ddr > 1)
-        {
-            // 启动下一次的ADC和DMA
-            AdcDma_Start_OneBulk(sample_points, sample_points * Wave_Frequency);
-        }
-        else
-        {
-            // 说明AD_SAMP_CYCLE_NUMBER写完了一轮
-            AdcFinish_Flag = 1; // 给ADc完成标志写1
-        }
 
-        sync_dma_buffer((UINTPTR)rx_buffer_ptr, FIFO_DEPTH * 16 * CHANNL_MAX, XAXIDMA_DEVICE_TO_DMA);
+        u32 total_dma_bytes_received = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * 16;
+
+        sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_received, XAXIDMA_DEVICE_TO_DMA);
         Adc_Data_processing();
+        // 设置ADC（及数据处理）完成标志，通知主循环数据已准备好可以进行后续分析（如FFT）
+        AdcFinish_Flag = 1; //
     }
 }
 
@@ -406,59 +397,89 @@ int code_to_real(u16 x)
     return x2;
 }
 
-bool AdcFinish_Flag = 0; // ADc完成标志，在中断处理函数中写1，主循环中读取
+bool AdcFinish_Flag; // ADc完成标志，在中断处理函数中写1，主循环中读取
 
 /**
- * @brief 处理ADC采集的数据
+ * @brief 处理DMA传输完成后的ADC数据 (单个完整批次)
  *
- * 将采集到的ADC数据通过code_to_real函数转换，并将结果存储到dma_rx_8数组中。
- * 然后将处理后的数据写入共享DDR中，用于后续处理。
+ * 此函数在rx_intr_handler中被调用，当一次包含所有原始周期的ADC数据
+ * 通过DMA完整传输到rx_buffer_ptr后执行。
+ * 它负责将rx_buffer_ptr中的整个数据块，按照AD_SAMP_CYCLE_NUMBER个原始周期的结构，
+ * 逐个原始周期地进行处理（码值转换），并将结果通过Xil_Out32写入到共享DDR内存(Share_addr)。
  *
  * @details
- * 1. 循环遍历每个采样点，将采集到的ADC数据通过code_to_real函数转换为实际值，并存储到dma_rx_8数组中。
- * 2. 将处理后的数据写入共享DDR中，每个通道的数据写入不同的地址。
- * 3. 更新ADC_Sampling_ddr计数器，用于控制写入DDR的次数。
- * 4. 当ADC_Sampling_ddr减到1时，关闭AD功能。
- * 5. 当ADC_Sampling_ddr减到0时，重置ADC_Sampling_ddr为AD_SAMP_CYCLE_NUMBER，并设置AdcFinish_Flag标志为1，表示ADC数据处理完成。
+ * - rx_buffer_ptr 包含了所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的、所有通道的、交错的ADC数据。
+ * - 外层循环遍历 AD_SAMP_CYCLE_NUMBER 个“原始周期”。
+ * - 内层循环遍历每个“原始周期”内的 sample_points 个采样时刻。
+ * - `current_rx_buffer_offset_u16` 用于追踪在 `rx_buffer_ptr` (u16指针) 中当前处理的“原始周期”数据块的起始索引。
+ * - `k_rx` 作为 `rx_buffer_ptr` 的索引，在每个“原始周期”开始时基于 `current_rx_buffer_offset_u16` 初始化，
+ * 并在内层循环中递增，以正确读取每个通道在每个采样时刻的数据。
+ * - 写入 `Share_addr` 时，使用 `cycle_idx` (当前“原始周期”的索引) 来计算正确的内存偏移。
  */
-
 void Adc_Data_processing()
 {
     /************************** 数据处理 *****************************/
+    // current_rx_buffer_offset_u16 用于追踪在 rx_buffer_ptr (u16类型指针) 中当前处理的“原始周期”数据块的起始索引
+    int current_rx_buffer_offset_u16 = 0;
 
-    int k = 0;
-    // 直接从rx_buffer_ptr处理数据并写入当前DDR区域
-    for (int i = 0; i < sample_points; i++)
+    // 外层循环：遍历所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的数据块
+    for (int cycle_idx = 0; cycle_idx < AD_SAMP_CYCLE_NUMBER; cycle_idx++) //
     {
-        // 直接处理并写入DDR，跳过dma_rx_8数组
-        Xil_Out32(Share_addr + 0 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 1])); // JUA
+        // k_rx 指向 rx_buffer_ptr 中当前“原始周期”的第一个采样点数据 (即通道0的第0个点，或按实际交错顺序的第一个点)
+        int k_rx = current_rx_buffer_offset_u16;
 
-        Xil_Out32(Share_addr + 1 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 3])); // JUB
+        // 内层循环：遍历当前“原始周期”内的 sample_points 个采样时刻
+        for (int i = 0; i < sample_points; i++) // i 是当前周期内的采样点索引
+        {
+            // 假设ADC数据在rx_buffer_ptr中的交错顺序是：
+            // 时刻0: CH4(JIA), CH0(JUA), CH5(JIB), CH1(JUB), CH6(JIC), CH2(JUC), CH7(JIX), CH3(JUX)
+            // 所以 k_rx 对应 JIA, k_rx+1 对应 JUA, k_rx+2 对应 JIB, ..., k_rx+7 对应 JUX
+            // 写入 Share_addr 时，目标地址结构是：
+            // Share_addr_base + (通道逻辑偏移) + (周期偏移) + (周期内点偏移)
+            // 通道逻辑偏移: channel_logic_id * sample_points * sizeof(u32)
+            // 周期偏移:     cycle_idx * CHANNL_MAX * sample_points * sizeof(u32)
+            // 周期内点偏移: i * sizeof(u32)
 
-        Xil_Out32(Share_addr + 2 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 5])); // JUC
+            // JUA (逻辑通道0, 物理索引1 in rx_buffer_ptr group)
+            Xil_Out32(Share_addr + 0 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 1]));
 
-        Xil_Out32(Share_addr + 3 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 7])); // JUX
+            // JUB (逻辑通道1, 物理索引3)
+            Xil_Out32(Share_addr + 1 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 3]));
 
-        Xil_Out32(Share_addr + 4 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k])); // JIA
+            // JUC (逻辑通道2, 物理索引5)
+            Xil_Out32(Share_addr + 2 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 5]));
 
-        Xil_Out32(Share_addr + 5 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 2])); // JIB
+            // JUX (逻辑通道3, 物理索引7)
+            Xil_Out32(Share_addr + 3 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 7]));
 
-        Xil_Out32(Share_addr + 6 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 4])); // JIC
+            // JIA (逻辑通道4, 物理索引0)
+            Xil_Out32(Share_addr + 4 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 0]));
 
-        Xil_Out32(Share_addr + 7 * sample_points * 4 + (AD_SAMP_CYCLE_NUMBER - ADC_Sampling_ddr) * CHANNL_MAX * sample_points * 4 + i * 4,
-                  (u32)code_to_real(rx_buffer_ptr[k + 6])); // JIX
+            // JIB (逻辑通道5, 物理索引2)
+            Xil_Out32(Share_addr + 5 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 2]));
 
-        k += 8; // 移动到下一组数据
+            // JIC (逻辑通道6, 物理索引4)
+            Xil_Out32(Share_addr + 6 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 4]));
+
+            // JIX (逻辑通道7, 物理索引6)
+            Xil_Out32(Share_addr + 7 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
+                      (u32)code_to_real(rx_buffer_ptr[k_rx + 6]));
+
+            k_rx += CHANNL_MAX; // 移动到 rx_buffer_ptr 中下一组8通道交错数据 (即下一个采样时刻的数据)
+        }
+        // 当前“原始周期”的数据已处理完毕并写入Share_addr。
+        // 更新 current_rx_buffer_offset_u16 以指向 rx_buffer_ptr 中下一个“原始周期”数据块的起始位置。
+        // 由于 k_rx 已经在内层循环中正确递增并覆盖了一个周期的所有数据，
+        // current_rx_buffer_offset_u16 应该直接等于下一个周期的起始 k_rx 值。
+        current_rx_buffer_offset_u16 = k_rx;
     }
-
-    ADC_Sampling_ddr -= 1;
 }
 
 void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress)
