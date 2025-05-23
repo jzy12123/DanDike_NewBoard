@@ -6,15 +6,10 @@ XAxiDma axidma;  // XAxiDma实例
 XScuGic intc;    // 中断控制器的实例
 XScuTimer Timer; // 定时器驱动程序实例
 
-volatile int adcS_done;             // adc发送完成标志
-volatile u8 Timer_Flag = 0;         // 定时器完成标志
-volatile u8 Current_DDR_Region = 0; // 0表示使用Share_addr_1，1表示使用Share_addr_2
-
 // ad
 int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
 u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
-volatile int ADC_Sampling_ddr = 0; // 向内存里写几个周期
 
 // 波形修改参数
 float Phase_shift[8] = {0, 120, 240, 0, 0, 120, 240, 0}; // 8路波形相位偏移 单位度
@@ -28,6 +23,7 @@ int numHarmonics[CHANNL_MAX] = {0};                      // 每个通道有几个谐波
 float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅值
 float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
 
+ADC_Process_State adcState = ADC_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
 // 功放输出参数
 double DA_Correct_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
@@ -86,39 +82,6 @@ double AD_Correct[8][3] = {
     {20026.621825, 23211.482920, 23250.247711}  // IX 111
 };
 
-/*
- * 函数输入为采样频率
- * 自动设置IP核的采样点和采样频率
- */
-void AdcDma_Start_OneBulk(int TotalSamplePointsPerChannel, int SampleFrequency)
-{
-    // 关闭所有中断
-    // Xil_ExceptionDisable();
-
-    /*1 开启ADC采样，设置采样点数和采样频率*/
-    Xil_Out32(adc_whole_base_addr + 8, TotalSamplePointsPerChannel + 4); // 采样点：sample_points写256
-    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency);      // 7812，对应采样频率50*256
-
-    Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
-    Xil_Out32(adc_whole_base_addr + 0, 1);
-
-    /*2 开启DMA传输*/
-    // 同时开启DMA传输ADC结果到DDR rx_buffer_ptr
-    // TotalSamplePointsPerChannel *16位*8个通道
-    uint32_t total_dma_bytes = TotalSamplePointsPerChannel * CHANNL_MAX * 16;
-
-    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
-    if (status != XST_SUCCESS)
-    {
-        // 处理DMA传输失败情况
-        printf("CPU1: ADC DMA transfer failed, will retry next cycle\n");
-    }
-
-    // 重新启用中断
-    // Xil_ExceptionEnable();
-    // 接下来进入DMA传输完成函数。
-}
-
 /**
  * @brief 启动一次ADC硬件采样和DMA传输 (单次批量操作)
  * @param TotalSamplePointsPerChannel 每个通道在此次采集中需要获取的总样本点数
@@ -128,21 +91,26 @@ void AdcDma_Start_OneBulk(int TotalSamplePointsPerChannel, int SampleFrequency)
 void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPeriods)
 {
     AdcFinish_Flag = 0;
-    // 计算本次ADC和DMA操作需要处理的总采样点数（对于每个通道而言）
-    int total_sample_points_for_bulk_transfer = SamplePointsPerPeriod * NumSamplingPeriods;
-    AdcDma_Start_OneBulk(total_sample_points_for_bulk_transfer, SampleFrequency); // 设置每个周期的采样点数和采样频率
-}
 
-void dma_dac_init()
-{
-    // dma_dac
-    start_dma_dac();
-}
-void dds_dac_init()
-{
+    int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods; // ADC采样个数256×16周期
+    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * 16;     // total_sample_points *16位*8个通道
 
-    // 更改使能、频率、相位、通道使能
-    str_wr_bram(PID_OFF);
+    /*1 开启ADC采样，设置采样点数和采样频率*/
+    Xil_Out32(adc_whole_base_addr + 8, total_sample_points + 256 * 4); // 采样点：sample_points写256
+    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency);    // 7812，对应采样频率50*256
+
+    Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
+    Xil_Out32(adc_whole_base_addr + 0, 1);
+
+    /*2 开启DMA传输*/
+    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
+    if (status != XST_SUCCESS)
+    {
+        // 处理DMA传输失败情况
+        printf("CPU1: ADC DMA transfer failed, will retry next cycle\n");
+    }
+
+    // 接下来进入DMA传输完成函数。
 }
 
 // 对于DMA缓冲区，使用更强的缓存同步
@@ -275,7 +243,6 @@ void underflow_handler()
 void timer_intr_handler(void *CallBackRef)
 {
     XScuTimer *timer_ptr = (XScuTimer *)CallBackRef;
-    Timer_Flag = 1;
 
     /*1 消息队列*/
     // 读取消息队列
@@ -286,7 +253,11 @@ void timer_intr_handler(void *CallBackRef)
         // 解析JSON指令
         Parse_JsonCommand(buffer);
     }
+    /*2 回报UDP结构体*/
+    ReportUDP_Structure(reportStatus);
 
+    /*3 读故障信号*/
+    RdSerial(); // 读取并处理硬件故障信号
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }
@@ -479,19 +450,6 @@ void Adc_Data_processing()
         // 由于 k_rx 已经在内层循环中正确递增并覆盖了一个周期的所有数据，
         // current_rx_buffer_offset_u16 应该直接等于下一个周期的起始 k_rx 值。
         current_rx_buffer_offset_u16 = k_rx;
-    }
-}
-
-void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress)
-{
-    for (int i = 0; i < Array_Length; i++)
-    {
-        // 计算相位偏移后的正弦波值
-        double phase = 2 * M_PI * i / Array_Length;                    // 角度值
-        double shifted_phase = phase + (Phase_Degress * M_PI / 180.0); // 添加相位偏移
-        double sin_value = sin(shifted_phase);                         // 计算正弦值
-        // 将正弦值映射到合适的幅度范围（0到MAX_AMPLITUDE）
-        NewData[i] = (uint16_t)((sin_value + 1.0) * 0.5 * Data_Width);
     }
 }
 

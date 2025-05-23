@@ -14,7 +14,7 @@
 #include "My_kissFft.h"
 #include "Rc64.h"
 
-void RunADCPIDCycle(void);
+void RunFFTPIDCycle(void);
 
 int main()
 {
@@ -127,7 +127,7 @@ int main()
 				if (adc_awaiting_completion == true)
 				{
 					// FFT计算 PID调整 功放输出
-					RunADCPIDCycle();
+					RunFFTPIDCycle();
 					usleep(100000); // 延时100ms，保证输出完成
 				}
 				adc_awaiting_completion = true;
@@ -147,7 +147,7 @@ int main()
 	}
 }
 
-void RunADCPIDCycle(void)
+void RunFFTPIDCycle(void)
 {
 	// 刷新共享内存的缓存，保证数据的一致性
 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);

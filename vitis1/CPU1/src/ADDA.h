@@ -68,6 +68,8 @@ typedef enum
     ADC_STATE_IDLE,
     ADC_STATE_SAMPLING
 } ADC_Process_State;
+extern ADC_Process_State adcState; // 初始化ADC状态结构体，初始化为空闲状态
+
 // 定义PID状态枚举
 typedef enum
 {
@@ -89,12 +91,7 @@ extern int dma_rx_8[8][sample_points];
 extern XAxiDma axidma; // XAxiDma实例
 extern XScuGic intc;   // 中断控制器的实例
 extern XScuTimer Timer;
-
-extern volatile u8 Timer_Flag; // 定时器完成标志
-
-extern bool AdcFinish_Flag;            // ADC采样完成标志
-extern volatile u8 Current_DDR_Region; // 当前正在写入的DDR区域(0:Share_addr_1, 1:Share_addr_2)
-
+extern bool AdcFinish_Flag;                               // ADC采样完成标志
 extern int numHarmonics[CHANNL_MAX];                      // 每个通道有几个谐波
 extern float harmonics[CHANNL_MAX][MAX_HARMONICS];        // 每个通道每次谐波的幅值
 extern float harmonics_phases[CHANNL_MAX][MAX_HARMONICS]; // 每个通道每次谐波的相位
@@ -119,9 +116,6 @@ extern double AD_Correct[8][3];
 // 函数
 void sync_dma_buffer(UINTPTR addr, size_t size, int direction);
 int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction);
-void dma_dac_init();
-void dds_dac_init();
-void Adc_Start_OneBulk(int SamplePoints, int SampleFrequency);
 void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber);
 // adc
 int code_to_real(u16 x);
@@ -143,7 +137,6 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
 void start_dma_dac();
 // dds_dac
 void str_wr_bram(PID_STATE pid_state);
-void changePhase(uint16_t NewData[], int Array_Length, float Phase_Degress);
 void Write_Wave_to_Wave_NewData();
 void Copy_Wave_to_tx_buffer_ptr();
 

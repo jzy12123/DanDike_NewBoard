@@ -14,7 +14,7 @@
 #include "My_kissFft.h"
 #include "Rc64.h"
 
-void RunADCPIDCycle(void);
+void RunFFTPIDCycle(void);
 
 int main()
 {
@@ -95,11 +95,11 @@ int main()
 		Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 		usleep(500000); // 500ms
 
-		// RunADCPIDCycle();
+		// RunFFTPIDCycle();
 		// printf("1 UA= %.4f\r\n", lineAC.u[0]);
-		// RunADCPIDCycle();
+		// RunFFTPIDCycle();
 		// printf("2 UA= %.4f\r\n", lineAC.u[0]);
-		// RunADCPIDCycle();
+		// RunFFTPIDCycle();
 		// printf("3 UA= %.4f\r\n", lineAC.u[0]);
 		// 刷新共享内存的缓存，保证数据的一致性
 		Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
@@ -127,7 +127,7 @@ int main()
 	}
 
 	/************************** 变量*****************************/
-	ADC_Process_State adcState = ADC_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
+	DMA_Process_State DmaState = DMA_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
 
 	while (1)
 	{
@@ -138,42 +138,42 @@ int main()
 			/*1 AC交流源 ADC采集与处理 */
 			if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
 			{
-				if (adcState == ADC_STATE_IDLE)
+				if (DmaState == DMA_STATE_IDLE)
 				{
 					// 当前为空闲状态，可以启动新的ADC采集
-					AdcFinish_Flag = 0;																// 清除完成标志，为新的采集做准备
+					DmaFinish_Flag = 0;																// 清除完成标志，为新的采集做准备
 					Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); //
-					adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
+					DmaState = DMA_STATE_TRANSFOR;													// 更新状态为采集中
 				}
 				else
 				{
 					// 当前正在采集中，检查是否完成
-					if (AdcFinish_Flag == 1)
+					if (DmaFinish_Flag == 1)
 					{
 						// ADC采集和初步数据处理已完成
-						RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+						RunFFTPIDCycle(); // 执行FFT计算、PID调整和功放输出等
 						printf("UA = %.4f\r\n", lineAC.u[0]);
 						Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
-						adcState = ADC_STATE_SAMPLING;
+						DmaState = DMA_STATE_TRANSFOR;
 					}
 					else
 					{
 						printf("ADC NotReady !\r\n");
-						adcState = ADC_STATE_IDLE;
+						DmaState = DMA_STATE_IDLE;
 					}
 				}
 			}
 			else // AC交流源关闭
 			{
 				// 如果AC源停止了，确保ADC状态也重置为空闲
-				if (adcState == ADC_STATE_SAMPLING)
+				if (DmaState == DMA_STATE_TRANSFOR)
 				{
 					// 如果之前正在采样，现在AC停止了，可能需要中止或忽略当前采样
 					// （具体行为取决于需求，这里简单重置状态）
 					xil_printf("CPU1: AC source stopped during sampling. Resetting ADC state.\r\n");
 				}
-				adcState = ADC_STATE_IDLE;
-				AdcFinish_Flag = 0; // 清空标志
+				DmaState = DMA_STATE_IDLE;
+				DmaFinish_Flag = 0; // 清空标志
 			}
 
 			/*2 回报UDP结构体*/
@@ -185,7 +185,7 @@ int main()
 	}
 }
 
-void RunADCPIDCycle(void)
+void RunFFTPIDCycle(void)
 {
 	// 刷新共享内存的缓存，保证数据的一致性
 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);

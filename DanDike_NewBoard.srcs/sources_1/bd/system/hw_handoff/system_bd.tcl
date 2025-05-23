@@ -182,7 +182,7 @@ proc create_hier_cell_adda { parentCell nameHier } {
   create_bd_pin -dir O -from 1 -to 0 yad_os_0
 
   # Create instance: adc_whole_0, and set properties
-  set adc_whole_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:adc_whole:1.0 adc_whole_0 ]
+  set adc_whole_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:adc_whole:2.0 adc_whole_0 ]
 
   # Create instance: axi_bram_ctrl_0, and set properties
   set axi_bram_ctrl_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 axi_bram_ctrl_0 ]

@@ -47,8 +47,8 @@
 // DO NOT MODIFY THIS FILE.
 
 
-// IP VLNV: xilinx.com:user:adc_whole:1.0
-// IP Revision: 13
+// IP VLNV: xilinx.com:user:adc_whole:2.0
+// IP Revision: 3
 
 `timescale 1ns/1ps
 

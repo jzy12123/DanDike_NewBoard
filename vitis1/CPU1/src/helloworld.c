@@ -126,59 +126,40 @@ int main()
 	// 	sleep(3);
 	// }
 
-	/************************** 变量*****************************/
-	ADC_Process_State adcState = ADC_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
 
 	while (1)
 	{
-		if (Timer_Flag) // 定时器中断标志，由timer_intr_handler设置
+		/*1 AC交流源 ADC采集与处理 */
+		if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
 		{
-			Timer_Flag = 0; // 清除定时器标志
-
-			/*1 AC交流源 ADC采集与处理 */
-			if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
+			if (adcState == ADC_STATE_IDLE)
 			{
-				if (adcState == ADC_STATE_IDLE)
+				// 当前为空闲状态，可以启动新的ADC采集
+				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+				usleep(450000);																	// 延时400ms等待ADCDMA完成
+				adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
+			}
+			else
+			{
+				// 当前正在采集中，检查是否完成
+				if (AdcFinish_Flag == 1)
 				{
-					// 当前为空闲状态，可以启动新的ADC采集															// 清除完成标志，为新的采集做准备
-					Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); //
-					adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
+					// ADC采集和初步数据处理已完成
+					RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+					usleep(50000);	  // 延时50ms，确保硬件执行
+					printf("UA = %.4f\r\n", lineAC.u[0]);
+					adcState = ADC_STATE_IDLE;
 				}
 				else
 				{
-					// 当前正在采集中，检查是否完成
-					if (AdcFinish_Flag == 1)
-					{
-						// ADC采集和初步数据处理已完成
-						RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-						printf("UA = %.4f\r\n", lineAC.u[0]);
-						adcState = ADC_STATE_IDLE;
-					}
-					else
-					{
-						printf("ADC NotReady !\r\n");
-						adcState = ADC_STATE_IDLE;
-					}
+					printf("ADC NotReady !\r\n");
+					adcState = ADC_STATE_IDLE;
 				}
 			}
-			else // AC交流源关闭
-			{
-				// 如果AC源停止了，确保ADC状态也重置为空闲
-				if (adcState == ADC_STATE_SAMPLING)
-				{
-					// 如果之前正在采样，现在AC停止了，可能需要中止或忽略当前采样
-					// （具体行为取决于需求，这里简单重置状态）
-					xil_printf("CPU1: AC source stopped during sampling. Resetting ADC state.\r\n");
-				}
-				adcState = ADC_STATE_IDLE;
-				AdcFinish_Flag = 0; // 清空标志
-			}
-
-			/*2 回报UDP结构体*/
-			ReportUDP_Structure(reportStatus); //
-
-			/*3 读故障信号*/
-			RdSerial(); // 读取并处理硬件故障信号
+		}
+		else // AC交流源关闭
+		{
+			adcState = ADC_STATE_IDLE;
 		}
 	}
 }
