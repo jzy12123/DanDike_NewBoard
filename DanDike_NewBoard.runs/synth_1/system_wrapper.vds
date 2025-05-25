@@ -2,8 +2,8 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Fri May 23 09:55:42 2025
-# Process ID: 20288
+# Start of session at: Sun May 25 09:46:48 2025
+# Process ID: 7816
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1
 # Command line: vivado.exe -log system_wrapper.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source system_wrapper.tcl
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.vds
@@ -14,7 +14,7 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-add_files: Time (s): cpu = 00:00:04 ; elapsed = 00:00:06 . Memory (MB): peak = 1115.527 ; gain = 0.000
+add_files: Time (s): cpu = 00:00:03 ; elapsed = 00:00:06 . Memory (MB): peak = 1097.934 ; gain = 0.000
 Command: synth_design -top system_wrapper -part xc7z020clg400-2
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
@@ -22,9 +22,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020
 INFO: [Device 21-403] Loading part xc7z020clg400-2
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 23120
+INFO: [Synth 8-7075] Helper process launched with PID 21532
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:06 ; elapsed = 00:00:08 . Memory (MB): peak = 1228.652 ; gain = 113.125
+Starting RTL Elaboration : Time (s): cpu = 00:00:06 ; elapsed = 00:00:08 . Memory (MB): peak = 1228.688 ; gain = 130.754
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-2048] function gpo_bit_used does not always return a value [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1529/hdl/axi_iic_v2_0_vh_rfs.vhd:1147]
 INFO: [Synth 8-6157] synthesizing module 'system_wrapper' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v:12]
@@ -38,15 +38,14 @@ INFO: [Synth 8-6157] synthesizing module 'system' [C:/Users/saber/Desktop/share/
 INFO: [Synth 8-6157] synthesizing module 'AC_8_channel_0_imp_1V5LWYH' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:12]
 INFO: [Synth 8-6157] synthesizing module 'adda_imp_1MMLK1Q' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:999]
 INFO: [Synth 8-6157] synthesizing module 'system_adc_whole_0_0' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_adc_whole_0_0_1/synth/system_adc_whole_0_0.v:58]
-INFO: [Synth 8-6157] synthesizing module 'adc_whole' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/adc_whole.v:19]
+INFO: [Synth 8-6157] synthesizing module 'adc_whole' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/adc_whole.v:17]
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 4 - type: integer 
 	Parameter ADDR_LSB bound to: 2 - type: integer 
 	Parameter OPT_MEM_ADDR_BITS bound to: 1 - type: integer 
-INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/adc_whole.v:272]
-INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/adc_whole.v:413]
-INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/ad7606_axis.v:3]
-	Parameter WIDTH_OF_NUMBER_OF_OUTPUT_WORDS bound to: 22 - type: integer 
+INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/adc_whole.v:268]
+INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/adc_whole.v:409]
+INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/ad7606_axis.v:3]
 	Parameter C_M_START_COUNT bound to: 10 - type: integer 
 	Parameter IDLE bound to: 7'b0000001 
 	Parameter WAIT_BEAT bound to: 7'b0000010 
@@ -55,18 +54,17 @@ INFO: [Synth 8-6157] synthesizing module 'ad7606_axis' [c:/Users/saber/Desktop/s
 	Parameter IN_ADC bound to: 7'b0010000 
 	Parameter SEND_STREAM bound to: 7'b0100000 
 	Parameter BULK_END bound to: 7'b1000000 
-INFO: [Synth 8-6157] synthesizing module 'ad7606_ser2par128bit' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/ad7606_ser2par128bit.v:9]
+INFO: [Synth 8-6157] synthesizing module 'ad7606_ser2par128bit' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/ad7606_ser2par128bit.v:9]
 	Parameter idle bound to: 2'b00 
 	Parameter s1 bound to: 2'b01 
 	Parameter s2 bound to: 2'b10 
 	Parameter s3 bound to: 2'b11 
-INFO: [Synth 8-6155] done synthesizing module 'ad7606_ser2par128bit' (2#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/ad7606_ser2par128bit.v:9]
-INFO: [Synth 8-6155] done synthesizing module 'ad7606_axis' (3#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/ad7606_axis.v:3]
-INFO: [Synth 8-6155] done synthesizing module 'adc_whole' (4#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1250/adc_whole.v:19]
+INFO: [Synth 8-6155] done synthesizing module 'ad7606_ser2par128bit' (2#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/ad7606_ser2par128bit.v:9]
+INFO: [Synth 8-6155] done synthesizing module 'ad7606_axis' (3#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/ad7606_axis.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'adc_whole' (4#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/bbab/adc_whole.v:17]
 INFO: [Synth 8-6155] done synthesizing module 'system_adc_whole_0_0' (5#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_adc_whole_0_0_1/synth/system_adc_whole_0_0.v:58]
-WARNING: [Synth 8-7071] port 'adc_end_intr' of module 'system_adc_whole_0_0' is unconnected for instance 'adc_whole_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1611]
 WARNING: [Synth 8-7071] port 'M_AXIS_TSTRB' of module 'system_adc_whole_0_0' is unconnected for instance 'adc_whole_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1611]
-WARNING: [Synth 8-7023] instance 'adc_whole_0' of module 'system_adc_whole_0_0' has 36 connections declared, but only 34 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1611]
+WARNING: [Synth 8-7023] instance 'adc_whole_0' of module 'system_adc_whole_0_0' has 35 connections declared, but only 34 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1611]
 INFO: [Synth 8-638] synthesizing module 'system_axi_bram_ctrl_0_0' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_bram_ctrl_0_0_1/synth/system_axi_bram_ctrl_0_0.vhd:108]
 	Parameter C_BRAM_INST_MODE bound to: EXTERNAL - type: string 
 	Parameter C_MEMORY_DEPTH bound to: 4096 - type: integer 
@@ -7198,6 +7196,7 @@ WARNING: [Synth 8-7071] port 'm_axi_awprot' of module 'system_auto_pc_2' is unco
 WARNING: [Synth 8-7071] port 'm_axi_arprot' of module 'system_auto_pc_2' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:3716]
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_2' has 60 connections declared, but only 58 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:3716]
 WARNING: [Synth 8-7071] port 'm_axi_awprot' of module 'system_auto_pc_3' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:4016]
+WARNING: [Synth 8-7071] port 'm_axi_arprot' of module 'system_auto_pc_3' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:4016]
 INFO: [Common 17-14] Message 'Synth 8-7071' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_3' has 60 connections declared, but only 58 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:4016]
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_5' has 60 connections declared, but only 57 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:4622]
@@ -8135,18 +8134,18 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter dout_width bound to: 11 - type: integer 
 	Parameter NUM_PORTS bound to: 11 - type: integer 
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:36 ; elapsed = 00:00:40 . Memory (MB): peak = 2022.195 ; gain = 906.668
+Finished RTL Elaboration : Time (s): cpu = 00:00:35 ; elapsed = 00:00:39 . Memory (MB): peak = 2019.977 ; gain = 922.043
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:39 ; elapsed = 00:00:44 . Memory (MB): peak = 2022.195 ; gain = 906.668
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:38 ; elapsed = 00:00:43 . Memory (MB): peak = 2041.289 ; gain = 943.355
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:39 ; elapsed = 00:00:44 . Memory (MB): peak = 2022.195 ; gain = 906.668
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:38 ; elapsed = 00:00:43 . Memory (MB): peak = 2041.289 ; gain = 943.355
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2220.973 ; gain = 13.875
+Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2222.445 ; gain = 17.656
 INFO: [Netlist 29-17] Analyzing 714 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
@@ -8259,7 +8258,7 @@ Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapp
 INFO: [Project 1-1715] 8 XPM XDC files have been applied to the design.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.050 . Memory (MB): peak = 2953.742 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.049 . Memory (MB): peak = 2950.199 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 469 instances were transformed.
   FDR => FDRE: 381 instances
@@ -8268,16 +8267,16 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   MUXCY_L => MUXCY: 28 instances
   SRL16 => SRL16E: 4 instances
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2953.742 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2950.199 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:01:34 ; elapsed = 00:01:37 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Constraint Validation : Time (s): cpu = 00:01:30 ; elapsed = 00:01:34 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7z020clg400-2
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:01:34 ; elapsed = 00:01:37 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Loading Part and Timing Information : Time (s): cpu = 00:01:30 ; elapsed = 00:01:34 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
@@ -8414,7 +8413,7 @@ Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_w_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:35 ; elapsed = 00:01:38 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:31 ; elapsed = 00:01:35 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'ad7606_ser2par128bit'
 INFO: [Synth 8-802] inferred FSM for state register 'mst_exec_state_reg' in module 'ad7606_axis'
@@ -8911,7 +8910,7 @@ INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'gen_axi.write_cs_reg' using encoding 'one-hot' in module 'axi_crossbar_v2_1_23_decerr_slave'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:01:58 ; elapsed = 00:02:04 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:01:54 ; elapsed = 00:01:59 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -8921,7 +8920,7 @@ Start RTL Component Statistics
 ---------------------------------------------------------------------------------
 Detailed RTL Component Info : 
 +---Adders : 
-	   2 Input   32 Bit       Adders := 12    
+	   2 Input   32 Bit       Adders := 11    
 	   2 Input   31 Bit       Adders := 1     
 	   3 Input   23 Bit       Adders := 1     
 	   2 Input   16 Bit       Adders := 5     
@@ -9012,7 +9011,7 @@ Detailed RTL Component Info :
 	                4 Bit    Registers := 268   
 	                3 Bit    Registers := 128   
 	                2 Bit    Registers := 246   
-	                1 Bit    Registers := 2633  
+	                1 Bit    Registers := 2629  
 +---Multipliers : 
 	               4x32  Multipliers := 1     
 	               6x32  Multipliers := 1     
@@ -9119,7 +9118,7 @@ Detailed RTL Component Info :
 	  10 Input    1 Bit        Muxes := 104   
 	   7 Input    1 Bit        Muxes := 59    
 	  12 Input    1 Bit        Muxes := 18    
-	   2 Input    1 Bit        Muxes := 1867  
+	   2 Input    1 Bit        Muxes := 1865  
 	   3 Input    1 Bit        Muxes := 69    
 	   5 Input    1 Bit        Muxes := 43    
 	   8 Input    1 Bit        Muxes := 26    
@@ -9649,7 +9648,7 @@ INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-4471] merging register 'bus2ip_reset_reg' into 'AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/rst_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4318/hdl/axi_gpio_v2_0_vh_rfs.vhd:1677]
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:02:48 ; elapsed = 00:02:56 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:02:43 ; elapsed = 00:02:50 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -9703,7 +9702,7 @@ Start Applying XDC Timing Constraints
 INFO: [Synth 8-5578] Moved timing constraint from pin 'system_i/lcd/clk_wiz_0/inst/clk_in1' to pin 'processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O'
 INFO: [Synth 8-5819] Moved 1 constraints on hierarchical pins to their respective driving/loading pins
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:02:59 ; elapsed = 00:03:08 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:02:54 ; elapsed = 00:03:02 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
@@ -9712,7 +9711,7 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:03:13 ; elapsed = 00:03:22 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Timing Optimization : Time (s): cpu = 00:03:07 ; elapsed = 00:03:15 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -9759,7 +9758,7 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:03:35 ; elapsed = 00:03:46 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Technology Mapping : Time (s): cpu = 00:03:28 ; elapsed = 00:03:38 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -9780,37 +9779,37 @@ WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int2_
 WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int_cdc_to_inferred:in0 to constant 0
 WARNING: [Synth 8-3295] tying undriven pin CDC_SINGLE_REMAP_UNDERFLOW_INST/xpm_cdc_single_inst:src_in to constant 0
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:03:45 ; elapsed = 00:03:57 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished IO Insertion : Time (s): cpu = 00:03:38 ; elapsed = 00:03:49 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:03:45 ; elapsed = 00:03:57 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Renaming Generated Instances : Time (s): cpu = 00:03:38 ; elapsed = 00:03:49 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:03:52 ; elapsed = 00:04:03 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:03:44 ; elapsed = 00:03:55 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:03:52 ; elapsed = 00:04:04 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Renaming Generated Ports : Time (s): cpu = 00:03:44 ; elapsed = 00:03:55 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:03:53 ; elapsed = 00:04:05 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Handling Custom Attributes : Time (s): cpu = 00:03:45 ; elapsed = 00:03:56 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:03:53 ; elapsed = 00:04:05 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Renaming Generated Nets : Time (s): cpu = 00:03:46 ; elapsed = 00:03:57 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -9874,17 +9873,17 @@ Report Cell Usage:
 |1     |BIBUF      |   130|
 |2     |BUFG       |     9|
 |3     |BUFIO      |     1|
-|4     |CARRY4     |   707|
+|4     |CARRY4     |   687|
 |5     |FIFO36E1   |     5|
 |6     |IDDR       |     5|
 |7     |IDELAYCTRL |     1|
 |8     |IDELAYE2   |     5|
-|9     |LUT1       |   943|
-|10    |LUT2       |  1659|
-|11    |LUT3       |  7024|
-|12    |LUT4       |  2867|
-|13    |LUT5       |  2862|
-|14    |LUT6       |  5731|
+|9     |LUT1       |   921|
+|10    |LUT2       |  1660|
+|11    |LUT3       |  6999|
+|12    |LUT4       |  2865|
+|13    |LUT5       |  2860|
+|14    |LUT6       |  5711|
 |15    |MMCME2_ADV |     1|
 |16    |MUXCY_L    |    21|
 |17    |MUXF7      |   459|
@@ -9902,27 +9901,27 @@ Report Cell Usage:
 |35    |FDCE       |   362|
 |36    |FDPE       |    18|
 |37    |FDR        |   196|
-|38    |FDRE       | 25905|
+|38    |FDRE       | 25880|
 |39    |FDSE       |   938|
 |40    |IBUF       |    18|
 |41    |IOBUF      |    29|
 |42    |OBUF       |    40|
 +------+-----------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:03:53 ; elapsed = 00:04:05 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Finished Writing Synthesis Report : Time (s): cpu = 00:03:46 ; elapsed = 00:03:57 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 228 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:02:24 ; elapsed = 00:03:19 . Memory (MB): peak = 2953.742 ; gain = 906.668
-Synthesis Optimization Complete : Time (s): cpu = 00:03:53 ; elapsed = 00:04:06 . Memory (MB): peak = 2953.742 ; gain = 1838.215
+Synthesis Optimization Runtime : Time (s): cpu = 00:02:20 ; elapsed = 00:03:13 . Memory (MB): peak = 2950.199 ; gain = 943.355
+Synthesis Optimization Complete : Time (s): cpu = 00:03:46 ; elapsed = 00:03:58 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2953.742 ; gain = 0.000
-INFO: [Netlist 29-17] Analyzing 1764 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.998 . Memory (MB): peak = 2950.199 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1744 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 WARNING: [Opt 31-32] Removing redundant IBUF since it is not being driven by a top-level port. system_i/lcd/clk_wiz_0/inst/CLK_CORE_DRP_I/clk_inst/clkin1_ibufg 
 Resolution: The tool has removed redundant IBUF. To resolve this warning, check for redundant IBUF in the input design.
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2953.742 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.018 . Memory (MB): peak = 2950.199 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 402 instances were transformed.
   (MUXCY,XORCY) => CARRY4: 7 instances
@@ -9935,10 +9934,8 @@ INFO: [Project 1-111] Unisim Transformation Summary:
 INFO: [Common 17-83] Releasing license: Synthesis
 1534 Infos, 281 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:04:12 ; elapsed = 00:04:28 . Memory (MB): peak = 2953.742 ; gain = 1838.215
-INFO: [Common 17-600] The following parameters have non-default value.
-tcl.collectionResultDisplayLimit
+synth_design: Time (s): cpu = 00:04:04 ; elapsed = 00:04:18 . Memory (MB): peak = 2950.199 ; gain = 1852.266
 INFO: [Common 17-1381] The checkpoint 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.dcp' has been generated.
-write_checkpoint: Time (s): cpu = 00:00:12 ; elapsed = 00:00:07 . Memory (MB): peak = 2953.742 ; gain = 0.000
+write_checkpoint: Time (s): cpu = 00:00:12 ; elapsed = 00:00:07 . Memory (MB): peak = 2950.199 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Fri May 23 10:00:35 2025...
+INFO: [Common 17-206] Exiting Vivado at Sun May 25 09:51:31 2025...

@@ -14,6 +14,7 @@
 #include "xaxidma.h"
 #include <math.h>
 #include "xbram_hw.h"
+#include "xaxidma_hw.h"
 
 #include "Amplifier_Switch.h"
 #include "Communications_Protocol.h"
@@ -61,14 +62,6 @@
 #define BRAM_DATA_BYTE 4 // BRAM数据字节个数
 #define CHANNL_MAX 8
 #define MAX_HARMONICS 32 // 最大谐波次数
-
-// 定义ADC状态
-typedef enum
-{
-    ADC_STATE_IDLE,
-    ADC_STATE_SAMPLING
-} ADC_Process_State;
-extern ADC_Process_State adcState; // 初始化ADC状态结构体，初始化为空闲状态
 
 // 定义PID状态枚举
 typedef enum

@@ -32,8 +32,8 @@ volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.250523.1045";
-const char ARM_Ver_Full[] = "[Ver]=V1.250523.1114";
+const char FPGA_Ver_Full[] = "[Ver]=V1.250525.1049";
+const char ARM_Ver_Full[] = "[Ver]=V1.250525.1114";
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -966,7 +966,7 @@ void handle_SetACS(cJSON *data)
     }
 
     // 更新相位、幅值、量程
-    for (int i = 0; i < 4; i++) // 假设 ChnsAC 是 4
+    for (int i = 0; i < 4; i++) 
     {
         Phase_shift[i] = setACS.Vals[i].PhU;     // 电压相位
         Phase_shift[i + 4] = setACS.Vals[i].PhI; // 电流相位

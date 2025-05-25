@@ -49,8 +49,8 @@ double PID_Compute(PID *pid, double setpoint, double actual_value)
 // 调整幅值的函数// 调整幅值的函数
 double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amplitude_pid)
 {
-    // 打印setpoint_value和actual_value
-    printf("Setpoint Value: %f, Actual Value: %f\n", setpoint_value, actual_value);
+    // // 打印setpoint_value和actual_value
+    // printf("Setpoint Value: %f, Actual Value: %f\n", setpoint_value, actual_value);
     //  防止除以零
     if (fabs(setpoint_value) < 1e-6)
     {
@@ -72,7 +72,7 @@ double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amp
         // 重置积分项以防止积分饱和
         amplitude_pid->integral = 0;
         amplitude_pid->last_valid_output = 0; // 误差过大，之前的PID输出可能不再适用
-        printf("Error too large, PID output set to 0.\n");
+        printf("CPU1: Error too large\r\n");
         return 0;
     }
     // 如果误差大于最小阈值但小于最大阈值，执行PID调整
@@ -89,13 +89,13 @@ double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amp
         }
         // 计算新的PID输出并保存
         amplitude_pid->last_valid_output = PID_Compute(amplitude_pid, setpoint_value, actual_value);
-        printf("PID adjusting, output: %f\n", amplitude_pid->last_valid_output);
+        // printf("PID adjusting, output: %f\n", amplitude_pid->last_valid_output);
         return amplitude_pid->last_valid_output;
     }
 
     // 如果误差很小，不进行调整
     // 此时不调用PID_Compute，而是返回上一次有效的PID输出值
-    printf("Error within tolerance, maintaining last valid PID output: %f\n", amplitude_pid->last_valid_output);
+    printf("CPU1: Error within tolerance\r\n");
     // 清除积分项，防止在目标值附近时积分持续累积导致震荡或超调
     // amplitude_pid->integral = 0;
     return amplitude_pid->last_valid_output;

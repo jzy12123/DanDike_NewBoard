@@ -383,28 +383,6 @@
         </spirit:portMap>
       </spirit:portMaps>
     </spirit:busInterface>
-    <spirit:busInterface>
-      <spirit:name>adc_end_intr</spirit:name>
-      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt_rtl" spirit:version="1.0"/>
-      <spirit:master/>
-      <spirit:portMaps>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>INTERRUPT</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>adc_end_intr</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-      </spirit:portMaps>
-      <spirit:parameters>
-        <spirit:parameter>
-          <spirit:name>SENSITIVITY</spirit:name>
-          <spirit:value spirit:id="BUSIFPARAM_VALUE.ADC_END_INTR.SENSITIVITY" spirit:choiceRef="choice_list_9ca20931">LEVEL_HIGH</spirit:value>
-        </spirit:parameter>
-      </spirit:parameters>
-    </spirit:busInterface>
   </spirit:busInterfaces>
   <spirit:memoryMaps>
     <spirit:memoryMap>
@@ -432,7 +410,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>d74bac10</spirit:value>
+            <spirit:value>5ac7297c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -448,7 +426,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>d74bac10</spirit:value>
+            <spirit:value>5ac7297c</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -468,19 +446,6 @@
       </spirit:view>
     </spirit:views>
     <spirit:ports>
-      <spirit:port>
-        <spirit:name>adc_end_intr</spirit:name>
-        <spirit:wire>
-          <spirit:direction>out</spirit:direction>
-          <spirit:wireTypeDefs>
-            <spirit:wireTypeDef>
-              <spirit:typeName>wire</spirit:typeName>
-              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
-              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
-            </spirit:wireTypeDef>
-          </spirit:wireTypeDefs>
-        </spirit:wire>
-      </spirit:port>
       <spirit:port>
         <spirit:name>yad_os</spirit:name>
         <spirit:wire>
@@ -1036,13 +1001,6 @@
   </spirit:model>
   <spirit:choices>
     <spirit:choice>
-      <spirit:name>choice_list_9ca20931</spirit:name>
-      <spirit:enumeration>LEVEL_HIGH</spirit:enumeration>
-      <spirit:enumeration>LEVEL_LOW</spirit:enumeration>
-      <spirit:enumeration>EDGE_RISING</spirit:enumeration>
-      <spirit:enumeration>EDGE_FALLING</spirit:enumeration>
-    </spirit:choice>
-    <spirit:choice>
       <spirit:name>choice_list_9d8b0d81</spirit:name>
       <spirit:enumeration>ACTIVE_HIGH</spirit:enumeration>
       <spirit:enumeration>ACTIVE_LOW</spirit:enumeration>
@@ -1062,7 +1020,7 @@
       <spirit:file>
         <spirit:name>adc_whole.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_38881e14</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_7527b4c9</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1137,11 +1095,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>adc_whole_v2_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>3</xilinx:coreRevision>
+      <xilinx:coreRevision>9</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:adc_whole:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2025-05-23T01:53:11Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2025-05-25T01:44:59Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="nopcore"/>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@197c71c9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
@@ -1194,14 +1152,129 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@5c76c8a9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@10401cfa_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1cab6129_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7b23891e_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@51c26da5_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c7378ae_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1bab15ba_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3590a0cb_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ac00a96_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@229da976_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@265f6f0_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@366ebd56_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@43617c51_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71ba4d61_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@67688b16_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@795affd3_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@58592367_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bc6322e_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@75228811_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@302d6f73_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@983acee_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5091e26d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@392b9a75_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@f3b9554_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4f790d2b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@17164297_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ed341a9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2069fb2b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3bb2dd47_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@524dfef_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e22e0c5_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@219fa3c9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45cf14cf_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@22ce1562_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36605bba_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@59ae2533_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@495132df_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3773e59_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a5cd33f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1762cb4d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b66ec26_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ff451c8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7500b883_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3e8d5ef5_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@da72038_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71147ed8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3f1ae02d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2c1d3c42_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@ceac00a_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3a49e77f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@998ae66_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@b436516_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@24ebde83_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3c4b9b49_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2fcc637c_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bccdf13_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4cba9c40_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@29ad53a1_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@53d1b8dd_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@414206e5_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6761498e_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b0271e4_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7203ecbb_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f721007_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7541ab85_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7befb8ae_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39b3ea66_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b804f2b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@11be2b1b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4b20966d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ea1fb3f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b1575c3_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2d312a84_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3bccd497_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@26cdb45_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1aadc7b9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@52d62b61_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@575f4270_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@137035f0_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@438cd211_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1835ab38_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c746bf_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@306bde66_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@b53273_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6108c1f6_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3e2c21af_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1d6fb470_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ecb94c_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@fe8f56d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bd2f2de_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6d610f02_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@51fba51c_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6d43b46a_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@688f056_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1cab3ee7_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b45c49a_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e86f1b6_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6fb0bbf8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@310c750f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2a29cb77_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@255f0fd8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@27cf97d5_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61db36be_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@17b23330_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7b03831c_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7bf124f3_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7062143_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@672b2a9d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2366a84_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61fa1207_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@16a0802c_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@56ceacee_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45ad28d6_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@685cf938_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5aaf3bf9_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@463a4e6a_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@70cae020_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@28774559_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="52a3edc7"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="fa4ab444"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="871a59ce"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="546ee61c"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="ce9370ba"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="af3e22cf"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="96da0246"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="cd9ec9b5"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="ae03716b"/>
     </xilinx:packagingInfo>

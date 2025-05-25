@@ -211,7 +211,7 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_Switch_BASEADDR + Module_Status_ADDR, (u32)0x00000102);
 		usleep(100);
 		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_Switch_BASEADDR + Module_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
-		print("CPU1: POWAMP Closed!\n");
+		print("CPU1: POWAMP Closed!\r\n");
 
 		/*2 清空PID累计值*/
 		for (int i = 0; i < 4; i++)

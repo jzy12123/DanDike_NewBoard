@@ -1,6 +1,152 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Sun May 25 09:45:08 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+CAUTION (success, with warnings) in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 8) to (Rev. 9)
+
+After upgrade, an IP may have parameter and port differences compared to the original customization. Please review the parameters within the IP customization GUI to ensure proper functionality. Also, please review the updated IP instantiation template to ensure proper connectivity, and update your design if required.
+
+2. Interface Information
+------------------------
+
+Detected external interface differences while upgrading 'system_adc_whole_0_0'.
+
+
+-Upgrade has removed interface 'adc_end_intr'
+
+
+3. Connection Warnings
+----------------------
+
+Detected external port differences while upgrading 'system_adc_whole_0_0'. These changes may impact your design.
+
+
+-Upgrade has removed port 'adc_end_intr'
+
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Sun May 25 09:37:38 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 7) to (Rev. 8)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Fri May 23 15:35:19 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 6) to (Rev. 7)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Fri May 23 14:54:01 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 5) to (Rev. 6)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Fri May 23 14:17:56 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 4) to (Rev. 5)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Fri May 23 12:00:43 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_adc_whole_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_adc_whole_0_0 (xilinx.com:user:adc_whole:2.0) from (Rev. 3) to (Rev. 4)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
 | Date         : Fri May 23 09:53:21 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : upgrade_ip

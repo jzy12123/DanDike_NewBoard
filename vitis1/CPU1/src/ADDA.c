@@ -23,7 +23,6 @@ int numHarmonics[CHANNL_MAX] = {0};                      // 每个通道有几个谐波
 float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅值
 float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
 
-ADC_Process_State adcState = ADC_STATE_IDLE; // 初始化ADC状态结构体，初始化为空闲状态
 // 功放输出参数
 double DA_Correct_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
@@ -93,14 +92,7 @@ void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPe
     AdcFinish_Flag = 0;
 
     int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods; // ADC采样个数256×16周期
-    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * 16;     // total_sample_points *16位*8个通道
-
-    /*1 开启ADC采样，设置采样点数和采样频率*/
-    Xil_Out32(adc_whole_base_addr + 8, total_sample_points + 256 * 4); // 采样点：sample_points写256
-    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency);    // 7812，对应采样频率50*256
-
-    Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
-    Xil_Out32(adc_whole_base_addr + 0, 1);
+    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * 16;      // total_sample_points *16位*8个通道
 
     /*2 开启DMA传输*/
     int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
@@ -109,6 +101,15 @@ void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPe
         // 处理DMA传输失败情况
         printf("CPU1: ADC DMA transfer failed, will retry next cycle\n");
     }
+
+    /*1 开启ADC采样，设置采样点数和采样频率*/
+    Xil_Out32(adc_whole_base_addr + 8, total_sample_points);   // 采样点：sample_points写256
+    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency); // 7812，对应采样频率50*256
+
+    Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
+    Xil_Out32(adc_whole_base_addr + 0, 1);
+
+
 
     // 接下来进入DMA传输完成函数。
 }
@@ -125,7 +126,7 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
     {
         // 先刷新，再失效
         Xil_DCacheFlushRange(addr, size);
-        Xil_DCacheInvalidateRange(addr, size);
+        // Xil_DCacheInvalidateRange(addr, size);
     }
 
     // 添加内存屏障确保操作顺序
@@ -137,7 +138,6 @@ void rx_intr_handler(void *callback)
 {
     // 进入到该中断函数中代表DMA已经完成了一次传输
     uint32_t irq_status;
-    int timeout;
     XAxiDma *axidma_inst = (XAxiDma *)callback;
 
     irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DEVICE_TO_DMA);
@@ -147,15 +147,30 @@ void rx_intr_handler(void *callback)
     if ((irq_status & XAXIDMA_IRQ_ERROR_MASK))
     {
 
-        XAxiDma_Reset(axidma_inst);
-        timeout = RESET_TIMEOUT_COUNTER;
-        printf("CPU1:DMA RX Interrupt Handler: Error Transfer\n");
-        while (timeout)
-        {
-            if (XAxiDma_ResetIsDone(axidma_inst))
-                break;
-            timeout -= 1;
+        u32 dma_s2mm_status_on_error;
+        dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34); // XAXIDMA_S2MM_SR_OFFSET 值为 0x34
+//        printf("CPU1:DMA RX Interrupt Handler: Error Transfer. S2MM_DMASR = 0x%08X\n", dma_s2mm_status_on_error);
+
+        // 检查具体的错误位，例如：
+        if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
+        { // Bit 0
+            printf("CPU1: S2MM Halted.\n");
         }
+        if (dma_s2mm_status_on_error & XAXIDMA_ERR_INTERNAL_MASK)
+        { // Bit 4 : DMAIntErr
+            printf("CPU1: DMA Internal Error detected.\n");
+        }
+        if (dma_s2mm_status_on_error & XAXIDMA_ERR_SLAVE_MASK)
+        { // Bit 5 : DMASlvErr
+            printf("CPU1: DMA Slave Error detected.\n");
+        }
+        if (dma_s2mm_status_on_error & XAXIDMA_ERR_DECODE_MASK)
+        { // Bit 6 : DMADecErr
+            printf("CPU1: DMA Decode Error detected.\n");
+        }
+        // 其他可能的错误位，如 SG相关的，但您用的是SimpleTransfer
+
+        XAxiDma_Reset(axidma_inst);
         return;
     }
 
@@ -164,7 +179,6 @@ void rx_intr_handler(void *callback)
     {
 
         u32 total_dma_bytes_received = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * 16;
-
         sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_received, XAXIDMA_DEVICE_TO_DMA);
         Adc_Data_processing();
         // 设置ADC（及数据处理）完成标志，通知主循环数据已准备好可以进行后续分析（如FFT）

@@ -18,7 +18,7 @@ void RunADCPIDCycle(void);
 
 int main()
 {
-	sleep(30); // 必须要有等待linux启动
+	sleep(25); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -79,87 +79,29 @@ int main()
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
-
-	// // 测试ADC原始数据
-	// while (1)
-	// {
-	// 	//  生成交流信号
-	// 	str_wr_bram(PID_OFF);
-	// 	//  控制功放
-	// 	for (int i = 0; i < CHANNL_MAX; i++)
-	// 	{
-	// 		Wave_Amplitude[i] = 100;
-	// 	}
-	// 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
-	// 	usleep(500000); // 500ms
-	// 	Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
-	// 	usleep(500000); // 500ms
-
-	// 	// RunADCPIDCycle();
-	// 	// printf("1 UA= %.4f\r\n", lineAC.u[0]);
-	// 	// RunADCPIDCycle();
-	// 	// printf("2 UA= %.4f\r\n", lineAC.u[0]);
-	// 	// RunADCPIDCycle();
-	// 	// printf("3 UA= %.4f\r\n", lineAC.u[0]);
-	// 	// 刷新共享内存的缓存，保证数据的一致性
-	// 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-	// 	// 在读取DDR数据前先使缓存失效
-	// 	Xil_DCacheInvalidateRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-
-	// 	int extended_data[sample_points * AD_SAMP_CYCLE_NUMBER];
-	// 	int channel = 0;
-	// 	// 从指定DDR地址读取数据
-	// 	for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
-	// 	{
-	// 		for (int i = 0; i < sample_points; i++)
-	// 		{
-	// 			extended_data[i + j * sample_points] =
-	// 				Xil_In32(Share_addr + channel * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
-	// 		}
-	// 	}
-
-	// 	// // 打印extended_data，用来测试波形是否正确
-	// 	for (int i = 0; i < sample_points * AD_SAMP_CYCLE_NUMBER; i++)
-	// 	{
-	// 		printf("x=%d\n", extended_data[i]);
-	// 	}
-	// 	sleep(3);
-	// }
-
-
 	while (1)
 	{
 		/*1 AC交流源 ADC采集与处理 */
 		if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
 		{
-			if (adcState == ADC_STATE_IDLE)
+			// 当前为空闲状态，可以启动新的ADC采集
+			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+			usleep(400000);																	// ADC采样理论320ms
+			// 当前正在采集中，检查是否完成
+			if (AdcFinish_Flag == 1)
 			{
-				// 当前为空闲状态，可以启动新的ADC采集
-				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
-				usleep(450000);																	// 延时400ms等待ADCDMA完成
-				adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
+				// ADC采集和初步数据处理已完成
+				RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+				usleep(50000);	  // 延时50ms，确保硬件执行
+				printf("UA = %.4f\r\n", lineAC.u[0]);
 			}
 			else
 			{
-				// 当前正在采集中，检查是否完成
-				if (AdcFinish_Flag == 1)
-				{
-					// ADC采集和初步数据处理已完成
-					RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-					usleep(50000);	  // 延时50ms，确保硬件执行
-					printf("UA = %.4f\r\n", lineAC.u[0]);
-					adcState = ADC_STATE_IDLE;
-				}
-				else
-				{
-					printf("ADC NotReady !\r\n");
-					adcState = ADC_STATE_IDLE;
-				}
+				printf("ADC NotReady !\r\n");
 			}
 		}
 		else // AC交流源关闭
 		{
-			adcState = ADC_STATE_IDLE;
 		}
 	}
 }
