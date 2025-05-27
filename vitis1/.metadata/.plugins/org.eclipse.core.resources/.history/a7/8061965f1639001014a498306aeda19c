@@ -85,7 +85,7 @@ int main()
 		if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
 		{
 			// 当前为空闲状态，可以启动新的ADC采集
-			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+			Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
 			usleep(400000);																	// ADC采样理论320ms
 			// 当前正在采集中，检查是否完成
 			if (AdcFinish_Flag == 1)

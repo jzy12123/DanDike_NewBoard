@@ -92,7 +92,7 @@ void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPe
     AdcFinish_Flag = 0;
 
     int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods; // ADC采样个数256×16周期
-    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * 16;      // total_sample_points *16位*8个通道
+    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * sizeof(u16);      // total_sample_points *16位*8个通道
 
     /*2 开启DMA传输*/
     int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
@@ -103,13 +103,11 @@ void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPe
     }
 
     /*1 开启ADC采样，设置采样点数和采样频率*/
-    Xil_Out32(adc_whole_base_addr + 8, total_sample_points);   // 采样点：sample_points写256
+    Xil_Out32(adc_whole_base_addr + 8, total_sample_points);        // 采样点：sample_points写256
     Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency); // 7812，对应采样频率50*256
 
     Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
     Xil_Out32(adc_whole_base_addr + 0, 1);
-
-
 
     // 接下来进入DMA传输完成函数。
 }
@@ -136,53 +134,103 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
 // DMA RX中断处理函数 adc
 void rx_intr_handler(void *callback)
 {
-    // 进入到该中断函数中代表DMA已经完成了一次传输
     uint32_t irq_status;
     XAxiDma *axidma_inst = (XAxiDma *)callback;
 
+    // 读取中断状态
     irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DEVICE_TO_DMA);
+    // 清除中断标志
     XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DEVICE_TO_DMA);
 
-    // Rx出错
-    if ((irq_status & XAXIDMA_IRQ_ERROR_MASK))
+    int ioc_occurred = (irq_status & XAXIDMA_IRQ_IOC_MASK);
+    int err_occurred = (irq_status & XAXIDMA_IRQ_ERROR_MASK);
+
+    if (ioc_occurred) // 如果发生了“完成中断”
     {
+        // 即使有错误，只要IOC发生，我们就认为指定字节数已传输，可以处理数据
+        // （这基于我们不依赖TLAST来正确结束传输的假设）
+        if (err_occurred)
+        {
+            u32 dma_s2mm_status_on_error;
+            dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34);
+            // printf("CPU1:DMA RX IOC occurred with an error. S2MM_DMASR = 0x%08X\n", dma_s2mm_status_on_error);
 
+            // 检查具体的错误位
+            if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
+            {
+                // printf("CPU1: S2MM Halted.\n");
+            }
+            if (dma_s2mm_status_on_error & XAXIDMA_ERR_INTERNAL_MASK)
+            {
+                // printf("CPU1: DMA Internal Error detected.\n");
+            }
+            if (dma_s2mm_status_on_error & XAXIDMA_ERR_SLAVE_MASK)
+            {
+                // printf("CPU1: DMA Slave Error detected.\n");
+            }
+            if (dma_s2mm_status_on_error & XAXIDMA_ERR_DECODE_MASK)
+            {
+                // 这个错误（DMADecErr）在没有TLAST时是预期的
+                // printf("CPU1: DMA Decode Error detected (potentially due to missing TLAST, will proceed with data processing).\n");
+            }
+//            /*复位DMA*/
+//            // 在 Dma_Start 中，调用 SafeDmaTransfer 之前
+//            // printf("CPU1: Resetting DMA before new transfer...\n");
+//            XAxiDma_Reset(&axidma);
+//            int reset_timeout = 1000000; // 定义一个合适的超时计数
+//            while (reset_timeout > 0)
+//            {
+//                if (XAxiDma_ResetIsDone(&axidma))
+//                    break;
+//                reset_timeout--;
+//            }
+//            if (reset_timeout == 0)
+//            {
+//                printf("CPU1: CRITICAL - DMA Reset timed out!\n");
+//            }
+//            else
+//            {
+//                // printf("CPU1: DMA Reset successful.\n");
+//            }
+//            // 清除S2MM通道的状态寄存器中的中断和错误标志（通过向相应位写1来清除）
+//            XAxiDma_WriteReg(axidma.RegBase, 0x34, XAxiDma_ReadReg(axidma.RegBase, 0x34) | 0x0000F070); // 清除所有已知错误和IOC/Delay IRQ标志
+//            // 重新使能你需要的中断 (IOC 和 Error)
+//            XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_IOC_MASK | XAXIDMA_IRQ_ERROR_MASK, XAXIDMA_DEVICE_TO_DMA);
+        }
+
+        /*处理DDR数据*/
+        u32 total_dma_bytes_for_sync = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * sizeof(u16);
+        sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_for_sync, XAXIDMA_DEVICE_TO_DMA);
+        Adc_Data_processing();
+        AdcFinish_Flag = 1; // 设置ADC（及数据处理）完成标志
+        return;
+    }
+    else if (err_occurred) // 仅发生错误中断，没有IOC
+    {
         u32 dma_s2mm_status_on_error;
-        dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34); // XAXIDMA_S2MM_SR_OFFSET 值为 0x34
-//        printf("CPU1:DMA RX Interrupt Handler: Error Transfer. S2MM_DMASR = 0x%08X\n", dma_s2mm_status_on_error);
+        dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34);
+        printf("CPU1:DMA RX Interrupt Handler: Error Transfer without IOC. S2MM_DMASR = %ld\n", dma_s2mm_status_on_error);
 
-        // 检查具体的错误位，例如：
         if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
-        { // Bit 0
+        {
             printf("CPU1: S2MM Halted.\n");
         }
         if (dma_s2mm_status_on_error & XAXIDMA_ERR_INTERNAL_MASK)
-        { // Bit 4 : DMAIntErr
+        {
             printf("CPU1: DMA Internal Error detected.\n");
         }
         if (dma_s2mm_status_on_error & XAXIDMA_ERR_SLAVE_MASK)
-        { // Bit 5 : DMASlvErr
+        {
             printf("CPU1: DMA Slave Error detected.\n");
         }
         if (dma_s2mm_status_on_error & XAXIDMA_ERR_DECODE_MASK)
-        { // Bit 6 : DMADecErr
+        {
             printf("CPU1: DMA Decode Error detected.\n");
         }
-        // 其他可能的错误位，如 SG相关的，但您用的是SimpleTransfer
-
+        // 对于没有IOC的错误，通常需要复位
         XAxiDma_Reset(axidma_inst);
+        // AdcFinish_Flag 保持为0或根据需要处理
         return;
-    }
-
-    // Rx完成
-    if ((irq_status & XAXIDMA_IRQ_IOC_MASK))
-    {
-
-        u32 total_dma_bytes_received = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * 16;
-        sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_received, XAXIDMA_DEVICE_TO_DMA);
-        Adc_Data_processing();
-        // 设置ADC（及数据处理）完成标志，通知主循环数据已准备好可以进行后续分析（如FFT）
-        AdcFinish_Flag = 1; //
     }
 }
 
@@ -351,9 +399,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_Enable(int_ins_ptr, Timer_id);
     // 启用来自硬件的中断
     Xil_ExceptionInit();
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
-                                 (Xil_ExceptionHandler)XScuGic_InterruptHandler,
-                                 (void *)int_ins_ptr);
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void *)int_ins_ptr);
     Xil_ExceptionEnable();
 
     // 使能中断
@@ -404,7 +450,7 @@ bool AdcFinish_Flag; // ADc完成标志，在中断处理函数中写1，主循环中读取
 void Adc_Data_processing()
 {
     /************************** 数据处理 *****************************/
-    // current_rx_buffer_offset_u16 用于追踪在 rx_buffer_ptr (u16类型指针) 中当前处理的“原始周期”数据块的起始索引
+    // 指向 DMA 缓冲区中有效数据的起始位置
     int current_rx_buffer_offset_u16 = 0;
 
     // 外层循环：遍历所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的数据块

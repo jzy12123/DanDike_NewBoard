@@ -92,7 +92,7 @@ int main()
 		}
 		power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
 		usleep(500000); // 500ms
-		Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+		Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 		usleep(500000); // 500ms
 
 		// RunFFTPIDCycle();
@@ -142,7 +142,7 @@ int main()
 				{
 					// 当前为空闲状态，可以启动新的ADC采集
 					DmaFinish_Flag = 0;																// 清除完成标志，为新的采集做准备
-					Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); //
+					Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); //
 					DmaState = DMA_STATE_TRANSFOR;													// 更新状态为采集中
 				}
 				else
@@ -153,7 +153,7 @@ int main()
 						// ADC采集和初步数据处理已完成
 						RunFFTPIDCycle(); // 执行FFT计算、PID调整和功放输出等
 						printf("UA = %.4f\r\n", lineAC.u[0]);
-						Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+						Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 						DmaState = DMA_STATE_TRANSFOR;
 					}
 					else

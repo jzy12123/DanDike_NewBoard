@@ -21,7 +21,7 @@ void PID_Init_All()
     for (int i = 0; i < 8; i++)
     {
         // 对于每个幅值PID，假设你有一些默认的 Kp, Ki, Kd 参数
-        double Kp_amplitude = 0.2, Ki_amplitude = 0.02, Kd_amplitude = 0.0;
+        double Kp_amplitude = 0.4, Ki_amplitude = 0.06, Kd_amplitude = 0.0;
         PID_Init(&amplitude_pid[i], Kp_amplitude, Ki_amplitude, Kd_amplitude);
     }
 
@@ -72,7 +72,7 @@ double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amp
         // 重置积分项以防止积分饱和
         amplitude_pid->integral = 0;
         amplitude_pid->last_valid_output = 0; // 误差过大，之前的PID输出可能不再适用
-        printf("CPU1: Error too large\r\n");
+        // printf("CPU1: Error too large\r\n");
         return 0;
     }
     // 如果误差大于最小阈值但小于最大阈值，执行PID调整
@@ -95,9 +95,7 @@ double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amp
 
     // 如果误差很小，不进行调整
     // 此时不调用PID_Compute，而是返回上一次有效的PID输出值
-    printf("CPU1: Error within tolerance\r\n");
-    // 清除积分项，防止在目标值附近时积分持续累积导致震荡或超调
-    // amplitude_pid->integral = 0;
+    // printf("CPU1: Error within tolerance\r\n");
     return amplitude_pid->last_valid_output;
 }
 

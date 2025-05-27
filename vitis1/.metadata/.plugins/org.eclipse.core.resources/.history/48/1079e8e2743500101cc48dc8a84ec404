@@ -86,7 +86,7 @@ int main()
 	//  控制功放
 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
 	usleep(500000); // 500ms
-	Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+	Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 	usleep(500000); // 500ms
 	// 刷新共享内存的缓存，保证数据的一致性
 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
@@ -131,7 +131,7 @@ int main()
 					usleep(100000); // 延时100ms，保证输出完成
 				}
 				adc_awaiting_completion = true;
-				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+				Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 			}
 			else // AC交流源关闭
 			{

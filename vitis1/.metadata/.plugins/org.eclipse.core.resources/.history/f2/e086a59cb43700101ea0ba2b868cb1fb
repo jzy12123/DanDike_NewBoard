@@ -88,7 +88,7 @@ double AD_Correct[8][3] = {
  * @param SampleFrequency ADC的实际采样频率 (Hz)
  * @comment 此函数配置ADC IP核进行一次包含所有周期的连续采样，并启动DMA将所有数据传输到内存。
  */
-void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPeriods)
+void Dma_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPeriods)
 {
     AdcFinish_Flag = 0;
 

@@ -92,7 +92,7 @@ int main()
 		}
 		power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
 		usleep(500000); // 500ms
-		Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
+		Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER);
 		usleep(500000); // 500ms
 
 		if (AdcFinish_Flag == 1)
@@ -141,7 +141,7 @@ int main()
 			if (adcState == ADC_STATE_IDLE)
 			{
 				// 当前为空闲状态，可以启动新的ADC采集
-				Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+				Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
 				usleep(450000);																	// 延时400ms等待ADCDMA完成
 				adcState = ADC_STATE_SAMPLING;													// 更新状态为采集中
 			}

@@ -79,6 +79,59 @@ int main()
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
+	/*************************************ADC测试(有Tlast信号)***********************************************/
+	// /*1 开启ADC采样，设置采样点数和采样频率*/
+	// // Xil_Out32(adc_whole_base_addr + 8, total_sample_points);  // 采样点：sample_points写256
+	// Xil_Out32(adc_whole_base_addr + 4, 99993600 / (sample_points * Wave_Frequency)); // 7812，对应采样频率50*256
+	// // Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
+	// Xil_Out32(adc_whole_base_addr + 0, 1);
+	// while (1)
+	// {
+	// 	// 生成交流信号
+	// 	str_wr_bram(PID_OFF);
+	// 	for (int i = 0; i < 8; i++)
+	// 	{
+	// 		Wave_Amplitude[i] = 100;
+	// 	}
+	// 	//  控制功放
+	// 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+	// 	usleep(500000);																	// 延时500ms，确保硬件执行
+	// 	Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+	// 	usleep(400000);
+	// 	// 当前正在采集中，检查是否完成
+	// 	if (AdcFinish_Flag == 1)
+	// 	{
+	// 		// // 打印原始波形，调试用
+	// 		// //  刷新共享内存的缓存，保证数据的一致性
+	// 		// Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+	// 		// int extended_data[sample_points * AD_SAMP_CYCLE_NUMBER];
+	// 		// // 从指定DDR地址读取数据
+	// 		// for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
+	// 		// {
+	// 		// 	for (int i = 0; i < sample_points; i++)
+	// 		// 	{
+	// 		// 		extended_data[i + j * sample_points] =
+	// 		// 			Xil_In32(Share_addr + 0 * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
+	// 		// 	}
+	// 		// }
+	// 		// // 打印extended_data，用来测试波形是否正确
+	// 		// for (int i = 0; i < sample_points * AD_SAMP_CYCLE_NUMBER; i++)
+	// 		// {
+	// 		//     printf("x=%d\n", extended_data[i]);
+	// 		// }
+
+	// 		// ADC采集和初步数据处理已完成
+	// 		RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+	// 		usleep(50000);	  // 延时50ms，确保硬件执行
+	// 		printf("UA = %.4f\r\n", lineAC.u[0]);
+	// 	}
+	// 	else
+	// 	{
+	// 		printf("ADC NotReady !\r\n");
+	// 	} // ADC采样理论320ms
+	// 	sleep(3);
+	// }
+	/*******************************************************************************************/
 	while (1)
 	{
 		/*1 AC交流源 ADC采集与处理 */
