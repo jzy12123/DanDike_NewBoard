@@ -93,6 +93,13 @@ unsigned char current_to_output(float current)
 
 void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp)
 {
+	// 尝试获取DAC/功放操作的锁
+	if (!acquire_resource_lock(LOCK_OWNER_DAC, MUTEX_DAC_ACQUIRE_TIMEOUT_US))
+	{
+		printf("CPU1: power_amplifier_control could not acquire lock.\n");
+		return; // 获取锁失败，不执行后续操作
+	}
+
 	if (enable_amp == POWAMP_ON)
 	{
 		/*1 配置595 开启使能最高位写1*/
@@ -150,8 +157,8 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		int idx_ix = get_current_index_by_value(setACS.Vals[3].IR);
 
 		// 计算电压通道值
-		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]); // DAC原始输出
-		double PID_correction_ua = (32767 / setACS.Vals[0].UR) * Amplifier_PID_Increment[0]; //PID原始输出
+		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]);			 // DAC原始输出
+		double PID_correction_ua = (32767 / setACS.Vals[0].UR) * Amplifier_PID_Increment[0]; // PID原始输出
 		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (correction_ua + PID_correction_ua));
 		double correction_ub = calculate_correction(1, idx_ub, Wave_Amplitude[1]);
 		double PID_correction_ub = (32767 / setACS.Vals[1].UR) * Amplifier_PID_Increment[1]; // PID原始输出
@@ -220,6 +227,8 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 			amplitude_pid[i].prev_error = 0;
 		}
 	}
+	// 释放锁
+	release_resource_lock(LOCK_OWNER_DAC);
 }
 
 void Write_Read_Switch(u32 Data_width, u32 Data)

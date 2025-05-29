@@ -9,7 +9,7 @@
 #include "sleep.h"       // 提供 usleep 函数 (用于延时)
 #include "xiic_l.h"      // 低层级 AXI IIC 驱动寄存器定义
 #include <string.h>      // 提供 memcpy 函数
-
+#include "ADDA.h"
 // --- Base Address Definition ---
 // 使用 xparameters.h 中定义的 AXI IIC 控制器基地址
 #define IIC_BASE_ADDRESS XPAR_IIC_1_BASEADDR

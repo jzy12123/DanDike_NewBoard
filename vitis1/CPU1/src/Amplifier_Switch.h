@@ -16,6 +16,7 @@
 #include "xil_exception.h"
 #include "xscugic.h"
 #include "ADDA.h"
+#include "mutex_utils.h"
 #include "Communications_Protocol.h"
 
 #define Amplifier_Switch_BASEADDR XPAR_AC_8_CHANNEL_0_ONOFF_CONFIG_AXI_0_BASEADDR

@@ -407,5 +407,5 @@ void RunFFTPIDCycle(void)
 	//  控制功放
 	power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
 	// 标记UDP数据已更新
-	udp_data_changed_flag = 1;
+	udp_data_changed_flag = true;
 }

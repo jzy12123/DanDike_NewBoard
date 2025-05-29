@@ -27,13 +27,14 @@
  */
 #include "Communications_Protocol.h"
 
-// 定义全局变量，用于标记数据是否改变并需要发送。初始化为1是为了确保第一次会发送。
-volatile uint8_t udp_data_changed_flag = 1; // 初始化为1，确保第一次会发送
 /*
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250527.0946";
-const char ARM_Ver_Full[] = "[Ver]=V1.250527.1027";
+const char ARM_Ver_Full[] = "[Ver]=V1.250527.2015";
+
+volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
+volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -98,7 +99,9 @@ int Parse_JsonCommand(char *buffer)
         {"ClearHarm", handle_ClearHarm},
         {"ClearInterHarm", handle_ClearInterHarm},
         {"SetCalibrateAC", handle_SetCalibrateAC},
-        {"WriteCalibrateAC", handle_WriteCalibrateAC}};
+        {"WriteCalibrateAC", handle_WriteCalibrateAC},
+        {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault}};
+
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
     // 检查输入字符串首尾的 '|'
@@ -161,7 +164,7 @@ void handle_GetFunCodeList(cJSON *data)
     const char *CmdList[] = {
         "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetReportEnable",
         "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetInterHarm", "SetDO",
-        "StopDCS", "StopACS", "ClearHarm", "ClearInterHarm"};
+        "StopDCS", "StopACS", "ClearHarm", "ClearInterHarm", "SetCalibrateAC", "WriteCalibrateAC", "RestoreCalibrateDefault"};
 
     const char *ReportList[] = {
         "ProtectEvent", "DISOE", "BaseDataAC", "BaseDataDC", "BaseDataIO", "HarmData", "InterHarmData"};
@@ -269,7 +272,7 @@ void handle_GetDevBaseInfo(cJSON *data)
     cJSON_AddNumberToObject(di, "ChnCount", ChnsBI);
     double diResolution[] = {0.1, 1, 10}; // 开入分辨率
     cJSON *diResolutions = cJSON_CreateDoubleArray(diResolution, 3);
-    cJSON_AddItemToObject(di, "DI_Resolution", diResolutions);
+    cJSON_AddItemToObject(di, "Resolution", diResolutions); // 修改节点名为 "Resolution"
     cJSON_AddItemToObject(dataObj, "DI", di);
 
     // DO 信息
@@ -319,11 +322,11 @@ void handle_GetDevBaseInfo(cJSON *data)
         cJSON *chnObj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chnObj, "Chn", chn);
 
-        double urValues[] = {6.5, 3.25, 1.876};
+        double urValues[] = {6.5, 3.25, 1.876}; // 示例量程
         cJSON *urArray = cJSON_CreateDoubleArray(urValues, 3);
         cJSON_AddItemToObject(chnObj, "URs", urArray);
 
-        double irValues[] = {5, 1, 0.2};
+        double irValues[] = {5, 1, 0.2}; // 示例量程
         cJSON *irArray = cJSON_CreateDoubleArray(irValues, 3);
         cJSON_AddItemToObject(chnObj, "IRs", irArray);
 
@@ -342,11 +345,11 @@ void handle_GetDevBaseInfo(cJSON *data)
         cJSON *chnObj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chnObj, "Chn", chn);
 
-        double urValues[] = {6.5, 3.25, 1.876};
+        double urValues[] = {6.5, 3.25, 1.876}; // 示例量程
         cJSON *urArray = cJSON_CreateDoubleArray(urValues, 3);
         cJSON_AddItemToObject(chnObj, "URs", urArray);
 
-        double irValues[] = {5, 1, 0.2};
+        double irValues[] = {5, 1, 0.2}; // 示例量程
         cJSON *irArray = cJSON_CreateDoubleArray(irValues, 3);
         cJSON_AddItemToObject(chnObj, "IRs", irArray);
 
@@ -354,6 +357,21 @@ void handle_GetDevBaseInfo(cJSON *data)
     }
     cJSON_AddItemToObject(dcm, "Chns", dcmChns);
     cJSON_AddItemToObject(dataObj, "DCM", dcm);
+
+    // 新增：EnergyPulse 信息
+    cJSON *energyPulse = cJSON_CreateObject();
+    cJSON_AddNumberToObject(energyPulse, "ChnCountIn", 2);  // 示例值
+    cJSON_AddNumberToObject(energyPulse, "ChnCountOut", 2); // 示例值
+    cJSON_AddItemToObject(dataObj, "EnergyPulse", energyPulse);
+
+    // 新增：ClockPulse 信息 PPS信号
+    cJSON *clockPulse = cJSON_CreateObject();
+    cJSON_AddNumberToObject(clockPulse, "ChnCountIn", 4);  // 示例值
+    cJSON_AddNumberToObject(clockPulse, "ChnCountOut", 1); // 示例值
+    const char *clockPulseOutModes[] = {"Seconds", "Minutes"};
+    cJSON *outModeArray = cJSON_CreateStringArray(clockPulseOutModes, sizeof(clockPulseOutModes) / sizeof(clockPulseOutModes[0]));
+    cJSON_AddItemToObject(clockPulse, "OutMode", outModeArray);
+    cJSON_AddItemToObject(dataObj, "ClockPulse", clockPulse);
 
     cJSON_AddItemToObject(reply, "Data", dataObj);
 
@@ -408,21 +426,21 @@ void handle_GetDevState(cJSON *data)
 
     cJSON *dataObj = cJSON_CreateObject();
     cJSON_AddStringToObject(dataObj, "DevTime", "2024-01-31 00:00:00.123");
-    cJSON_AddNumberToObject(dataObj, "Temperature", 24);
-    cJSON_AddStringToObject(dataObj, "SyncMode", "GPS");
+    cJSON_AddNumberToObject(dataObj, "Temperature", 24); // 示例温度
+    cJSON_AddStringToObject(dataObj, "SyncMode", "GPS"); // 示例同步模式
     cJSON_AddNumberToObject(dataObj, "Longitude", 12.2);
     cJSON_AddNumberToObject(dataObj, "Latitude", 12.2);
-    cJSON_AddNumberToObject(dataObj, "DI_Resolution", 0.1);
+    cJSON_AddNumberToObject(dataObj, "DI_Resolution", 0.1); // 示例开入分辨率
 
     cJSON *task = cJSON_CreateObject();
-    cJSON_AddStringToObject(task, "FunCode", "");
+    cJSON_AddStringToObject(task, "FunCode", ""); // 任务型指令运行状态
     cJSON_AddStringToObject(task, "StartTime", "2024-01-31 00:00:00.123");
     cJSON_AddItemToObject(dataObj, "Task", task);
 
     // AC 信息
     cJSON *ac = cJSON_CreateObject();
     cJSON_AddStringToObject(ac, "Mode", "S");
-    cJSON_AddBoolToObject(ac, "ClosedLoop", true);
+    cJSON_AddBoolToObject(ac, "ClosedLoop", devState.bClosedLoop == 1 ? true : false);
 
     cJSON *acChns = cJSON_CreateArray();
     for (int line = 1; line <= LinesAC; line++)
@@ -446,8 +464,8 @@ void handle_GetDevState(cJSON *data)
     {
         cJSON *chnObj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chnObj, "Chn", chn);
-        cJSON_AddNumberToObject(chnObj, "UR", lineAC.ur[chn - 1]);
-        cJSON_AddNumberToObject(chnObj, "IR", lineAC.ir[chn - 1]);
+        cJSON_AddNumberToObject(chnObj, "UR", 0.0); // 示例：需要从实际DCS设置状态获取
+        cJSON_AddNumberToObject(chnObj, "IR", 0.0);
         cJSON_AddItemToArray(dcs, chnObj);
     }
     cJSON_AddItemToObject(dataObj, "DCS", dcs);
@@ -458,8 +476,8 @@ void handle_GetDevState(cJSON *data)
     {
         cJSON *chnObj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chnObj, "Chn", chn);
-        cJSON_AddNumberToObject(chnObj, "UR", lineAC.ur[chn - 1]);
-        cJSON_AddNumberToObject(chnObj, "IR", lineAC.ir[chn - 1]);
+        cJSON_AddNumberToObject(chnObj, "UR", 0.0); // 示例：需要从实际DCS设置状态获取
+        cJSON_AddNumberToObject(chnObj, "IR", 0.0);
         cJSON_AddItemToArray(dcm, chnObj);
     }
     cJSON_AddItemToObject(dataObj, "DCM", dcm);
@@ -480,10 +498,18 @@ void handle_GetDevState(cJSON *data)
     }
     cJSON_AddItemToObject(dataObj, "DI", diInfo);
 
+    // 新增：EnergyPulse 信息
+    cJSON *energyPulse = cJSON_CreateObject();
+    cJSON_AddNumberToObject(energyPulse, "OutConstantP", 7200); // 示例值
+    cJSON_AddNumberToObject(energyPulse, "OutConstantQ", 7200); // 示例值
+    cJSON_AddItemToObject(dataObj, "EnergyPulse", energyPulse);
+
+    // 新增：ClockPulse 信息
+    cJSON *clockPulse = cJSON_CreateObject();
+    cJSON_AddStringToObject(clockPulse, "OutMode", "Seconds"); // 示例值，应从实际状态获取
+    cJSON_AddItemToObject(dataObj, "ClockPulse", clockPulse);
+
     cJSON_AddItemToObject(reply, "Data", dataObj);
-
-    // 映射到硬件
-
     // 将生成的 JSON 转换为字符串
     char *string = cJSON_Print(reply);
     if (string == NULL)
@@ -966,7 +992,7 @@ void handle_SetACS(cJSON *data)
     }
 
     // 更新相位、幅值、量程
-    for (int i = 0; i < 4; i++) 
+    for (int i = 0; i < 4; i++)
     {
         Phase_shift[i] = setACS.Vals[i].PhU;     // 电压相位
         Phase_shift[i + 4] = setACS.Vals[i].PhI; // 电流相位
@@ -1003,10 +1029,9 @@ void handle_SetACS(cJSON *data)
     {
         // 判定为仅切换量程指令
         printf("CPU1: Range switching command detected. Disabling output.\n");
-        enable = 0x00;        // 关闭所有通道输出
-        str_wr_bram(PID_OFF); // 确保PID关闭 (即使不开环也要生成波形数据到 BRAM)
-        // power_amplifier_control 需要最新的 Wave_Amplitude (即使是0) 和 Wave_Range 来设置硬件
-        power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF); // 关闭功放
+        enable = 0x00; // 关闭所有通道输出
+        // str_wr_bram(PID_OFF);                                                     // 确保PID关闭 (即使不开环也要生成波形数据到 BRAM)
+        // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF); // 关闭功放
 
         // 更新设备状态 (UDP 结构体)
         devState.bACMeterMode = 0;                // 量程切换通常意味着处于源模式
@@ -1042,9 +1067,9 @@ void handle_SetACS(cJSON *data)
         {
             // printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\n", enable);
             // 根据 setACS.ClosedLoop 决定 PID 状态
-            PID_STATE pid_state = setACS.ClosedLoop ? PID_ON : PID_OFF;
-            str_wr_bram(pid_state);
-            power_amplifier_control(Wave_Amplitude, Wave_Range, pid_state, powamp_state);
+            // PID_STATE pid_state = setACS.ClosedLoop ? PID_ON : PID_OFF;
+            // str_wr_bram(pid_state);
+            // power_amplifier_control(Wave_Amplitude, Wave_Range, pid_state, powamp_state);
 
             // 更新设备状态 (UDP 结构体)
             devState.bACMeterMode = 0; // 正常设置通常是源模式
@@ -1056,8 +1081,8 @@ void handle_SetACS(cJSON *data)
             // 所有通道幅值都为 0 或指令无效/仅改变ClosedLoop且幅值为0
             printf("CPU1: Normal ACS setting but all amplitudes are zero. Disabling output.\n");
             enable = 0x00;
-            str_wr_bram(PID_OFF);
-            power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+            // str_wr_bram(PID_OFF);
+            // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
 
             // 更新设备状态 (UDP 结构体)
             devState.bACMeterMode = 0;
@@ -1074,7 +1099,8 @@ void handle_SetACS(cJSON *data)
             }
         }
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 SetACM setACM;
@@ -1116,7 +1142,8 @@ void handle_SetACM(cJSON *data)
     devState.bACMeterMode = 1;
     devState.bACRunning = 1;
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 SetHarm setHarm;
@@ -1251,7 +1278,7 @@ void handle_SetHarm(cJSON *data)
 
     // 使用更新后的谐波生成波形
     printf("CPU1: Generating waveform with updated harmonics\n");
-    str_wr_bram(PID_OFF);
+    // str_wr_bram(PID_OFF);
 
     // 准备并发送回复
     ReplyData replyData;
@@ -1260,7 +1287,8 @@ void handle_SetHarm(cJSON *data)
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 void handle_SetInterHarm(cJSON *data)
@@ -1304,7 +1332,7 @@ void handle_SetDO(cJSON *data)
     // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 void handle_StopDCS(cJSON *data)
@@ -1344,9 +1372,9 @@ void handle_StopAC(cJSON *data)
     memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
     memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
     enable = 0x00;                                         // 关闭通道输出
-    str_wr_bram(PID_OFF);                                  // 生成交流信号
+    // str_wr_bram(PID_OFF);                                  // 生成交流信号
 
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+    // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
 
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 0;
@@ -1359,7 +1387,8 @@ void handle_StopAC(cJSON *data)
         lineAC.ur[i] = setACS.Vals[i].UR;
         lineAC.ir[i] = setACS.Vals[i].IR;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 void handle_ClearHarm(cJSON *data)
@@ -1381,9 +1410,10 @@ void handle_ClearHarm(cJSON *data)
     memset(harmonics, 0, sizeof(harmonics));
     memset(harmonics_phases, 0, sizeof(harmonics_phases));
     // 生成交流信号
-    str_wr_bram(PID_OFF);
+    // str_wr_bram(PID_OFF);
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 void handle_ClearInterHarm(cJSON *data)
@@ -1528,11 +1558,14 @@ void handle_SetCalibrateAC(cJSON *data)
     }
     // 应用设置
     enable = 0xff;
-    devState.bACMeterMode = 0; // 源模式
-    devState.bACRunning = 1;   // AC运行
-    devState.bClosedLoop = 0;  // 开环
-    str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-    power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+    devState.bACMeterMode = 0;                     // 源模式
+    devState.bACRunning = 1;                       // AC运行
+    devState.bClosedLoop = 0;                      // 开环
+    memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
+    memset(harmonics, 0, sizeof(harmonics));
+    memset(harmonics_phases, 0, sizeof(harmonics_phases));
+    // str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+    // power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
 
     // 返回成功响应
     ReplyData replyData;
@@ -1541,7 +1574,8 @@ void handle_SetCalibrateAC(cJSON *data)
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 /**
@@ -1864,11 +1898,14 @@ void handle_WriteCalibrateAC(cJSON *data)
     }
 
     // 应用设置
-    devState.bACMeterMode = 0; // 源模式
-    devState.bACRunning = 1;   // AC运行
-    devState.bClosedLoop = 0;  // 开环
-    str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-    power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+    devState.bACMeterMode = 0;                     // 源模式
+    devState.bACRunning = 1;                       // AC运行
+    devState.bClosedLoop = 0;                      // 开环
+    memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
+    memset(harmonics, 0, sizeof(harmonics));
+    memset(harmonics_phases, 0, sizeof(harmonics_phases));
+    // str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+    // power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
     // 将校准参数保存到EEPROM
     RC64_WriteCalibData();
 
@@ -1879,9 +1916,149 @@ void handle_WriteCalibrateAC(cJSON *data)
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
+/**
+ * @brief 处理 RestoreCalibrateDefault 请求
+ *
+ * 该函数根据下行JSON中的Data字段，恢复指定的校准参数为出厂默认值，
+ * 并将这些默认值写回EEPROM。
+ *
+ * @param data 包含请求恢复的校准类型的JSON对象指针
+ */
+void handle_RestoreCalibrateDefault(cJSON *data)
+{
+    // xil_printf("CPU1: Handling RestoreCalibrateDefault...\r\n"); // 中文注释：处理恢复默认校准参数指令
+
+    char *result_status = "Success";                   // 初始化结果状态为成功
+    cJSON *restored_items_array = cJSON_CreateArray(); // 用于在上行消息中列出已恢复的项目
+
+    if (!data || !cJSON_IsArray(data))
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Invalid or missing Data array.\n");
+        result_status = "Failure";
+        goto send_reply; // 跳转到发送回复的标签
+    }
+
+    int data_count = cJSON_GetArraySize(data);
+    if (data_count == 0)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Data array is empty.\n");
+        // 行为可定义，是算成功还是失败？这里先按成功处理，但没有实际操作
+    }
+
+    bool calibration_written = false; // 标记是否有校准数据实际被写入EEPROM
+
+    for (int i = 0; i < data_count; i++)
+    {
+        cJSON *item = cJSON_GetArrayItem(data, i);
+        if (cJSON_IsString(item) && (item->valuestring != NULL))
+        {
+            const char *type_to_restore = item->valuestring;
+            // printf("CPU1: RestoreCalibrateDefault: Requested to restore '%s'.\n", type_to_restore); // 中文注释：请求恢复 '%s'
+
+            if (strcmp(type_to_restore, "AC") == 0)
+            {
+                // 恢复交流相关的校准参数
+                // printf("CPU1: Restoring AC calibration data to defaults...\n"); // 中文注释：恢复交流校准数据为默认值...
+                memcpy(DA_Correct_100, DA_CorrectConst_100, sizeof(DA_CorrectConst_100));
+                memcpy(DA_Correct_20, DA_CorrectConst_20, sizeof(DA_CorrectConst_20));
+                memcpy(DA_CorrectPhase_100, DA_CorrectPhaseConst_100, sizeof(DA_CorrectPhaseConst_100));
+                memcpy(AD_Correct, ADConst_Correct, sizeof(ADConst_Correct));
+                cJSON_AddItemToArray(restored_items_array, cJSON_CreateString("AC"));
+                calibration_written = true; // 标记AC校准数据已准备好写入
+            }
+            // TODO: 未来可以添加 "DCS", "DCM" 等其他类型的恢复逻辑
+            // else if (strcmp(type_to_restore, "DCS") == 0) { ... }
+            // else if (strcmp(type_to_restore, "DCM") == 0) { ... }
+            else
+            {
+                printf("CPU1: RestoreCalibrateDefault: Unknown calibration type '%s'.\n", type_to_restore); // 中文注释：未知的校准类型 '%s'
+                // 可以选择性地将 result_status 设置为 "Failure" 或部分成功
+            }
+        }
+    }
+
+    if (calibration_written)
+    {
+        // printf("CPU1: Writing restored default calibration data to EEPROM...\n"); // 中文注释：将恢复的默认校准数据写入EEPROM...
+        if (RC64_WriteCalibData() != XST_SUCCESS)
+        {
+            xil_printf("CPU1: RestoreCalibrateDefault: Failed to write default calibration data to EEPROM.\n");
+            result_status = "Failure"; // 如果写入EEPROM失败，则最终结果为失败
+            // 清空restored_items_array，因为虽然内存中恢复了，但未成功保存
+            cJSON_Delete(restored_items_array);
+            restored_items_array = cJSON_CreateArray(); // 创建一个空数组
+        }
+        else
+        {
+            // printf("CPU1: Default calibration data successfully written to EEPROM.\n"); // 中文注释：默认校准数据成功写入EEPROM
+        }
+    }
+    else if (data_count > 0 && cJSON_GetArraySize(restored_items_array) == 0)
+    {
+        // 如果请求了恢复，但没有可识别的项目被恢复（例如，只请求了 "DCS" 而当前不支持）
+        // 或者所有请求的项目都无法识别
+        if (strcmp(result_status, "Success") == 0)
+        { // 仅当之前没有其他错误时
+            // result_status = "Failure"; // 或者可以返回Success但Data为空数组，表示请求已处理但无操作
+            printf("CPU1: RestoreCalibrateDefault: No recognized calibration types were restored.\n");
+        }
+    }
+
+send_reply:; // 回复标签
+    // 准备上行JSON回复
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "RestoreCalibrateDefault");
+    cJSON_AddStringToObject(reply, "Result", result_status);
+    // Data 字段现在包含实际恢复并成功写入的项目列表
+    if (cJSON_GetArraySize(restored_items_array) > 0 || strcmp(result_status, "Success") != 0)
+    {
+        cJSON_AddItemToObject(reply, "Data", restored_items_array);
+    }
+    else
+    {
+        // 如果是Success但没有恢复任何内容（例如请求空数组或无效类型），Data可以不包含或为空数组
+        // 为了与指令格式一致，即使成功且无操作，也返回一个空的Data数组
+        cJSON_AddItemToObject(reply, "Data", restored_items_array); // restored_items_array 此时为空
+    }
+
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string == NULL)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to print JSON reply.\n");
+        cJSON_Delete(reply); // 即使 string 为 NULL，restored_items_array 也是 reply 的一部分，会被一并删除
+        return;
+    }
+
+    size_t stringLength = strlen(string);
+    char *finalString = (char *)malloc(stringLength + 3);
+    if (finalString == NULL)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to allocate memory for final JSON string.\n");
+        free(string);
+        cJSON_Delete(reply);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
+    if (bytesWritten < 0)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to write reply to message queue: %ld\n", bytesWritten);
+    }
+    else
+    {
+        // xil_printf("CPU1: RestoreCalibrateDefault: Successfully wrote reply to message queue: %s\n", finalString); // 中文注释：成功将回复写入消息队列
+    }
+
+    free(finalString);
+    free(string);
+    cJSON_Delete(reply); // restored_items_array 作为子项，会在这里被一并释放
+}
 // 生成JSON字符串并写入共享内存的函数
 void write_reply_to_shared_memory(ReplyData *replyData)
 {
@@ -2080,7 +2257,7 @@ void report_protection_event(u8 ProectFault)
     memset(numHarmonics, 0, sizeof(numHarmonics));         // 清除谐波
     memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
     memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
-    str_wr_bram(PID_OFF);                                  // 生成交流信号
+    // str_wr_bram(PID_OFF);                                  // 生成交流信号
 
     // 关闭功放
     // 修改二级DA 波形幅度 量程
@@ -2091,7 +2268,7 @@ void report_protection_event(u8 ProectFault)
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
     }
-    power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
+    // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 0;
     devState.bACRunning = 0;
@@ -2108,7 +2285,8 @@ void report_protection_event(u8 ProectFault)
         lineAC.ur[i] = setACS.Vals[i].UR;
         lineAC.ir[i] = setACS.Vals[i].IR;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true;             // 更新UDP标志
+    dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
 
 void write_command_to_shared_memory()
@@ -2364,7 +2542,7 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
         // 如果数据未发生变化，返回
         return;
     }
-    udp_data_changed_flag = 0;
+    udp_data_changed_flag = false;
 
     UDPPacket udpPacket;
     // 动态计算 payload 大小
@@ -2527,7 +2705,7 @@ void initDevState(DevState *devState)
     devState->Reserved13 = 0;
     devState->Reserved14 = 0;
     devState->Reserved15 = 0;
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 // Function to initialize LineAC
@@ -2551,7 +2729,7 @@ void initLineAC(LineAC *lineAC)
     lineAC->totalP = 0.0;
     lineAC->totalQ = 0.0;
     lineAC->totalPF = 0.0;
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 // Function to initialize LineHarm
@@ -2571,7 +2749,7 @@ void initLineHarm(LineHarm *lineHarm)
         lineHarm->harm[i].totalP = 0.0;
         lineHarm->harm[i].totalQ = 0.0;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 void initLineDI(LineDI *lineDI)
 {
@@ -2579,7 +2757,7 @@ void initLineDI(LineDI *lineDI)
     {
         lineDI->DI[i].v = 0;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 void initLineDO(LineDO *lineDO)
@@ -2588,7 +2766,7 @@ void initLineDO(LineDO *lineDO)
     {
         lineDO->DO[i].v = 0;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 void initLineDisoe(LineDisoe *lineDisoe)
@@ -2600,7 +2778,7 @@ void initLineDisoe(LineDisoe *lineDisoe)
         lineDisoe->DISOE[i].MS = 0;
         lineDisoe->DISOE[i].TIME = 0;
     }
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }
 
 // Function to write data to shared memory
@@ -2654,7 +2832,7 @@ void init_setACS()
         setACS.Vals[i].PhI = 0.0f; // 电流相位
     }
 
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
     // 打印初始化完成消息
     // printf("CPU1: setACS.Vals initialization completed.\n");
 }
@@ -2671,5 +2849,5 @@ void init_JsonUdp(void)
     initLineDI(&lineDI);
     initLineDO(&lineDO);
     initLineDisoe(&lineDisoe);
-    udp_data_changed_flag = 1; // 更新UDP标志
+    udp_data_changed_flag = true; // 更新UDP标志
 }

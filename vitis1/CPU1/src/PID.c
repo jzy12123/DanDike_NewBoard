@@ -61,8 +61,8 @@ double PID_adjust_amplitude(double setpoint_value, double actual_value, PID *amp
     double absolute_error = fabs(setpoint_value - actual_value);
     double relative_error = absolute_error / fabs(setpoint_value);
     const double MAX_INTEGRAL = 1.0;
-    // 定义幅值误差的上限阈值（例如20%）
-    const double AMPLITUDE_ERROR_MAX_THRESHOLD = 0.20;
+    // 定义幅值误差的上限阈值（例如10%）
+    const double AMPLITUDE_ERROR_MAX_THRESHOLD = 0.10;
     // 定义幅值误差的可接受范围，定义万分之一的精度
     const double AMPLITUDE_ERROR_MIN_THRESHOLD = 0.0001;
 

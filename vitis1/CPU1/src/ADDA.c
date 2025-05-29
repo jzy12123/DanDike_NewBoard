@@ -23,8 +23,18 @@ int numHarmonics[CHANNL_MAX] = {0};                      // 每个通道有几个谐波
 float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅值
 float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
 
+
 // 功放输出参数
-double DA_Correct_100[8][3] = {
+double DA_Correct_100[8][3];
+// 功放20%幅值时的校准参数
+double DA_Correct_20[8][3];
+// 相位校准参数数组（单位：度）
+double DA_CorrectPhase_100[8][3];
+// AD校准参数数组
+double AD_Correct[8][3];
+
+//出厂设定参数
+const double DA_CorrectConst_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
     {35740.445421, 35688.838937, 38472.249867}, // UA 111
     {35818.076424, 35754.250401, 38507.972835}, // UB 111
@@ -38,7 +48,7 @@ double DA_Correct_100[8][3] = {
     {35462.627137, 41026.379569, 40960.744977}  // IX 111
 };
 // 功放20%幅值时的校准参数
-double DA_Correct_20[8][3] = {
+const double DA_CorrectConst_20[8][3] = {
     // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
     {35731.608731, 35708.515107, 38471.090857}, // UA 20%幅值校准参数
     {35789.473684, 35806.869734, 38471.090857}, // UB 20%幅值校准参数
@@ -53,7 +63,7 @@ double DA_Correct_20[8][3] = {
 };
 
 // 相位校准参数数组（单位：度）
-double DA_CorrectPhase_100[8][3] = {
+const double DA_CorrectPhaseConst_100[8][3] = {
     // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
     {0.0, 0.0, 0.0},          // UA 相位校准参数
     {-0.012, -0.006, -0.003}, // UB 相位校准参数
@@ -67,7 +77,7 @@ double DA_CorrectPhase_100[8][3] = {
     {0.0, 0.0, 0.0}           // IX 相位校准参数
 };
 // AD校准参数数组
-double AD_Correct[8][3] = {
+const double ADConst_Correct[8][3] = {
     // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
     {20171.482379, 20159.124764, 21776.522459}, // UA 111
     {20197.562831, 20178.557506, 21775.366372}, // UB 111
@@ -80,7 +90,6 @@ double AD_Correct[8][3] = {
     {20026.621825, 23211.482920, 23379.357041}, // IC 111
     {20026.621825, 23211.482920, 23250.247711}  // IX 111
 };
-
 /**
  * @brief 启动一次ADC硬件采样和DMA传输 (单次批量操作)
  * @param TotalSamplePointsPerChannel 每个通道在此次采集中需要获取的总样本点数
@@ -91,8 +100,8 @@ void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPe
 {
     AdcFinish_Flag = 0;
 
-    int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods; // ADC采样个数256×16周期
-    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * sizeof(u16);      // total_sample_points *16位*8个通道
+    int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods;      // ADC采样个数256×16周期
+    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * sizeof(u16); // total_sample_points *16位*8个通道
 
     /*2 开启DMA传输*/
     int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
@@ -173,29 +182,29 @@ void rx_intr_handler(void *callback)
                 // 这个错误（DMADecErr）在没有TLAST时是预期的
                 // printf("CPU1: DMA Decode Error detected (potentially due to missing TLAST, will proceed with data processing).\n");
             }
-//            /*复位DMA*/
-//            // 在 Dma_Start 中，调用 SafeDmaTransfer 之前
-//            // printf("CPU1: Resetting DMA before new transfer...\n");
-//            XAxiDma_Reset(&axidma);
-//            int reset_timeout = 1000000; // 定义一个合适的超时计数
-//            while (reset_timeout > 0)
-//            {
-//                if (XAxiDma_ResetIsDone(&axidma))
-//                    break;
-//                reset_timeout--;
-//            }
-//            if (reset_timeout == 0)
-//            {
-//                printf("CPU1: CRITICAL - DMA Reset timed out!\n");
-//            }
-//            else
-//            {
-//                // printf("CPU1: DMA Reset successful.\n");
-//            }
-//            // 清除S2MM通道的状态寄存器中的中断和错误标志（通过向相应位写1来清除）
-//            XAxiDma_WriteReg(axidma.RegBase, 0x34, XAxiDma_ReadReg(axidma.RegBase, 0x34) | 0x0000F070); // 清除所有已知错误和IOC/Delay IRQ标志
-//            // 重新使能你需要的中断 (IOC 和 Error)
-//            XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_IOC_MASK | XAXIDMA_IRQ_ERROR_MASK, XAXIDMA_DEVICE_TO_DMA);
+            //            /*复位DMA*/
+            //            // 在 Dma_Start 中，调用 SafeDmaTransfer 之前
+            //            // printf("CPU1: Resetting DMA before new transfer...\n");
+            //            XAxiDma_Reset(&axidma);
+            //            int reset_timeout = 1000000; // 定义一个合适的超时计数
+            //            while (reset_timeout > 0)
+            //            {
+            //                if (XAxiDma_ResetIsDone(&axidma))
+            //                    break;
+            //                reset_timeout--;
+            //            }
+            //            if (reset_timeout == 0)
+            //            {
+            //                printf("CPU1: CRITICAL - DMA Reset timed out!\n");
+            //            }
+            //            else
+            //            {
+            //                // printf("CPU1: DMA Reset successful.\n");
+            //            }
+            //            // 清除S2MM通道的状态寄存器中的中断和错误标志（通过向相应位写1来清除）
+            //            XAxiDma_WriteReg(axidma.RegBase, 0x34, XAxiDma_ReadReg(axidma.RegBase, 0x34) | 0x0000F070); // 清除所有已知错误和IOC/Delay IRQ标志
+            //            // 重新使能你需要的中断 (IOC 和 Error)
+            //            XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_IOC_MASK | XAXIDMA_IRQ_ERROR_MASK, XAXIDMA_DEVICE_TO_DMA);
         }
 
         /*处理DDR数据*/
@@ -384,10 +393,10 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr); // 定时器
 
     // 显式地将ADC和DMA中断映射到CPU1
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, Timer_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, Timer_id);
 
     // 使能
     // ad
@@ -594,6 +603,12 @@ void start_dma_dac()
 // 将波形写入BRAM
 void str_wr_bram(PID_STATE pid_state)
 {
+    // 尝试获取DAC/功放操作的锁
+    if (!acquire_resource_lock(LOCK_OWNER_DAC, MUTEX_DAC_ACQUIRE_TIMEOUT_US))
+    {
+        printf("CPU1: str_wr_bram could not acquire lock.\n");
+        return; // 获取锁失败，不执行后续操作
+    }
     u32 data_2channl; // 32位数据，存放2个通道16位的波形
     u16 channel_cnt = 0;
 
@@ -666,6 +681,8 @@ void str_wr_bram(PID_STATE pid_state)
         }
         channel_cnt = 0;
     }
+    // 释放锁
+    release_resource_lock(LOCK_OWNER_DAC);
 }
 
 /*

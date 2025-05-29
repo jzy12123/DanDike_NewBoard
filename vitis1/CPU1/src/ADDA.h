@@ -19,6 +19,7 @@
 #include "Amplifier_Switch.h"
 #include "Communications_Protocol.h"
 #include "PID.h"
+#include "mutex_utils.h"
 /*
  * ¶¨Òå
  */
@@ -96,7 +97,6 @@ extern float harmonics_phases[CHANNL_MAX][MAX_HARMONICS]; // Ã¿¸öÍ¨µÀÃ¿´ÎÐ³²¨µÄÏ
 // ranges for current: 0=5A (0xC2), 1=1A (0x92), 2=0.2A (0xA4)
 extern double DA_Correct_100[8][3];
 extern double DA_Correct_20[8][3];
-
 // ÏàÎ»Ð£×¼²ÎÊýÊý×é£¬´æ·ÅÃ¿¸öÍ¨µÀÃ¿¸öÁ¿³ÌµÄÏàÎ»Ð£×¼Öµ£¨µ¥Î»£º¶È£©
 extern double DA_CorrectPhase_100[8][3];
 
@@ -106,6 +106,12 @@ extern double DA_CorrectPhase_100[8][3];
 // µçÑ¹Á¿³Ì: 0=6.5V, 1=3.25V, 2=1.876V
 // µçÁ÷Á¿³Ì: 0=5A, 1=1A, 2=0.2A
 extern double AD_Correct[8][3];
+
+//³ö³§ÏµÊý
+extern const double DA_CorrectConst_100[8][3];
+extern const double DA_CorrectConst_20[8][3];
+extern const double DA_CorrectPhaseConst_100[8][3];
+extern const double ADConst_Correct[8][3];
 // º¯Êý
 void sync_dma_buffer(UINTPTR addr, size_t size, int direction);
 int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction);

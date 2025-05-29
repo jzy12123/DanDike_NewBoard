@@ -13,17 +13,18 @@
 #include "Msg_que.h"
 #include "My_kissFft.h"
 #include "Rc64.h"
+#include "mutex_utils.h"
 
 void RunADCPIDCycle(void);
 
 int main()
 {
-	sleep(25); // 必须要有等待linux启动
+	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
 	// 初始化RC64模块
-	RC64_Init();
+	RC64_Init();	
 	// 从EEPROM读取校准参数
 	RC64_ReadCalibData();
 
@@ -134,18 +135,53 @@ int main()
 	/*******************************************************************************************/
 	while (1)
 	{
-		/*1 AC交流源 ADC采集与处理 */
-		if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
+		/* 1. 如果参数被外部命令修改了，优先尝试应用这些修改 */
+		if (dac_parameters_updated_by_command)
 		{
-			// 当前为空闲状态，可以启动新的ADC采集
-			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
-			usleep(400000);																	// ADC采样理论320ms
+
+			// printf("CPU1: Applying command parameters to DAC/Amplifier.\n");
+			str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+			uint8_t current_powamp_state = POWAMP_OFF;
+			for (int i = 0; i < 8; ++i)
+			{ // 重新判断功放是否需要开启
+				if (Wave_Amplitude[i] > 0.001 && (enable & (1 << i)))
+				{
+					current_powamp_state = POWAMP_ON;
+					break;
+				}
+			}
+			if (devState.bACRunning == false && current_powamp_state == POWAMP_ON)
+			{								// 如果 StopAC 后又 SetACS
+				devState.bACRunning = true; // 重新标记为运行
+			}
+			power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, current_powamp_state);
+			usleep(50000);							   // 延时50ms，确保硬件执行
+			dac_parameters_updated_by_command = false; // 清除标志
+			udp_data_changed_flag = true;
+		}
+
+		/*2 AC交流源 ADC采集与处理 */
+		if (devState.bACRunning == true && acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US)) // 检查交流源是否配置为运行状态
+		{
+			// AdcFinish_Flag 在 Adc_Start 中被清零
+			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 启动ADC采样
+
+			// 等待ADC采集和初步处理完成 (AdcFinish_Flag 由中断服务程序 rx_intr_handler 设置)
+			// 此等待过程期间，锁 LOCK_OWNER_ADC 保持被持有状态
+			uint32_t adc_wait_timeout_us = 350000; // ADC采样理论320ms，这里设置350ms超时
+			uint32_t adc_poll_interval_us = 1000;  // 1ms轮询间隔
+			uint32_t adc_elapsed_time_us = 0;
+
+			while (!AdcFinish_Flag && adc_elapsed_time_us < adc_wait_timeout_us)
+			{
+				usleep(adc_poll_interval_us);
+				adc_elapsed_time_us += adc_poll_interval_us;
+			}
+			release_resource_lock(LOCK_OWNER_ADC); // ADC的关键操作已完成，可以释放锁
 			// 当前正在采集中，检查是否完成
 			if (AdcFinish_Flag == 1)
 			{
-				// ADC采集和初步数据处理已完成
 				RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-				usleep(50000);	  // 延时50ms，确保硬件执行
 				printf("UA = %.4f\r\n", lineAC.u[0]);
 			}
 			else
@@ -153,8 +189,10 @@ int main()
 				printf("ADC NotReady !\r\n");
 			}
 		}
-		else // AC交流源关闭
+		/*AC交流源关闭或者没有获得锁*/
+		else
 		{
+			usleep(10000); // 延时10ms
 		}
 	}
 }
@@ -395,9 +433,10 @@ void RunADCPIDCycle(void)
 	}
 	/*PID闭环调整输出*/
 	// 生成交流信号
-	str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+	// str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
 	//  控制功放
-	power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+	// power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
 	// 标记UDP数据已更新
-	udp_data_changed_flag = 1;
+	udp_data_changed_flag = true;
+	dac_parameters_updated_by_command = true;
 }

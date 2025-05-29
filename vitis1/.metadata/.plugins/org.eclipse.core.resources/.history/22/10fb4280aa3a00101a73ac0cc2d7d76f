@@ -13,12 +13,13 @@
 #include "Msg_que.h"
 #include "My_kissFft.h"
 #include "Rc64.h"
+#include "mutex_utils.h"
 
 void RunADCPIDCycle(void);
 
 int main()
 {
-	sleep(25); // 必须要有等待linux启动
+	sleep(28); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -79,54 +80,97 @@ int main()
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
-	/*************************************ADC测试***********************************************/
-	while (1)
-	{
-		// 生成交流信号
-		str_wr_bram(PID_OFF);
-		//  控制功放
-		power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
-		usleep(500000); // 延时500ms，确保硬件执行
-		Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
-		usleep(400000);
-		// 当前正在采集中，检查是否完成
-		if (AdcFinish_Flag == 1)
-		{
-			// ADC采集和初步数据处理已完成
-			RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-			usleep(50000);	  // 延时50ms，确保硬件执行
-			printf("UA = %.4f\r\n", lineAC.u[0]);
-		}
-		else
-		{
-			printf("ADC NotReady !\r\n");
-		} // ADC采样理论320ms
-		sleep(2);
-	}
+	/*************************************ADC测试(有Tlast信号)***********************************************/
+	// /*1 开启ADC采样，设置采样点数和采样频率*/
+	// // Xil_Out32(adc_whole_base_addr + 8, total_sample_points);  // 采样点：sample_points写256
+	// Xil_Out32(adc_whole_base_addr + 4, 99993600 / (sample_points * Wave_Frequency)); // 7812，对应采样频率50*256
+	// // Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
+	// Xil_Out32(adc_whole_base_addr + 0, 1);
+	// while (1)
+	// {
+	// 	// 生成交流信号
+	// 	str_wr_bram(PID_OFF);
+	// 	for (int i = 0; i < 8; i++)
+	// 	{
+	// 		Wave_Amplitude[i] = 100;
+	// 	}
+	// 	//  控制功放
+	// 	power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_ON);
+	// 	usleep(500000);																	// 延时500ms，确保硬件执行
+	// 	Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
+	// 	usleep(400000);
+	// 	// 当前正在采集中，检查是否完成
+	// 	if (AdcFinish_Flag == 1)
+	// 	{
+	// 		// // 打印原始波形，调试用
+	// 		// //  刷新共享内存的缓存，保证数据的一致性
+	// 		// Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+	// 		// int extended_data[sample_points * AD_SAMP_CYCLE_NUMBER];
+	// 		// // 从指定DDR地址读取数据
+	// 		// for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
+	// 		// {
+	// 		// 	for (int i = 0; i < sample_points; i++)
+	// 		// 	{
+	// 		// 		extended_data[i + j * sample_points] =
+	// 		// 			Xil_In32(Share_addr + 0 * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
+	// 		// 	}
+	// 		// }
+	// 		// // 打印extended_data，用来测试波形是否正确
+	// 		// for (int i = 0; i < sample_points * AD_SAMP_CYCLE_NUMBER; i++)
+	// 		// {
+	// 		//     printf("x=%d\n", extended_data[i]);
+	// 		// }
+
+	// 		// ADC采集和初步数据处理已完成
+	// 		RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
+	// 		usleep(50000);	  // 延时50ms，确保硬件执行
+	// 		printf("UA = %.4f\r\n", lineAC.u[0]);
+	// 	}
+	// 	else
+	// 	{
+	// 		printf("ADC NotReady !\r\n");
+	// 	} // ADC采样理论320ms
+	// 	sleep(3);
+	// }
 	/*******************************************************************************************/
 	while (1)
 	{
-		/*1 AC交流源 ADC采集与处理 */
-		if (devState.bACRunning == true) // 检查交流源是否配置为运行状态
+		/*AC交流源 ADC采集与处理 */
+		if (devState.bACRunning == true && acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US)) // 检查交流源是否配置为运行状态
 		{
-			// 当前为空闲状态，可以启动新的ADC采集
-			Dma_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 开启ADCDMA
-			usleep(400000);																	// ADC采样理论320ms
+			// AdcFinish_Flag 在 Adc_Start 中被清零
+			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 启动ADC采样
+
+			// 等待ADC采集和初步处理完成 (AdcFinish_Flag 由中断服务程序 rx_intr_handler 设置)
+			// 此等待过程期间，锁 LOCK_OWNER_ADC 保持被持有状态
+			uint32_t adc_wait_timeout_us = 350000; // ADC采样理论320ms，这里设置350ms超时
+			uint32_t adc_poll_interval_us = 1000;  // 1ms轮询间隔
+			uint32_t adc_elapsed_time_us = 0;
+
+			while (!AdcFinish_Flag && adc_elapsed_time_us < adc_wait_timeout_us)
+			{
+				usleep(adc_poll_interval_us);
+				adc_elapsed_time_us += adc_poll_interval_us;
+			}
 			// 当前正在采集中，检查是否完成
 			if (AdcFinish_Flag == 1)
 			{
-				// ADC采集和初步数据处理已完成
-				RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-				usleep(50000);	  // 延时50ms，确保硬件执行
+
+				release_resource_lock(LOCK_OWNER_ADC); // ADC的关键操作已完成，可以释放锁
+				RunADCPIDCycle();					   // 执行FFT计算、PID调整和功放输出等
+				usleep(50000);						   // 延时50ms，确保硬件执行
 				printf("UA = %.4f\r\n", lineAC.u[0]);
 			}
 			else
 			{
+				release_resource_lock(LOCK_OWNER_ADC); // 无论成功与否，确保释放锁
 				printf("ADC NotReady !\r\n");
 			}
 		}
-		else // AC交流源关闭
+		/*AC交流源关闭或者没有获得锁*/
+		else
 		{
+			usleep(10000); // 延时10ms
 		}
 	}
 }

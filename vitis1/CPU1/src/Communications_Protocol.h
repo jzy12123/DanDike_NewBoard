@@ -296,7 +296,8 @@ typedef struct
 	bool ClosedLoop;
 } ReplyData;
 
-extern volatile u8 udp_data_changed_flag; // UDP数据变化标志位
+extern volatile bool udp_data_changed_flag; // UDP数据变化标志位
+extern volatile bool dac_parameters_updated_by_command;
 extern const char FPGA_Ver_Full[];
 extern const char ARM_Ver_Full[];
 
@@ -335,6 +336,7 @@ void handle_ClearHarm(cJSON *data);
 void handle_ClearInterHarm(cJSON *data);
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
+void handle_RestoreCalibrateDefault(cJSON *data);
 // 主动上报
 void report_protection_event(u8 ProectFault);
 #endif

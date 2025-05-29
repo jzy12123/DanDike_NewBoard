@@ -81,6 +81,11 @@ int RC64_ReadCalibData(void)
     if (Status != XST_SUCCESS)
     {
         xil_printf("Failed to read DA_Correct_100 data from EEPROM\r\n");
+        xil_printf("Use default data\r\n");
+        memcpy(DA_Correct_100, DA_CorrectConst_100, sizeof(DA_CorrectConst_100));
+        memcpy(DA_Correct_20, DA_CorrectConst_20, sizeof(DA_CorrectConst_20));
+        memcpy(DA_CorrectPhase_100, DA_CorrectPhaseConst_100, sizeof(DA_CorrectPhaseConst_100));
+        memcpy(AD_Correct, ADConst_Correct, sizeof(ADConst_Correct));
         return XST_FAILURE;
     }
 
