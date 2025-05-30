@@ -67,7 +67,7 @@ extern ReportEnableStatus reportStatus;
 typedef struct
 {
 	uint8_t bACMeterMode; // 1字节 // 0=交流源状态;1=交流表状态
-	uint8_t bACRunning;	  // 0=停止状态;1=运行状态
+	uint8_t bACRunning;	  // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
 	uint8_t bClosedLoop;  // 0=开环状态;1=闭环状态
 	uint8_t Reserved3;
 	uint8_t Reserved4;
@@ -301,6 +301,8 @@ extern volatile bool dac_parameters_updated_by_command;
 extern const char FPGA_Ver_Full[];
 extern const char ARM_Ver_Full[];
 
+extern uint8_t paused_bClosedLoop_state;
+extern uint8_t target_powamp_enable_state_after_pause;
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/
@@ -331,12 +333,12 @@ void handle_SetHarm(cJSON *data);
 void handle_SetInterHarm(cJSON *data);
 void handle_SetDO(cJSON *data);
 void handle_StopDCS(cJSON *data);
-void handle_StopAC(cJSON *data);
-void handle_ClearHarm(cJSON *data);
-void handle_ClearInterHarm(cJSON *data);
+void handle_SetHarmStatus(cJSON *data); // NEW
+void handle_SetACStatus(cJSON *data);	// NEW
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);
+
 // 主动上报
 void report_protection_event(u8 ProectFault);
 #endif

@@ -31,11 +31,20 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250527.0946";
-const char ARM_Ver_Full[] = "[Ver]=V1.250527.2015";
+const char ARM_Ver_Full[] = "[Ver]=V1.250530.1705";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
 
+// --- Static global variables for Pause/Run state ---
+static int paused_numHarmonics[CHANNL_MAX];
+static float paused_harmonics[CHANNL_MAX][MAX_HARMONICS];
+static float paused_harmonics_phases[CHANNL_MAX][MAX_HARMONICS];
+static bool harmonics_are_paused = false;
+
+static float paused_Wave_Amplitude[8];
+uint8_t paused_bClosedLoop_state;
+uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -69,11 +78,11 @@ void extractContentBetweenPipes(char *buffer)
         // 在末尾添加字符串结束符
         buffer[contentLength] = '\0';
 
-        // printf("CPU1: Remove | \n");
+        // printf("CPU1: Remove | \r\n");
     }
     else
     {
-        printf("CPU1: NotFound | \n");
+        printf("CPU1: NotFound | \r\n");
     }
 }
 
@@ -92,12 +101,10 @@ int Parse_JsonCommand(char *buffer)
         {"SetACS", handle_SetACS},
         {"SetACM", handle_SetACM},
         {"SetHarm", handle_SetHarm},
-        {"SetInterHarm", handle_SetInterHarm},
         {"SetDO", handle_SetDO},
         {"StopDCS", handle_StopDCS},
-        {"StopAC", handle_StopAC},
-        {"ClearHarm", handle_ClearHarm},
-        {"ClearInterHarm", handle_ClearInterHarm},
+        {"SetHarmStatus", handle_SetHarmStatus},
+        {"SetACStatus", handle_SetACStatus},
         {"SetCalibrateAC", handle_SetCalibrateAC},
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault}};
@@ -108,20 +115,20 @@ int Parse_JsonCommand(char *buffer)
     extractContentBetweenPipes(buffer);
 
     // 打印buffer里的数据
-    // printf("CPU1: Recived_JSON: %s\n", buffer);
+    // printf("CPU1: Recived_JSON: %s\r\n", buffer);
 
     // 使用cJSON解析JSON字符串
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL)
     {
-        xil_printf("Failed to parse JSON.\n");
+        xil_printf("Failed to parse JSON.\r\n");
         return 1;
     }
 
     cJSON *funCodeItem = cJSON_GetObjectItem(json, "FunCode");
     if (funCodeItem == NULL)
     {
-        xil_printf("No FunCode found in JSON.\n");
+        xil_printf("No FunCode found in JSON.\r\n");
         cJSON_Delete(json);
         return 1;
     }
@@ -158,13 +165,14 @@ int Parse_JsonCommand(char *buffer)
 void handle_GetFunCodeList(cJSON *data)
 {
     // 处理 GetFunCodeList 的逻辑
-    //    xil_printf("Handling handle_GetFunCodeList...\n");
+    //    xil_printf("Handling handle_GetFunCodeList...\r\n");
 
     // 定义 FunCode 列表
     const char *CmdList[] = {
         "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetReportEnable",
-        "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetInterHarm", "SetDO",
-        "StopDCS", "StopACS", "ClearHarm", "ClearInterHarm", "SetCalibrateAC", "WriteCalibrateAC", "RestoreCalibrateDefault"};
+        "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetDO",
+        "StopDCS", "SetHarmStatus", "SetACStatus", "SetCalibrateAC",
+        "WriteCalibrateAC", "RestoreCalibrateDefault"};
 
     const char *ReportList[] = {
         "ProtectEvent", "DISOE", "BaseDataAC", "BaseDataDC", "BaseDataIO", "HarmData", "InterHarmData"};
@@ -195,7 +203,7 @@ void handle_GetFunCodeList(cJSON *data)
     char *string = cJSON_Print(reply);
     if (string == NULL)
     {
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         cJSON_Delete(reply);
         return;
     }
@@ -205,7 +213,7 @@ void handle_GetFunCodeList(cJSON *data)
     char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
     if (finalString == NULL)
     {
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         cJSON_Delete(reply);
         free(string);
         return;
@@ -216,11 +224,11 @@ void handle_GetFunCodeList(cJSON *data)
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1:Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
-        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\r\n", bytesWritten, string);
     }
 
     // 清理
@@ -244,7 +252,7 @@ const char *get_version_string(const char *full_version_str)
 void handle_GetDevBaseInfo(cJSON *data)
 {
     // 处理 GetDevBaseInfo 的逻辑
-    //    xil_printf("Handling handle_GetDevBaseInfo...\n");
+    //    xil_printf("Handling handle_GetDevBaseInfo...\r\n");
 
     // 提取版本号
     const char *fpga_version = get_version_string(FPGA_Ver_Full);
@@ -379,7 +387,7 @@ void handle_GetDevBaseInfo(cJSON *data)
     char *string = cJSON_Print(reply);
     if (string == NULL)
     {
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         cJSON_Delete(reply);
         return;
     }
@@ -389,7 +397,7 @@ void handle_GetDevBaseInfo(cJSON *data)
     char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
     if (finalString == NULL)
     {
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         cJSON_Delete(reply);
         free(string);
         return;
@@ -400,11 +408,11 @@ void handle_GetDevBaseInfo(cJSON *data)
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1:Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
-        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\r\n", bytesWritten, string);
     }
 
     // 清理
@@ -416,7 +424,7 @@ void handle_GetDevBaseInfo(cJSON *data)
 void handle_GetDevState(cJSON *data)
 {
     // 处理 handle_GetDevState 的逻辑
-    //	xil_printf("Handling handle_GetDevState...\n");
+    //	xil_printf("Handling handle_GetDevState...\r\n");
 
     // 创建上行指令的 JSON 对象
     cJSON *reply = cJSON_CreateObject();
@@ -514,7 +522,7 @@ void handle_GetDevState(cJSON *data)
     char *string = cJSON_Print(reply);
     if (string == NULL)
     {
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         cJSON_Delete(reply);
         return;
     }
@@ -524,7 +532,7 @@ void handle_GetDevState(cJSON *data)
     char *finalString = (char *)malloc(stringLength + 3); // +3 为了首尾 '|' 和结束符
     if (finalString == NULL)
     {
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         cJSON_Delete(reply);
         free(string);
         return;
@@ -535,11 +543,11 @@ void handle_GetDevState(cJSON *data)
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1:Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
-        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\r\n", bytesWritten, string);
     }
 
     // 清理
@@ -561,7 +569,7 @@ ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, tru
 void handle_SetReportEnable(cJSON *data)
 {
     // 处理 handle_SetReportEnable 的逻辑
-    // xil_printf("Handling handle_SetReportEnable...\n");
+    // xil_printf("Handling handle_SetReportEnable...\r\n");
 
     // 更新使能状态
     // 获取 BaseDataAC 并更新使能状态
@@ -671,7 +679,7 @@ void handle_SetReportEnable(cJSON *data)
     if (string == NULL)
     {
         // 打印错误信息
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         // 删除 reply 对象
         cJSON_Delete(reply);
         return;
@@ -683,7 +691,7 @@ void handle_SetReportEnable(cJSON *data)
     if (finalString == NULL)
     {
         // 打印内存分配失败信息
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         // 删除 reply 对象
         cJSON_Delete(reply);
         // 释放 string 内存
@@ -697,12 +705,12 @@ void handle_SetReportEnable(cJSON *data)
     if (bytesWritten < 0)
     {
         // 打印写入消息队列失败信息
-        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1:Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
         // 打印写入消息队列成功信息
-        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, string);
+        //		xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\r\n", bytesWritten, string);
     }
 
     // 清理
@@ -714,7 +722,7 @@ void handle_SetReportEnable(cJSON *data)
 void handle_SetDCS(cJSON *data)
 {
     // 处理 handle_SetDCS 的逻辑
-    //    xil_printf("CPU1: Handling handle_SetDCS...\r\n");
+    //    xil_printf("CPU1: Handling handle_SetDCS...\r\r\n");
 
     SetDCS setDCS;
     cJSON *closedLoop = cJSON_GetObjectItem(data, "ClosedLoop");
@@ -731,7 +739,7 @@ void handle_SetDCS(cJSON *data)
     cJSON *Chns = cJSON_GetObjectItem(data, "Chns");
     if (Chns == NULL)
     {
-        xil_printf("No Chns found in JSON.\n");
+        xil_printf("No Chns found in JSON.\r\n");
         return;
     }
 
@@ -917,7 +925,7 @@ void handle_SetACS(cJSON *data)
                 if (ir->valuedouble != 0)
                 {
                     setACS.Vals[i].IR = (float)ir->valuedouble;
-                    // printf("CPU1: Debug: Field 'IR' found in vals[%d].\n", i);
+                    // printf("CPU1: Debug: Field 'IR' found in vals[%d].\r\n", i);
                 }
             }
 
@@ -927,7 +935,7 @@ void handle_SetACS(cJSON *data)
             {
                 setACS.Vals[i].I_ = (float)i_json->valuedouble;
                 onlyRangeFieldsFound = false; // 发现非量程字段 I
-                // printf("CPU1: Debug: Field 'I' found in vals[%d].\n", i);
+                // printf("CPU1: Debug: Field 'I' found in vals[%d].\r\n", i);
             }
 
             // 获取 PhI 项
@@ -936,13 +944,13 @@ void handle_SetACS(cJSON *data)
             {
                 setACS.Vals[i].PhI = (float)phI->valuedouble;
                 onlyRangeFieldsFound = false; // 发现非量程字段 PhI
-                // printf("CPU1: Debug: Field 'PhI' found in vals[%d].\n", i);
+                // printf("CPU1: Debug: Field 'PhI' found in vals[%d].\r\n", i);
             }
         }
     }
     else
     {
-        // printf("CPU1: Debug: 'vals' array not found in JSON.\n");
+        // printf("CPU1: Debug: 'vals' array not found in JSON.\r\n");
         // 如果 vals 数组不存在，则不能是“仅量程切换”指令（除非只改变 ClosedLoop）
         if (closedLoopPresent)
         {
@@ -982,7 +990,7 @@ void handle_SetACS(cJSON *data)
     // 如果 Wave_Frequency 不在 45 到 65Hz，添加报错提示并修正
     if (Wave_Frequency < 45.0f || Wave_Frequency > 65.0f)
     {
-        xil_printf("CPU1 Warning: Frequency out of range (%.2f Hz). Expected 45-65 Hz. Setting to 50 Hz.\n", Wave_Frequency);
+        xil_printf("CPU1 Warning: Frequency out of range (%.2f Hz). Expected 45-65 Hz. Setting to 50 Hz.\r\n", Wave_Frequency);
         Wave_Frequency = 50.0f;
         // 同步修正 setACS 内部的值，以便下次读取时一致
         for (int i = 0; i < LinesAC * ChnsAC; i++)
@@ -1006,7 +1014,7 @@ void handle_SetACS(cJSON *data)
         else
         {
             Wave_Amplitude[i] = 0.0f; // 如果档位为0，幅值百分比也为0
-                                      // xil_printf("CPU1 Warning: Voltage range UR for channel %d is zero or close to zero.\n", i);
+                                      // xil_printf("CPU1 Warning: Voltage range UR for channel %d is zero or close to zero.\r\n", i);
         }
 
         if (fabs(setACS.Vals[i].IR) > 1e-6)
@@ -1016,7 +1024,7 @@ void handle_SetACS(cJSON *data)
         else
         {
             Wave_Amplitude[i + 4] = 0.0f; // 如果档位为0，幅值百分比也为0
-                                          // xil_printf("CPU1 Warning: Current range IR for channel %d is zero or close to zero.\n", i);
+                                          // xil_printf("CPU1 Warning: Current range IR for channel %d is zero or close to zero.\r\n", i);
         }
 
         // 量程代码转换
@@ -1028,7 +1036,7 @@ void handle_SetACS(cJSON *data)
     if (valsPresent && onlyRangeFieldsFound) // 确保 vals 存在且只包含量程字段
     {
         // 判定为仅切换量程指令
-        printf("CPU1: Range switching command detected. Disabling output.\n");
+        printf("CPU1: Range switching command detected. Disabling output.\r\n");
         enable = 0x00; // 关闭所有通道输出
         // str_wr_bram(PID_OFF);                                                     // 确保PID关闭 (即使不开环也要生成波形数据到 BRAM)
         // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF); // 关闭功放
@@ -1065,7 +1073,7 @@ void handle_SetACS(cJSON *data)
 
         if (powamp_state == POWAMP_ON)
         {
-            // printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\n", enable);
+            // printf("CPU1: Normal ACS setting. Enabling output based on amplitude. Enable Mask: 0x%X\r\n", enable);
             // 根据 setACS.ClosedLoop 决定 PID 状态
             // PID_STATE pid_state = setACS.ClosedLoop ? PID_ON : PID_OFF;
             // str_wr_bram(pid_state);
@@ -1079,7 +1087,7 @@ void handle_SetACS(cJSON *data)
         else
         {
             // 所有通道幅值都为 0 或指令无效/仅改变ClosedLoop且幅值为0
-            printf("CPU1: Normal ACS setting but all amplitudes are zero. Disabling output.\n");
+            printf("CPU1: Normal ACS setting but all amplitudes are zero. Disabling output.\r\n");
             enable = 0x00;
             // str_wr_bram(PID_OFF);
             // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
@@ -1122,7 +1130,7 @@ void handle_SetACM(cJSON *data)
     // 打印解析结果以验证
     for (int i = 0; i < LinesAC * ChnsAC; i++)
     {
-        printf("Line: %d, CHn: %d, UR: %.2f,IR: %.2f, \n",
+        printf("Line: %d, CHn: %d, UR: %.2f,IR: %.2f, \r\n",
                setACM.Vals[i].Line,
                setACM.Vals[i].Chn,
                setACM.Vals[i].UR,
@@ -1153,7 +1161,7 @@ void handle_SetHarm(cJSON *data)
 
     // 解析传入的数据
     int dataCount = cJSON_GetArraySize(data);
-    printf("CPU1: %d harmonic Settings received\n", dataCount);
+    printf("CPU1: %d harmonic Settings received\r\n", dataCount);
 
     // 处理请求中的所有谐波
     for (int i = 0; i < dataCount; i++)
@@ -1172,7 +1180,7 @@ void handle_SetHarm(cJSON *data)
         // 至少需要通道号和谐波次数
         if (!chn || !hn)
         {
-            printf("CPU1: Missing required Chn or HN parameter, skipping\n");
+            printf("CPU1: Missing required Chn or HN parameter, skipping\r\n");
             continue;
         }
 
@@ -1190,7 +1198,7 @@ void handle_SetHarm(cJSON *data)
         if (channelIndex < 0 || channelIndex >= CHANNL_MAX ||
             harmonicIndex < 0 || harmonicIndex >= MAX_HARMONICS)
         {
-            printf("CPU1: Invalid Chn: %d, HN: %d - Index out of range\n",
+            printf("CPU1: Invalid Chn: %d, HN: %d - Index out of range\r\n",
                    chn->valueint, hn->valueint);
             continue;
         }
@@ -1242,7 +1250,7 @@ void handle_SetHarm(cJSON *data)
             {
                 // printf(", Phase: %.2f", (float)phU->valuedouble);
             }
-            // printf("\n");
+            // printf("\r\n");
         }
 
         // 更新电流(I)谐波（通道偏移4）
@@ -1272,12 +1280,12 @@ void handle_SetHarm(cJSON *data)
             {
                 // printf(", Phase: %.2f", (float)phI->valuedouble);
             }
-            // printf("\n");
+            // printf("\r\n");
         }
     }
 
     // 使用更新后的谐波生成波形
-    printf("CPU1: Generating waveform with updated harmonics\n");
+    printf("CPU1: Generating waveform with updated harmonics\r\n");
     // str_wr_bram(PID_OFF);
 
     // 准备并发送回复
@@ -1289,12 +1297,6 @@ void handle_SetHarm(cJSON *data)
 
     udp_data_changed_flag = true;             // 更新UDP标志
     dac_parameters_updated_by_command = true; // 更新硬件操作标志
-}
-
-void handle_SetInterHarm(cJSON *data)
-{
-    // 处理 handle_SetInterHarm 的逻辑
-    //    xil_printf("CPU1: Handling handle_SetInterHarm...\r\n");
 }
 
 SetDO setDO;
@@ -1315,7 +1317,7 @@ void handle_SetDO(cJSON *data)
 
     for (int i = 0; i < ChnsBO; i++)
     {
-        printf("CHn: %d, val: %d\n",
+        printf("CHn: %d, val: %d\r\n",
                setDO.Vals[i].Chn,
                setDO.Vals[i].val);
     }
@@ -1349,77 +1351,225 @@ void handle_StopDCS(cJSON *data)
     // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
 }
-void handle_StopAC(cJSON *data)
+
+// 新函数：处理谐波输出的暂停/运行/停止
+void handle_SetHarmStatus(cJSON *data)
 {
-    // 交流表/源关闭（同时清空所有基波、谐波、间谐波输出）
-    //  处理 handle_StopACS 的逻辑
-    //    xil_printf("CPU1: Handling handle_StopAC...\r\n");
+    // xil_printf("CPU1: Handling SetHarmStatus...\r\n"); // 中文注释：处理设置谐波状态指令
+    const char *status_str = NULL;
+    char *reply_status_str = "Failure";
 
-    // 回报JSON
-    ReplyData replyData;
-    strcpy(replyData.FunCode, "StopAC");
-    strcpy(replyData.Result, "Success");
-    replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
-    // 写入回报指令到共享内存
-    write_reply_to_shared_memory(&replyData);
-
-    // 映射到硬件
-
-    Wave_Frequency = 50;                         // 频率
-    memset(Phase_shift, 0, sizeof(Phase_shift)); // 清空基波相位
-
-    memset(numHarmonics, 0, sizeof(numHarmonics));         // 清除谐波
-    memset(harmonics, 0, sizeof(harmonics));               // 清除谐波幅值
-    memset(harmonics_phases, 0, sizeof(harmonics_phases)); // 清除谐波相位
-    enable = 0x00;                                         // 关闭通道输出
-    // str_wr_bram(PID_OFF);                                  // 生成交流信号
-
-    // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
-
-    // 更改UDP结构体100DevState的运行状态
-    devState.bACMeterMode = 0;
-    devState.bACRunning = 0;
-    // 清空UDP结构体
-    initLineAC(&lineAC);
-    initLineHarm(&lineHarm);
-    for (int i = 0; i < 4; i++)
+    if (data != NULL && cJSON_IsString(data))
     {
-        lineAC.ur[i] = setACS.Vals[i].UR;
-        lineAC.ir[i] = setACS.Vals[i].IR;
+        status_str = data->valuestring;
     }
-    udp_data_changed_flag = true;             // 更新UDP标志
-    dac_parameters_updated_by_command = true; // 更新硬件操作标志
+    else
+    {
+        xil_printf("CPU1: SetHarmStatus: Invalid or missing Data.\r\n"); // 中文注释：无效或缺少数据
+        goto send_reply_harm_status;
+    }
+
+    if (strcmp(status_str, "Stop") == 0)
+    {
+        // printf("CPU1: SetHarmStatus: Stopping and clearing harmonics.\r\n"); // 中文注释：停止并清除谐波
+        memset(numHarmonics, 0, sizeof(numHarmonics));
+        memset(harmonics, 0, sizeof(harmonics));
+        memset(harmonics_phases, 0, sizeof(harmonics_phases));
+        harmonics_are_paused = false;
+
+        // 标记参数已更改，主循环将调用 str_wr_bram
+        dac_parameters_updated_by_command = true;
+        udp_data_changed_flag = true;
+        reply_status_str = "Stop";
+    }
+    else if (strcmp(status_str, "Pause") == 0)
+    {
+        if (!harmonics_are_paused)
+        {
+            // printf("CPU1: SetHarmStatus: Pausing harmonics.\r\n"); // 中文注释：暂停谐波
+            memcpy(paused_numHarmonics, numHarmonics, sizeof(numHarmonics));
+            memcpy(paused_harmonics, harmonics, sizeof(harmonics));
+            memcpy(paused_harmonics_phases, harmonics_phases, sizeof(harmonics_phases));
+            harmonics_are_paused = true;
+        }
+        // 临时将 numHarmonics 清零，以便主循环调用 str_wr_bram 时不输出谐波
+        memset(numHarmonics, 0, sizeof(numHarmonics));
+
+        dac_parameters_updated_by_command = true;
+        udp_data_changed_flag = true;
+        reply_status_str = "Pause";
+    }
+    else if (strcmp(status_str, "Run") == 0)
+    {
+        // printf("CPU1: SetHarmStatus: Running harmonics.\r\n"); // 中文注释：运行谐波
+        if (harmonics_are_paused)
+        {
+            // printf("CPU1: SetHarmStatus: Restoring paused harmonics.\r\n"); // 中文注释：恢复暂停的谐波
+            memcpy(numHarmonics, paused_numHarmonics, sizeof(numHarmonics));
+            memcpy(harmonics, paused_harmonics, sizeof(harmonics));
+            memcpy(harmonics_phases, paused_harmonics_phases, sizeof(harmonics_phases));
+            harmonics_are_paused = false;
+        }
+        // 如果不是从暂停状态恢复，"Run"意味着使用当前（可能已通过SetHarm设置的）谐波参数
+
+        dac_parameters_updated_by_command = true;
+        udp_data_changed_flag = true;
+        reply_status_str = "Run";
+    }
+    else
+    {
+        xil_printf("CPU1: SetHarmStatus: Unknown Data value: %s\r\n", status_str); // 中文注释：未知的Data值
+        reply_status_str = "Failure";
+    }
+
+send_reply_harm_status:;
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetHarmStatus");
+    cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
+    cJSON_AddStringToObject(reply, "Data", reply_status_str);
+
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
+    {
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
+    }
+    cJSON_Delete(reply);
 }
 
-void handle_ClearHarm(cJSON *data)
+// 新函数：处理交流源的暂停/恢复/关闭
+void handle_SetACStatus(cJSON *data)
 {
-    // 处理 handle_ClearHarm 的逻辑
-    //    xil_printf("CPU1: Handling handle_ClearHarm...\r\n");
+    // xil_printf("CPU1: Handling SetACStatus...\r\n"); // 处理设置交流状态指令
+    const char *status_str = NULL;
+    char *reply_status_str = "Failure";
 
-    // 回报JSON
-    ReplyData replyData;
-    strcpy(replyData.FunCode, "ClearHarm");
-    strcpy(replyData.Result, "Success");
-    replyData.hasClosedLoop = false; // 不需要 ClosedLoop 字段
+    if (data != NULL && cJSON_IsString(data))
+    {
+        status_str = data->valuestring;
+    }
+    else
+    {
+        xil_printf("CPU1: SetACStatus: Invalid or missing Data.\r\n"); // 无效或缺少数据
+        goto send_reply_ac_status;
+    }
 
-    // 写入回报指令到共享内存
-    write_reply_to_shared_memory(&replyData);
+    if (strcmp(status_str, "Stop") == 0)
+    {
+        // printf("CPU1: SetACStatus: Processing Stop command.\r\n"); // 处理停止指令
+        Wave_Frequency = 50.0f;
+        memset(Phase_shift, 0, sizeof(Phase_shift));
+        memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude));
 
-    // 映射到硬件
-    memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
-    memset(harmonics, 0, sizeof(harmonics));
-    memset(harmonics_phases, 0, sizeof(harmonics_phases));
-    // 生成交流信号
-    // str_wr_bram(PID_OFF);
+        memset(numHarmonics, 0, sizeof(numHarmonics));
+        memset(harmonics, 0, sizeof(harmonics));
+        memset(harmonics_phases, 0, sizeof(harmonics_phases));
+        harmonics_are_paused = false;
 
-    udp_data_changed_flag = true;             // 更新UDP标志
-    dac_parameters_updated_by_command = true; // 更新硬件操作标志
-}
+        enable = 0x00; // 硬件操作将在主循环中根据此值执行
 
-void handle_ClearInterHarm(cJSON *data)
-{
-    // 处理 handle_ClearInterHarm 的逻辑
-    //    xil_printf("CPU1: Handling handle_ClearInterHarm...\r\n");
+        devState.bACRunning = 0; // 0=停止状态
+        // devState.bClosedLoop = 0; // 停止时通常恢复开环或默认状态 需要恢复开环吗
+
+        // 清空 lineAC 和 lineHarm 的测量值
+        initLineAC(&lineAC);
+        initLineHarm(&lineHarm);
+        for (int i = 0; i < 4; i++)
+        {
+            lineAC.ur[i] = setACS.Vals[i].UR; // 保留档位信息
+            lineAC.ir[i] = setACS.Vals[i].IR;
+        }
+        reply_status_str = "Stop";
+    }
+    else if (strcmp(status_str, "Pause") == 0)
+    {
+        // printf("CPU1: SetACStatus: Processing Pause command.\r\n"); // 处理暂停指令
+        if (devState.bACRunning != 2) // 确保是第一次进入暂停模式
+        {
+            memcpy(paused_Wave_Amplitude, Wave_Amplitude, sizeof(Wave_Amplitude)); // 保存功放输出状态
+            paused_bClosedLoop_state = devState.bClosedLoop;                       // 保存闭环状态
+
+            target_powamp_enable_state_after_pause = POWAMP_OFF;
+            // 检查在暂停前是否有任何通道实际是使能并有输出的
+            for (int i = 0; i < 8; ++i)
+            {
+                if ((enable & (1 << i)) && Wave_Amplitude[i] > 0.001f)
+                { // 使用原始Wave_Amplitude判断
+                    target_powamp_enable_state_after_pause = POWAMP_ON;
+                    break;
+                }
+            }
+        }
+        // 注意：不再在此处将全局 Wave_Amplitude 清零。
+        // 全局 Wave_Amplitude 保持暂停前的值，直到 Run 或 Stop。
+        // 硬件输出的幅值清零将在主循环中处理。
+
+        devState.bACRunning = 2; // 2=暂停状态
+        reply_status_str = "Pause";
+    }
+    else if (strcmp(status_str, "Run") == 0)
+    {
+        // printf("CPU1: SetACStatus: Processing Run command.\r\n"); // 中文注释：处理运行指令
+        if (devState.bACRunning == 2)
+        { // 如果是从暂停状态恢复
+            // printf("CPU1: SetACStatus: Resuming from paused state.\r\n"); // 中文注释：从暂停状态恢复
+            memcpy(Wave_Amplitude, paused_Wave_Amplitude, sizeof(Wave_Amplitude));
+            devState.bClosedLoop = paused_bClosedLoop_state; // 恢复开闭环状态
+            // target_powamp_enable_state_after_pause 将在主循环中用于决定是否开启功放
+        }
+        else if (devState.bACRunning == 0)
+        {
+            // 如果是从停止状态（0）变为运行，此时幅值等参数应已由SetACS设置或为0
+            // enable 和功放状态将由主循环根据 Wave_Amplitude 重新计算
+            printf("CPU1: SetACStatus: Transitioning from Stop to Run. Amplitudes should be set by SetACS if non-zero output is desired.\r\n");
+        }
+        else
+        {
+            // printf("CPU1: SetACStatus: Already in Run state or transitioning from non-pause state.\r\n");
+        }
+
+        devState.bACRunning = 1; // 1=运行状态
+        reply_status_str = "Run";
+    }
+    else
+    {
+        xil_printf("CPU1: SetACStatus: Unknown Data value: %s\r\n", status_str); // 未知的Data值
+        reply_status_str = "Failure";
+    }
+
+    // 标记参数已更改，主循环将根据新的 devState 和参数调用硬件操作函数
+    dac_parameters_updated_by_command = true;
+    udp_data_changed_flag = true;
+
+send_reply_ac_status:;
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetACStatus");
+    cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
+    cJSON_AddStringToObject(reply, "Data", reply_status_str);
+
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
+    {
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
+    }
+    cJSON_Delete(reply);
 }
 
 /**
@@ -1921,143 +2071,205 @@ void handle_WriteCalibrateAC(cJSON *data)
 }
 
 /**
- * @brief 处理 RestoreCalibrateDefault 请求
+ * @brief 处理恢复校准默认值的请求
  *
- * 该函数根据下行JSON中的Data字段，恢复指定的校准参数为出厂默认值，
- * 并将这些默认值写回EEPROM。
+ * 该函数解析传入的JSON对象，根据其中的Type和AllRange字段执行相应的恢复逻辑，
+ * 如果参数被实际修改，则将恢复的校准数据写回EEPROM，并准备和发送上行回复JSON。
  *
- * @param data 包含请求恢复的校准类型的JSON对象指针
+ * @param data_json_obj 传入的JSON对象，包含恢复校准所需的Type和AllRange字段
  */
-void handle_RestoreCalibrateDefault(cJSON *data)
+void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
 {
-    // xil_printf("CPU1: Handling RestoreCalibrateDefault...\r\n"); // 中文注释：处理恢复默认校准参数指令
+    char *result_status = "Success";           // 初始化结果状态为成功
+    const char *requested_type_str = "";       // 用于回复中反映请求的Type
+    bool requested_all_range = false;          // 用于回复中反映请求的AllRange
+    bool calibration_actually_changed = false; // 标记是否有校准参数被实际修改
 
-    char *result_status = "Success";                   // 初始化结果状态为成功
-    cJSON *restored_items_array = cJSON_CreateArray(); // 用于在上行消息中列出已恢复的项目
-
-    if (!data || !cJSON_IsArray(data))
+    // 1. 解析下行指令中的Data对象
+    if (!data_json_obj || !cJSON_IsObject(data_json_obj))
     {
-        xil_printf("CPU1: RestoreCalibrateDefault: Invalid or missing Data array.\n");
+        xil_printf("CPU1: RestoreCalibrateDefault: Data field is missing or not an object.\r\n"); // 中文注释：Data字段缺失或不是一个对象。
         result_status = "Failure";
-        goto send_reply; // 跳转到发送回复的标签
+        goto send_reply_restore;
     }
 
-    int data_count = cJSON_GetArraySize(data);
-    if (data_count == 0)
+    cJSON *type_item = cJSON_GetObjectItemCaseSensitive(data_json_obj, "Type");
+    cJSON *all_range_item = cJSON_GetObjectItemCaseSensitive(data_json_obj, "AllRange");
+
+    if (!cJSON_IsString(type_item) || (type_item->valuestring == NULL))
     {
-        xil_printf("CPU1: RestoreCalibrateDefault: Data array is empty.\n");
-        // 行为可定义，是算成功还是失败？这里先按成功处理，但没有实际操作
+        xil_printf("CPU1: RestoreCalibrateDefault: 'Type' field is missing or not a string.\r\n"); // 中文注释：'Type'字段缺失或不是字符串。
+        result_status = "Failure";
+        if (all_range_item && cJSON_IsBool(all_range_item))
+            requested_all_range = cJSON_IsTrue(all_range_item); // 尝试填充AllRange用于回复
+        goto send_reply_restore;
     }
+    requested_type_str = type_item->valuestring;
 
-    bool calibration_written = false; // 标记是否有校准数据实际被写入EEPROM
-
-    for (int i = 0; i < data_count; i++)
+    if (!all_range_item || !cJSON_IsBool(all_range_item))
     {
-        cJSON *item = cJSON_GetArrayItem(data, i);
-        if (cJSON_IsString(item) && (item->valuestring != NULL))
+        xil_printf("CPU1: RestoreCalibrateDefault: 'AllRange' field is missing or not a boolean.\r\n"); // 中文注释：'AllRange'字段缺失或不是布尔值。
+        result_status = "Failure";
+        // requested_type_str 已经获取
+        goto send_reply_restore;
+    }
+    requested_all_range = cJSON_IsTrue(all_range_item);
+
+    xil_printf("CPU1: RestoreCalibrateDefault: Request to restore Type='%s', AllRange=%s.\r\n", requested_type_str, requested_all_range ? "true" : "false"); // 中文注释：请求恢复校准参数，类型='%s'，所有量程=%s。
+
+    // 2. 根据Type和AllRange执行恢复逻辑
+    if (strcmp(requested_type_str, "AC") == 0 || strcmp(requested_type_str, "ALL") == 0)
+    {
+        // printf("CPU1: Processing AC calibration restore.\r\n"); //中文注释：处理交流校准恢复。
+        if (requested_all_range)
         {
-            const char *type_to_restore = item->valuestring;
-            // printf("CPU1: RestoreCalibrateDefault: Requested to restore '%s'.\n", type_to_restore); // 中文注释：请求恢复 '%s'
-
-            if (strcmp(type_to_restore, "AC") == 0)
-            {
-                // 恢复交流相关的校准参数
-                // printf("CPU1: Restoring AC calibration data to defaults...\n"); // 中文注释：恢复交流校准数据为默认值...
-                memcpy(DA_Correct_100, DA_CorrectConst_100, sizeof(DA_CorrectConst_100));
-                memcpy(DA_Correct_20, DA_CorrectConst_20, sizeof(DA_CorrectConst_20));
-                memcpy(DA_CorrectPhase_100, DA_CorrectPhaseConst_100, sizeof(DA_CorrectPhaseConst_100));
-                memcpy(AD_Correct, ADConst_Correct, sizeof(ADConst_Correct));
-                cJSON_AddItemToArray(restored_items_array, cJSON_CreateString("AC"));
-                calibration_written = true; // 标记AC校准数据已准备好写入
-            }
-            // TODO: 未来可以添加 "DCS", "DCM" 等其他类型的恢复逻辑
-            // else if (strcmp(type_to_restore, "DCS") == 0) { ... }
-            // else if (strcmp(type_to_restore, "DCM") == 0) { ... }
-            else
-            {
-                printf("CPU1: RestoreCalibrateDefault: Unknown calibration type '%s'.\n", type_to_restore); // 中文注释：未知的校准类型 '%s'
-                // 可以选择性地将 result_status 设置为 "Failure" 或部分成功
-            }
-        }
-    }
-
-    if (calibration_written)
-    {
-        // printf("CPU1: Writing restored default calibration data to EEPROM...\n"); // 中文注释：将恢复的默认校准数据写入EEPROM...
-        if (RC64_WriteCalibData() != XST_SUCCESS)
-        {
-            xil_printf("CPU1: RestoreCalibrateDefault: Failed to write default calibration data to EEPROM.\n");
-            result_status = "Failure"; // 如果写入EEPROM失败，则最终结果为失败
-            // 清空restored_items_array，因为虽然内存中恢复了，但未成功保存
-            cJSON_Delete(restored_items_array);
-            restored_items_array = cJSON_CreateArray(); // 创建一个空数组
+            // 恢复AC类型的所有量程
+            printf("CPU1: Restoring all ranges for AC.\r\n"); //中文注释：恢复交流所有量程。
+            memcpy(DA_Correct_100, DA_CorrectConst_100, sizeof(DA_CorrectConst_100));
+            memcpy(DA_Correct_20, DA_CorrectConst_20, sizeof(DA_CorrectConst_20));
+            memcpy(DA_CorrectPhase_100, DA_CorrectPhaseConst_100, sizeof(DA_CorrectPhaseConst_100));
+            memcpy(AD_Correct, ADConst_Correct, sizeof(ADConst_Correct));
+            calibration_actually_changed = true;
         }
         else
         {
-            // printf("CPU1: Default calibration data successfully written to EEPROM.\n"); // 中文注释：默认校准数据成功写入EEPROM
-        }
-    }
-    else if (data_count > 0 && cJSON_GetArraySize(restored_items_array) == 0)
-    {
-        // 如果请求了恢复，但没有可识别的项目被恢复（例如，只请求了 "DCS" 而当前不支持）
-        // 或者所有请求的项目都无法识别
-        if (strcmp(result_status, "Success") == 0)
-        { // 仅当之前没有其他错误时
-            // result_status = "Failure"; // 或者可以返回Success但Data为空数组，表示请求已处理但无操作
-            printf("CPU1: RestoreCalibrateDefault: No recognized calibration types were restored.\n");
+            // 恢复AC类型的当前量程
+            // printf("CPU1: Restoring current range for AC.\r\n"); //中文注释：恢复交流当前量程。
+            for (int ch = 0; ch < ROWS; ++ch) // ROWS 通常是8个通道
+            {
+                int range_idx = -1;
+                bool current_channel_changed = false;
+
+                if (ch < 4)
+                { // 电压通道 UA, UB, UC, UX (对应 setACS.Vals[ch])
+                    // 使用setACS中存储的当前电压档位值来获取档位索引
+                    range_idx = get_voltage_index_by_value(setACS.Vals[ch].UR);
+                    if (range_idx != -1)
+                    { // 确保获取到有效的量程索引
+                        printf("CPU1: Restoring ch %d (Voltage), range_idx %d based on UR: %f\r\n", ch, range_idx, setACS.Vals[ch].UR); //中文注释：恢复通道 %d (电压)，量程索引 %d，基于 UR: %f
+                        DA_Correct_100[ch][range_idx] = DA_CorrectConst_100[ch][range_idx];
+                        DA_Correct_20[ch][range_idx] = DA_CorrectConst_20[ch][range_idx];
+                        DA_CorrectPhase_100[ch][range_idx] = DA_CorrectPhaseConst_100[ch][range_idx];
+                        AD_Correct[ch][range_idx] = ADConst_Correct[ch][range_idx];
+                        current_channel_changed = true;
+                    }
+                    else
+                    {
+                        printf("CPU1: Warning: Could not determine current voltage range index for channel %d (UR: %f).\r\n", ch, setACS.Vals[ch].UR); //中文注释：警告：无法确定通道 %d 的当前电压量程索引 (UR: %f)。
+                    }
+                }
+                else
+                { // 电流通道 IA, IB, IC, IX (对应 setACS.Vals[ch-4])
+                    // 使用setACS中存储的当前电流量程值来获取档位索引
+                    range_idx = get_current_index_by_value(setACS.Vals[ch - 4].IR);
+                    if (range_idx != -1)
+                    {
+                        printf("CPU1: Restoring ch %d (Current), range_idx %d based on IR: %f\r\n", ch, range_idx, setACS.Vals[ch-4].IR); //中文注释：恢复通道 %d (电流)，量程索引 %d，基于 IR: %f
+                        DA_Correct_100[ch][range_idx] = DA_CorrectConst_100[ch][range_idx];
+                        DA_Correct_20[ch][range_idx] = DA_CorrectConst_20[ch][range_idx];
+                        DA_CorrectPhase_100[ch][range_idx] = DA_CorrectPhaseConst_100[ch][range_idx];
+                        AD_Correct[ch][range_idx] = ADConst_Correct[ch][range_idx];
+                        current_channel_changed = true;
+                    }
+                    else
+                    {
+                        printf("CPU1: Warning: Could not determine current current range index for channel %d (IR: %f).\r\n", ch, setACS.Vals[ch-4].IR); //中文注释：警告：无法确定通道 %d 的当前电流量程索引 (IR: %f)。
+                    }
+                }
+                if (current_channel_changed)
+                {
+                    calibration_actually_changed = true;
+                }
+            }
         }
     }
 
-send_reply:; // 回复标签
-    // 准备上行JSON回复
+    // TODO: 实现 DCS 和 DCM 的恢复逻辑 (如果它们有校准参数和出厂默认值)
+    if (strcmp(requested_type_str, "DCS") == 0 || strcmp(requested_type_str, "ALL") == 0)
+    {
+        xil_printf("CPU1: Restoring DCS calibration data (NotImplementedYet).\r\n"); //中文注释：恢复直流源校准数据 (尚未实现)。
+        // 示例： if (requested_all_range) { memcpy(DCS_Calib, DCS_CalibConst, sizeof(DCS_CalibConst)); calibration_actually_changed = true;}
+        // else { // 恢复DCS当前量程... calibration_actually_changed = true; }
+    }
+    if (strcmp(requested_type_str, "DCM") == 0 || strcmp(requested_type_str, "ALL") == 0)
+    {
+        xil_printf("CPU1: Restoring DCM calibration data (NotImplementedYet).\r\n"); //中文注释：恢复直流表校准数据 (尚未实现)。
+    }
+
+    // 检查是否是未知类型
+    if (strcmp(requested_type_str, "AC") != 0 && strcmp(requested_type_str, "DCS") != 0 &&
+        strcmp(requested_type_str, "DCM") != 0 && strcmp(requested_type_str, "ALL") != 0)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Unknown Type '%s'.\r\n", requested_type_str); // 中文注释：未知的类型 '%s'。
+        result_status = "Failure";
+    }
+    else if (!calibration_actually_changed && strcmp(result_status, "Success") == 0)
+    {
+        // 如果请求的类型是已知的，但没有实际参数被更改
+        // (例如，请求恢复当前量程，但当前量程的校准参数已经是默认值，或者无法确定当前量程索引)
+        xil_printf("CPU1: RestoreCalibrateDefault: No calibration parameters were effectively changed for Type '%s', AllRange '%s'.\r\n", requested_type_str, requested_all_range ? "true" : "false"); // 中文注释：对于类型 '%s'，所有量程 '%s'，没有校准参数被有效更改。
+        // 这种情况通常也算Success，表示指令已执行但无效果。
+    }
+
+    // 3. 如果有参数被修改且之前的操作都是成功的，则写回EEPROM
+    if (calibration_actually_changed && strcmp(result_status, "Success") == 0)
+    {
+        // xil_printf("CPU1: Writing restored default calibration data to EEPROM...\r\n"); //中文注释：将恢复的默认校准数据写入EEPROM...
+        if (RC64_WriteCalibData() != XST_SUCCESS)
+        {
+            xil_printf("CPU1: RestoreCalibrateDefault: Failed to write restored calibration data to EEPROM.\r\n"); // 中文注释：将恢复的校准数据写入EEPROM失败。
+            result_status = "Failure";
+        }
+        else
+        {
+            xil_printf("CPU1: Restored calibration data for Type '%s', AllRange '%s' successfully written to EEPROM.\r\n", requested_type_str, requested_all_range ? "true" : "false"); //中文注释：类型 '%s'，所有量程 '%s' 的恢复校准数据成功写入EEPROM。
+        }
+    }
+
+send_reply_restore:;
+    // 4. 准备并发送上行回复JSON
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "RestoreCalibrateDefault");
     cJSON_AddStringToObject(reply, "Result", result_status);
-    // Data 字段现在包含实际恢复并成功写入的项目列表
-    if (cJSON_GetArraySize(restored_items_array) > 0 || strcmp(result_status, "Success") != 0)
-    {
-        cJSON_AddItemToObject(reply, "Data", restored_items_array);
-    }
-    else
-    {
-        // 如果是Success但没有恢复任何内容（例如请求空数组或无效类型），Data可以不包含或为空数组
-        // 为了与指令格式一致，即使成功且无操作，也返回一个空的Data数组
-        cJSON_AddItemToObject(reply, "Data", restored_items_array); // restored_items_array 此时为空
-    }
 
-    char *string = cJSON_PrintUnformatted(reply);
-    if (string == NULL)
-    {
-        xil_printf("CPU1: RestoreCalibrateDefault: Failed to print JSON reply.\n");
-        cJSON_Delete(reply); // 即使 string 为 NULL，restored_items_array 也是 reply 的一部分，会被一并删除
-        return;
-    }
+    cJSON *reply_data_obj = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply_data_obj, "Type", requested_type_str);    // 回复中包含请求的Type
+    cJSON_AddBoolToObject(reply_data_obj, "AllRange", requested_all_range); // 回复中包含请求的AllRange
+    cJSON_AddItemToObject(reply, "Data", reply_data_obj);
 
-    size_t stringLength = strlen(string);
-    char *finalString = (char *)malloc(stringLength + 3);
-    if (finalString == NULL)
+    char *string_to_send = cJSON_PrintUnformatted(reply);
+    if (string_to_send == NULL)
     {
-        xil_printf("CPU1: RestoreCalibrateDefault: Failed to allocate memory for final JSON string.\n");
-        free(string);
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to print JSON reply.\r\n"); // 中文注释：生成JSON回复失败。
         cJSON_Delete(reply);
         return;
     }
-    snprintf(finalString, stringLength + 3, "|%s|", string);
+
+    size_t stringLength = strlen(string_to_send);
+    char *finalString = (char *)malloc(stringLength + 3); // 为首尾 '|' 和结束符分配空间
+    if (finalString == NULL)
+    {
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to allocate memory for final JSON string.\r\n"); // 中文注释：为最终JSON字符串分配内存失败。
+        free(string_to_send);
+        cJSON_Delete(reply);
+        return;
+    }
+    snprintf(finalString, stringLength + 3, "|%s|", string_to_send);
 
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1: RestoreCalibrateDefault: Failed to write reply to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1: RestoreCalibrateDefault: Failed to write reply to message queue: %ld\r\n", bytesWritten); // 中文注释：将回复写入消息队列失败。
     }
     else
     {
-        // xil_printf("CPU1: RestoreCalibrateDefault: Successfully wrote reply to message queue: %s\n", finalString); // 中文注释：成功将回复写入消息队列
+        // xil_printf("CPU1: RestoreCalibrateDefault: Successfully wrote reply: %s\r\n", finalString); //中文注释：成功写入回复。
     }
 
     free(finalString);
-    free(string);
-    cJSON_Delete(reply); // restored_items_array 作为子项，会在这里被一并释放
+    free(string_to_send);
+    cJSON_Delete(reply);
 }
 // 生成JSON字符串并写入共享内存的函数
 void write_reply_to_shared_memory(ReplyData *replyData)
@@ -2083,7 +2295,7 @@ void write_reply_to_shared_memory(ReplyData *replyData)
     char *jsonString = cJSON_PrintUnformatted(json);
     if (jsonString == NULL)
     {
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         cJSON_Delete(json);
         return;
     }
@@ -2093,7 +2305,7 @@ void write_reply_to_shared_memory(ReplyData *replyData)
     char *finalString = (char *)malloc(jsonStringLength + 3); // +3 是为首尾 '|' 和终止符 '\0'
     if (finalString == NULL)
     {
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         cJSON_free(jsonString);
         cJSON_Delete(json);
         return;
@@ -2104,11 +2316,11 @@ void write_reply_to_shared_memory(ReplyData *replyData)
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1:Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1:Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
-        //        xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\n", bytesWritten, jsonString);
+        //        xil_printf("CPU1:Successfully wrote %ld bytes to message queue: %s\r\n", bytesWritten, jsonString);
     }
 
     // 释放JSON字符串
@@ -2218,7 +2430,7 @@ void report_protection_event(u8 ProectFault)
     char *string = cJSON_Print(report);
     if (string == NULL)
     {
-        xil_printf("Failed to print JSON.\n");
+        xil_printf("Failed to print JSON.\r\n");
         cJSON_Delete(report);
         return;
     }
@@ -2228,7 +2440,7 @@ void report_protection_event(u8 ProectFault)
     char *finalString = (char *)malloc(stringLength + 3); // +3 for the two '|' and null terminator
     if (finalString == NULL)
     {
-        xil_printf("Failed to allocate memory for final JSON string.\n");
+        xil_printf("Failed to allocate memory for final JSON string.\r\n");
         cJSON_Delete(report);
         free(string);
         return;
@@ -2239,15 +2451,15 @@ void report_protection_event(u8 ProectFault)
     ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
     if (bytesWritten < 0)
     {
-        xil_printf("CPU1: Failed to write to message queue: %ld\n", bytesWritten);
+        xil_printf("CPU1: Failed to write to message queue: %ld\r\n", bytesWritten);
     }
     else
     {
-        xil_printf("CPU1: Protection event reported successfully\n");
+        xil_printf("CPU1: Protection event reported successfully\r\n");
     }
 
     // 打印最终的JSON字符串用于测试
-    // xil_printf("CPU1: Protection event JSON: %s\n", finalString);
+    // xil_printf("CPU1: Protection event JSON: %s\r\n", finalString);
 
     // 硬件操作
     //  关闭DA
@@ -2446,7 +2658,7 @@ void write_command_to_shared_memory()
 
     // 将字符串写入共享内存
 
-    xil_printf("Command written to shared memory.\n");
+    xil_printf("Command written to shared memory.\r\n");
 }
 
 size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
@@ -2457,71 +2669,71 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
     if (ReportStatus.DevState)
     {
         payload_size += header_size + sizeof(DevState);
-        //        printf("DevState size: %zu\n", header_size + sizeof(LineDevState));
+        //        printf("DevState size: %zu\r\n", header_size + sizeof(LineDevState));
     }
     else
     {
         payload_size += header_size;
-        //        printf("DevState header only: %zu\n", header_size);
+        //        printf("DevState header only: %zu\r\n", header_size);
     }
 
     if (ReportStatus.BaseDataAC)
     {
 
         payload_size += header_size + sizeof(LineAC);
-        //        printf("BaseDataAC size: %zu\n", header_size + sizeof(LineAC));
+        //        printf("BaseDataAC size: %zu\r\n", header_size + sizeof(LineAC));
     }
     else
     {
         payload_size += header_size;
-        //        printf("BaseDataAC header only: %zu\n", header_size);
+        //        printf("BaseDataAC header only: %zu\r\n", header_size);
     }
 
     if (ReportStatus.HarmData)
     {
         payload_size += header_size + sizeof(LineHarm);
-        //        printf("HarmData size: %zu\n", header_size + sizeof(LineHarm));
+        //        printf("HarmData size: %zu\r\n", header_size + sizeof(LineHarm));
     }
     else
     {
         payload_size += header_size;
-        //        printf("HarmData header only: %zu\n", header_size);
+        //        printf("HarmData header only: %zu\r\n", header_size);
     }
 
     if (ReportStatus.DI)
     {
         payload_size += header_size + sizeof(LineDI);
-        //        printf("DI size: %zu\n", header_size + sizeof(LineDI));
+        //        printf("DI size: %zu\r\n", header_size + sizeof(LineDI));
     }
     else
     {
         payload_size += header_size;
-        //        printf("DI header only: %zu\n", header_size);
+        //        printf("DI header only: %zu\r\n", header_size);
     }
 
     if (ReportStatus.DO)
     {
         payload_size += header_size + sizeof(LineDO);
-        //        printf("DO size: %zu\n", header_size + sizeof(LineDO));
+        //        printf("DO size: %zu\r\n", header_size + sizeof(LineDO));
     }
     else
     {
         payload_size += header_size;
-        //        printf("DO header only: %zu\n", header_size);
+        //        printf("DO header only: %zu\r\n", header_size);
     }
 
     if (ReportStatus.DISOE)
     {
         payload_size += header_size + sizeof(LineDisoe);
-        //        printf("DISOE size: %zu\n", header_size + sizeof(LineDisoe));
+        //        printf("DISOE size: %zu\r\n", header_size + sizeof(LineDisoe));
     }
     else
     {
         payload_size += header_size;
-        //        printf("DISOE header only: %zu\n", header_size);
+        //        printf("DISOE header only: %zu\r\n", header_size);
     }
 
-    //    printf("Total dynamic payload size: %zu\n", payload_size);
+    //    printf("Total dynamic payload size: %zu\r\n", payload_size);
     return payload_size;
 }
 
@@ -2655,7 +2867,7 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // 检查是否超出限制
     if (16 + dynamic_payload_size + 4 > UDP_MEM_SIZE)
     {
-        printf("CPU1: ERROR - UDP data too large for shared memory: %zu > %d\n",
+        printf("CPU1: ERROR - UDP data too large for shared memory: %zu > %d\r\n",
                16 + dynamic_payload_size + 4, UDP_MEM_SIZE);
         return; // 数据太大，直接返回不写入
     }
@@ -2676,14 +2888,14 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // 更新计数器
     Xil_Out32(UDP_ADDRESS + UDP_MEM_SIZE - 8, udpReportCount);                        // Write back to shared memory
     Xil_DCacheFlushRange((INTPTR)(UDP_ADDRESS + UDP_MEM_SIZE - 8), sizeof(uint32_t)); // Flush cache
-    // printf("CPU1:UDP Report Count: %ld\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
+    // printf("CPU1:UDP Report Count: %ld\r\n", Xil_In32(UDP_ADDRESS + UDP_MEM_SIZE - 8));
     // // 刷新整个UDP
     // Xil_DCacheFlushRange((UINTPTR)&udpPacket, sizeof(udpPacket));
     // 打印调试信息
-    // printf("lineAC size: %zu bytes\n", sizeof(LineAC));
-    // printf("dynamic_payload_size: %zu bytes\n", dynamic_payload_size);
-    // printf("UDP_PACKET_SIZE: %d bytes\n", sizeof(udpPacket));
-    // printf("CPU1: UDP written to memory at: 0x%X\n", UDP_ADDRESS);
+    // printf("lineAC size: %zu bytes\r\n", sizeof(LineAC));
+    // printf("dynamic_payload_size: %zu bytes\r\n", dynamic_payload_size);
+    // printf("UDP_PACKET_SIZE: %d bytes\r\n", sizeof(udpPacket));
+    // printf("CPU1: UDP written to memory at: 0x%X\r\n", UDP_ADDRESS);
 }
 
 // Function to initialize DevState
@@ -2834,7 +3046,7 @@ void init_setACS()
 
     udp_data_changed_flag = true; // 更新UDP标志
     // 打印初始化完成消息
-    // printf("CPU1: setACS.Vals initialization completed.\n");
+    // printf("CPU1: setACS.Vals initialization completed.\r\n");
 }
 
 void init_JsonUdp(void)
