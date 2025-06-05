@@ -205,3 +205,10 @@ Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/
 [Thu Jun  5 20:09:48 2025] Launched impl_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
 launch_runs: Time (s): cpu = 00:00:31 ; elapsed = 00:00:39 . Memory (MB): peak = 2522.664 ; gain = 62.875
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
+INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
+INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+write_hw_platform: Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 2828.730 ; gain = 306.066
+exit
+INFO: [Common 17-206] Exiting Vivado at Thu Jun  5 20:52:06 2025...
