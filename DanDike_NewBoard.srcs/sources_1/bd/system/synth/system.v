@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Sun May 25 18:07:51 2025
+//Date        : Thu Jun  5 20:09:09 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -173,7 +173,18 @@ module AC_8_channel_0_imp_1V5LWYH
     WrSerial_0_wr_load,
     WrSerial_0_wr_sclk,
     WrSerial_0_wr_sdo,
+    bm_syn_end,
+    clk_10MHz_0,
+    date_update,
+    irig_b_in_0,
+    irig_b_out_0,
     mm2s_introut,
+    onoff_done,
+    pps_50_0,
+    pps_bm2cpu,
+    pps_gps_0,
+    pps_in2cpu,
+    pps_in_0,
     prog_empty,
     s2mm_introut,
     s_axi_lite_aclk,
@@ -341,12 +352,42 @@ module AC_8_channel_0_imp_1V5LWYH
   output WrSerial_0_wr_load;
   output WrSerial_0_wr_sclk;
   output WrSerial_0_wr_sdo;
+  output bm_syn_end;
+  input clk_10MHz_0;
+  output date_update;
+  input irig_b_in_0;
+  output irig_b_out_0;
   output mm2s_introut;
+  output onoff_done;
+  output pps_50_0;
+  output pps_bm2cpu;
+  input pps_gps_0;
+  output pps_in2cpu;
+  input pps_in_0;
   output prog_empty;
   output s2mm_introut;
   input s_axi_lite_aclk;
   output [1:0]yad_os_0;
 
+  wire [31:0]S_AXI_1_ARADDR;
+  wire [2:0]S_AXI_1_ARPROT;
+  wire S_AXI_1_ARREADY;
+  wire S_AXI_1_ARVALID;
+  wire [31:0]S_AXI_1_AWADDR;
+  wire [2:0]S_AXI_1_AWPROT;
+  wire S_AXI_1_AWREADY;
+  wire S_AXI_1_AWVALID;
+  wire S_AXI_1_BREADY;
+  wire [1:0]S_AXI_1_BRESP;
+  wire S_AXI_1_BVALID;
+  wire [31:0]S_AXI_1_RDATA;
+  wire S_AXI_1_RREADY;
+  wire [1:0]S_AXI_1_RRESP;
+  wire S_AXI_1_RVALID;
+  wire [31:0]S_AXI_1_WDATA;
+  wire S_AXI_1_WREADY;
+  wire [3:0]S_AXI_1_WSTRB;
+  wire S_AXI_1_WVALID;
   wire adc_whole_0_AD_ad_ck;
   wire adc_whole_0_AD_ad_cs;
   wire adc_whole_0_AD_ad_cvn;
@@ -390,19 +431,13 @@ module AC_8_channel_0_imp_1V5LWYH
   wire axi_dma_0_mm2s_introut;
   wire axi_dma_0_s2mm_introut;
   wire axis_data_fifo_1_prog_empty;
+  wire clk_10MHz_0_1;
   wire dac_whole_0_DA_da_clk;
   wire dac_whole_0_DA_da_cs;
   wire [7:0]dac_whole_0_DA_da_sdo;
-  wire onoff_config_axi_0_OnOff_onoff_cs;
-  wire onoff_config_axi_0_OnOff_onoff_sclk;
-  wire onoff_config_axi_0_OnOff_onoff_sdi;
-  wire onoff_config_axi_0_OnOff_onoff_sdo;
-  wire onoff_config_axi_0_RdSerial_rd_load;
-  wire onoff_config_axi_0_RdSerial_rd_sclk;
-  wire onoff_config_axi_0_RdSerial_rd_sdi;
-  wire onoff_config_axi_0_WrSerial_wr_load;
-  wire onoff_config_axi_0_WrSerial_wr_sclk;
-  wire onoff_config_axi_0_WrSerial_wr_sdo;
+  wire irig_b_in_0_1;
+  wire pps_gps_0_1;
+  wire pps_in_0_1;
   wire proc_sys_reset_0_peripheral_aresetn;
   wire processing_system7_0_FCLK_CLK0;
   wire processing_system7_0_FCLK_CLK1;
@@ -495,26 +530,24 @@ module AC_8_channel_0_imp_1V5LWYH
   wire ps7_0_axi_periph_M08_AXI_WREADY;
   wire [3:0]ps7_0_axi_periph_M08_AXI_WSTRB;
   wire ps7_0_axi_periph_M08_AXI_WVALID;
-  wire [31:0]ps7_0_axi_periph_M09_AXI_ARADDR;
-  wire [2:0]ps7_0_axi_periph_M09_AXI_ARPROT;
-  wire ps7_0_axi_periph_M09_AXI_ARREADY;
-  wire ps7_0_axi_periph_M09_AXI_ARVALID;
-  wire [31:0]ps7_0_axi_periph_M09_AXI_AWADDR;
-  wire [2:0]ps7_0_axi_periph_M09_AXI_AWPROT;
-  wire ps7_0_axi_periph_M09_AXI_AWREADY;
-  wire ps7_0_axi_periph_M09_AXI_AWVALID;
-  wire ps7_0_axi_periph_M09_AXI_BREADY;
-  wire [1:0]ps7_0_axi_periph_M09_AXI_BRESP;
-  wire ps7_0_axi_periph_M09_AXI_BVALID;
-  wire [31:0]ps7_0_axi_periph_M09_AXI_RDATA;
-  wire ps7_0_axi_periph_M09_AXI_RREADY;
-  wire [1:0]ps7_0_axi_periph_M09_AXI_RRESP;
-  wire ps7_0_axi_periph_M09_AXI_RVALID;
-  wire [31:0]ps7_0_axi_periph_M09_AXI_WDATA;
-  wire ps7_0_axi_periph_M09_AXI_WREADY;
-  wire [3:0]ps7_0_axi_periph_M09_AXI_WSTRB;
-  wire ps7_0_axi_periph_M09_AXI_WVALID;
   wire rst_ps7_0_100M_peripheral_aresetn;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire stimer_onoff_pa_rw_A_0_OnOff_onoff_cs;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire stimer_onoff_pa_rw_A_0_OnOff_onoff_sclk;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire stimer_onoff_pa_rw_A_0_OnOff_onoff_sdi;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire stimer_onoff_pa_rw_A_0_OnOff_onoff_sdo;
+  wire stimer_onoff_pa_rw_A_0_RdSerial_rd_load;
+  wire stimer_onoff_pa_rw_A_0_RdSerial_rd_sclk;
+  wire stimer_onoff_pa_rw_A_0_RdSerial_rd_sdi;
+  wire stimer_onoff_pa_rw_A_0_WrSerial_wr_load;
+  wire stimer_onoff_pa_rw_A_0_WrSerial_wr_sclk;
+  wire stimer_onoff_pa_rw_A_0_WrSerial_wr_sdo;
+  wire stimer_onoff_pa_rw_A_0_bm_syn_end;
+  wire stimer_onoff_pa_rw_A_0_date_update;
+  wire stimer_onoff_pa_rw_A_0_irig_b_out;
+  (* DEBUG = "true" *) wire stimer_onoff_pa_rw_A_0_onoff_done;
+  wire stimer_onoff_pa_rw_A_0_pps_50;
+  wire stimer_onoff_pa_rw_A_0_pps_bm2cpu;
+  wire stimer_onoff_pa_rw_A_0_pps_in2cpu;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -547,11 +580,11 @@ module AC_8_channel_0_imp_1V5LWYH
   assign M00_AXI_wlast = adda_M00_AXI_WLAST;
   assign M00_AXI_wstrb[7:0] = adda_M00_AXI_WSTRB;
   assign M00_AXI_wvalid = adda_M00_AXI_WVALID;
-  assign OnOff_0_onoff_cs = onoff_config_axi_0_OnOff_onoff_cs;
-  assign OnOff_0_onoff_sclk = onoff_config_axi_0_OnOff_onoff_sclk;
-  assign OnOff_0_onoff_sdo = onoff_config_axi_0_OnOff_onoff_sdo;
-  assign RdSerial_0_rd_load = onoff_config_axi_0_RdSerial_rd_load;
-  assign RdSerial_0_rd_sclk = onoff_config_axi_0_RdSerial_rd_sclk;
+  assign OnOff_0_onoff_cs = stimer_onoff_pa_rw_A_0_OnOff_onoff_cs;
+  assign OnOff_0_onoff_sclk = stimer_onoff_pa_rw_A_0_OnOff_onoff_sclk;
+  assign OnOff_0_onoff_sdo = stimer_onoff_pa_rw_A_0_OnOff_onoff_sdo;
+  assign RdSerial_0_rd_load = stimer_onoff_pa_rw_A_0_RdSerial_rd_load;
+  assign RdSerial_0_rd_sclk = stimer_onoff_pa_rw_A_0_RdSerial_rd_sclk;
   assign S_AXI1_arready = ps7_0_axi_periph_M08_AXI_ARREADY;
   assign S_AXI1_awready = ps7_0_axi_periph_M08_AXI_AWREADY;
   assign S_AXI1_bid[11:0] = ps7_0_axi_periph_M08_AXI_BID;
@@ -579,6 +612,17 @@ module AC_8_channel_0_imp_1V5LWYH
   assign S_AXI3_rresp[1:0] = ps7_0_axi_periph_M06_AXI_RRESP;
   assign S_AXI3_rvalid = ps7_0_axi_periph_M06_AXI_RVALID;
   assign S_AXI3_wready = ps7_0_axi_periph_M06_AXI_WREADY;
+  assign S_AXI_1_ARADDR = S_AXI_araddr[31:0];
+  assign S_AXI_1_ARPROT = S_AXI_arprot[2:0];
+  assign S_AXI_1_ARVALID = S_AXI_arvalid;
+  assign S_AXI_1_AWADDR = S_AXI_awaddr[31:0];
+  assign S_AXI_1_AWPROT = S_AXI_awprot[2:0];
+  assign S_AXI_1_AWVALID = S_AXI_awvalid;
+  assign S_AXI_1_BREADY = S_AXI_bready;
+  assign S_AXI_1_RREADY = S_AXI_rready;
+  assign S_AXI_1_WDATA = S_AXI_wdata[31:0];
+  assign S_AXI_1_WSTRB = S_AXI_wstrb[3:0];
+  assign S_AXI_1_WVALID = S_AXI_wvalid;
   assign S_AXI_LITE_arready = ps7_0_axi_periph_M05_AXI_ARREADY;
   assign S_AXI_LITE_awready = ps7_0_axi_periph_M05_AXI_AWREADY;
   assign S_AXI_LITE_bresp[1:0] = ps7_0_axi_periph_M05_AXI_BRESP;
@@ -587,17 +631,17 @@ module AC_8_channel_0_imp_1V5LWYH
   assign S_AXI_LITE_rresp[1:0] = ps7_0_axi_periph_M05_AXI_RRESP;
   assign S_AXI_LITE_rvalid = ps7_0_axi_periph_M05_AXI_RVALID;
   assign S_AXI_LITE_wready = ps7_0_axi_periph_M05_AXI_WREADY;
-  assign S_AXI_arready = ps7_0_axi_periph_M09_AXI_ARREADY;
-  assign S_AXI_awready = ps7_0_axi_periph_M09_AXI_AWREADY;
-  assign S_AXI_bresp[1:0] = ps7_0_axi_periph_M09_AXI_BRESP;
-  assign S_AXI_bvalid = ps7_0_axi_periph_M09_AXI_BVALID;
-  assign S_AXI_rdata[31:0] = ps7_0_axi_periph_M09_AXI_RDATA;
-  assign S_AXI_rresp[1:0] = ps7_0_axi_periph_M09_AXI_RRESP;
-  assign S_AXI_rvalid = ps7_0_axi_periph_M09_AXI_RVALID;
-  assign S_AXI_wready = ps7_0_axi_periph_M09_AXI_WREADY;
-  assign WrSerial_0_wr_load = onoff_config_axi_0_WrSerial_wr_load;
-  assign WrSerial_0_wr_sclk = onoff_config_axi_0_WrSerial_wr_sclk;
-  assign WrSerial_0_wr_sdo = onoff_config_axi_0_WrSerial_wr_sdo;
+  assign S_AXI_arready = S_AXI_1_ARREADY;
+  assign S_AXI_awready = S_AXI_1_AWREADY;
+  assign S_AXI_bresp[1:0] = S_AXI_1_BRESP;
+  assign S_AXI_bvalid = S_AXI_1_BVALID;
+  assign S_AXI_rdata[31:0] = S_AXI_1_RDATA;
+  assign S_AXI_rresp[1:0] = S_AXI_1_RRESP;
+  assign S_AXI_rvalid = S_AXI_1_RVALID;
+  assign S_AXI_wready = S_AXI_1_WREADY;
+  assign WrSerial_0_wr_load = stimer_onoff_pa_rw_A_0_WrSerial_wr_load;
+  assign WrSerial_0_wr_sclk = stimer_onoff_pa_rw_A_0_WrSerial_wr_sclk;
+  assign WrSerial_0_wr_sdo = stimer_onoff_pa_rw_A_0_WrSerial_wr_sdo;
   assign adc_whole_0_AD_ad_sa = AD_0_ad_sa;
   assign adc_whole_0_AD_ad_sb = AD_0_ad_sb;
   assign adda_M00_AXI_ARREADY = M00_AXI_arready;
@@ -609,9 +653,18 @@ module AC_8_channel_0_imp_1V5LWYH
   assign adda_M00_AXI_RRESP = M00_AXI_rresp[1:0];
   assign adda_M00_AXI_RVALID = M00_AXI_rvalid;
   assign adda_M00_AXI_WREADY = M00_AXI_wready;
+  assign bm_syn_end = stimer_onoff_pa_rw_A_0_bm_syn_end;
+  assign clk_10MHz_0_1 = clk_10MHz_0;
+  assign date_update = stimer_onoff_pa_rw_A_0_date_update;
+  assign irig_b_in_0_1 = irig_b_in_0;
+  assign irig_b_out_0 = stimer_onoff_pa_rw_A_0_irig_b_out;
   assign mm2s_introut = axi_dma_0_mm2s_introut;
-  assign onoff_config_axi_0_OnOff_onoff_sdi = OnOff_0_onoff_sdi;
-  assign onoff_config_axi_0_RdSerial_rd_sdi = RdSerial_0_rd_sdi;
+  assign onoff_done = stimer_onoff_pa_rw_A_0_onoff_done;
+  assign pps_50_0 = stimer_onoff_pa_rw_A_0_pps_50;
+  assign pps_bm2cpu = stimer_onoff_pa_rw_A_0_pps_bm2cpu;
+  assign pps_gps_0_1 = pps_gps_0;
+  assign pps_in2cpu = stimer_onoff_pa_rw_A_0_pps_in2cpu;
+  assign pps_in_0_1 = pps_in_0;
   assign proc_sys_reset_0_peripheral_aresetn = CLK25MHz_ARESETN;
   assign processing_system7_0_FCLK_CLK0 = s_axi_lite_aclk;
   assign processing_system7_0_FCLK_CLK1 = CLK25MHz;
@@ -670,19 +723,10 @@ module AC_8_channel_0_imp_1V5LWYH
   assign ps7_0_axi_periph_M08_AXI_WLAST = S_AXI1_wlast;
   assign ps7_0_axi_periph_M08_AXI_WSTRB = S_AXI1_wstrb[3:0];
   assign ps7_0_axi_periph_M08_AXI_WVALID = S_AXI1_wvalid;
-  assign ps7_0_axi_periph_M09_AXI_ARADDR = S_AXI_araddr[31:0];
-  assign ps7_0_axi_periph_M09_AXI_ARPROT = S_AXI_arprot[2:0];
-  assign ps7_0_axi_periph_M09_AXI_ARVALID = S_AXI_arvalid;
-  assign ps7_0_axi_periph_M09_AXI_AWADDR = S_AXI_awaddr[31:0];
-  assign ps7_0_axi_periph_M09_AXI_AWPROT = S_AXI_awprot[2:0];
-  assign ps7_0_axi_periph_M09_AXI_AWVALID = S_AXI_awvalid;
-  assign ps7_0_axi_periph_M09_AXI_BREADY = S_AXI_bready;
-  assign ps7_0_axi_periph_M09_AXI_RREADY = S_AXI_rready;
-  assign ps7_0_axi_periph_M09_AXI_WDATA = S_AXI_wdata[31:0];
-  assign ps7_0_axi_periph_M09_AXI_WSTRB = S_AXI_wstrb[3:0];
-  assign ps7_0_axi_periph_M09_AXI_WVALID = S_AXI_wvalid;
   assign rst_ps7_0_100M_peripheral_aresetn = S_AXI_ARESETN;
   assign s2mm_introut = axi_dma_0_s2mm_introut;
+  assign stimer_onoff_pa_rw_A_0_OnOff_onoff_sdi = OnOff_0_onoff_sdi;
+  assign stimer_onoff_pa_rw_A_0_RdSerial_rd_sdi = RdSerial_0_rd_sdi;
   assign yad_os_0[1:0] = adda_yad_os_0;
   adda_imp_1MMLK1Q adda
        (.AD_0_ad_ck(adc_whole_0_AD_ad_ck),
@@ -824,40 +868,51 @@ module AC_8_channel_0_imp_1V5LWYH
         .s2mm_introut(axi_dma_0_s2mm_introut),
         .s_axi_lite_aclk(processing_system7_0_FCLK_CLK0),
         .yad_os_0(adda_yad_os_0));
-  system_onoff_config_axi_0_0 onoff_config_axi_0
+  system_stimer_onoff_pa_rw_A_0_0 stimer_onoff_pa_rw_A_0
        (.CLK25MHz(processing_system7_0_FCLK_CLK1),
         .CLK25MHz_RSTN(proc_sys_reset_0_peripheral_aresetn),
         .S_AXI_ACLK(processing_system7_0_FCLK_CLK0),
-        .S_AXI_ARADDR(ps7_0_axi_periph_M09_AXI_ARADDR[4:0]),
+        .S_AXI_ARADDR(S_AXI_1_ARADDR[5:0]),
         .S_AXI_ARESETN(rst_ps7_0_100M_peripheral_aresetn),
-        .S_AXI_ARPROT(ps7_0_axi_periph_M09_AXI_ARPROT),
-        .S_AXI_ARREADY(ps7_0_axi_periph_M09_AXI_ARREADY),
-        .S_AXI_ARVALID(ps7_0_axi_periph_M09_AXI_ARVALID),
-        .S_AXI_AWADDR(ps7_0_axi_periph_M09_AXI_AWADDR[4:0]),
-        .S_AXI_AWPROT(ps7_0_axi_periph_M09_AXI_AWPROT),
-        .S_AXI_AWREADY(ps7_0_axi_periph_M09_AXI_AWREADY),
-        .S_AXI_AWVALID(ps7_0_axi_periph_M09_AXI_AWVALID),
-        .S_AXI_BREADY(ps7_0_axi_periph_M09_AXI_BREADY),
-        .S_AXI_BRESP(ps7_0_axi_periph_M09_AXI_BRESP),
-        .S_AXI_BVALID(ps7_0_axi_periph_M09_AXI_BVALID),
-        .S_AXI_RDATA(ps7_0_axi_periph_M09_AXI_RDATA),
-        .S_AXI_RREADY(ps7_0_axi_periph_M09_AXI_RREADY),
-        .S_AXI_RRESP(ps7_0_axi_periph_M09_AXI_RRESP),
-        .S_AXI_RVALID(ps7_0_axi_periph_M09_AXI_RVALID),
-        .S_AXI_WDATA(ps7_0_axi_periph_M09_AXI_WDATA),
-        .S_AXI_WREADY(ps7_0_axi_periph_M09_AXI_WREADY),
-        .S_AXI_WSTRB(ps7_0_axi_periph_M09_AXI_WSTRB),
-        .S_AXI_WVALID(ps7_0_axi_periph_M09_AXI_WVALID),
-        .onoff_cs(onoff_config_axi_0_OnOff_onoff_cs),
-        .onoff_sclk(onoff_config_axi_0_OnOff_onoff_sclk),
-        .onoff_sdi(onoff_config_axi_0_OnOff_onoff_sdi),
-        .onoff_sdo(onoff_config_axi_0_OnOff_onoff_sdo),
-        .rdserial_load(onoff_config_axi_0_RdSerial_rd_load),
-        .rdserial_sclk(onoff_config_axi_0_RdSerial_rd_sclk),
-        .rdserial_sdi(onoff_config_axi_0_RdSerial_rd_sdi),
-        .wrserial_load(onoff_config_axi_0_WrSerial_wr_load),
-        .wrserial_sclk(onoff_config_axi_0_WrSerial_wr_sclk),
-        .wrserial_sdo(onoff_config_axi_0_WrSerial_wr_sdo));
+        .S_AXI_ARPROT(S_AXI_1_ARPROT),
+        .S_AXI_ARREADY(S_AXI_1_ARREADY),
+        .S_AXI_ARVALID(S_AXI_1_ARVALID),
+        .S_AXI_AWADDR(S_AXI_1_AWADDR[5:0]),
+        .S_AXI_AWPROT(S_AXI_1_AWPROT),
+        .S_AXI_AWREADY(S_AXI_1_AWREADY),
+        .S_AXI_AWVALID(S_AXI_1_AWVALID),
+        .S_AXI_BREADY(S_AXI_1_BREADY),
+        .S_AXI_BRESP(S_AXI_1_BRESP),
+        .S_AXI_BVALID(S_AXI_1_BVALID),
+        .S_AXI_RDATA(S_AXI_1_RDATA),
+        .S_AXI_RREADY(S_AXI_1_RREADY),
+        .S_AXI_RRESP(S_AXI_1_RRESP),
+        .S_AXI_RVALID(S_AXI_1_RVALID),
+        .S_AXI_WDATA(S_AXI_1_WDATA),
+        .S_AXI_WREADY(S_AXI_1_WREADY),
+        .S_AXI_WSTRB(S_AXI_1_WSTRB),
+        .S_AXI_WVALID(S_AXI_1_WVALID),
+        .bm_syn_end(stimer_onoff_pa_rw_A_0_bm_syn_end),
+        .clk_10MHz(clk_10MHz_0_1),
+        .date_update(stimer_onoff_pa_rw_A_0_date_update),
+        .irig_b_in(irig_b_in_0_1),
+        .irig_b_out(stimer_onoff_pa_rw_A_0_irig_b_out),
+        .onoff_cs(stimer_onoff_pa_rw_A_0_OnOff_onoff_cs),
+        .onoff_done(stimer_onoff_pa_rw_A_0_onoff_done),
+        .onoff_sclk(stimer_onoff_pa_rw_A_0_OnOff_onoff_sclk),
+        .onoff_sdi(stimer_onoff_pa_rw_A_0_OnOff_onoff_sdi),
+        .onoff_sdo(stimer_onoff_pa_rw_A_0_OnOff_onoff_sdo),
+        .pps_50(stimer_onoff_pa_rw_A_0_pps_50),
+        .pps_bm2cpu(stimer_onoff_pa_rw_A_0_pps_bm2cpu),
+        .pps_gps(pps_gps_0_1),
+        .pps_in(pps_in_0_1),
+        .pps_in2cpu(stimer_onoff_pa_rw_A_0_pps_in2cpu),
+        .rdserial_load(stimer_onoff_pa_rw_A_0_RdSerial_rd_load),
+        .rdserial_sclk(stimer_onoff_pa_rw_A_0_RdSerial_rd_sclk),
+        .rdserial_sdi(stimer_onoff_pa_rw_A_0_RdSerial_rd_sdi),
+        .wrserial_load(stimer_onoff_pa_rw_A_0_WrSerial_wr_load),
+        .wrserial_sclk(stimer_onoff_pa_rw_A_0_WrSerial_wr_sclk),
+        .wrserial_sdo(stimer_onoff_pa_rw_A_0_WrSerial_wr_sdo));
 endmodule
 
 module RTC_EEPROM_imp_HBPX1R
@@ -8245,7 +8300,7 @@ module s00_couplers_imp_11SE3QO
         .s_axi_wvalid(s00_couplers_to_auto_pc_WVALID));
 endmodule
 
-(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=73,numReposBlks=47,numNonXlnxBlks=2,numHierBlks=26,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=30,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
+(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=74,numReposBlks=48,numNonXlnxBlks=2,numHierBlks=26,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=30,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
 module system
    (AD_0_ad_ck,
     AD_0_ad_cs,
@@ -8321,15 +8376,21 @@ module system
     WrSerial_0_wr_load,
     WrSerial_0_wr_sclk,
     WrSerial_0_wr_sdo,
+    clk_10MHz_0,
     gpio0_tri_i,
     gpio0_tri_o,
     gpio0_tri_t,
+    irig_b_in_0,
+    irig_b_out_0,
     key_BoardINT0,
     lcd_bl,
     lcd_clk,
     lcd_de,
     lcd_hsync,
     lcd_vsync,
+    pps_50_0,
+    pps_gps_0,
+    pps_in_0,
     pulse_p_in_0,
     pulse_p_out_0,
     pulse_q_in_0,
@@ -8412,15 +8473,21 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:user:WrSerial:1.0 WrSerial_0 wr_load" *) output WrSerial_0_wr_load;
   (* X_INTERFACE_INFO = "xilinx.com:user:WrSerial:1.0 WrSerial_0 wr_sclk" *) output WrSerial_0_wr_sclk;
   (* X_INTERFACE_INFO = "xilinx.com:user:WrSerial:1.0 WrSerial_0 wr_sdo" *) output WrSerial_0_wr_sdo;
+  input clk_10MHz_0;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_I" *) input [2:0]gpio0_tri_i;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_O" *) output [2:0]gpio0_tri_o;
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 gpio0 TRI_T" *) output [2:0]gpio0_tri_t;
+  input irig_b_in_0;
+  output irig_b_out_0;
   input [0:0]key_BoardINT0;
   output [0:0]lcd_bl;
   (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 CLK.LCD_CLK CLK" *) (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME CLK.LCD_CLK, CLK_DOMAIN /lcd/clk_wiz_0_clk_out1, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, INSERT_VIP 0, PHASE 0.0" *) output lcd_clk;
   output lcd_de;
   output lcd_hsync;
   output lcd_vsync;
+  output pps_50_0;
+  input pps_gps_0;
+  input pps_in_0;
   input pulse_p_in_0;
   output pulse_p_out_0;
   input pulse_q_in_0;
@@ -8430,7 +8497,14 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_T" *) output [18:0]rgb_data_tri_t;
   output [1:0]yad_os_0;
 
+  wire AC_8_channel_0_bm_syn_end;
+  wire AC_8_channel_0_date_update;
+  wire AC_8_channel_0_irig_b_out_0;
   wire AC_8_channel_0_mm2s_introut;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire AC_8_channel_0_onoff_done;
+  wire AC_8_channel_0_pps_50_0;
+  wire AC_8_channel_0_pps_bm2cpu;
+  wire AC_8_channel_0_pps_in2cpu;
   wire AC_8_channel_0_prog_empty;
   wire [1:0]AC_8_channel_0_yad_os_0;
   wire [0:0]Op1_0_0_1;
@@ -8505,6 +8579,7 @@ module system
   wire axi_uartlite_0_interrupt;
   wire axi_vdma_0_mm2s_introut;
   wire b_in_0_1;
+  wire clk_10MHz_0_1;
   wire clk_wiz_0_clk_out1;
   wire [0:0]coder_Res;
   wire coder_intrpt;
@@ -8517,6 +8592,7 @@ module system
   wire [3:0]gmii2rgmii_0_RGMII_TD;
   wire gmii2rgmii_0_RGMII_TXC;
   wire gmii2rgmii_0_RGMII_TX_CTL;
+  wire irig_b_in_0_1;
   wire key_board_IIC_0_SCL_I;
   wire key_board_IIC_0_SCL_O;
   wire key_board_IIC_0_SCL_T;
@@ -8525,10 +8601,10 @@ module system
   wire key_board_IIC_0_SDA_T;
   wire [0:0]key_board_Res;
   wire key_board_iic2intc_irpt;
-  wire onoff_config_axi_0_OnOff_onoff_cs;
-  wire onoff_config_axi_0_OnOff_onoff_sclk;
-  wire onoff_config_axi_0_OnOff_onoff_sdi;
-  wire onoff_config_axi_0_OnOff_onoff_sdo;
+  (* CONN_BUS_INFO = "onoff_config_axi_0_OnOff xilinx.com:user:OnOff:1.0 None onoff_cs" *) (* DEBUG = "true" *) (* DONT_TOUCH *) wire onoff_config_axi_0_OnOff_onoff_cs;
+  (* CONN_BUS_INFO = "onoff_config_axi_0_OnOff xilinx.com:user:OnOff:1.0 None onoff_sclk" *) (* DEBUG = "true" *) (* DONT_TOUCH *) wire onoff_config_axi_0_OnOff_onoff_sclk;
+  (* CONN_BUS_INFO = "onoff_config_axi_0_OnOff xilinx.com:user:OnOff:1.0 None onoff_sdi" *) (* DEBUG = "true" *) (* DONT_TOUCH *) wire onoff_config_axi_0_OnOff_onoff_sdi;
+  (* CONN_BUS_INFO = "onoff_config_axi_0_OnOff xilinx.com:user:OnOff:1.0 None onoff_sdo" *) (* DEBUG = "true" *) (* DONT_TOUCH *) wire onoff_config_axi_0_OnOff_onoff_sdo;
   wire onoff_config_axi_0_RdSerial_rd_load;
   wire onoff_config_axi_0_RdSerial_rd_sclk;
   wire onoff_config_axi_0_RdSerial_rd_sdi;
@@ -8537,6 +8613,8 @@ module system
   wire onoff_config_axi_0_WrSerial_wr_sdo;
   wire power_pulse_v1_AXI_0_pulse_p_out;
   wire power_pulse_v1_AXI_0_pulse_q_out;
+  wire pps_gps_0_1;
+  wire pps_in_0_1;
   wire [0:0]proc_sys_reset_0_peripheral_aresetn;
   wire [14:0]processing_system7_0_DDR_ADDR;
   wire [2:0]processing_system7_0_DDR_BA;
@@ -8932,7 +9010,7 @@ module system
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
   wire v_tc_0_irq;
-  wire [10:0]xlconcat_0_dout;
+  wire [15:0]xlconcat_0_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -8978,11 +9056,14 @@ module system
   assign adc_whole_0_AD_ad_sb = AD_0_ad_sb;
   assign axi_uartlite_0_UART_RxD = UART_GPS_rxd;
   assign b_in_0_1 = Coder_B;
+  assign clk_10MHz_0_1 = clk_10MHz_0;
   assign gmii2rgmii_0_RGMII_RD = RGMII_0_rd[3:0];
   assign gmii2rgmii_0_RGMII_RXC = RGMII_0_rxc;
   assign gmii2rgmii_0_RGMII_RX_CTL = RGMII_0_rx_ctl;
   assign gpio0_tri_o[2:0] = processing_system7_0_GPIO_0_TRI_O;
   assign gpio0_tri_t[2:0] = processing_system7_0_GPIO_0_TRI_T;
+  assign irig_b_in_0_1 = irig_b_in_0;
+  assign irig_b_out_0 = AC_8_channel_0_irig_b_out_0;
   assign key_board_IIC_0_SCL_I = KeyBoard_IIC_scl_i;
   assign key_board_IIC_0_SDA_I = KeyBoard_IIC_sda_i;
   assign lcd_bl[0] = PWM_0_pwm;
@@ -8992,6 +9073,9 @@ module system
   assign lcd_vsync = v_axi4s_vid_out_0_vid_vsync;
   assign onoff_config_axi_0_OnOff_onoff_sdi = OnOff_0_onoff_sdi;
   assign onoff_config_axi_0_RdSerial_rd_sdi = RdSerial_0_rd_sdi;
+  assign pps_50_0 = AC_8_channel_0_pps_50_0;
+  assign pps_gps_0_1 = pps_gps_0;
+  assign pps_in_0_1 = pps_in_0;
   assign processing_system7_0_GPIO_0_TRI_I = gpio0_tri_i[2:0];
   assign processing_system7_0_IIC_1_SCL_I = IIC_LCD_0_scl_i;
   assign processing_system7_0_IIC_1_SDA_I = IIC_LCD_0_sda_i;
@@ -9168,7 +9252,18 @@ module system
         .WrSerial_0_wr_load(onoff_config_axi_0_WrSerial_wr_load),
         .WrSerial_0_wr_sclk(onoff_config_axi_0_WrSerial_wr_sclk),
         .WrSerial_0_wr_sdo(onoff_config_axi_0_WrSerial_wr_sdo),
+        .bm_syn_end(AC_8_channel_0_bm_syn_end),
+        .clk_10MHz_0(clk_10MHz_0_1),
+        .date_update(AC_8_channel_0_date_update),
+        .irig_b_in_0(irig_b_in_0_1),
+        .irig_b_out_0(AC_8_channel_0_irig_b_out_0),
         .mm2s_introut(AC_8_channel_0_mm2s_introut),
+        .onoff_done(AC_8_channel_0_onoff_done),
+        .pps_50_0(AC_8_channel_0_pps_50_0),
+        .pps_bm2cpu(AC_8_channel_0_pps_bm2cpu),
+        .pps_gps_0(pps_gps_0_1),
+        .pps_in2cpu(AC_8_channel_0_pps_in2cpu),
+        .pps_in_0(pps_in_0_1),
         .prog_empty(AC_8_channel_0_prog_empty),
         .s2mm_introut(axi_dma_0_s2mm_introut),
         .s_axi_lite_aclk(processing_system7_0_FCLK_CLK0),
@@ -10013,10 +10108,22 @@ module system
         .mb_debug_sys_rst(1'b0),
         .peripheral_aresetn(rst_ps7_0_100M_peripheral_aresetn),
         .slowest_sync_clk(processing_system7_0_FCLK_CLK0));
+  system_system_ila_0_0 system_ila_0
+       (.SLOT_0_ONOFF_onoff_cs(onoff_config_axi_0_OnOff_onoff_cs),
+        .SLOT_0_ONOFF_onoff_sclk(onoff_config_axi_0_OnOff_onoff_sclk),
+        .SLOT_0_ONOFF_onoff_sdi(onoff_config_axi_0_OnOff_onoff_sdi),
+        .SLOT_0_ONOFF_onoff_sdo(onoff_config_axi_0_OnOff_onoff_sdo),
+        .clk(processing_system7_0_FCLK_CLK0),
+        .probe0(AC_8_channel_0_onoff_done));
   system_xlconcat_0_0 xlconcat_0
        (.In0(axi_vdma_0_mm2s_introut),
         .In1(v_tc_0_irq),
         .In10(RTC_EEPROM_iic2intc_irpt),
+        .In11(AC_8_channel_0_onoff_done),
+        .In12(AC_8_channel_0_pps_in2cpu),
+        .In13(AC_8_channel_0_pps_bm2cpu),
+        .In14(AC_8_channel_0_bm_syn_end),
+        .In15(AC_8_channel_0_date_update),
         .In2(axi_dma_0_s2mm_introut),
         .In3(AC_8_channel_0_mm2s_introut),
         .In4(AC_8_channel_0_prog_empty),

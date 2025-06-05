@@ -22,7 +22,7 @@ targets -set -nocase -filter {name =~"APU*"}
 source C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/psinit/ps7_init.tcl
 ps7_init
 ps7_post_config
-targets -set -nocase -filter {name =~ "*A9*#1"}
+targets -set -nocase -filter {name =~ "*A9*#0"}
 dow C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf
 configparams force-mem-access 0
 bpadd -addr &main

@@ -1,0 +1,208 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x60B2FF581E0C9933",
+      "design_src": "SBD",
+      "device": "xc7z020clg400-2",
+      "name": "bd_d5b8",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "scoped": "true",
+      "synth_flow_mode": "None",
+      "tool_version": "2020.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "ila_lib": ""
+    },
+    "interface_ports": {
+      "SLOT_0_ONOFF": {
+        "mode": "Monitor",
+        "vlnv": "xilinx.com:user:OnOff_rtl:1.0",
+        "port_maps": {
+          "onoff_cs": {
+            "physical_name": "SLOT_0_ONOFF_onoff_cs",
+            "direction": "I"
+          },
+          "onoff_sdi": {
+            "physical_name": "SLOT_0_ONOFF_onoff_sdi",
+            "direction": "I"
+          },
+          "onoff_sclk": {
+            "physical_name": "SLOT_0_ONOFF_onoff_sclk",
+            "direction": "I"
+          },
+          "onoff_sdo": {
+            "physical_name": "SLOT_0_ONOFF_onoff_sdo",
+            "direction": "I"
+          }
+        }
+      }
+    },
+    "ports": {
+      "clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "CLK_DOMAIN": {
+            "value": "system_processing_system7_0_0_FCLK_CLK0",
+            "value_src": "default_prop"
+          },
+          "FREQ_HZ": {
+            "value": "1e+08",
+            "value_src": "default_prop"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "probe0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "SLOT_0_ONOFF_onoff_cs": {
+        "direction": "I"
+      },
+      "SLOT_0_ONOFF_onoff_sdi": {
+        "direction": "I"
+      },
+      "SLOT_0_ONOFF_onoff_sclk": {
+        "direction": "I"
+      },
+      "SLOT_0_ONOFF_onoff_sdo": {
+        "direction": "I"
+      }
+    },
+    "components": {
+      "ila_lib": {
+        "vlnv": "xilinx.com:ip:ila:6.2",
+        "xci_name": "bd_d5b8_ila_lib_0",
+        "parameters": {
+          "ALL_PROBE_SAME_MU": {
+            "value": "TRUE"
+          },
+          "ALL_PROBE_SAME_MU_CNT": {
+            "value": "1"
+          },
+          "C_ADV_TRIGGER": {
+            "value": "FALSE"
+          },
+          "C_DATA_DEPTH": {
+            "value": "32768"
+          },
+          "C_EN_STRG_QUAL": {
+            "value": "0"
+          },
+          "C_EN_TIME_TAG": {
+            "value": "0"
+          },
+          "C_ILA_CLK_FREQ": {
+            "value": "100000000"
+          },
+          "C_INPUT_PIPE_STAGES": {
+            "value": "0"
+          },
+          "C_MONITOR_TYPE": {
+            "value": "Native"
+          },
+          "C_NUM_OF_PROBES": {
+            "value": "5"
+          },
+          "C_PROBE0_MU_CNT": {
+            "value": "1"
+          },
+          "C_PROBE0_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE0_WIDTH": {
+            "value": "1"
+          },
+          "C_PROBE1_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE1_WIDTH": {
+            "value": "1"
+          },
+          "C_PROBE2_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE2_WIDTH": {
+            "value": "1"
+          },
+          "C_PROBE3_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE3_WIDTH": {
+            "value": "1"
+          },
+          "C_PROBE4_TYPE": {
+            "value": "0"
+          },
+          "C_PROBE4_WIDTH": {
+            "value": "1"
+          },
+          "C_TIME_TAG_WIDTH": {
+            "value": "32"
+          },
+          "C_TRIGIN_EN": {
+            "value": "false"
+          },
+          "C_TRIGOUT_EN": {
+            "value": "false"
+          },
+          "C_XLNX_HW_PROBE_INFO": {
+            "value": "DEFAULT"
+          }
+        }
+      }
+    },
+    "nets": {
+      "clk_1": {
+        "ports": [
+          "clk",
+          "ila_lib/clk"
+        ]
+      },
+      "probe0_1": {
+        "ports": [
+          "probe0",
+          "ila_lib/probe0"
+        ]
+      },
+      "SLOT_0_ONOFF_onoff_cs_1": {
+        "ports": [
+          "SLOT_0_ONOFF_onoff_cs",
+          "ila_lib/probe1"
+        ]
+      },
+      "SLOT_0_ONOFF_onoff_sdi_1": {
+        "ports": [
+          "SLOT_0_ONOFF_onoff_sdi",
+          "ila_lib/probe2"
+        ]
+      },
+      "SLOT_0_ONOFF_onoff_sclk_1": {
+        "ports": [
+          "SLOT_0_ONOFF_onoff_sclk",
+          "ila_lib/probe3"
+        ]
+      },
+      "SLOT_0_ONOFF_onoff_sdo_1": {
+        "ports": [
+          "SLOT_0_ONOFF_onoff_sdo",
+          "ila_lib/probe4"
+        ]
+      }
+    }
+  }
+}

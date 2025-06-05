@@ -32,13 +32,13 @@ set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory
 set_property SRC_FILE_INFO {cfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl rfile:E:/vivado/Vivado/2020.2/data/ip/xpm/xpm_memory/tcl/xpm_memory_xdc.tcl id:32 order:LATE scoped_inst:{system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory} unmanaged:yes} [current_design]
 current_instance system_i/processing_system7_0/inst
 set_property src_info {type:SCOPED_XDC file:1 line:21 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_1 1.2
-set_property src_info {type:SCOPED_XDC file:1 line:24 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_3 0.15
-set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
-set_input_jitter clk_fpga_2 0.21
-set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_property src_info {type:SCOPED_XDC file:1 line:24 export:INPUT save:INPUT read:READ} [current_design]
 set_input_jitter clk_fpga_0 0.3
+set_property src_info {type:SCOPED_XDC file:1 line:27 export:INPUT save:INPUT read:READ} [current_design]
+set_input_jitter clk_fpga_1 1.2
+set_property src_info {type:SCOPED_XDC file:1 line:30 export:INPUT save:INPUT read:READ} [current_design]
+set_input_jitter clk_fpga_2 0.21
 set_property src_info {type:SCOPED_XDC file:1 line:40 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN "C11" [get_ports "MIO[53]"]
 set_property src_info {type:SCOPED_XDC file:1 line:47 export:INPUT save:INPUT read:READ} [current_design]
@@ -568,6 +568,20 @@ set_property src_info {type:XDC file:5 line:275 export:INPUT save:INPUT read:REA
 set_property PACKAGE_PIN H15 [get_ports RTCEEPROM_IIC_scl_io]
 set_property src_info {type:XDC file:5 line:276 export:INPUT save:INPUT read:READ} [current_design]
 set_property PACKAGE_PIN J15 [get_ports RTCEEPROM_IIC_sda_io]
+set_property src_info {type:XDC file:5 line:286 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN N15 [get_ports clk_10MHz_0]
+set_property src_info {type:XDC file:5 line:288 export:INPUT save:INPUT read:READ} [current_design]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets clk_10MHz_0_IBUF]
+set_property src_info {type:XDC file:5 line:289 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN J20 [get_ports irig_b_in_0]
+set_property src_info {type:XDC file:5 line:290 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN H20 [get_ports irig_b_out_0]
+set_property src_info {type:XDC file:5 line:291 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN T10 [get_ports pps_50_0]
+set_property src_info {type:XDC file:5 line:292 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN L15 [get_ports pps_gps_0]
+set_property src_info {type:XDC file:5 line:293 export:INPUT save:INPUT read:READ} [current_design]
+set_property PACKAGE_PIN V16 [get_ports pps_in_0]
 current_instance system_i/lcd/v_tc_0/U0
 set_property src_info {type:SCOPED_XDC file:6 line:5 export:INPUT save:INPUT read:READ} [current_design]
 set_max_delay -from [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/clk]] -to [all_registers -clock [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/s_axi_aclk]]] -datapath_only [get_property -min PERIOD [get_clocks -of_objects [get_pins system_i/lcd/v_tc_0/U0/clk]]]

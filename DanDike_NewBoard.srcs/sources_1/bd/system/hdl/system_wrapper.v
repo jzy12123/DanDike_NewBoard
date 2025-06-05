@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Sun May 25 18:07:52 2025
+//Date        : Thu Jun  5 20:09:09 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system_wrapper.bd
 //Design      : system_wrapper
@@ -70,13 +70,19 @@ module system_wrapper
     WrSerial_0_wr_load,
     WrSerial_0_wr_sclk,
     WrSerial_0_wr_sdo,
+    clk_10MHz_0,
     gpio0_tri_io,
+    irig_b_in_0,
+    irig_b_out_0,
     key_BoardINT0,
     lcd_bl,
     lcd_clk,
     lcd_de,
     lcd_hsync,
     lcd_vsync,
+    pps_50_0,
+    pps_gps_0,
+    pps_in_0,
     pulse_p_in_0,
     pulse_p_out_0,
     pulse_q_in_0,
@@ -143,13 +149,19 @@ module system_wrapper
   output WrSerial_0_wr_load;
   output WrSerial_0_wr_sclk;
   output WrSerial_0_wr_sdo;
+  input clk_10MHz_0;
   inout [2:0]gpio0_tri_io;
+  input irig_b_in_0;
+  output irig_b_out_0;
   input [0:0]key_BoardINT0;
   output [0:0]lcd_bl;
   output lcd_clk;
   output lcd_de;
   output lcd_hsync;
   output lcd_vsync;
+  output pps_50_0;
+  input pps_gps_0;
+  input pps_in_0;
   input pulse_p_in_0;
   output pulse_p_out_0;
   input pulse_q_in_0;
@@ -238,6 +250,7 @@ module system_wrapper
   wire WrSerial_0_wr_load;
   wire WrSerial_0_wr_sclk;
   wire WrSerial_0_wr_sdo;
+  wire clk_10MHz_0;
   wire [0:0]gpio0_tri_i_0;
   wire [1:1]gpio0_tri_i_1;
   wire [2:2]gpio0_tri_i_2;
@@ -250,12 +263,17 @@ module system_wrapper
   wire [0:0]gpio0_tri_t_0;
   wire [1:1]gpio0_tri_t_1;
   wire [2:2]gpio0_tri_t_2;
+  wire irig_b_in_0;
+  wire irig_b_out_0;
   wire [0:0]key_BoardINT0;
   wire [0:0]lcd_bl;
   wire lcd_clk;
   wire lcd_de;
   wire lcd_hsync;
   wire lcd_vsync;
+  wire pps_50_0;
+  wire pps_gps_0;
+  wire pps_in_0;
   wire pulse_p_in_0;
   wire pulse_p_out_0;
   wire pulse_q_in_0;
@@ -558,15 +576,21 @@ module system_wrapper
         .WrSerial_0_wr_load(WrSerial_0_wr_load),
         .WrSerial_0_wr_sclk(WrSerial_0_wr_sclk),
         .WrSerial_0_wr_sdo(WrSerial_0_wr_sdo),
+        .clk_10MHz_0(clk_10MHz_0),
         .gpio0_tri_i({gpio0_tri_i_2,gpio0_tri_i_1,gpio0_tri_i_0}),
         .gpio0_tri_o({gpio0_tri_o_2,gpio0_tri_o_1,gpio0_tri_o_0}),
         .gpio0_tri_t({gpio0_tri_t_2,gpio0_tri_t_1,gpio0_tri_t_0}),
+        .irig_b_in_0(irig_b_in_0),
+        .irig_b_out_0(irig_b_out_0),
         .key_BoardINT0(key_BoardINT0),
         .lcd_bl(lcd_bl),
         .lcd_clk(lcd_clk),
         .lcd_de(lcd_de),
         .lcd_hsync(lcd_hsync),
         .lcd_vsync(lcd_vsync),
+        .pps_50_0(pps_50_0),
+        .pps_gps_0(pps_gps_0),
+        .pps_in_0(pps_in_0),
         .pulse_p_in_0(pulse_p_in_0),
         .pulse_p_out_0(pulse_p_out_0),
         .pulse_q_in_0(pulse_q_in_0),

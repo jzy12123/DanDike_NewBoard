@@ -48,14 +48,15 @@
 
 
 // IP VLNV: xilinx.com:user:adc_whole:2.0
-// IP Revision: 11
+// IP Revision: 12
 
 (* X_CORE_INFO = "adc_whole,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_adc_whole_0_0,adc_whole,{}" *)
-(* CORE_GENERATION_INFO = "system_adc_whole_0_0,adc_whole,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=adc_whole,x_ipVersion=2.0,x_ipCoreRevision=11,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
+(* CORE_GENERATION_INFO = "system_adc_whole_0_0,adc_whole,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=adc_whole,x_ipVersion=2.0,x_ipCoreRevision=12,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
 (* IP_DEFINITION_SOURCE = "package_project" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_adc_whole_0_0 (
+  adc_end_intr,
   yad_os,
   yad_rst,
   yad_cvn,
@@ -93,6 +94,9 @@ module system_adc_whole_0_0 (
   S_AXI_RREADY
 );
 
+(* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME adc_end_intr, SENSITIVITY LEVEL_HIGH, PortWidth 1" *)
+(* X_INTERFACE_INFO = "xilinx.com:signal:interrupt:1.0 adc_end_intr INTERRUPT" *)
+output wire adc_end_intr;
 output wire [1 : 0] yad_os;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME yad_rst, POLARITY ACTIVE_LOW, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 yad_rst RST, xilinx.com:user:AD:1.0 AD ad_rst" *)
@@ -175,6 +179,7 @@ input wire S_AXI_RREADY;
     .C_S_AXI_DATA_WIDTH(32),
     .C_S_AXI_ADDR_WIDTH(4)
   ) inst (
+    .adc_end_intr(adc_end_intr),
     .yad_os(yad_os),
     .yad_rst(yad_rst),
     .yad_cvn(yad_cvn),

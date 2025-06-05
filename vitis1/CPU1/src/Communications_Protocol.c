@@ -31,7 +31,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250527.0946";
-const char ARM_Ver_Full[] = "[Ver]=V1.250530.1705";
+const char ARM_Ver_Full[] = "[Ver]=V1.250604.1613";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -1324,7 +1324,7 @@ void handle_SetDO(cJSON *data)
 
     // 映射到硬件
     // 开关量 下次做
-    //	Write_Read_Switch(bit_8 , 0xf0000000);//读写开关量模块 可配置8、16、24、32位 //8位模式下，0xf0000000为高4位写1
+    //	Control_OnOff(bit_8 , 0xf0000000);//读写开关量模块 可配置8、16、24、32位 //8位模式下，0xf0000000为高4位写1
 
     // 回报JSON
     ReplyData replyData;
@@ -2124,7 +2124,7 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
         if (requested_all_range)
         {
             // 恢复AC类型的所有量程
-            printf("CPU1: Restoring all ranges for AC.\r\n"); //中文注释：恢复交流所有量程。
+            printf("CPU1: Restoring all ranges for AC.\r\n"); // 中文注释：恢复交流所有量程。
             memcpy(DA_Correct_100, DA_CorrectConst_100, sizeof(DA_CorrectConst_100));
             memcpy(DA_Correct_20, DA_CorrectConst_20, sizeof(DA_CorrectConst_20));
             memcpy(DA_CorrectPhase_100, DA_CorrectPhaseConst_100, sizeof(DA_CorrectPhaseConst_100));
@@ -2145,8 +2145,8 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
                     // 使用setACS中存储的当前电压档位值来获取档位索引
                     range_idx = get_voltage_index_by_value(setACS.Vals[ch].UR);
                     if (range_idx != -1)
-                    { // 确保获取到有效的量程索引
-                        printf("CPU1: Restoring ch %d (Voltage), range_idx %d based on UR: %f\r\n", ch, range_idx, setACS.Vals[ch].UR); //中文注释：恢复通道 %d (电压)，量程索引 %d，基于 UR: %f
+                    {                                                                                                                   // 确保获取到有效的量程索引
+                        printf("CPU1: Restoring ch %d (Voltage), range_idx %d based on UR: %f\r\n", ch, range_idx, setACS.Vals[ch].UR); // 中文注释：恢复通道 %d (电压)，量程索引 %d，基于 UR: %f
                         DA_Correct_100[ch][range_idx] = DA_CorrectConst_100[ch][range_idx];
                         DA_Correct_20[ch][range_idx] = DA_CorrectConst_20[ch][range_idx];
                         DA_CorrectPhase_100[ch][range_idx] = DA_CorrectPhaseConst_100[ch][range_idx];
@@ -2155,7 +2155,7 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
                     }
                     else
                     {
-                        printf("CPU1: Warning: Could not determine current voltage range index for channel %d (UR: %f).\r\n", ch, setACS.Vals[ch].UR); //中文注释：警告：无法确定通道 %d 的当前电压量程索引 (UR: %f)。
+                        printf("CPU1: Warning: Could not determine current voltage range index for channel %d (UR: %f).\r\n", ch, setACS.Vals[ch].UR); // 中文注释：警告：无法确定通道 %d 的当前电压量程索引 (UR: %f)。
                     }
                 }
                 else
@@ -2164,7 +2164,7 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
                     range_idx = get_current_index_by_value(setACS.Vals[ch - 4].IR);
                     if (range_idx != -1)
                     {
-                        printf("CPU1: Restoring ch %d (Current), range_idx %d based on IR: %f\r\n", ch, range_idx, setACS.Vals[ch-4].IR); //中文注释：恢复通道 %d (电流)，量程索引 %d，基于 IR: %f
+                        printf("CPU1: Restoring ch %d (Current), range_idx %d based on IR: %f\r\n", ch, range_idx, setACS.Vals[ch - 4].IR); // 中文注释：恢复通道 %d (电流)，量程索引 %d，基于 IR: %f
                         DA_Correct_100[ch][range_idx] = DA_CorrectConst_100[ch][range_idx];
                         DA_Correct_20[ch][range_idx] = DA_CorrectConst_20[ch][range_idx];
                         DA_CorrectPhase_100[ch][range_idx] = DA_CorrectPhaseConst_100[ch][range_idx];
@@ -2173,7 +2173,7 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
                     }
                     else
                     {
-                        printf("CPU1: Warning: Could not determine current current range index for channel %d (IR: %f).\r\n", ch, setACS.Vals[ch-4].IR); //中文注释：警告：无法确定通道 %d 的当前电流量程索引 (IR: %f)。
+                        printf("CPU1: Warning: Could not determine current current range index for channel %d (IR: %f).\r\n", ch, setACS.Vals[ch - 4].IR); // 中文注释：警告：无法确定通道 %d 的当前电流量程索引 (IR: %f)。
                     }
                 }
                 if (current_channel_changed)
@@ -2187,13 +2187,13 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
     // TODO: 实现 DCS 和 DCM 的恢复逻辑 (如果它们有校准参数和出厂默认值)
     if (strcmp(requested_type_str, "DCS") == 0 || strcmp(requested_type_str, "ALL") == 0)
     {
-        xil_printf("CPU1: Restoring DCS calibration data (NotImplementedYet).\r\n"); //中文注释：恢复直流源校准数据 (尚未实现)。
+        xil_printf("CPU1: Restoring DCS calibration data (NotImplementedYet).\r\n"); // 中文注释：恢复直流源校准数据 (尚未实现)。
         // 示例： if (requested_all_range) { memcpy(DCS_Calib, DCS_CalibConst, sizeof(DCS_CalibConst)); calibration_actually_changed = true;}
         // else { // 恢复DCS当前量程... calibration_actually_changed = true; }
     }
     if (strcmp(requested_type_str, "DCM") == 0 || strcmp(requested_type_str, "ALL") == 0)
     {
-        xil_printf("CPU1: Restoring DCM calibration data (NotImplementedYet).\r\n"); //中文注释：恢复直流表校准数据 (尚未实现)。
+        xil_printf("CPU1: Restoring DCM calibration data (NotImplementedYet).\r\n"); // 中文注释：恢复直流表校准数据 (尚未实现)。
     }
 
     // 检查是否是未知类型
@@ -2222,7 +2222,7 @@ void handle_RestoreCalibrateDefault(cJSON *data_json_obj)
         }
         else
         {
-            xil_printf("CPU1: Restored calibration data for Type '%s', AllRange '%s' successfully written to EEPROM.\r\n", requested_type_str, requested_all_range ? "true" : "false"); //中文注释：类型 '%s'，所有量程 '%s' 的恢复校准数据成功写入EEPROM。
+            xil_printf("CPU1: Restored calibration data for Type '%s', AllRange '%s' successfully written to EEPROM.\r\n", requested_type_str, requested_all_range ? "true" : "false"); // 中文注释：类型 '%s'，所有量程 '%s' 的恢复校准数据成功写入EEPROM。
         }
     }
 

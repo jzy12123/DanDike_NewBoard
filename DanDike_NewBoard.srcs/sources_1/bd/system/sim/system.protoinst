@@ -647,7 +647,7 @@
 						"TVALID": { "actual": "S_AXIS_TVALID"}
 					}
 				},
-				"/AC_8_channel_0/onoff_config_axi_0/S_AXI": {
+				"/AC_8_channel_0/stimer_onoff_pa_rw_A_0/S_AXI": {
 					"interface": "xilinx.com:interface:aximm:1.0",
 					"ports": {
 						"ACLK": { "actual": "S_AXI_ACLK"},

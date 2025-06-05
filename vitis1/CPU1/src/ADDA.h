@@ -15,6 +15,7 @@
 #include <math.h>
 #include "xbram_hw.h"
 #include "xaxidma_hw.h"
+#include "xttcps.h" // TTC驱动头文件
 
 #include "Amplifier_Switch.h"
 #include "Communications_Protocol.h"
@@ -31,6 +32,7 @@
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID // 定时器ID
 #define TIMER_IRPT_INTR XPAR_SCUTIMER_INTR         // 定时器中断ID
 #define TIMER_LOAD_VALUE 0x9EC969D                 // 定时器装载0.5s
+
 
 // 软中断
 #define CPU0_ID XSCUGIC_SPI_CPU0_MASK // CPU0 ID
@@ -73,6 +75,8 @@ typedef enum
 /*
  * 变量
  */
+
+
 // 波形修改参数
 extern uint16_t Wave_NewData[8][DATA_LEN];
 extern float Phase_shift[8]; // 8路波形相位偏移 单位度
@@ -107,7 +111,7 @@ extern double DA_CorrectPhase_100[8][3];
 // 电流量程: 0=5A, 1=1A, 2=0.2A
 extern double AD_Correct[8][3];
 
-//出厂系数
+// 出厂系数
 extern const double DA_CorrectConst_100[8][3];
 extern const double DA_CorrectConst_20[8][3];
 extern const double DA_CorrectPhaseConst_100[8][3];
@@ -130,8 +134,8 @@ int timer_init(XScuTimer *timer_ptr);
 void timer_intr_handler(void *CallBackRef);
 
 // 中断初始化
-int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 Timer_id);
+int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr, XTtcPs *debounce_timer_ptr,
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 onoffdone_id, u16 Timer_id, u16 debounce_timer_irpt_id);
 
 void start_dma_dac();
 // dds_dac

@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Sun May 25 18:18:35 2025
+| Date         : Thu Jun  5 20:21:00 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_drc -file system_wrapper_drc_routed.rpt -pb system_wrapper_drc_routed.pb -rpx system_wrapper_drc_routed.rpx
 | Design       : system_wrapper
@@ -24,12 +24,16 @@ Table of Contents
       Design limits: <entire design considered>
            Ruledeck: default
              Max violations: <unlimited>
-             Violations found: 36
+             Violations found: 41
 +-------------+----------+-------------------------------------------------------------+------------+
 | Rule        | Severity | Description                                                 | Violations |
 +-------------+----------+-------------------------------------------------------------+------------+
 | BUFC-1      | Warning  | Input Buffer Connections                                    | 19         |
+| DPIP-1      | Warning  | Input pipelining                                            | 2          |
+| DPOP-1      | Warning  | PREG Output pipelining                                      | 1          |
+| DPOP-2      | Warning  | MREG Output pipelining                                      | 1          |
 | PDRC-153    | Warning  | Gated clock check                                           | 1          |
+| PLCK-12     | Warning  | Clock Placer Checks                                         | 1          |
 | PLHOLDVIO-2 | Warning  | Non-Optimal connections which could lead to hold violations | 1          |
 | REQP-1839   | Warning  | RAMB36 async control check                                  | 8          |
 | REQP-1840   | Warning  | RAMB18 async control check                                  | 4          |
@@ -135,22 +139,53 @@ Input Buffer Connections
 Input buffer rgb_data_tri_iobuf_9/IBUF (in rgb_data_tri_iobuf_9 macro) has no loads. It is recommended to have an input buffer drive an internal load.
 Related violations: <none>
 
+DPIP-1#1 Warning
+Input pipelining  
+DSP system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec input system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec/B[17:0] is not pipelined. Pipelining DSP48 input will improve performance.
+Related violations: <none>
+
+DPIP-1#2 Warning
+Input pipelining  
+DSP system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec1 input system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec1/A[29:0] is not pipelined. Pipelining DSP48 input will improve performance.
+Related violations: <none>
+
+DPOP-1#1 Warning
+PREG Output pipelining  
+DSP system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec output system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec/P[47:0] is not pipelined (PREG=0). Pipelining the DSP48 output will improve performance and often saves power so it is suggested whenever possible to fully pipeline this function.  If this DSP48 function was inferred, it is suggested to describe an additional register stage after this function.  If the DSP48 was instantiated in the design, it is suggested to set the PREG attribute to 1.
+Related violations: <none>
+
+DPOP-2#1 Warning
+MREG Output pipelining  
+DSP system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec multiplier stage system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/day_sec/P[47:0] is not pipelined (MREG=0). Pipelining the multiplier function will improve performance and will save significant power so it is suggested whenever possible to fully pipeline this function.  If this multiplier was inferred, it is suggested to describe an additional register stage after this function.  If there is no registered adder/accumulator following the multiply function, two pipeline stages are suggested to allow both the MREG and PREG registers to be used.  If the DSP48 was instantiated in the design, it is suggested to set both the MREG and PREG attributes to 1 when performing multiply functions.
+Related violations: <none>
+
 PDRC-153#1 Warning
 Gated clock check  
-Net system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/load_n_reg_1 is a gated clock net sourced by a combinational pin system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/rdserial_sclk_INST_0/O, cell system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/rdserial_sclk_INST_0. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Net system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/load_n_reg_1 is a gated clock net sourced by a combinational pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/rdserial_sclk_INST_0/O, cell system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/rdserial_sclk_INST_0. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PLCK-12#1 Warning
+Clock Placer Checks  
+Poor placement for routing between an IO pin and BUFG. 
+Resolution: Poor placement of an IO pin and a BUFG has resulted in the router using a non-dedicated path between the two.  There are several things that could trigger this DRC, each of which can cause unpredictable clock insertion delays that result in poor timing.  This DRC could be caused by any of the following: (a) a clock port was placed on a pin that is not a CCIO-pin (b)the BUFG has not been placed in the same half of the device or SLR as the CCIO-pin (c) a single ended clock has been placed on the N-Side of a differential pair CCIO-pin.
+ This is normally an ERROR but the CLOCK_DEDICATED_ROUTE constraint is set to FALSE allowing your design to continue. The use of this override is highly discouraged as it may lead to very poor timing results. It is recommended that this error condition be corrected in the design.
+
+	clk_10MHz_0_IBUF_inst (IBUF.O) is locked to N15
+	clk_10MHz_0_IBUF_BUFG_inst (BUFG.I) is provisionally placed by clockplacer on BUFGCTRL_X0Y3
+
 Related violations: <none>
 
 PLHOLDVIO-2#1 Warning
 Non-Optimal connections which could lead to hold violations  
-A LUT system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/rdserial_sclk_INST_0 is driving clock pin of 8 cells. This could lead to large hold time violations. Involved cells are:
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[0],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[1],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[2],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[3],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[4],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[5],
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[6]
-system_i/AC_8_channel_0/onoff_config_axi_0/inst/rd_serial_inst/datain_reg_reg[7]
+A LUT system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/rdserial_sclk_INST_0 is driving clock pin of 8 cells. This could lead to large hold time violations. Involved cells are:
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[0],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[1],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[2],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[3],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[4],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[5],
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[6]
+system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/rd_serial_inst/datain_reg_reg[7]
 Related violations: <none>
 
 REQP-1839#1 Warning
@@ -215,13 +250,22 @@ Related violations: <none>
 
 RTSTAT-10#1 Warning
 No routable loads  
-11 net(s) have no routable loads. The problem bus(es) and/or net(s) are system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/gr1.gr1_int.rfwft/aempty_fwft_i,
-system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/gr1.gr1_int.rfwft/user_valid,
+36 net(s) have no routable loads. The problem bus(es) and/or net(s) are dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD1/ctl_reg_en_2[1],
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD6_RD/U_RD_FIFO/SUBCORE_FIFO.xsdbm_v3_0_0_rdfifo_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/gr1.gr1_int.rfwft/aempty_fwft_i,
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD6_RD/U_RD_FIFO/SUBCORE_FIFO.xsdbm_v3_0_0_rdfifo_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/gras.rsts/ram_empty_i,
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD6_RD/U_RD_FIFO/SUBCORE_FIFO.xsdbm_v3_0_0_rdfifo_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwhf.whf/overflow,
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD6_WR/U_WR_FIFO/SUBCORE_FIFO.xsdbm_v3_0_0_wrfifo_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwas.wsts/ram_full_i,
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD6_WR/U_WR_FIFO/SUBCORE_FIFO.xsdbm_v3_0_0_wrfifo_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwhf.whf/overflow,
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_CTL/ctl_reg[2:0],
+dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_CTL/ctl_reg_en_2[1],
+dbg_hub/inst/BSCANID.u_xsdbm_id/SWITCH_N_EXT_BSCAN.bscan_switch/m_bscan_capture[0],
+dbg_hub/inst/BSCANID.u_xsdbm_id/SWITCH_N_EXT_BSCAN.bscan_switch/m_bscan_drck[0],
+dbg_hub/inst/BSCANID.u_xsdbm_id/SWITCH_N_EXT_BSCAN.bscan_switch/m_bscan_runtest[0],
+system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/gr1.gr1_int.rfwft/aempty_fwft_i,
 system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_i,
 system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_afull_fb,
-system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_afull_i,
-system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/rstblk/rd_rst_reg[2:0]
-system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/rstblk/wr_rst_reg[2:0].
+system_i/lcd/axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_afull_i
+ (the first 15 of 30 listed).
 Related violations: <none>
 
 REQP-165#1 Advisory

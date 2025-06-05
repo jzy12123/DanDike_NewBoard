@@ -5,7 +5,6 @@
 XAxiDma axidma;  // XAxiDma实例
 XScuGic intc;    // 中断控制器的实例
 XScuTimer Timer; // 定时器驱动程序实例
-
 // ad
 int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
@@ -23,7 +22,6 @@ int numHarmonics[CHANNL_MAX] = {0};                      // 每个通道有几个谐波
 float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅值
 float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
 
-
 // 功放输出参数
 double DA_Correct_100[8][3];
 // 功放20%幅值时的校准参数
@@ -33,7 +31,7 @@ double DA_CorrectPhase_100[8][3];
 // AD校准参数数组
 double AD_Correct[8][3];
 
-//出厂设定参数
+// 出厂设定参数
 const double DA_CorrectConst_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
     {35740.445421, 35688.838937, 38472.249867}, // UA 111
@@ -358,55 +356,48 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   tx_intr_id是TX通道中断ID
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
-int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 Timer_id)
+int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr, XTtcPs *debounce_timer_ptr,
+                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 onoffdone_id, u16 Timer_id, u16 debounce_timer_irpt_id)
 {
     int status;
     XScuGic_Config *intc_config;
-
     // 初始化中断控制器驱动
     intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
     if (NULL == intc_config)
     {
         return XST_FAILURE;
     }
-    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config,
-                                   intc_config->CpuBaseAddress);
+    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
         return XST_FAILURE;
     }
 
     // 设置优先级和触发类型
-    // ad
     XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
-    // da
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
-    // 为定时器中断设置较低优先级
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0x10, 0x3);
 
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
+    XScuGic_Connect(int_ins_ptr, onoffdone_id, (Xil_InterruptHandler)onoff_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr); // 定时器
-
-    // 显式地将ADC和DMA中断映射到CPU1
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, Timer_id);
+    XScuGic_Connect(int_ins_ptr, debounce_timer_irpt_id, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
 
     // 使能
-    // ad
     XScuGic_Enable(int_ins_ptr, rx_intr_id);
-    // da
     XScuGic_Enable(int_ins_ptr, tx_intr_id);
     XScuGic_Enable(int_ins_ptr, underflow_id);
-    // 定时器
+    XScuGic_Enable(int_ins_ptr, onoffdone_id);
     XScuGic_Enable(int_ins_ptr, Timer_id);
-    // 启用来自硬件的中断
+    XScuGic_Enable(int_ins_ptr, debounce_timer_irpt_id);
+
+    // 打开错误处理
     Xil_ExceptionInit();
     Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void *)int_ins_ptr);
     Xil_ExceptionEnable();
@@ -414,7 +405,9 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     // 使能中断
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
-    XScuTimer_EnableInterrupt(timer_ptr); // 定时器
+    XScuTimer_EnableInterrupt(timer_ptr);                                  // 定时器
+    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK); // 使能TTC定时器自身的间隔中断输出
+    
     return XST_SUCCESS;
 }
 
