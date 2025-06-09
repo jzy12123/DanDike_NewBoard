@@ -29,41 +29,41 @@ extern double AD_Correct[ROWS][COLS];
  * @return XST_SUCCESS 如果成功，否则返回 XST_FAILURE
  * @comment 检查并使能 AXI IIC 控制器，检查总线是否空闲并加入超时。
  */
-int RC64_Init(void)
-{
-    u32 CtrlReg;
-    volatile u32 Timeout = IIC_TIMEOUT_COUNT; // 使用头文件中定义的超时计数器
+// int RC64_Init(void)
+// {
+//     u32 CtrlReg;
+//     volatile u32 Timeout = IIC_TIMEOUT_COUNT; // 使用头文件中定义的超时计数器
 
-    // xil_printf("CPU1: RC64_Init: Initializing AXI IIC using low-level access...\r\n");
+//     // xil_printf("CPU1: RC64_Init: Initializing AXI IIC using low-level access...\r\n");
 
-    // 检查控制器是否已使能，如果未使能则使能
-    CtrlReg = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET);
-    if (!(CtrlReg & XIIC_CR_ENABLE_DEVICE_MASK))
-    {
-        xil_printf("RC64_Init: Enabling AXI IIC Controller.\r\n");
-        XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET,
-                      CtrlReg | XIIC_CR_ENABLE_DEVICE_MASK);
-    }
+//     // 检查控制器是否已使能，如果未使能则使能
+//     CtrlReg = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET);
+//     if (!(CtrlReg & XIIC_CR_ENABLE_DEVICE_MASK))
+//     {
+//         xil_printf("RC64_Init: Enabling AXI IIC Controller.\r\n");
+//         XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET,
+//                       CtrlReg | XIIC_CR_ENABLE_DEVICE_MASK);
+//     }
 
-    // 检查总线是否空闲作为基本测试，加入超时
-    while (XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_SR_REG_OFFSET) & XIIC_SR_BUS_BUSY_MASK)
-    {
-        if (Timeout-- == 0)
-        {
-            xil_printf("RC64_Init: Error - Timed out waiting for IIC Bus to be idle.\r\n");
-            // 尝试复位看是否能恢复 (可选的恢复尝试)
-            CtrlReg = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET);
-            XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg | XIIC_CR_TX_FIFO_RESET_MASK);
-            XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg & ~XIIC_CR_TX_FIFO_RESET_MASK); // 清除复位位
-            XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg | XIIC_CR_ENABLE_DEVICE_MASK);  // 重新使能
-            return XST_FAILURE;                                                                         // 返回失败
-        }
-        usleep(1); // 短暂延时避免CPU空转
-    }
+//     // 检查总线是否空闲作为基本测试，加入超时
+//     while (XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_SR_REG_OFFSET) & XIIC_SR_BUS_BUSY_MASK)
+//     {
+//         if (Timeout-- == 0)
+//         {
+//             xil_printf("RC64_Init: Error - Timed out waiting for IIC Bus to be idle.\r\n");
+//             // 尝试复位看是否能恢复 (可选的恢复尝试)
+//             CtrlReg = XIic_ReadReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET);
+//             XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg | XIIC_CR_TX_FIFO_RESET_MASK);
+//             XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg & ~XIIC_CR_TX_FIFO_RESET_MASK); // 清除复位位
+//             XIic_WriteReg(IIC_BASE_ADDRESS, XIIC_CR_REG_OFFSET, CtrlReg | XIIC_CR_ENABLE_DEVICE_MASK);  // 重新使能
+//             return XST_FAILURE;                                                                         // 返回失败
+//         }
+//         usleep(1); // 短暂延时避免CPU空转
+//     }
 
-    xil_printf("CPU1: RC64_Init: AXI IIC hardware ready.\r\n");
-    return XST_SUCCESS;
-}
+//     xil_printf("CPU1: RC64_Init: AXI IIC hardware ready.\r\n");
+//     return XST_SUCCESS;
+// }
 
 /**
  * @brief 从 EEPROM 读取所有校准数据

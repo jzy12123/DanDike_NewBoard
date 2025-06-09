@@ -90,5 +90,6 @@ void Read_OnOff_Latch_Time(void);
 void Init_OnOffModule(void);
 void onoff_handler(void);
 // ·À¶¶¶¨Ê±Æ÷
+int debounce_timer_init();
 void debounce_timer_handler(void *CallBackRef);
 #endif /* SRC_AMPLIFIER_SWITCH_H_ */

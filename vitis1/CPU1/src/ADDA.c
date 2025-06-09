@@ -327,6 +327,31 @@ void timer_intr_handler(void *CallBackRef)
 
     /*3 读故障信号*/
     RdSerial(); // 读取并处理硬件故障信号
+
+    /*4 新增: 定期打印时间和RTC状态 */
+    static int report_counter = 0; // 静态计数器，用于分时执行任务
+    report_counter++;
+    if (report_counter >= 2)
+    { // 假设主定时器是0.5s，这里大约每秒打印一次
+        report_counter = 0;
+
+        In_CurrTime soft_time_read;
+        RTC_Time_t rtc_time_read;
+
+        read_current_time(&soft_time_read); // 读取软时钟
+        xil_printf("SoftTimer: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+                   (soft_time_read.curr_year % 100), soft_time_read.curr_month,
+                   soft_time_read.curr_day, soft_time_read.curr_hour,
+                   soft_time_read.curr_minute, soft_time_read.curr_second);
+
+        // 读取并打印硬件RTC
+        if (Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read) == XST_SUCCESS)
+        {
+            xil_printf("HW-RTC:    20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+                       rtc_time_read.year, rtc_time_read.month, rtc_time_read.day,
+                       rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
+        }
+    }
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }
@@ -356,8 +381,20 @@ int timer_init(XScuTimer *timer_ptr)
 //   @param   tx_intr_id是TX通道中断ID
 //   @param   rx_intr_id是RX通道中断ID
 //   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
-int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *timer_ptr, XTtcPs *debounce_timer_ptr,
-                      u16 rx_intr_id, u16 tx_intr_id, u16 underflow_id, u16 onoffdone_id, u16 Timer_id, u16 debounce_timer_irpt_id)
+int setup_intr_system(XScuGic *int_ins_ptr,
+                      XAxiDma *axidma_ptr,
+                      XScuTimer *timer_ptr, // 主定时器
+                      XTtcPs *debounce_timer_ptr,
+                      XUartLite *gps_uart_ptr, // GPS Uart
+                      XTtcPs *gps_ttc_ptr,     // GPS TTC定时器
+                      u16 rx_intr_id,
+                      u16 tx_intr_id,
+                      u16 underflow_id,
+                      u16 onoffdone_id,
+                      u16 timer_id, // 主定时器中断ID
+                      u16 debounce_timer_irpt_id,
+                      u16 gps_uart_intr_id, // GPS Uart中断ID
+                      u16 gps_ttc_intr_id)
 {
     int status;
     XScuGic_Config *intc_config;
@@ -378,24 +415,34 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, Timer_id, 0x20, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, timer_id, 0x20, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0x10, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_uart_intr_id, 0xA0, 0x03);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_ttc_intr_id, 0xA8, 0x03);
+
+    // 外部函数声明 (因为函数定义在main.c中)
+    extern void GpsTimeoutHandler(void *CallBackRef);
+    extern void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData);
 
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, onoffdone_id, (Xil_InterruptHandler)onoff_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, Timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr); // 定时器
+    XScuGic_Connect(int_ins_ptr, timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
     XScuGic_Connect(int_ins_ptr, debounce_timer_irpt_id, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
+    XScuGic_Connect(int_ins_ptr, gps_uart_intr_id, (Xil_InterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
+    XScuGic_Connect(int_ins_ptr, gps_ttc_intr_id, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
 
     // 使能
     XScuGic_Enable(int_ins_ptr, rx_intr_id);
     XScuGic_Enable(int_ins_ptr, tx_intr_id);
     XScuGic_Enable(int_ins_ptr, underflow_id);
     XScuGic_Enable(int_ins_ptr, onoffdone_id);
-    XScuGic_Enable(int_ins_ptr, Timer_id);
+    XScuGic_Enable(int_ins_ptr, timer_id);
     XScuGic_Enable(int_ins_ptr, debounce_timer_irpt_id);
+    XScuGic_Enable(int_ins_ptr, gps_uart_intr_id);
+    XScuGic_Enable(int_ins_ptr, gps_ttc_intr_id);
 
     // 打开错误处理
     Xil_ExceptionInit();
@@ -407,7 +454,7 @@ int setup_intr_system(XScuGic *int_ins_ptr, XAxiDma *axidma_ptr, XScuTimer *time
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
     XScuTimer_EnableInterrupt(timer_ptr);                                  // 定时器
     XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK); // 使能TTC定时器自身的间隔中断输出
-    
+
     return XST_SUCCESS;
 }
 

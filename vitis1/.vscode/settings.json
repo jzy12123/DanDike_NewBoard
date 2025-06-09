@@ -1,30 +1,7 @@
 {
+    "cmake.ignoreCMakeListsMissing": true,
     "files.associations": {
         "*.c": "c",
-        "atomic": "c",
-        "bit": "c",
-        "charconv": "c",
-        "compare": "c",
-        "complex": "c",
-        "cstddef": "c",
-        "format": "c",
-        "iterator": "c",
-        "limits": "c",
-        "memory": "c",
-        "sstream": "c",
-        "system_error": "c",
-        "type_traits": "c",
-        "vector": "c",
-        "xiosbase": "c",
-        "xlocale": "c",
-        "xlocbuf": "c",
-        "xlocmon": "c",
-        "xloctime": "c",
-        "xmemory": "c",
-        "xstring": "c",
-        "xutility": "c",
-        "mutex_utils.h": "c",
-        "communications_protocol.h": "c",
-        "xttcps.h": "c"
+        "8025iic.h": "c"
     }
 }

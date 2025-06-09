@@ -5,7 +5,9 @@
 #include "xil_printf.h"
 #include "xil_mmu.h"
 #include "xparameters.h"
-
+#include "xttcps.h"	   // 新增：用于GPS超时定时器
+#include "xuartlite.h" // 新增：用于GPS串口
+#include "xuartlite_l.h"
 /*user includes*/
 #include "Amplifier_Switch.h"
 #include "ADDA.h"
@@ -15,23 +17,124 @@
 #include "My_kissFft.h"
 #include "Rc64.h"
 #include "mutex_utils.h"
+#include "gps.h"
+#include "soft_timer.h"
+#include "8025IIC.h"
+#include "IIC_Master.h"
 
-void RunADCPIDCycle(void);
+// ================= 新增功能全局变量 =================
+#define GPS_UARTLITE_DEVICE_ID XPAR_AXI_UARTLITE_0_DEVICE_ID
+#define GPS_UARTLITE_INT_IRQ_ID XPAR_FABRIC_AXI_UARTLITE_0_INTERRUPT_INTR
 
+// 使用TTC定时器作为GPS接收超时定时器，以避免与主循环的私有定时器冲突
+#define GPS_TTC_DEVICE_ID XPAR_XTTCPS_1_DEVICE_ID // 假设使用TTC1
+#define GPS_TTC_INT_IRQ_ID XPAR_XTTCPS_1_INTR
+#define GPS_TTC_TIMEOUT_SECONDS 0.02 // 20ms超时
+
+// GPS接收控制结构体
+typedef struct
+{
+	int uart_cont;
+	volatile u8 REV_Finish_Flag;
+} GPS_Recv_Ctrl_t;
+
+XUartLite GpsUartLiteInst;		// GPS Uart实例
+XTtcPs GpsTtcTimerInst;			// GPS接收超时TTC定时器实例
+GPS_Recv_Ctrl_t GPS_Ctrl_State; // GPS接收控制状态
+
+// ===============================================
+// !================= 新增功能函数声明 =================
+static bool is_rtc_time_valid(const RTC_Time_t *TimePtr);
+static int UartLiteGpsInit(u16 device_id);
+static int GpsTtcTimerInit(u16 device_id);
+void GpsTimeoutHandler(void *CallBackRef);
+static void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData);
+static void RunADCPIDCycle(void);
+// ===============================================
+// ===============================================
 int main()
 {
 	//	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
-	// 初始化RC64模块
-	RC64_Init();
+	int status;
+	RTC_Time_t rtc_time_read;
+	Out_RealTime time_from_rtc_to_soft;
+	xil_printf("CPU1: Initializing RTC | RC64 IIC Controller...\r\n");
+	// IIC初始化
+	status = IIC_Master_Init();
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("FATAL: RTC | RC64 IIC Bus Initialization Failed. Halting.\r\n");
+	}
 	// 从EEPROM读取校准参数
 	RC64_ReadCalibData();
 
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: AXI IIC Init for RTC8025 Failed! RTC will not be used.\r\n");
+	}
+	else
+	{
+		xil_printf("CPU1: AXI IIC for RTC8025 Initialized.\r\n");
+
+		xil_printf("CPU1: Attempting to read from RTC to initialize SoftTimer...\r\n");
+		if (Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read) != XST_SUCCESS || !is_rtc_time_valid(&rtc_time_read))
+		{
+			/******************** 新增：无效时间处理 ********************/
+			xil_printf("CPU1: RTC data is invalid or read failed. Initializing RTC to a default time.\r\n");
+			RTC_Time_t default_time = {0, 0, 12, 5, 8, 6, 25}; // 2025年6月8日, 星期五, 12:00:00
+			if (Rtc8025_SetTime(RTC_AXI_IIC_BASEADDR, &default_time) == XST_SUCCESS)
+			{
+				xil_printf("CPU1: RTC set to default: 2025-06-08 12:00:00\r\n");
+				// 重新读取以确认
+				Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read);
+			}
+			else
+			{
+				xil_printf("CPU1: FATAL: Failed to set default RTC time.\r\n");
+			}
+			/************************************************************/
+		}
+
+		// 此时 rtc_time_read 中应为有效时间
+		xil_printf("CPU1: Using RTC time for initialization: 20%02d-%02d-%02d Wk:%d %02d:%02d:%02d\r\n",
+				   rtc_time_read.year, rtc_time_read.month, rtc_time_read.day,
+				   rtc_time_read.week, rtc_time_read.hour,
+				   rtc_time_read.min, rtc_time_read.sec);
+
+		// 将从RTC读取的时间填充到软时钟的结构体
+		time_from_rtc_to_soft.year = 2000 + rtc_time_read.year;
+		time_from_rtc_to_soft.month = rtc_time_read.month;
+		time_from_rtc_to_soft.day = rtc_time_read.day;
+		time_from_rtc_to_soft.hour = rtc_time_read.hour;
+		time_from_rtc_to_soft.min = rtc_time_read.min;
+		time_from_rtc_to_soft.sec = rtc_time_read.sec;
+
+		int rtc_week_val = rtc_time_read.week;
+		int iso_weekday_from_rtc = (rtc_week_val == 0) ? 7 : rtc_week_val;
+		time_from_rtc_to_soft.week = 1 << (iso_weekday_from_rtc - 1);
+
+		time_from_rtc_to_soft.pps_clr_en = true;
+		time_from_rtc_to_soft.bm_encode_en = false;
+		time_from_rtc_to_soft.bm_decode_en = false;
+
+		write_soft_timer(&time_from_rtc_to_soft);
+		xil_printf("CPU1: SoftTimer initialized by RTC8025.\r\n");
+	}
+
+	xil_printf("CPU1: Initializing GPS UART...\r\n");
+	status = UartLiteGpsInit(GPS_UARTLITE_DEVICE_ID);
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: GPS UART Init Failed.\r\n");
+		return XST_FAILURE;
+	}
+	xil_printf("CPU1: GPS UART Initialized.\r\n");
+	// ===============================================
 	/************************** DMA初始化 *****************************/
 	xil_printf("CPU1: Initializing DMA...\r\n");
-	int status;
 	XAxiDma_Config *config;
 	config = XAxiDma_LookupConfig(DMA_DEV_ID);
 	if (!config)
@@ -52,17 +155,27 @@ int main()
 	{
 		xil_printf("Timer Initial Failed\r\n");
 	}
+
+	xil_printf("CPU1: Initializing GPS Timer...\r\n");
+	status = GpsTtcTimerInit(GPS_TTC_DEVICE_ID); // GPS超时定时器初始化
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: GPS Timer Initial Failed\r\n");
+		return XST_FAILURE;
+	}
+
 	xil_printf("CPU1: Initializing Debounce Timer...\r\n");
 	status = debounce_timer_init();
 	if (status != XST_SUCCESS)
 	{
-		xil_printf("Debounce Timer Initial Failed\r\n");
+		xil_printf("CPU1: Debounce Timer Initial Failed\r\n");
 	}
 	/************************** 建立中断系统 *****************************/
 	xil_printf("CPU1: Initializing Interrupt System...\r\n");
-	status = setup_intr_system(&intc, &axidma, &Timer, &DebounceTimer,
+	status = setup_intr_system(&intc, &axidma, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst,
 							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID,
-							   OnOffDone_INTR_ID, TIMER_IRPT_INTR, DEBOUNCE_TIMER_IRPT_INTR);
+							   OnOffDone_INTR_ID, TIMER_IRPT_INTR, DEBOUNCE_TIMER_IRPT_INTR,
+							   GPS_UARTLITE_INT_IRQ_ID, GPS_TTC_INT_IRQ_ID);
 	if (status != XST_SUCCESS)
 	{
 		xil_printf("Failed intr setup\r\n");
@@ -72,22 +185,23 @@ int main()
 	Xil_SetTlbAttributes(JSON_ADDR, 0x14de2); // 禁用Cache属性	//S=b1 TEX=b100 AP=b11, Domain=b1111, C=b0, B=b0
 	Xil_SetTlbAttributes(UDP_ADDRESS, 0x14de2);
 	Xil_SetTlbAttributes(Share_addr, 0x14de2);
-	// 修改内存属性，设置为设备内存（不可缓存）
 	Xil_SetTlbAttributes(0x40400000, 0xC02); // DMA控制器寄存器区域
 	Xil_SetTlbAttributes(0x43C30000, 0xC02); // ADC控制器寄存器区域
 
-	xil_printf("CPU1: Initializing Json...\r\n");
+	/************************** 其余模块初始化 *****************************/
+	xil_printf("CPU1: Initializing other modules...\r\n");
 	InitializeQueues();
 	init_JsonUdp();
 	PID_Init_All();
 	Init_OnOffModule();
-	xil_printf("CPU1: Start Timer...\r\n");
-	XScuTimer_Start(&Timer); // 启动定时器
+
+	xil_printf("CPU1: Start Main Timer...\r\n");
+	XScuTimer_Start(&Timer); // 启动主循环定时器
 	// 获取ARM版本信息
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full);
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
-	
+
 	/*******************************************************************************************/
 	while (1)
 	{
@@ -412,4 +526,173 @@ void RunADCPIDCycle(void)
 	// 标记UDP数据已更新
 	udp_data_changed_flag = true;
 	dac_parameters_updated_by_command = true;
+}
+
+/**
+ * @brief 检查从RTC读取的时间是否有效
+ * @param TimePtr 指向待检查的RTC时间结构体
+ * @return 如果时间有效则返回true, 否则返回false
+ */
+static bool is_rtc_time_valid(const RTC_Time_t *TimePtr)
+{
+	if (TimePtr->month < 1 || TimePtr->month > 12)
+		return false;
+	if (TimePtr->day < 1 || TimePtr->day > 31)
+		return false;
+	if (TimePtr->hour > 23)
+		return false;
+	if (TimePtr->min > 59)
+		return false;
+	if (TimePtr->sec > 59)
+		return false;
+	if (TimePtr->year > 99)
+		return false; // 年份是两位数
+	return true;
+}
+
+/**
+ * @brief 初始化GPS串口
+ * @param device_id UART Lite设备ID
+ * @return XST_SUCCESS or XST_FAILURE
+ */
+static int UartLiteGpsInit(u16 device_id)
+{
+	int Status;
+	XUartLite_Config *ConfigPtr;
+
+	GPS_Ctrl_State.uart_cont = 0;
+	GPS_Ctrl_State.REV_Finish_Flag = 0;
+	memset((void *)UART_RX_BUF, 0, sizeof(UART_RX_BUF));
+	memset(&gpsx, 0, sizeof(nmea_msg));
+
+	ConfigPtr = XUartLite_LookupConfig(device_id);
+	if (NULL == ConfigPtr)
+		return XST_FAILURE;
+
+	Status = XUartLite_CfgInitialize(&GpsUartLiteInst, ConfigPtr, ConfigPtr->RegBaseAddr);
+	if (Status != XST_SUCCESS)
+		return XST_FAILURE;
+
+	// 中断连接在 setup_intr_system 中完成
+	XUartLite_SetRecvHandler(&GpsUartLiteInst, GpsUartRecvHandler, &GpsUartLiteInst);
+	XUartLite_EnableInterrupt(&GpsUartLiteInst);
+	XUartLite_ResetFifos(&GpsUartLiteInst);
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief 初始化GPS超时TTC定时器
+ * @param device_id TTC设备ID
+ * @return XST_SUCCESS or XST_FAILURE
+ */
+static int GpsTtcTimerInit(u16 device_id)
+{
+	XTtcPs_Config *TimerConfig;
+	s32 Status;
+
+	TimerConfig = XTtcPs_LookupConfig(device_id);
+	if (NULL == TimerConfig)
+		return XST_FAILURE;
+
+	Status = XTtcPs_CfgInitialize(&GpsTtcTimerInst, TimerConfig, TimerConfig->BaseAddress);
+	if (Status != XST_SUCCESS)
+		return XST_FAILURE;
+
+	XTtcPs_SetOptions(&GpsTtcTimerInst, XTTCPS_OPTION_INTERVAL_MODE);
+
+	XInterval Interval;
+	u8 Prescaler;
+	XTtcPs_CalcIntervalFromFreq(&GpsTtcTimerInst, 1.0 / GPS_TTC_TIMEOUT_SECONDS, &Interval, &Prescaler);
+	XTtcPs_SetPrescaler(&GpsTtcTimerInst, Prescaler);
+	XTtcPs_SetInterval(&GpsTtcTimerInst, Interval);
+
+	// 中断连接在 setup_intr_system 中完成
+	XTtcPs_EnableInterrupts(&GpsTtcTimerInst, XTTCPS_IXR_INTERVAL_MASK);
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief GPS串口接收中断处理函数
+ */
+static void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData)
+{
+	XUartLite *UartLiteInstancePtr = (XUartLite *)CallBackRef;
+	u8 RecvChar;
+
+	while (XUartLite_IsReceiveEmpty(UartLiteInstancePtr->RegBaseAddress) == FALSE)
+	{
+		RecvChar = XUartLite_ReadReg(UartLiteInstancePtr->RegBaseAddress, XUL_RX_FIFO_OFFSET);
+		if (GPS_Ctrl_State.uart_cont < (sizeof(UART_RX_BUF) - 2))
+		{
+			UART_RX_BUF[GPS_Ctrl_State.uart_cont++] = RecvChar;
+		}
+		else
+		{
+			GPS_Ctrl_State.uart_cont = 0; // 缓冲区溢出，复位
+		}
+		XTtcPs_Stop(&GpsTtcTimerInst);
+		XTtcPs_Start(&GpsTtcTimerInst);
+	}
+}
+
+/**
+ * @brief GPS接收超时中断处理函数
+ */
+void GpsTimeoutHandler(void *CallBackRef)
+{
+	XTtcPs *TimerInstancePtr = (XTtcPs *)CallBackRef;
+	//	u32 StatusEvent = XTtcPs_GetInterruptStatus(TimerInstancePtr);
+	XTtcPs_ClearInterruptStatus(TimerInstancePtr, StatusEvent);
+	XTtcPs_Stop(TimerInstancePtr);
+
+	if (GPS_Ctrl_State.uart_cont > 0)
+	{
+		UART_RX_BUF[GPS_Ctrl_State.uart_cont] = '\0';
+		GPS_Analysis(&gpsx, (u8 *)UART_RX_BUF);
+
+		if (gpsx.rmc_status == 'A')
+		{
+			GPS_ConvertUTCToBeijing(&gpsx);
+
+			if (gpsx.utc.year > 2020)
+			{ // 基本的年份有效性检查
+				Out_RealTime new_time_to_set_soft;
+				RTC_Time_t new_time_to_set_rtc;
+
+				// 填充软时钟结构体
+				new_time_to_set_soft.year = gpsx.utc.year;
+				new_time_to_set_soft.month = gpsx.utc.month;
+				new_time_to_set_soft.day = gpsx.utc.date;
+				new_time_to_set_soft.hour = gpsx.utc.hour;
+				new_time_to_set_soft.min = gpsx.utc.min;
+				new_time_to_set_soft.sec = gpsx.utc.sec;
+				int weekday_iso = calculate_weekday_iso(gpsx.utc.year, gpsx.utc.month, gpsx.utc.date);
+				new_time_to_set_soft.week = (weekday_iso > 0) ? (1 << (weekday_iso - 1)) : 1;
+				new_time_to_set_soft.pps_clr_en = true;
+
+				write_soft_timer(&new_time_to_set_soft);
+
+				// 填充硬件RTC结构体
+				new_time_to_set_rtc.year = (u8)(gpsx.utc.year % 100);
+				new_time_to_set_rtc.month = (u8)gpsx.utc.month;
+				new_time_to_set_rtc.day = (u8)gpsx.utc.date;
+				new_time_to_set_rtc.hour = (u8)gpsx.utc.hour;
+				new_time_to_set_rtc.min = (u8)gpsx.utc.min;
+				new_time_to_set_rtc.sec = (u8)gpsx.utc.sec;
+				new_time_to_set_rtc.week = (weekday_iso == 7) ? 0 : (u8)weekday_iso;
+
+				if (Rtc8025_SetTime(RTC_AXI_IIC_BASEADDR, &new_time_to_set_rtc) == XST_SUCCESS)
+				{
+					xil_printf("GPS SYNC SUCCESS: SoftTimer and RTC updated.\r\n");
+				}
+				else
+				{
+					xil_printf("GPS SYNC: SoftTimer updated, RTC FAILED.\r\n");
+				}
+			}
+		}
+		GPS_Ctrl_State.uart_cont = 0; // 清理缓冲区
+	}
 }

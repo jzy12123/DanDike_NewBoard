@@ -487,9 +487,9 @@ int debounce_timer_init()
  */
 void start_debounce_timer(float timeout_ms)
 {
-	u32 Freq = XPAR_XTTCPS_0_CLOCK_HZ; // 获取TTC时钟频率
-	u16 Prescaler = 0;
-	u32 Interval, PrescalerValue;
+//	u32 Freq = XPAR_XTTCPS_0_CLOCK_HZ; // 获取TTC时钟频率
+	u8 Prescaler = 0;
+	XInterval Interval;
 
 	// 计算最佳的分频器和计数值
 	XTtcPs_CalcIntervalFromFreq(&DebounceTimer, (u32)(1000.0f / timeout_ms), &Interval, &Prescaler);
@@ -508,7 +508,7 @@ void debounce_timer_handler(void *CallBackRef)
 {
 	// 1. 停止定时器并清除中断状态
 	XTtcPs_Stop(&DebounceTimer);
-	u32 StatusEvent = XTtcPs_GetInterruptStatus((XTtcPs *)CallBackRef);
+//	u32 StatusEvent = XTtcPs_GetInterruptStatus((XTtcPs *)CallBackRef);
 	XTtcPs_ClearInterruptStatus((XTtcPs *)CallBackRef, StatusEvent);
 
 	// 2. 读取稳定后的开关量状态

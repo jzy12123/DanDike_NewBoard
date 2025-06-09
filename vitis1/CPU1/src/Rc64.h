@@ -10,18 +10,19 @@
 #include "xiic_l.h"      // 低层级 AXI IIC 驱动寄存器定义
 #include <string.h>      // 提供 memcpy 函数
 #include "ADDA.h"
+#include "IIC_Master.h" // 引入新头文件
 // --- Base Address Definition ---
 // 使用 xparameters.h 中定义的 AXI IIC 控制器基地址
-#define IIC_BASE_ADDRESS XPAR_IIC_1_BASEADDR
+#define IIC_BASE_ADDRESS RtcRc64_IIC_BASEADDR
 
 // --- EEPROM Device Definitions ---
-#define I2C_DEVICE_ID XPAR_IIC_1_DEVICE_ID // AXI IIC 设备ID (低层级驱动可能不直接使用)
-#define EEPROM_ADDRESS 0x50                // EEPROM 的 7 位 I2C 从设备地址
-#define EEPROM_PAGE_SIZE 32                // EEPROM 的页大小 (字节)
+#define I2C_DEVICE_ID XPAR_RTC_EEPROM_AXI_IIC_0_DEVICE_ID // AXI IIC 设备ID (低层级驱动可能不直接使用)
+#define EEPROM_ADDRESS 0x50                               // EEPROM 的 7 位 I2C 从设备地址
+#define EEPROM_PAGE_SIZE 32                               // EEPROM 的页大小 (字节)
 
 // --- Timeout and Retry Definitions ---
 // 用于 I2C 操作的超时和重试参数 (需要根据实际硬件和时钟速度调整)
-#define IIC_TIMEOUT_COUNT 100000           // 等待总线空闲或操作完成的超时计数值
+// #define IIC_TIMEOUT_COUNT 100000           // 等待总线空闲或操作完成的超时计数值
 #define EEPROM_WRITE_ACK_POLL_RETRIES 500  // EEPROM 写操作后轮询 ACK 的最大重试次数
 #define EEPROM_WRITE_ACK_POLL_DELAY_US 500 // EEPROM 写操作后轮询 ACK 的间隔 (微秒)
 #define EEPROM_ADDR_SEND_RETRIES 100       // EEPROM 读操作时发送地址的最大重试次数
@@ -57,7 +58,7 @@ typedef u16 AddressType; // 将 EEPROM 内部地址类型定义为 u16 (2字节)
  * @brief 初始化 IIC 硬件 (低层级)
  * @return XST_SUCCESS 如果成功，否则返回 XST_FAILURE
  */
-int RC64_Init(void);
+// int RC64_Init(void);
 
 /**
  * @brief 从 EEPROM 读取所有校准数据
