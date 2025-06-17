@@ -19,11 +19,20 @@
 #include "mutex_utils.h"
 #include "Communications_Protocol.h"
 #include "xttcps.h" // TTC驱动头文件
+#include "xpseudo_asm_gcc.h"
+
+// Zynq-7000 SLCR (System Level Control Registers) 的基地址
+#define SLCR_BASE_ADDR 0xF8000000
+
+// TTC 时钟控制寄存器在 SLCR 内的偏移
+// XPAR_XTTCPS_0_DEVICE_ID 对应 TTC0, XPAR_XTTCPS_1_DEVICE_ID 对应 TTC1
+#define TTC0_CLK_CTRL_OFFSET 0x0170 // 对应TTC0, TTC1
+#define TTC1_CLK_CTRL_OFFSET 0x0174 // 对应TTC2, TTC3 (Zynq有两个TTC模块，每个模块包含3个定时器)
 
 // 防抖定时器
 #define DEBOUNCE_TIMER_DEVICE_ID XPAR_XTTCPS_0_DEVICE_ID // 假设使用TTC0
 #define DEBOUNCE_TIMER_IRPT_INTR XPAR_XTTCPS_0_INTR		 // TTC0的中断ID
-#define DEBOUNCE_TIME_10MS (10.0)						 // 防抖时间 10ms
+#define DEBOUNCE_TIME_10MS (10.0)					 // 防抖时间 10ms
 #define DEBOUNCE_TIME_1MS (1.0)							 // 防抖时间 1ms
 #define DEBOUNCE_TIME_0_1MS (0.1)						 // 防抖时间 0.1ms
 
@@ -47,14 +56,13 @@
 #define LATCH_SUBSEC_REG_OFFSET (13 * 4)   // slv_reg13: 存储亚秒 (二进制)
 // 中断
 #define OnOffDone_INTR_ID 87U
-// 定义开关量位数
-typedef enum
-{
-	bit_8 = 0,
-	bit_16 = 1,
-	bit_24 = 2,
-	bit_32 = 3
-} Read_Bit;
+	// 定义开关量位数
+	typedef enum {
+		bit_8 = 0,
+		bit_16 = 1,
+		bit_24 = 2,
+		bit_32 = 3
+	} Read_Bit;
 // 定义开入功能
 typedef enum
 {
@@ -63,11 +71,6 @@ typedef enum
 	Random_ReadWrite = 2,
 	Time_ReadWrite = 3
 } Operation_Mode;
-typedef enum
-{
-	Read = 0,
-	Write = 1
-} Data_Direction;
 // 定义功放使能枚举
 typedef enum
 {
@@ -76,6 +79,15 @@ typedef enum
 } POWER_AMP_STATE;
 extern XTtcPs DebounceTimer; // TTC定时器实例
 
+// 用于保存锁存的时间戳的结构体
+typedef struct
+{
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+	uint32_t day_sec;
+	uint32_t sub_sec;
+} OnOff_Timestamp_t;
 void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp);
 void RdSerial();
 unsigned char voltage_to_output(float voltage);
@@ -85,9 +97,10 @@ double calculate_correction(int channel, int range_idx, float amplitude_percenta
 
 // 开关量
 u32 invert_Binary(u32 num);
-void OnOff_Module(Operation_Mode OperationMode, Read_Bit ReadBit, uint32_t WriteData, Data_Direction DataDirection);
-void Read_OnOff_Latch_Time(void);
-void Init_OnOffModule(void);
+void OnOff_Start(Read_Bit bit_width, uint8_t start);
+void OnOff_Stop();
+void OnOff_Write_Continuous(uint32_t output_data);
+void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, OnOff_Timestamp_t *timestamp);
 void onoff_handler(void);
 // 防抖定时器
 int debounce_timer_init();

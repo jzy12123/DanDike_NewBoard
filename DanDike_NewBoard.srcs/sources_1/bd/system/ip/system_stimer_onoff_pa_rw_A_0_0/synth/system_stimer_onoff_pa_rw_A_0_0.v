@@ -48,11 +48,11 @@
 
 
 // IP VLNV: xilinx.com:user:stimer_onoff_pa_rw:1.0
-// IP Revision: 1
+// IP Revision: 3
 
 (* X_CORE_INFO = "stimer_onoff_pa_rw_AXI,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{}" *)
-(* CORE_GENERATION_INFO = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=stimer_onoff_pa_rw,x_ipVersion=1.0,x_ipCoreRevision=1,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=6}" *)
+(* CORE_GENERATION_INFO = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=stimer_onoff_pa_rw,x_ipVersion=1.0,x_ipCoreRevision=3,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=6}" *)
 (* IP_DEFINITION_SOURCE = "package_project" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_stimer_onoff_pa_rw_A_0_0 (

@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Thu Jun  5 20:21:13 2025
+| Date         : Tue Jun 17 17:51:18 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_methodology -file system_wrapper_methodology_drc_routed.rpt -pb system_wrapper_methodology_drc_routed.pb -rpx system_wrapper_methodology_drc_routed.rpx
 | Design       : system_wrapper
@@ -23,14 +23,14 @@ Table of Contents
           Floorplan: design_1
       Design limits: <entire design considered>
              Max violations: <unlimited>
-             Violations found: 627
+             Violations found: 626
 +-----------+------------------+-------------------------------------------------+------------+
 | Rule      | Severity         | Description                                     | Violations |
 +-----------+------------------+-------------------------------------------------+------------+
 | TIMING-6  | Critical Warning | No common primary clock between related clocks  | 2          |
 | TIMING-7  | Critical Warning | No common node between related clocks           | 2          |
 | TIMING-14 | Critical Warning | LUT on the clock tree                           | 1          |
-| TIMING-17 | Critical Warning | Non-clocked sequential cell                     | 543        |
+| TIMING-17 | Critical Warning | Non-clocked sequential cell                     | 542        |
 | DPIR-1    | Warning          | Asynchronous driver check                       | 8          |
 | LUTAR-1   | Warning          | LUT drives async reset alert                    | 6          |
 | PDRC-190  | Warning          | Suboptimally placed synchronized register chain | 10         |
@@ -1233,1550 +1233,1545 @@ Related violations: <none>
 
 TIMING-17#234 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/bm_syn_end_reg/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#235 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#236 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#237 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#238 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[13]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#239 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[13]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#240 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#241 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#242 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[17]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#243 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[17]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[18]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#244 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[18]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[19]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#245 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[19]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#246 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[20]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#247 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[20]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[21]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#248 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[21]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[22]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#249 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[22]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[23]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#250 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[23]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[24]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#251 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[24]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[25]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#252 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[25]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[26]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#253 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[26]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[27]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#254 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[27]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[28]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#255 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[28]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[29]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#256 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[29]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#257 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[30]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#258 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[30]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[31]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#259 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[31]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[32]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#260 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[32]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[33]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#261 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[33]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[34]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#262 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[34]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[35]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#263 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[35]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#264 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#265 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#266 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#267 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#268 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#269 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#270 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/curr_date_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/latch_en_r_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#271 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/latch_en_r_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/latch_en_r_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#272 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/dater_inst/latch_en_r_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#273 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#274 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#275 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#276 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[13]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#277 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[13]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#278 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#279 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#280 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#281 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#282 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#283 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#284 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#285 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#286 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#287 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#288 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#289 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/cnt_pos_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#290 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#291 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#292 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#293 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#294 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#295 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#296 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#297 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#298 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/curr_time_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#299 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#300 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#301 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#302 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#303 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#304 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#305 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#306 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day1_reg_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#307 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#308 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#309 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#310 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[13]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#311 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[13]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#312 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#313 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#314 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#315 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#316 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#317 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#318 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#319 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#320 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#321 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#322 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#323 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/day_sec_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/decode_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#324 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/decode_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/decode_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#325 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/decode_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#326 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#327 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#328 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#329 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#330 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#331 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/hur_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/irig_b_r_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#332 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/irig_b_r_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/irig_b_r_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#333 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/irig_b_r_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#334 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#335 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#336 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#337 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#338 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#339 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#340 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/min_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/pps_reg/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#341 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/pps_reg/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#342 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#343 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#344 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#345 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#346 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#347 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#348 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#349 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#350 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sbs1_reg_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#351 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#352 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#353 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#354 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#355 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#356 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#357 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/sec_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#358 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#359 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#360 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#361 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/state_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#362 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#363 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#364 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#365 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#366 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#367 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#368 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#369 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#370 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#371 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_day_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#372 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#373 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#374 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#375 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#376 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#377 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#378 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/decoder_inst/year_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#379 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#380 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#381 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/FSM_sequential_state_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#382 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#383 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#384 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#385 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[13]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#386 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[13]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#387 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#388 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#389 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#390 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#391 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#392 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#393 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#394 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#395 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#396 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#397 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#398 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_10ms_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#399 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#400 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#401 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#402 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1p_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#403 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#404 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#405 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#406 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#407 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#408 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#409 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/cnt_1s_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#410 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#411 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#412 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#413 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#414 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#415 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[18]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#416 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[18]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[19]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#417 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[19]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#418 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[20]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#419 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[20]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[21]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#420 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[21]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[23]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#421 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[23]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[24]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#422 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[24]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[27]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#423 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[27]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[28]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#424 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[28]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[29]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#425 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[29]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#426 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[30]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#427 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[30]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[32]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#428 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[32]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[33]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#429 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[33]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[34]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#430 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[34]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[35]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#431 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[35]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[36]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#432 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[36]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[37]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#433 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[37]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#434 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[45]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#435 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[45]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[46]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#436 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[46]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[47]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#437 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[47]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[48]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#438 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[48]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#439 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[50]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#440 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[50]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[51]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#441 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[51]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[52]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#442 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[52]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[53]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#443 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[53]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#444 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[72]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#445 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[72]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[73]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#446 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[73]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[74]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#447 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[74]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[75]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#448 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[75]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[76]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#449 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[76]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[77]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#450 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[77]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[78]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#451 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[78]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[79]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#452 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[79]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#453 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[80]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#454 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[80]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[81]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#455 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[81]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[82]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#456 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[82]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[83]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#457 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[83]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[84]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#458 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[84]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[85]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#459 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[85]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[86]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#460 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[86]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[87]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#461 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[87]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[88]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#462 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[88]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#463 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#464 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/curr_time_r_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/irig_b_reg/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#465 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/encoder_inst/irig_b_reg/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/pps_r_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#466 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/pps_r_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/pps_r_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#467 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/pps_r_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#468 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[10]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#469 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[10]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[11]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#470 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[11]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[12]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#471 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[12]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[13]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#472 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[13]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[14]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#473 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[14]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[15]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#474 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[15]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[16]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#475 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[16]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[17]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#476 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[17]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[18]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#477 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[18]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[19]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#478 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[19]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#479 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[20]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#480 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[20]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[21]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#481 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[21]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[22]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#482 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[22]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[23]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#483 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[23]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#484 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#485 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#486 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#487 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[5]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#488 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[6]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#489 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[7]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#490 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[8]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#491 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/dout_reg[9]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/pps_out_reg/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#492 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/subsec_inst/pps_out_reg/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#493 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#494 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#495 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#496 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#497 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/hur_inst/dout_reg[4]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/load_r_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#498 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/load_r_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/load_r_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#499 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/load_r_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#500 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#501 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#502 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#503 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min0_inst/dout_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#504 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#505 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#506 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/min10_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#507 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#508 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#509 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#510 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec0_inst/dout_reg[3]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#511 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[0]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#512 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[1]/C is not reached by a timing clock
+The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#513 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/AC_8_channel_0/stimer_onoff_pa_rw_A_0/inst/soft_timer_inst/timer_inst/sec10_inst/dout_reg[2]/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[0].u_iddr_rxd/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#514 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[0].u_iddr_rxd/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[1].u_iddr_rxd/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#515 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[1].u_iddr_rxd/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[2].u_iddr_rxd/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#516 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[2].u_iddr_rxd/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[3].u_iddr_rxd/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#517 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/rxdata_bus[3].u_iddr_rxd/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/u_iddr_rx_ctl/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#518 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_rx/u_iddr_rx_ctl/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/ODDR_inst/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#519 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/ODDR_inst/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[0].ODDR_inst/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#520 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[0].ODDR_inst/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[1].ODDR_inst/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#521 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[1].ODDR_inst/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[2].ODDR_inst/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#522 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[2].ODDR_inst/C is not reached by a timing clock
+The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[3].ODDR_inst/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#523 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/gmii2rgmii_0/inst/u_rgmii_tx/txdata_bus[3].ODDR_inst/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#524 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[0]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#525 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[1]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#526 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[2]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#527 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[3]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#528 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[4]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#529 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[5]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#530 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[6]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#531 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RXD_i_reg[7]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RX_DV_i_reg/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#532 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_RX_DV_i_reg/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#533 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[0]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#534 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[1]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#535 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[2]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#536 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[3]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#537 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[4]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#538 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[5]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#539 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[6]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#540 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TXD_reg[7]/C is not reached by a timing clock
+The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TX_EN_reg/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#541 Critical Warning
 Non-clocked sequential cell  
-The clock pin system_i/processing_system7_0/inst/ENET1_GMII_TX_EN_reg/C is not reached by a timing clock
-Related violations: <none>
-
-TIMING-17#542 Critical Warning
-Non-clocked sequential cell  
 The clock pin system_i/processing_system7_0/inst/PS7_i/EMIOENET1GMIIRXCLK is not reached by a timing clock
 Related violations: <none>
 
-TIMING-17#543 Critical Warning
+TIMING-17#542 Critical Warning
 Non-clocked sequential cell  
 The clock pin system_i/processing_system7_0/inst/PS7_i/EMIOENET1GMIITXCLK is not reached by a timing clock
 Related violations: <none>
@@ -2880,52 +2875,52 @@ Related violations: <none>
 
 PDRC-190#1 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[0] in site SLICE_X90Y115 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[0] in site SLICE_X65Y121 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#2 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[1] in site SLICE_X91Y113 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[1] in site SLICE_X65Y117 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#3 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[2] in site SLICE_X90Y113 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[2] in site SLICE_X66Y119 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#4 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[3] in site SLICE_X89Y114 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[3] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_reg[3] in site SLICE_X64Y120 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD2/stat_reg_1_reg[3] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#5 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[0] in site SLICE_X92Y110 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[0] in site SLICE_X63Y120 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#6 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[1] in site SLICE_X90Y110 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[1] in site SLICE_X65Y119 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#7 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[2] in site SLICE_X91Y111 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_reg[2] in site SLICE_X64Y118 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD3/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#8 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[0] in site SLICE_X87Y109 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[0] in site SLICE_X81Y121 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[0] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#9 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[1] in site SLICE_X89Y111 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[1] in site SLICE_X82Y121 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[1] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 PDRC-190#10 Warning
 Suboptimally placed synchronized register chain  
-The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[2] in site SLICE_X88Y111 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
+The FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_reg[2] in site SLICE_X83Y122 is part of a synchronized register chain that is suboptimally placed as the load FDRE cell dbg_hub/inst/BSCANID.u_xsdbm_id/CORE_XSDB.UUT_MASTER/U_ICON_INTERFACE/U_CMD7_STAT/stat_reg_1_reg[2] is not placed in the same (SLICE) site.
 Related violations: <none>
 
 TIMING-9#1 Warning
@@ -3200,7 +3195,7 @@ Related violations: <none>
 
 ULMTCS-1#1 Warning
 Control Sets use limits recommend reduction  
-This design uses 1380 control sets (vs. available limit of 13300, determined by 1 control set per CLB). This exceeds the control set use guideline of 7.5 percent. This is at a level where reduction is RECOMMENDED (see UG949). Use report_control_sets to get more details.
+This design uses 1381 control sets (vs. available limit of 13300, determined by 1 control set per CLB). This exceeds the control set use guideline of 7.5 percent. This is at a level where reduction is RECOMMENDED (see UG949). Use report_control_sets to get more details.
 Related violations: <none>
 
 

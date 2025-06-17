@@ -1,17 +1,168 @@
 #include "gps.h"
-#include "stdio.h"
-#include "stdarg.h"
-#include "string.h"
-#include "math.h"
+#include "gps_sync.h"	// 引入对时管理模块
+#include "soft_timer.h" // 引入软时钟
+#include "8025IIC.h"	// 引入硬件RTC
+#include "string.h"		// for memset
+#include "ADDA.h"		// for intc
 
+XUartLite GpsUartLiteInst;		// GPS Uart实例
+XTtcPs GpsTtcTimerInst;			// GPS接收超时TTC定时器实例
+GPS_Recv_Ctrl_t GPS_Ctrl_State; // GPS接收控制状态
 u8 UART_RX_BUF[1000];
-
-u8 dtbuf[50];
 nmea_msg gpsx;
-
 // const u8 *fixmode_tbl[4]={"Fail","Fail"," 2D "," 3D "};	//fix mode字符串
 // const u32 BAUD_id[9] = {4800,9600,19200,38400,57600,115200,230400,460800,921600};//模块支持波特率数组
 
+/**
+ * @brief 初始化GPS串口
+ */
+int UartLiteGpsInit(u16 device_id)
+{ //
+	int Status;
+	XUartLite_Config *ConfigPtr;
+
+	GPS_Ctrl_State.uart_cont = 0;						 //
+	GPS_Ctrl_State.REV_Finish_Flag = 0;					 //
+	memset((void *)UART_RX_BUF, 0, sizeof(UART_RX_BUF)); //
+	memset(&gpsx, 0, sizeof(nmea_msg));					 //
+
+	ConfigPtr = XUartLite_LookupConfig(device_id); //
+	if (NULL == ConfigPtr)
+		return XST_FAILURE; //
+
+	Status = XUartLite_CfgInitialize(&GpsUartLiteInst, ConfigPtr, ConfigPtr->RegBaseAddr); //
+	if (Status != XST_SUCCESS)
+		return XST_FAILURE; //
+
+	XUartLite_SetRecvHandler(&GpsUartLiteInst, GpsUartRecvHandler, &GpsUartLiteInst); //
+	XUartLite_EnableInterrupt(&GpsUartLiteInst);									  //
+	XUartLite_ResetFifos(&GpsUartLiteInst);											  //
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief 初始化GPS超时TTC定时器
+ */
+int GpsTtcTimerInit(u16 device_id)
+{ //
+	XTtcPs_Config *TimerConfig;
+	s32 Status;
+
+	TimerConfig = XTtcPs_LookupConfig(device_id); //
+	if (NULL == TimerConfig)
+		return XST_FAILURE; //
+
+	Status = XTtcPs_CfgInitialize(&GpsTtcTimerInst, TimerConfig, TimerConfig->BaseAddress); //
+	if (Status != XST_SUCCESS)
+		return XST_FAILURE; //
+
+	XTtcPs_SetOptions(&GpsTtcTimerInst, XTTCPS_OPTION_INTERVAL_MODE); //
+
+	XInterval Interval;
+	u8 Prescaler;
+	XTtcPs_CalcIntervalFromFreq(&GpsTtcTimerInst, 1.0 / GPS_TTC_TIMEOUT_SECONDS, &Interval, &Prescaler); //
+	XTtcPs_SetPrescaler(&GpsTtcTimerInst, Prescaler);													 //
+	XTtcPs_SetInterval(&GpsTtcTimerInst, Interval);														 //
+
+	XTtcPs_EnableInterrupts(&GpsTtcTimerInst, XTTCPS_IXR_INTERVAL_MASK); //
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief GPS串口接收中断处理函数
+ */
+void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData)
+{ //
+	XUartLite *UartLiteInstancePtr = (XUartLite *)CallBackRef;
+	u8 RecvChar;
+
+	while (XUartLite_IsReceiveEmpty(UartLiteInstancePtr->RegBaseAddress) == FALSE)
+	{
+		RecvChar = XUartLite_ReadReg(UartLiteInstancePtr->RegBaseAddress, XUL_RX_FIFO_OFFSET);
+		if (GPS_Ctrl_State.uart_cont < (sizeof(UART_RX_BUF) - 2))
+		{
+			UART_RX_BUF[GPS_Ctrl_State.uart_cont++] = RecvChar;
+		}
+		else
+		{
+			GPS_Ctrl_State.uart_cont = 0; // 缓冲区溢出，复位
+		}
+		XTtcPs_Stop(&GpsTtcTimerInst);
+		XTtcPs_Start(&GpsTtcTimerInst);
+	}
+}
+
+/**
+ * @brief GPS接收超时中断处理函数 (修改后)
+ */
+void GpsTimeoutHandler(void *CallBackRef)
+{ //
+	XTtcPs *TimerInstancePtr = (XTtcPs *)CallBackRef;
+	XTtcPs_ClearInterruptStatus(TimerInstancePtr, XTTCPS_IXR_INTERVAL_MASK);
+	XTtcPs_Stop(TimerInstancePtr);
+
+	// 仅在对时进行中才处理
+	if (g_gps_sync_status != TIME_SYNC_IN_PROGRESS)
+	{
+		return;
+	}
+
+	if (GPS_Ctrl_State.uart_cont > 0)
+	{
+		UART_RX_BUF[GPS_Ctrl_State.uart_cont] = '\0';
+		GPS_Analysis(&gpsx, (u8 *)UART_RX_BUF);
+
+		// 检查是否收到有效的RMC数据
+		if (gpsx.rmc_status == 'A')
+		{									//
+			GPS_ConvertUTCToBeijing(&gpsx); //
+
+			if (gpsx.utc.year > 2020)
+			{ // 基本的年份有效性检查 //
+				// ... (与main.c中完全相同的代码来更新软时钟和硬件RTC)
+				Out_RealTime new_time_to_set_soft;
+				RTC_Time_t new_time_to_set_rtc;
+
+				new_time_to_set_soft.year = gpsx.utc.year;
+				new_time_to_set_soft.month = gpsx.utc.month;
+				new_time_to_set_soft.day = gpsx.utc.date;
+				new_time_to_set_soft.hour = gpsx.utc.hour;
+				new_time_to_set_soft.min = gpsx.utc.min;
+				new_time_to_set_soft.sec = gpsx.utc.sec;
+				int weekday_iso = calculate_weekday_iso(gpsx.utc.year, gpsx.utc.month, gpsx.utc.date);
+				new_time_to_set_soft.week = (weekday_iso > 0) ? (1 << (weekday_iso - 1)) : 1;
+				new_time_to_set_soft.pps_clr_en = true;
+				write_soft_timer(&new_time_to_set_soft);
+
+				new_time_to_set_rtc.year = (u8)(gpsx.utc.year % 100);
+				new_time_to_set_rtc.month = (u8)gpsx.utc.month;
+				new_time_to_set_rtc.day = (u8)gpsx.utc.date;
+				new_time_to_set_rtc.hour = (u8)gpsx.utc.hour;
+				new_time_to_set_rtc.min = (u8)gpsx.utc.min;
+				new_time_to_set_rtc.sec = (u8)gpsx.utc.sec;
+				new_time_to_set_rtc.week = (weekday_iso == 7) ? 0 : (u8)weekday_iso;
+
+				if (Rtc8025_SetTime(RTC_AXI_IIC_BASEADDR, &new_time_to_set_rtc) == XST_SUCCESS)
+				{																  //
+					xil_printf("GPS SYNC SUCCESS: SoftTimer and RTC updated.\n"); //
+				}
+				else
+				{
+					xil_printf("GPS SYNC: SoftTimer updated, RTC set FAILED.\n"); //
+				}
+
+				// 核心修改: 对时成功，更新状态并禁用中断
+				g_gps_sync_status = TIME_SYNC_SUCCESS;
+				XScuGic_Disable(&intc, GPS_UARTLITE_INT_IRQ_ID);
+				XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
+				StopGpsTimeSyncTimer();
+			}
+		}
+	}
+	GPS_Ctrl_State.uart_cont = 0; // 清理缓冲区
+}
 // 从buf里面得到第cx个逗号所在的位置
 // 返回值:0~0XFE,代表逗号所在位置的偏移
 // 0XFF,代表不存在第cx个逗号

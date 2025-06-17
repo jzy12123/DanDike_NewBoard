@@ -2,6 +2,25 @@
 #define SRC_GPS_H_
 
 #include "xil_printf.h"
+#include "xttcps.h"	   // TTC驱动头文件
+#include "xuartlite.h" // UartLite驱动头文件
+#include "xuartlite_l.h"
+// ================= 新增功能全局变量 =================
+#define GPS_UARTLITE_DEVICE_ID XPAR_AXI_UARTLITE_0_DEVICE_ID
+#define GPS_UARTLITE_INT_IRQ_ID XPAR_FABRIC_AXI_UARTLITE_0_INTERRUPT_INTR
+
+// 使用TTC定时器作为GPS接收超时定时器，以避免与主循环的私有定时器冲突
+#define GPS_TTC_DEVICE_ID XPAR_XTTCPS_1_DEVICE_ID // 假设使用TTC1
+#define GPS_TTC_INT_IRQ_ID XPAR_XTTCPS_1_INTR
+#define GPS_TTC_TIMEOUT_SECONDS 0.02 // 20ms超时
+
+// GPS接收控制结构体
+typedef struct
+{
+	int uart_cont;
+	volatile u8 REV_Finish_Flag;
+} GPS_Recv_Ctrl_t;
+
 
 // GPS NMEA-0183协议重要参数结构体定义
 // 卫星信息
@@ -138,7 +157,21 @@ typedef struct
 	u16 end;	// 结束符
 } SkyTra_NACK;
 
-// 函数声明
+// ================= 外部变量声明 =================
+extern XUartLite GpsUartLiteInst;
+extern XTtcPs GpsTtcTimerInst;
+extern GPS_Recv_Ctrl_t GPS_Ctrl_State;
+extern nmea_msg gpsx;
+extern u8 UART_RX_BUF[1000];
+
+// ================= 函数声明 =================
+// 初始化函数
+int UartLiteGpsInit(u16 device_id);
+int GpsTtcTimerInit(u16 device_id);
+// 中断处理函数
+void GpsTimeoutHandler(void *CallBackRef);
+void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData);
+
 int NMEA_Str2num(u8 *buf, u8 *dx);
 void GPS_Analysis(nmea_msg *gpsx, u8 *buf);
 void NMEA_GPGSV_Analysis(nmea_msg *gpsx, u8 *buf);

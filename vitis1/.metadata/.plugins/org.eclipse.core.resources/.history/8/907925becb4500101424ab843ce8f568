@@ -1,0 +1,544 @@
+/*
+ * Amplifier_Switch.c
+ *
+ *  Created on: 2024年2月1日
+ *      Author: saber
+ */
+#include "Amplifier_Switch.h"
+// 全局变量定义
+XTtcPs DebounceTimer;
+float g_debounce_time_ms = DEBOUNCE_TIME_10MS; // 全局可配置的防抖时间，默认10ms
+/**
+ * @brief 读取串行数据，检测并处理保护故障
+ *
+ * 该函数用于从指定的地址读取串行数据，并检测是否有保护故障发生。
+ * 如果检测到故障，会根据故障情况采取不同的处理措施。
+ *
+ * @details 函数内部使用了静态变量来保存上一次检测到的故障状态和是否已经检测到故障的标志。
+ * 函数首先通过写操作使能串行数据读取，然后从指定的地址读取串行数据。
+ * 根据读取的数据判断是否有故障发生，如果有则根据故障情况采取相应的处理措施，
+ * 包括上报故障、清除二级功放电压电流的使能以及清除故障锁存等。
+ *
+ * @note 故障状态由8位表示，前4位代表IXICIBIA（具体含义未明确），后4位代表UXUCUBUA（具体含义未明确）。
+ * 如果所有位都为1，则表示无故障；如果出现0，则表示对应位置出现故障。
+ */
+void RdSerial()
+{
+	static u8 lastProectFault = 0xFF;  // 保存上一次的故障状态，初始为无故障
+	static bool faultDetected = false; // 是否已经检测到一次故障
+
+	Xil_Out32(Amplifier_OnOff_BASEADDR + RdSerial_Status_ADDR, (u32)0x1); // slv_reg15 的 rdserial—enable 置 1
+	// ProectFault前4位代表IXICIBIA 后四位代表UXUCUBUA,如果正常则为11111111，出现故障对应的位会变0.
+	u8 ProectFault = (u8)Xil_In32(Amplifier_OnOff_BASEADDR + RdSerial_ADDR); // 读 slv_reg2 的 rdserial——dataout
+
+	// 如果当前检测到故障信号
+	if (ProectFault != 0xFF)
+	{
+		// 如果之前已经检测到过一次故障，并且当前故障与上次故障相同
+		if (faultDetected && (ProectFault == lastProectFault))
+		{
+			// 连续两次检测到相同故障，上报
+			report_protection_event(ProectFault);
+			// 上报后重置标志,避免重复上报同一故障
+			faultDetected = false;
+			// 要清除二级功放电压电流的EN,清除故障锁存
+		}
+		else if (!faultDetected)
+		{
+			// 第一次检测到故障，记录并设置标志
+			faultDetected = true;
+			lastProectFault = ProectFault;
+		}
+		// 如果故障不同，更新为新的故障
+		else if (ProectFault != lastProectFault)
+		{
+			lastProectFault = ProectFault;
+		}
+	}
+	else
+	{
+		// 当前无故障，重置标志
+		faultDetected = false;
+	}
+}
+
+// 根据输入电压返回对应的输出值
+unsigned char voltage_to_output(float voltage)
+{
+	if (voltage >= 6) // 6.5V
+	{
+		return 0xC2;
+	}
+	else if (voltage >= 3) // 3.25V
+	{
+		return 0xD4;
+	}
+	else if (voltage >= 1) // 1.625V
+	{
+		return 0xA0;
+	}
+	else
+	{
+		xil_printf("CPU1: UR NOT CORRECT SET 6.5V\n");
+		return 0xC2; // 默认返回值，表示输入无效
+	}
+}
+
+// 根据输入电流返回对应的输出值
+unsigned char current_to_output(float current)
+{
+	if (current >= 4) // 5A
+	{
+		return 0xC2;
+	}
+	else if (current >= 0.5) // 1A
+	{
+		return 0x92;
+	}
+	else if (current >= 0.1) // 0.2A
+	{
+		return 0xA4;
+	}
+	else
+	{
+		xil_printf("CPU1: IR NOT CORRECT SET 5A\n");
+		return 0xC2; // 默认返回值，表示输入无效
+	}
+}
+
+void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t pid_state, uint8_t enable_amp)
+{
+	// 尝试获取DAC/功放操作的锁
+	if (!acquire_resource_lock(LOCK_OWNER_DAC, MUTEX_DAC_ACQUIRE_TIMEOUT_US))
+	{
+		printf("CPU1: power_amplifier_control could not acquire lock.\n");
+		return; // 获取锁失败，不执行后续操作
+	}
+
+	if (enable_amp == POWAMP_ON)
+	{
+		/*1 配置595 开启使能最高位写1*/
+		// 595置1 1595置0;功放start清0
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000002);
+		usleep(100);
+		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送 00000000为高电平
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送 ff00为低电平
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din2_ADDR, (u32)(Wave_Range[5] << 24) | (Wave_Range[4] << 8)); // ib + ia din2发送
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din3_ADDR, (u32)(Wave_Range[7] << 24) | (Wave_Range[6] << 8)); // ix + ic din3发送
+
+		// 595置1 1595置0;  功放start置1
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000102);
+		usleep(100);
+		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+
+		/*2 PID调整幅值(修改1595)*/
+		double Amplifier_PID_Increment[8] = {0};
+		if (pid_state == PID_ON)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				Amplifier_PID_Increment[i] = PID_adjust_amplitude((lineAC.ur[i] * Wave_Amplitude[i]) / 100, lineAC.u[i], &amplitude_pid[i]);
+				Amplifier_PID_Increment[i + 4] = PID_adjust_amplitude((lineAC.ir[i] * Wave_Amplitude[i + 4]) / 100, lineAC.i[i], &amplitude_pid[i + 4]);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 8; i++)
+			{ // 清空PID累计值
+				amplitude_pid[i].integral = 0;
+				amplitude_pid[i].prev_error = 0;
+			}
+		}
+
+		/*3 配置1595*/
+		// 595置0 1595置1;  功放start清0
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000001);
+		usleep(100);
+		//  xil_printf("CPU1:1595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+
+		// 获取每个通道的量程索引
+		int idx_ua = get_voltage_index_by_value(setACS.Vals[0].UR);
+		int idx_ub = get_voltage_index_by_value(setACS.Vals[1].UR);
+		int idx_uc = get_voltage_index_by_value(setACS.Vals[2].UR);
+		int idx_ux = get_voltage_index_by_value(setACS.Vals[3].UR);
+
+		int idx_ia = get_current_index_by_value(setACS.Vals[0].IR);
+		int idx_ib = get_current_index_by_value(setACS.Vals[1].IR);
+		int idx_ic = get_current_index_by_value(setACS.Vals[2].IR);
+		int idx_ix = get_current_index_by_value(setACS.Vals[3].IR);
+
+		// 计算电压通道值
+		double correction_ua = calculate_correction(0, idx_ua, Wave_Amplitude[0]);			 // DAC原始输出
+		double PID_correction_ua = (32767 / setACS.Vals[0].UR) * Amplifier_PID_Increment[0]; // PID原始输出
+		u32 UA = (u32)((Wave_Amplitude[0] / 100) * (correction_ua + PID_correction_ua));
+		double correction_ub = calculate_correction(1, idx_ub, Wave_Amplitude[1]);
+		double PID_correction_ub = (32767 / setACS.Vals[1].UR) * Amplifier_PID_Increment[1]; // PID原始输出
+		u32 UB = ((u32)((Wave_Amplitude[1] / 100) * (correction_ub + PID_correction_ub))) << 16;
+		double correction_uc = calculate_correction(2, idx_uc, Wave_Amplitude[2]);
+		double PID_correction_uc = (32767 / setACS.Vals[2].UR) * Amplifier_PID_Increment[2]; // PID原始输出
+		u32 UC = (u32)((Wave_Amplitude[2] / 100) * (correction_uc + PID_correction_uc));
+		double correction_ux = calculate_correction(3, idx_ux, Wave_Amplitude[3]);
+		double PID_correction_ux = (32767 / setACS.Vals[3].UR) * Amplifier_PID_Increment[3]; // PID原始输出
+		u32 UX = ((u32)((Wave_Amplitude[3] / 100) * (correction_ux + PID_correction_ux))) << 16;
+
+		// 计算电流通道值
+		double correction_ia = calculate_correction(4, idx_ia, Wave_Amplitude[4]);
+		double PID_correction_ia = (32767 / setACS.Vals[0].IR) * Amplifier_PID_Increment[4]; // PID原始输出
+		u32 IA = (u32)((Wave_Amplitude[4] / 100) * (correction_ia + PID_correction_ia));
+		double correction_ib = calculate_correction(5, idx_ib, Wave_Amplitude[5]);
+		double PID_correction_ib = (32767 / setACS.Vals[1].IR) * Amplifier_PID_Increment[5]; // PID原始输出
+		u32 IB = ((u32)((Wave_Amplitude[5] / 100) * (correction_ib + PID_correction_ib))) << 16;
+		double correction_ic = calculate_correction(6, idx_ic, Wave_Amplitude[6]);
+		double PID_correction_ic = (32767 / setACS.Vals[2].IR) * Amplifier_PID_Increment[6]; // PID原始输出
+		u32 IC = (u32)((Wave_Amplitude[6] / 100) * (correction_ic + PID_correction_ic));
+		double correction_ix = calculate_correction(7, idx_ix, Wave_Amplitude[7]);
+		double PID_correction_ix = (32767 / setACS.Vals[3].IR) * Amplifier_PID_Increment[7]; // PID原始输出
+		u32 IX = ((u32)((Wave_Amplitude[7] / 100) * (correction_ix + PID_correction_ix))) << 16;
+
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din0_ADDR, UB + UA); // din0发送，8000半幅值，ub + ua
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din1_ADDR, UX + UC); // din1发送，半幅值，ux + uc
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din2_ADDR, IB + IA); // din2发送，ib + ia
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din3_ADDR, IX + IC); // din3发送，ix + ic
+
+		// 595置0 1595置1;  功放start置1
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000101);
+		usleep(100);
+		//  xil_printf("CPU1:1595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+	}
+	else
+	{
+		/*1 配置595 关闭功放使能 只需要把Wave_Range的最高位写0*/
+		// 595置1 1595置0 功放start清0
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000002);
+		usleep(100);
+		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
+
+		// 修改Wave_Range,把第7位清0，为了清空二级功放的硬件保护：
+		for (int i = 0; i < CHANNL_MAX; i++)
+		{
+			Wave_Range[i] &= ~(1 << 7);
+		}
+
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din2_ADDR, (u32)(Wave_Range[5] << 24) | (Wave_Range[4] << 8)); // ib + ia din2发送
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din3_ADDR, (u32)(Wave_Range[7] << 24) | (Wave_Range[6] << 8)); // ix + ic din3发送
+
+		// 595置1 1595置0 功放start置1
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000102);
+		usleep(100);
+		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
+		print("CPU1: POWAMP Closed!\r\n");
+
+		/*2 清空PID累计值*/
+		for (int i = 0; i < 4; i++)
+		{
+			amplitude_pid[i].integral = 0;
+			amplitude_pid[i].prev_error = 0;
+		}
+	}
+	// 释放锁
+	release_resource_lock(LOCK_OWNER_DAC);
+}
+/**
+ * @brief 线性拟合两个校准点计算校准参数
+ *
+ * 根据当前幅值百分比，使用20%幅值和100%幅值时的校准参数进行线性拟合
+ *
+ * @param channel 通道索引 (0-7)
+ * @param range_idx 量程索引 (0-2)
+ * @param amplitude_percentage 幅值百分比 (0-100)
+ * @return 经过线性拟合后的校准参数
+ */
+double calculate_correction(int channel, int range_idx, float amplitude_percentage)
+{
+	if (amplitude_percentage <= 20.0)
+	{
+		// 如果幅值小于等于20%，直接使用20%时的校准参数
+		return DA_Correct_20[channel][range_idx];
+	}
+	else if (amplitude_percentage >= 100.0)
+	{
+		// 如果幅值大于等于100%，直接使用100%时的校准参数
+		return DA_Correct_100[channel][range_idx];
+	}
+	else
+	{
+		// 在20%到100%之间进行线性拟合
+		double ratio = (amplitude_percentage - 20.0) / 80.0; // 归一化比例
+		double correction_20 = DA_Correct_20[channel][range_idx];
+		double correction_100 = DA_Correct_100[channel][range_idx];
+		return correction_20 + ratio * (correction_100 - correction_20);
+	}
+}
+
+void OnOff_Module(Operation_Mode OperationMode, Read_Bit ReadBit, uint32_t WriteData, Data_Direction DataDirection)
+{
+	/*1 开关量模块配置*/
+	uint32_t reg8_control_value = 0; // 用于构建写入 slv_reg8 的值
+	uint8_t local_rw_modes = 0;
+	uint8_t local_start_bit = 0;
+	switch (OperationMode)
+	{
+	case Off: // rw_modes = 00, start = 0
+		local_rw_modes = 0x00;
+		local_start_bit = 0;
+		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+		break;
+	case One_ReadWrite: // rw_modes = 01
+		local_rw_modes = 0x01;
+		local_start_bit = 1;
+		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+		break;
+	case Random_ReadWrite: // rw_modes = 10, start = 1
+		local_rw_modes = 0x02;
+		local_start_bit = 1;
+		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+		break;
+	case Time_ReadWrite:
+		local_rw_modes = 0x03;
+		local_start_bit = 1;
+		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+		break;
+	default:
+		printf("CPU1: Unrecognized Switch operation mode!\r\n");
+		break;
+	}
+	/*2 输入输出选择*/
+	uint32_t Read_OnOff;
+	switch (DataDirection)
+	{
+	case Write:
+		/*开关量模块输出*/
+		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Write_ADDR, WriteData); // 写入数据
+		if (OperationMode == One_ReadWrite)
+		{
+			// 单次写模式下要给一个start上升沿
+			local_rw_modes = 0x01;
+			// 需要产生 start 上升沿：先写0再写1
+			// 第一次写入：start=0
+			reg8_control_value = (((uint32_t)0 & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+			Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+			usleep(10); // 短暂延时，确保时序
+			// 第二次写入：start=1
+			reg8_control_value = (((uint32_t)1 & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
+			Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+		}
+		break;
+	case Read:
+		/*开关量模块输入*/
+		switch (ReadBit)
+		{
+		case 0:
+			Read_OnOff = (u8)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+			break;
+		case 1:
+			Read_OnOff = (u16)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+			break;
+		case 2:
+			Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR)) & 0x00FFFFFF;
+			break;
+		case 3:
+			Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+			break;
+		default:
+			xil_printf("CPU1: Invalid Data_width in Control_OnOff. Reading as 32-bit.\r\n"); // 无效数据宽度
+			break;
+		}
+		char s[33];
+		itoa(Read_OnOff, s, 2);
+		xil_printf("CPU1: Read OnOffMudule Data : %s\r\n", s);
+
+		if (OperationMode == Time_ReadWrite)
+		{
+			Read_OnOff_Latch_Time();
+		}
+		break;
+	default:
+		printf("CPU1: Unrecognized Data Direction!\r\n");
+		break;
+	}
+}
+
+u32 invert_Binary(u32 num)
+{
+	u32 m1 = 0x55555555; // 01010101...
+	u32 m2 = 0x33333333; // 00110011...
+	u32 m4 = 0x0f0f0f0f; // 00001111...
+						 //	u32 m8 = 0x00ff00ff; // 0000000011111111
+
+	num = ((num >> 1) & m1) | ((num & m1) << 1);
+	num = ((num >> 2) & m2) | ((num & m2) << 2);
+	num = ((num >> 4) & m4) | ((num & m4) << 4);
+	//	num = ((num >> 8) & m8 )| ((num & m8) << 8);
+	//	num = num >> 16 | num << 16;
+
+	return num;
+}
+
+/**
+ * @brief 读取锁存的时间信息
+ *
+ * 该函数从指定的寄存器中读取锁存的时间信息，包括小时、分钟、秒、日内秒和亚秒，并将时间信息打印出来。
+ *
+ * @note 该函数假设已经正确设置了寄存器基地址和偏移量。
+ */
+void Read_OnOff_Latch_Time(void)
+{
+	uint32_t reg11_val, reg12_val, reg13_val;
+	uint8_t latch_hour_bcd, latch_minute_bcd, latch_second_bcd;
+	uint32_t latch_daysec_bin, latch_subsec_bin;
+
+	uint8_t hour_tens, hour_ones;
+	uint8_t minute_tens, minute_ones;
+	uint8_t second_tens, second_ones;
+
+	// 从 slv_reg11 读取锁存的时、分、秒 (BCD码)
+	reg11_val = Xil_In32(Amplifier_OnOff_BASEADDR + LATCH_TIME_HMS_REG_OFFSET);
+	// 根据Verilog文件: slv_reg11: {12'd0, latch_hour[5:0], latch_minute[6:0], latch_second[6:0]}
+	latch_hour_bcd = (uint8_t)((reg11_val >> 14) & 0x3F);  // 提取6位BCD小时
+	latch_minute_bcd = (uint8_t)((reg11_val >> 7) & 0x7F); // 提取7位BCD分钟
+	latch_second_bcd = (uint8_t)(reg11_val & 0x7F);		   // 提取7位BCD秒
+
+	// 从 slv_reg12 读取锁存的日内秒 (二进制)
+	reg12_val = Xil_In32(Amplifier_OnOff_BASEADDR + LATCH_DAYSEC_REG_OFFSET);
+	// 根据Verilog文件: slv_reg12: {15'd0, latch_daysec[16:0]}
+	latch_daysec_bin = reg12_val & 0x1FFFF; // 提取17位二进制日内秒
+
+	// 从 slv_reg13 读取锁存的亚秒 (二进制)
+	reg13_val = Xil_In32(Amplifier_OnOff_BASEADDR + LATCH_SUBSEC_REG_OFFSET);
+	// 根据Verilog文件: slv_reg13: {8'd0,  latch_subsec[23:0]}
+	latch_subsec_bin = reg13_val & 0xFFFFFF; // 提取24位二进制亚秒
+
+	// 将BCD码转换为十进制进行打印
+	// 小时 (6位BCD: HH, 高2位为十位(0-2), 低4位为个位(0-9))
+	hour_tens = (latch_hour_bcd >> 4) & 0x03;
+	hour_ones = latch_hour_bcd & 0x0F;
+
+	// 分钟 (7位BCD: MM, 高3位为十位(0-5), 低4位为个位(0-9))
+	minute_tens = (latch_minute_bcd >> 4) & 0x07;
+	minute_ones = latch_minute_bcd & 0x0F;
+
+	// 秒 (7位BCD: SS, 高3位为十位(0-5), 低4位为个位(0-9))
+	second_tens = (latch_second_bcd >> 4) & 0x07;
+	second_ones = latch_second_bcd & 0x0F;
+
+	// 打印信息
+	xil_printf("CPU1: OnOff Latch Time - HH:MM:SS = %d%d:%d%d:%d%d (BCD)\r\n",
+			   hour_tens, hour_ones,
+			   minute_tens, minute_ones,
+			   second_tens, second_ones);
+	// xil_printf("CPU1: OnOff Latch Time - DaySeconds: %lu (Binary)\r\n", latch_daysec_bin);
+	// // 亚秒计数器是10MHz时钟驱动的，所以每个计数单位是0.1微秒
+	// xil_printf("CPU1: OnOff Latch Time - SubSeconds: %lu (Binary, raw count)\r\n", latch_subsec_bin);
+	// xil_printf("CPU1: OnOff Latch Time - SubSeconds: %lu us, %lu ns\r\n", (latch_subsec_bin / 10), (latch_subsec_bin * 100));
+}
+
+void Init_OnOffModule(void)
+{
+	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Write);
+	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Read);
+}
+
+
+
+/**
+ * @brief 初始化用于防抖的TTC定时器
+ * @return 成功返回 XST_SUCCESS, 否则返回 XST_FAILURE
+ */
+int debounce_timer_init()
+{
+	XTtcPs_Config *TimerConfig;
+	s32 Status;
+
+	// 查找TTC设备配置
+	TimerConfig = XTtcPs_LookupConfig(DEBOUNCE_TIMER_DEVICE_ID);
+	if (NULL == TimerConfig)
+	{
+		return XST_FAILURE;
+	}
+
+	// 初始化TTC设备驱动
+	Status = XTtcPs_CfgInitialize(&DebounceTimer, TimerConfig, TimerConfig->BaseAddress);
+	if (Status != XST_SUCCESS)
+	{
+		return XST_FAILURE;
+	}
+
+	// 设置定时器为间隔模式，并停止它以进行配置
+	XTtcPs_SetOptions(&DebounceTimer, XTTCPS_OPTION_INTERVAL_MODE);
+	XTtcPs_Stop(&DebounceTimer);
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief 设置并启动防抖定时器
+ * @param timeout_ms 定时时长 (毫秒)
+ */
+void start_debounce_timer(float timeout_ms)
+{
+//	u32 Freq = XPAR_XTTCPS_0_CLOCK_HZ; // 获取TTC时钟频率
+	u8 Prescaler = 0;
+	XInterval Interval;
+
+	// 计算最佳的分频器和计数值
+	XTtcPs_CalcIntervalFromFreq(&DebounceTimer, (u32)(1000.0f / timeout_ms), &Interval, &Prescaler);
+	XTtcPs_SetPrescaler(&DebounceTimer, Prescaler);
+	XTtcPs_SetInterval(&DebounceTimer, Interval);
+
+	// 启动定时器
+	XTtcPs_Start(&DebounceTimer);
+}
+/**
+ * @brief 防抖定时器的中断服务程序
+ * @param CallBackRef 回调引用
+ * @comment 此函数在防抖延时结束后执行
+ */
+void debounce_timer_handler(void *CallBackRef)
+{
+	// 1. 停止定时器并清除中断状态
+	XTtcPs_Stop(&DebounceTimer);
+	// u32 StatusEvent = XTtcPs_GetInterruptStatus((XTtcPs *)CallBackRef);
+	XTtcPs_ClearInterruptStatus((XTtcPs *)CallBackRef, StatusEvent);
+
+	// 2. 读取稳定后的开关量状态
+	//    这里的Read操作会获取到抖动结束后最终的、真实的状态
+	printf("CPU1: Debounce time elapsed, reading stable input state.\n");
+	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Read); // 此函数内部会打印读取到的值
+
+	// 3. 在这里添加你希望在检测到稳定开入后执行的逻辑...
+
+	// 4. 清除并重新使能 onoff_done 中断，为下一次变化做准备
+	XScuGic_Enable(&intc, OnOffDone_INTR_ID);
+	printf("CPU1: OnOff interrupt re-enabled.\n");
+}
+
+/**
+ * @brief 开关中断处理函数
+ *
+ * 当检测到开关中断时，该函数将被调用。
+ *
+ * 该函数会立即禁用onoff_done中断，以防止在抖动期间重复触发。
+ * 然后启动一个一次性防抖定时器，等待指定的防抖时间。
+ *
+ * @note 防抖时间由全局变量g_debounce_time_ms指定。
+ */
+void onoff_handler(void)
+{
+	// 立即禁用 onoff_done 中断，防止抖动期间的重复触发
+	XScuGic_Disable(&intc, OnOffDone_INTR_ID);
+	// printf("OnOff interrupt detected and disabled. Starting debounce timer for %.1f ms.\n", g_debounce_time_ms);
+
+	// 启动一次性防抖定时器
+	start_debounce_timer(g_debounce_time_ms);
+}

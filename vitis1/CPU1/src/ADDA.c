@@ -329,29 +329,50 @@ void timer_intr_handler(void *CallBackRef)
     RdSerial(); // 读取并处理硬件故障信号
 
     /*4 新增: 定期打印时间和RTC状态 */
-    static int report_counter = 0; // 静态计数器，用于分时执行任务
-    report_counter++;
-    if (report_counter >= 2)
-    { // 假设主定时器是0.5s，这里大约每秒打印一次
-        report_counter = 0;
+    // static int report_counter = 0; // 静态计数器，用于分时执行任务
+    // report_counter++;
+    // if (report_counter >= 2)
+    // { // 假设主定时器是0.5s，这里大约每秒打印一次
+    //     report_counter = 0;
 
-        In_CurrTime soft_time_read;
-        RTC_Time_t rtc_time_read;
+    //     In_CurrTime soft_time_read;
+    //     RTC_Time_t rtc_time_read;
 
-        read_current_time(&soft_time_read); // 读取软时钟
-        xil_printf("SoftTimer: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-                   (soft_time_read.curr_year % 100), soft_time_read.curr_month,
-                   soft_time_read.curr_day, soft_time_read.curr_hour,
-                   soft_time_read.curr_minute, soft_time_read.curr_second);
+    //     read_current_time(&soft_time_read); // 读取软时钟
+    //     xil_printf("SoftTimer: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+    //                (soft_time_read.curr_year % 100), soft_time_read.curr_month,
+    //                soft_time_read.curr_day, soft_time_read.curr_hour,
+    //                soft_time_read.curr_minute, soft_time_read.curr_second);
 
-        // 读取并打印硬件RTC
-        if (Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read) == XST_SUCCESS)
-        {
-            xil_printf("HW-RTC:    20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-                       rtc_time_read.year, rtc_time_read.month, rtc_time_read.day,
-                       rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
-        }
+    //     // 读取并打印硬件RTC
+    //     if (Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read) == XST_SUCCESS)
+    //     {
+    //         xil_printf("HW-RTC:    20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+    //                    rtc_time_read.year, rtc_time_read.month, rtc_time_read.day,
+    //                    rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
+    //     }
+    // }
+    /* 5. 新增：调用对时任务的超时处理器 */
+    TimeSync_TimeoutHandler();
+    // 查看对时状态函数
+    TimeSyncStatus sync_status = GetGpsTimeSyncStatus();
+    if (sync_status == TIME_SYNC_FAILURE)
+    {
+        // 对时失败，可以决定是否要等待一段时间后重试
+        xil_printf("Main Loop: GPS sync failed. Can decide to retry later.\r\n");
+        // 例如，可以设置一个标志，在几分钟后再次调用 StartGpsTimeSync()
+        g_gps_sync_status = TIME_SYNC_IDLE; // 将状态重置为空闲，以便可以再次启动
     }
+    else if (sync_status == TIME_SYNC_SUCCESS)
+    {
+        xil_printf("Main Loop: GPS sync was successful.\r\n");
+        g_gps_sync_status = TIME_SYNC_IDLE; // 重置状态
+    }
+    else if (sync_status == TIME_SYNC_IN_PROGRESS)
+    {
+        xil_printf("Main Loop: GPS sync is in progress.\r\n");
+    }
+
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }
@@ -375,12 +396,29 @@ int timer_init(XScuTimer *timer_ptr)
     return XST_SUCCESS;
 }
 
-// 建立DMA中断系统
-//   @param   int_ins_ptr是指向XScuGic实例的指针
-//   @param   AxiDmaPtr是指向DMA引擎实例的指针
-//   @param   tx_intr_id是TX通道中断ID
-//   @param   rx_intr_id是RX通道中断ID
-//   @return：成功返回XST_SUCCESS，否则返回XST_FAILURE
+// 为清晰起见，在这里或ADDA.h中定义GIC寄存器偏移量
+// 这些值是Zynq-7000 GIC的标准值
+#define XSCGIC_CPU_CTRL_OFFSET 0x00U
+#define XSCUGIC_CPU_CTRL_OFFSET 0x00U     // CPU Interface Control Register (ICCICR)
+#define XSCGIC_PRIORITY_MASK_OFFSET 0x04U // Interrupt Priority Mask Register (ICCPMR)
+#define XSCGIC_CPU_INTERFACE_ENABLE 0x01U // ICCICR中使能CPU接口的位
+/**
+ * @brief 初始化并配置中断控制器和中断处理函数
+ *
+ * 该函数用于初始化中断控制器，并设置不同中断源的中断处理函数和优先级。
+ *
+ * @param gps_ttc_ptr GPS TTC定时器指针
+ * @param rx_intr_id RX中断ID
+ * @param tx_intr_id TX中断ID
+ * @param underflow_id 下溢中断ID
+ * @param onoffdone_id 开关完成中断ID
+ * @param timer_id 主定时器中断ID
+ * @param debounce_timer_irpt_id 去抖动定时器中断ID
+ * @param gps_uart_intr_id GPS UART中断ID
+ * @param gps_ttc_intr_id GPS TTC中断ID
+ *
+ * @return 成功返回XST_SUCCESS，失败返回XST_FAILURE
+ */
 int setup_intr_system(XScuGic *int_ins_ptr,
                       XAxiDma *axidma_ptr,
                       XScuTimer *timer_ptr, // 主定时器
@@ -399,55 +437,87 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     int status;
     XScuGic_Config *intc_config;
     // 初始化中断控制器驱动
+    // 步骤1: 查找GIC硬件配置
     intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
     if (NULL == intc_config)
     {
         return XST_FAILURE;
     }
+    // // 步骤2: 【关键】手动将查找的配置信息赋给GIC实例。
+    // // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
+    // int_ins_ptr->Config = intc_config;
+
+    // // 步骤3: 【关键】手动初始化CPU1的GIC接口寄存器
+    // // 这个操作替代了不存在的XScuGic_CpuIfInit函数
+    // //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
+    // //! 0xF0 是一个安全通用值。
+    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
+
+    // //! b. 使能CPU1的GIC接口，使其可以接收中断。
+    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
+
+    // // 步骤4: 【关键】手动设置驱动实例为“就绪”状态。
+    // // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
+    // int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
+
+    // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
     status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
         return XST_FAILURE;
     }
 
+    // 建立中断异常处理
+    Xil_ExceptionInit();
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void *)int_ins_ptr);
+    Xil_ExceptionEnable(); // 使能IRQ中断
+
     // 设置优先级和触发类型
     XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, timer_id, 0x20, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0x10, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_uart_intr_id, 0xA0, 0x03);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_ttc_intr_id, 0xA8, 0x03);
-
-    // 外部函数声明 (因为函数定义在main.c中)
-    extern void GpsTimeoutHandler(void *CallBackRef);
-    extern void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData);
-
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
     XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, onoffdone_id, (Xil_InterruptHandler)onoff_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
+    XScuGic_Connect(int_ins_ptr, onoffdone_id, (Xil_InterruptHandler)onoff_handler, (void *)1);
     XScuGic_Connect(int_ins_ptr, debounce_timer_irpt_id, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
     XScuGic_Connect(int_ins_ptr, gps_uart_intr_id, (Xil_InterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
     XScuGic_Connect(int_ins_ptr, gps_ttc_intr_id, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
+
+    // 将中断从CPU0取消映射
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, onoffdone_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, debounce_timer_irpt_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_uart_intr_id);
+    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_ttc_intr_id);
+    // 将中断映射到CPU1
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, onoffdone_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, debounce_timer_irpt_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_uart_intr_id);
+    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_ttc_intr_id);
 
     // 使能
     XScuGic_Enable(int_ins_ptr, rx_intr_id);
     XScuGic_Enable(int_ins_ptr, tx_intr_id);
     XScuGic_Enable(int_ins_ptr, underflow_id);
-    XScuGic_Enable(int_ins_ptr, onoffdone_id);
     XScuGic_Enable(int_ins_ptr, timer_id);
+    XScuGic_Enable(int_ins_ptr, onoffdone_id);
     XScuGic_Enable(int_ins_ptr, debounce_timer_irpt_id);
-    XScuGic_Enable(int_ins_ptr, gps_uart_intr_id);
-    XScuGic_Enable(int_ins_ptr, gps_ttc_intr_id);
-
-    // 打开错误处理
-    Xil_ExceptionInit();
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void *)int_ins_ptr);
-    Xil_ExceptionEnable();
+    // 核心修改: 移除GPS中断的使能，它们将按需开启
+    // XScuGic_Enable(int_ins_ptr, gps_uart_intr_id);
+    // XScuGic_Enable(int_ins_ptr, gps_ttc_intr_id);
 
     // 使能中断
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA

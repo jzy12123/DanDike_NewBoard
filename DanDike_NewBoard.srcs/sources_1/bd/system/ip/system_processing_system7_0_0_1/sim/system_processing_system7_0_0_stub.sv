@@ -226,7 +226,7 @@ module system_processing_system7_0_0 (
   input bit [5 : 0] S_AXI_HP1_WID,
   input bit [63 : 0] S_AXI_HP1_WDATA,
   input bit [7 : 0] S_AXI_HP1_WSTRB,
-  input bit [15 : 0] IRQ_F2P,
+  input bit [11 : 0] IRQ_F2P,
   output bit_as_bool FCLK_CLK0,
   output bit_as_bool FCLK_CLK1,
   output bit_as_bool FCLK_CLK2,
@@ -421,7 +421,7 @@ module system_processing_system7_0_0 (ENET1_GMII_TX_EN,ENET1_GMII_TX_ER,ENET1_MD
   input bit [5 : 0] S_AXI_HP1_WID;
   input bit [63 : 0] S_AXI_HP1_WDATA;
   input bit [7 : 0] S_AXI_HP1_WSTRB;
-  input bit [15 : 0] IRQ_F2P;
+  input bit [11 : 0] IRQ_F2P;
   output wire FCLK_CLK0;
   output wire FCLK_CLK1;
   output wire FCLK_CLK2;
@@ -613,7 +613,7 @@ module system_processing_system7_0_0 (ENET1_GMII_TX_EN,ENET1_GMII_TX_ER,ENET1_MD
   input bit [5 : 0] S_AXI_HP1_WID;
   input bit [63 : 0] S_AXI_HP1_WDATA;
   input bit [7 : 0] S_AXI_HP1_WSTRB;
-  input bit [15 : 0] IRQ_F2P;
+  input bit [11 : 0] IRQ_F2P;
   output wire FCLK_CLK0;
   output wire FCLK_CLK1;
   output wire FCLK_CLK2;

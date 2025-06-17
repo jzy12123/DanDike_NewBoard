@@ -1653,7 +1653,7 @@ proc create_root_design { parentCell } {
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {16} \
+   CONFIG.NUM_PORTS {12} \
  ] $xlconcat_0
 
   # Create interface connections
@@ -1696,15 +1696,11 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets onoff_config_axi_0_OnOff] [get_b
   connect_bd_intf_net -intf_net rgb2lcd_0_rgb_data [get_bd_intf_ports rgb_data] [get_bd_intf_pins lcd/rgb_data]
 
   # Create port connections
-  connect_bd_net -net AC_8_channel_0_bm_syn_end [get_bd_pins AC_8_channel_0/bm_syn_end] [get_bd_pins xlconcat_0/In14]
-  connect_bd_net -net AC_8_channel_0_date_update [get_bd_pins AC_8_channel_0/date_update] [get_bd_pins xlconcat_0/In15]
   connect_bd_net -net AC_8_channel_0_irig_b_out_0 [get_bd_ports irig_b_out_0] [get_bd_pins AC_8_channel_0/irig_b_out_0]
   connect_bd_net -net AC_8_channel_0_mm2s_introut [get_bd_pins AC_8_channel_0/mm2s_introut] [get_bd_pins xlconcat_0/In3]
   connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins system_ila_0/probe0] [get_bd_pins xlconcat_0/In11]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets AC_8_channel_0_onoff_done]
   connect_bd_net -net AC_8_channel_0_pps_50_0 [get_bd_ports pps_50_0] [get_bd_pins AC_8_channel_0/pps_50_0]
-  connect_bd_net -net AC_8_channel_0_pps_bm2cpu [get_bd_pins AC_8_channel_0/pps_bm2cpu] [get_bd_pins xlconcat_0/In13]
-  connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_0/In12]
   connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_0/In4]
   connect_bd_net -net AC_8_channel_0_yad_os_0 [get_bd_ports yad_os_0] [get_bd_pins AC_8_channel_0/yad_os_0]
   connect_bd_net -net Op1_0_0_1 [get_bd_ports key_BoardINT0] [get_bd_pins key_board/Op1_0]

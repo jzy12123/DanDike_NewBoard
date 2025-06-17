@@ -25,4 +25,5 @@ ps7_post_config
 targets -set -nocase -filter {name =~ "*A9*#1"}
 dow C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf
 configparams force-mem-access 0
-bpadd -addr &main
+targets -set -nocase -filter {name =~ "*A9*#1"}
+con

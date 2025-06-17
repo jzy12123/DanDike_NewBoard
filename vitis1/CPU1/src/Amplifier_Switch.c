@@ -8,6 +8,9 @@
 // 全局变量定义
 XTtcPs DebounceTimer;
 float g_debounce_time_ms = DEBOUNCE_TIME_10MS; // 全局可配置的防抖时间，默认10ms
+// 存储最后一次中断触发时的数据和时间戳
+static volatile uint32_t last_onoff_data;
+static volatile OnOff_Timestamp_t last_captured_time;
 /**
  * @brief 读取串行数据，检测并处理保护故障
  *
@@ -277,98 +280,6 @@ double calculate_correction(int channel, int range_idx, float amplitude_percenta
 	}
 }
 
-void OnOff_Module(Operation_Mode OperationMode, Read_Bit ReadBit, uint32_t WriteData, Data_Direction DataDirection)
-{
-	/*1 开关量模块配置*/
-	uint32_t reg8_control_value = 0; // 用于构建写入 slv_reg8 的值
-	uint8_t local_rw_modes = 0;
-	uint8_t local_start_bit = 0;
-	switch (OperationMode)
-	{
-	case Off: // rw_modes = 00, start = 0
-		local_rw_modes = 0x00;
-		local_start_bit = 0;
-		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-		break;
-	case One_ReadWrite: // rw_modes = 01
-		local_rw_modes = 0x01;
-		local_start_bit = 1;
-		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-		break;
-	case Random_ReadWrite: // rw_modes = 10, start = 1
-		local_rw_modes = 0x02;
-		local_start_bit = 1;
-		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-		break;
-	case Time_ReadWrite:
-		local_rw_modes = 0x03;
-		local_start_bit = 1;
-		reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-		break;
-	default:
-		printf("CPU1: Unrecognized Switch operation mode!\r\n");
-		break;
-	}
-	/*2 输入输出选择*/
-	uint32_t Read_OnOff;
-	switch (DataDirection)
-	{
-	case Write:
-		/*开关量模块输出*/
-		Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Write_ADDR, WriteData); // 写入数据
-		if (OperationMode == One_ReadWrite)
-		{
-			// 单次写模式下要给一个start上升沿
-			local_rw_modes = 0x01;
-			// 需要产生 start 上升沿：先写0再写1
-			// 第一次写入：start=0
-			reg8_control_value = (((uint32_t)0 & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-			Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-			usleep(10); // 短暂延时，确保时序
-			// 第二次写入：start=1
-			reg8_control_value = (((uint32_t)1 & 0x1) << 24) | (((ReadBit + 1) & 0x7) << 16) | (((uint32_t)local_rw_modes & 0x3) << 30);
-			Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
-		}
-		break;
-	case Read:
-		/*开关量模块输入*/
-		switch (ReadBit)
-		{
-		case 0:
-			Read_OnOff = (u8)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
-			break;
-		case 1:
-			Read_OnOff = (u16)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
-			break;
-		case 2:
-			Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR)) & 0x00FFFFFF;
-			break;
-		case 3:
-			Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
-			break;
-		default:
-			xil_printf("CPU1: Invalid Data_width in Control_OnOff. Reading as 32-bit.\r\n"); // 无效数据宽度
-			break;
-		}
-		char s[33];
-		itoa(Read_OnOff, s, 2);
-		xil_printf("CPU1: Read OnOffMudule Data : %s\r\n", s);
-
-		if (OperationMode == Time_ReadWrite)
-		{
-			Read_OnOff_Latch_Time();
-		}
-		break;
-	default:
-		printf("CPU1: Unrecognized Data Direction!\r\n");
-		break;
-	}
-}
-
 u32 invert_Binary(u32 num)
 {
 	u32 m1 = 0x55555555; // 01010101...
@@ -386,14 +297,279 @@ u32 invert_Binary(u32 num)
 }
 
 /**
- * @brief 读取锁存的时间信息
- *
- * 该函数从指定的寄存器中读取锁存的时间信息，包括小时、分钟、秒、日内秒和亚秒，并将时间信息打印出来。
- *
- * @note 该函数假设已经正确设置了寄存器基地址和偏移量。
+ * @brief 初始化用于防抖的TTC定时器
+ * @return 成功返回 XST_SUCCESS, 否则返回 XST_FAILURE
  */
-void Read_OnOff_Latch_Time(void)
+int debounce_timer_init()
 {
+	XTtcPs_Config *TimerConfig;
+	s32 Status;
+
+	// 查找TTC设备配置
+	TimerConfig = XTtcPs_LookupConfig(DEBOUNCE_TIMER_DEVICE_ID);
+	if (NULL == TimerConfig)
+	{
+		return XST_FAILURE;
+	}
+	TimerConfig->InputClockHz = 111111115; // TTC时钟频率设置为 111.111115 MHz
+	xil_printf("CPU1: TTC0 clock frequency set to %u Hz based on hardware design.\r\n", (unsigned int)TimerConfig->InputClockHz);
+
+	// ------------------- 结束修改 -------------------
+
+	// 使用修正后的配置初始化TTC设备驱动
+	Status = XTtcPs_CfgInitialize(&DebounceTimer, TimerConfig, TimerConfig->BaseAddress);
+	if (Status != XST_SUCCESS)
+	{
+		return XST_FAILURE;
+	}
+
+	// 设置定时器为间隔模式，并停止它以进行配置
+	XTtcPs_SetOptions(&DebounceTimer, XTTCPS_OPTION_INTERVAL_MODE);
+	XTtcPs_Stop(&DebounceTimer);
+
+	return XST_SUCCESS;
+}
+
+/**
+ * @brief 设置并启动防抖定时器 (已修正)
+ * @param timeout_ms 需要的防抖延时，单位为毫秒 (ms)
+ * @comment 此函数现在会根据传入的延时时间和TTC的实际输入时钟频率，
+ * 动态计算并设置正确的Interval和Prescaler值。
+ */
+void start_debounce_timer(float timeout_ms)
+{
+	// 检查输入参数有效性，防止除零错误
+	if (timeout_ms <= 0.0f)
+	{
+		printf("Error: Debounce timeout must be positive.\n");
+		return;
+	}
+
+	// 目标频率 = 1 / 延时(秒)
+	// 例如，10ms延时 -> 目标频率 = 1 / 0.01s = 100Hz
+	u32 target_freq = (u32)(1000.0f / timeout_ms);
+
+	XInterval Interval;
+	u8 Prescaler;
+
+	// 使用Xilinx驱动函数来自动计算最佳的Interval和Prescaler
+	// DebounceTimer.Config.InputClockHz 是在 debounce_timer_init 中获取并设置的实际时钟频率
+	XTtcPs_CalcIntervalFromFreq(&DebounceTimer, target_freq, &Interval, &Prescaler);
+
+	// 停止定时器以安全地配置它
+	XTtcPs_Stop(&DebounceTimer);
+
+	// 设置新计算出的分频和计数值
+	XTtcPs_SetPrescaler(&DebounceTimer, Prescaler);
+	XTtcPs_SetInterval(&DebounceTimer, Interval);
+
+	// 启动定时器
+	XTtcPs_Start(&DebounceTimer);
+}
+/**
+ * @brief 开关中断处理函数
+ *
+ * 当检测到开关中断时，该函数将被调用。
+ *
+ * 该函数会立即禁用onoff_done中断，以防止在抖动期间重复触发。
+ * 然后启动一个一次性防抖定时器，等待指定的防抖时间。
+ *
+ * @note 防抖时间由全局变量g_debounce_time_ms指定。
+ */
+void onoff_handler(void)
+{
+	// 检查设定的防抖时间
+	if (g_debounce_time_ms <= 0.1f)
+	{
+		// --- 防抖时间无意义，直接处理事件 ---
+
+		// 1. 立即读取硬件锁存的数据和时间戳
+		OnOff_Timestamp_t immediate_event_time;
+		uint32_t immediate_event_data;
+		OnOff_Read_LatchedData(bit_8, &immediate_event_data, &immediate_event_time);
+
+		// 2. 打印信息，表明已跳过防抖并立即生成SOE
+		printf("--------------------------------------------------\r\n");
+		printf("CPU1: SOE Event Valid (Debounce Bypassed)!\r\n");
+		printf("CPU1: Debounce Time Setting (<= 0.1ms) is shorter than hardware limit.\r\n");
+		printf("CPU1: Event Processed Instantly at: %u:%u:%u:%lu\r\n",
+			   immediate_event_time.hour, immediate_event_time.minute,
+			   immediate_event_time.second, (uint32_t)immediate_event_time.sub_sec);
+		printf("CPU1: Event Data: 0x%08lX\r\n", immediate_event_data);
+		printf("--------------------------------------------------\r\n");
+
+		// TODO: 在这里添加您的JSON上报逻辑
+		// 使用 immediate_event_time 和 immediate_event_data 生成SOE记录
+	}
+	else
+	{
+		// --- 正常执行可重触发防抖流程 ---
+
+		// 1. 每次中断触发，都重新读取硬件锁存的最新数据和时间戳
+		OnOff_Read_LatchedData(bit_8, (uint32_t *)&last_onoff_data, (OnOff_Timestamp_t *)&last_captured_time);
+
+
+		// 3. 启动或重新启动防抖定时器
+		start_debounce_timer(g_debounce_time_ms);
+	}
+}
+/**
+ * @brief 防抖定时器的中断服务程序 (最终版)
+ * @param CallBackRef 回调引用
+ * @comment 此函数在防抖延时结束后执行，进行数据稳定新检查，并精确测量TTC延时。
+ */
+void debounce_timer_handler(void *CallBackRef)
+{
+	// 1. 停止定时器并清除中断状态
+	XTtcPs_Stop(&DebounceTimer);
+	XTtcPs_ClearInterruptStatus(&DebounceTimer, XTTCPS_IXR_INTERVAL_MASK);
+
+	// 新增：在处理开始时，立即读取当前时间作为“结束时间”
+	In_CurrTime debounce_complete_time;
+	read_current_time(&debounce_complete_time);
+
+	// 2. 读取防抖结束后，当前稳定的硬件输入数据
+	uint32_t stable_input_data;
+	OnOff_Timestamp_t temp_timestamp; // 这个时间戳是硬件最新的，我们不用它来计算延时
+	OnOff_Read_LatchedData(bit_8, &stable_input_data, &temp_timestamp);
+
+	// 3. 检查信号是否真的稳定
+	if (stable_input_data == last_onoff_data)
+	{
+		// 信号稳定，是有效事件
+
+		// 新增：计算精确的实际防抖时间
+		// 假设防抖时间远小于1分钟，我们只处理秒级的进位
+		long long start_subsec = last_captured_time.sub_sec;
+		long long end_subsec = debounce_complete_time.curr_subsec;
+
+		// 新增：处理秒进位的情况
+		// 如果秒数不同，说明计时跨越了秒的边界
+		if (debounce_complete_time.curr_second != last_captured_time.second)
+		{
+			// 为结束时间的亚秒值加上一个整秒对应的单位数 (1秒 = 10,000,000个0.1us单位)
+			end_subsec += 10000000;
+		}
+
+		long long diff_subsec = end_subsec - start_subsec;
+
+		// 新增：将亚秒单位 (0.1us) 转换为毫秒
+		float elapsed_ms = (float)diff_subsec / 10000.0f;
+
+		// 打印最终的有效事件信息，并包含防抖时间
+		printf("--------------------------------------------------\r\n");
+		printf("CPU1: SOE Event Valid!\r\n");
+		// printf("CPU1: Debounce Time Setting: %.1f ms\r\n", g_debounce_time_ms);
+		printf("CPU1: Measured Debounce Delay: %.3f ms\r\n", elapsed_ms); // 新增此行，显示计算出的实际延时
+		printf("CPU1: Event Trigger Time (T2): %u:%u:%u:%lu\r\n",
+			   last_captured_time.hour, last_captured_time.minute,
+			   last_captured_time.second, (uint32_t)last_captured_time.sub_sec);
+		// printf("CPU1: Debounce Complete Time:    %u:%u:%u:%lu\r\n",
+		// 	   debounce_complete_time.curr_hour, debounce_complete_time.curr_minute,
+		// 	   debounce_complete_time.curr_second, debounce_complete_time.curr_subsec);
+		printf("CPU1: Stable Data: 0x%08lX\r\n", stable_input_data);
+		printf("--------------------------------------------------\r\n");
+
+		// TODO: 在这里添加您的JSON上报逻辑
+	}
+	else
+	{
+		// 信号不稳定（抖动）
+		printf("CPU1: Input bounce detected and ignored. Last captured data: 0x%08lX, but stable data is now: 0x%08lX\r\n",
+			   last_onoff_data, stable_input_data);
+	}
+}
+
+/**
+ * @brief 启动开关量模块
+ *
+ * 该函数启动开关量模块，并根据输入的比特宽度配置寄存器。
+ *
+ * @param bit_width 开关量模块的比特宽度，即读取的比特数
+ */
+void OnOff_Start(Read_Bit bit_width, uint8_t start)
+{
+	uint32_t reg_control_value = 0; // 用于构建写入 slv_reg8 的值
+	uint8_t local_start_bit = 0;
+	sleep(1); // 等待硬件初始化完成
+	// 冗余中断映射
+	XScuGic_InterruptMaptoCpu(&intc, CPU1_ID, OnOffDone_INTR_ID);
+	/*开关量模块配置*/
+	local_start_bit = start;
+	reg_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((bit_width + 1) & 0x7) << 16);
+	Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg_control_value);
+	printf("CPU1: OnOff Module Start to %d-bit Mode,start is %u.\r\n", 8 * (bit_width + 1), local_start_bit);
+}
+/**
+ * @brief 停止开关量模块
+ *
+ * 该函数通过写入特定的值到寄存器来停止开关量模块的工作。
+ *
+ * @note 本函数会向指定寄存器写入一个值，该值通过参数组合生成，用于控制开关量模块的状态。
+ */
+void OnOff_Stop()
+{
+	uint32_t reg8_control_value = 0; // 用于构建写入 slv_reg8 的值
+	uint8_t local_start_bit = 0;
+	/*开关量模块配置*/
+	local_start_bit = 1;
+	reg8_control_value = (((uint32_t)local_start_bit & 0x1) << 24);
+	Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg8_control_value);
+	printf("CPU1: OnOff Module Stop.\r\n");
+}
+/**
+ * @brief 连续写入开关量输出数据
+ *
+ * 在模块被初始化为连续读写模式（如Random_ReadWrite或Time_ReadWrite）后调用。
+ * 此函数仅更新需要输出到TPIC6B595的数据，硬件会自动串行移出。
+ * 此操作不触发 `done` 信号。
+ * @param output_data 要写入的32位数据。
+ */
+void OnOff_Write_Continuous(uint32_t output_data)
+{
+	// 直接向OnOff_Write_ADDR (slv_reg13) 写入数据
+	Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Write_ADDR, output_data);
+}
+
+/**
+ * @brief 读取锁存的开关量输入数据和时间戳
+ *
+ * 此函数应在 `done` 中断触发后调用。
+ * 它从硬件寄存器中读取因输入变化而被锁存的数据和高精度时间戳。
+ * @param read_data 用于存储读取的32位开关量数据的指针。
+ * @param timestamp 用于存储读取的时间戳的结构体指针。
+ */
+void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, OnOff_Timestamp_t *timestamp)
+{
+	if (!read_data || !timestamp)
+	{
+		return;
+	}
+
+	/*读取开入数据*/
+	/*开关量模块输入*/
+	uint32_t Read_OnOff;
+	switch (bit_width)
+	{
+	case 0:
+		Read_OnOff = (u8)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+		break;
+	case 1:
+		Read_OnOff = (u16)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+		break;
+	case 2:
+		Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR)) & 0x00FFFFFF;
+		break;
+	case 3:
+		Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+		break;
+	default:
+		xil_printf("CPU1: Invalid Data_width in Control_OnOff. Reading as 32-bit.\r\n"); // 无效数据宽度
+		break;
+	}
+	*read_data = Read_OnOff;
+
+	/*读取时间戳寄存器*/
 	uint32_t reg11_val, reg12_val, reg13_val;
 	uint8_t latch_hour_bcd, latch_minute_bcd, latch_second_bcd;
 	uint32_t latch_daysec_bin, latch_subsec_bin;
@@ -433,112 +609,15 @@ void Read_OnOff_Latch_Time(void)
 	second_ones = latch_second_bcd & 0x0F;
 
 	// 打印信息
-	xil_printf("CPU1: OnOff Latch Time - HH:MM:SS = %d%d:%d%d:%d%d (BCD)\r\n",
-			   hour_tens, hour_ones,
-			   minute_tens, minute_ones,
-			   second_tens, second_ones);
-	// xil_printf("CPU1: OnOff Latch Time - DaySeconds: %lu (Binary)\r\n", latch_daysec_bin);
-	// // 亚秒计数器是10MHz时钟驱动的，所以每个计数单位是0.1微秒
-	// xil_printf("CPU1: OnOff Latch Time - SubSeconds: %lu (Binary, raw count)\r\n", latch_subsec_bin);
-	// xil_printf("CPU1: OnOff Latch Time - SubSeconds: %lu us, %lu ns\r\n", (latch_subsec_bin / 10), (latch_subsec_bin * 100));
-}
+	// xil_printf("CPU1: OnOff Latch Time - HH:MM:SS = %d%d:%d%d:%d%d (BCD)\r\n",
+	// 		   hour_tens, hour_ones,
+	// 		   minute_tens, minute_ones,
+	// 		   second_tens, second_ones);
 
-void Init_OnOffModule(void)
-{
-	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Write);
-	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Read);
-}
-
-
-
-/**
- * @brief 初始化用于防抖的TTC定时器
- * @return 成功返回 XST_SUCCESS, 否则返回 XST_FAILURE
- */
-int debounce_timer_init()
-{
-	XTtcPs_Config *TimerConfig;
-	s32 Status;
-
-	// 查找TTC设备配置
-	TimerConfig = XTtcPs_LookupConfig(DEBOUNCE_TIMER_DEVICE_ID);
-	if (NULL == TimerConfig)
-	{
-		return XST_FAILURE;
-	}
-
-	// 初始化TTC设备驱动
-	Status = XTtcPs_CfgInitialize(&DebounceTimer, TimerConfig, TimerConfig->BaseAddress);
-	if (Status != XST_SUCCESS)
-	{
-		return XST_FAILURE;
-	}
-
-	// 设置定时器为间隔模式，并停止它以进行配置
-	XTtcPs_SetOptions(&DebounceTimer, XTTCPS_OPTION_INTERVAL_MODE);
-	XTtcPs_Stop(&DebounceTimer);
-
-	return XST_SUCCESS;
-}
-
-/**
- * @brief 设置并启动防抖定时器
- * @param timeout_ms 定时时长 (毫秒)
- */
-void start_debounce_timer(float timeout_ms)
-{
-//	u32 Freq = XPAR_XTTCPS_0_CLOCK_HZ; // 获取TTC时钟频率
-	u8 Prescaler = 0;
-	XInterval Interval;
-
-	// 计算最佳的分频器和计数值
-	XTtcPs_CalcIntervalFromFreq(&DebounceTimer, (u32)(1000.0f / timeout_ms), &Interval, &Prescaler);
-	XTtcPs_SetPrescaler(&DebounceTimer, Prescaler);
-	XTtcPs_SetInterval(&DebounceTimer, Interval);
-
-	// 启动定时器
-	XTtcPs_Start(&DebounceTimer);
-}
-/**
- * @brief 防抖定时器的中断服务程序
- * @param CallBackRef 回调引用
- * @comment 此函数在防抖延时结束后执行
- */
-void debounce_timer_handler(void *CallBackRef)
-{
-	// 1. 停止定时器并清除中断状态
-	XTtcPs_Stop(&DebounceTimer);
-//	u32 StatusEvent = XTtcPs_GetInterruptStatus((XTtcPs *)CallBackRef);
-	XTtcPs_ClearInterruptStatus((XTtcPs *)CallBackRef, StatusEvent);
-
-	// 2. 读取稳定后的开关量状态
-	//    这里的Read操作会获取到抖动结束后最终的、真实的状态
-	printf("Debounce time elapsed, reading stable input state.\n");
-	OnOff_Module(Time_ReadWrite, bit_8, 0xffffffff, Read); // 此函数内部会打印读取到的值
-
-	// 3. 在这里添加你希望在检测到稳定开入后执行的逻辑...
-
-	// 4. 清除并重新使能 onoff_done 中断，为下一次变化做准备
-	XScuGic_Enable(&intc, OnOffDone_INTR_ID);
-	printf("OnOff interrupt re-enabled.\n");
-}
-
-/**
- * @brief 开关中断处理函数
- *
- * 当检测到开关中断时，该函数将被调用。
- *
- * 该函数会立即禁用onoff_done中断，以防止在抖动期间重复触发。
- * 然后启动一个一次性防抖定时器，等待指定的防抖时间。
- *
- * @note 防抖时间由全局变量g_debounce_time_ms指定。
- */
-void onoff_handler(void)
-{
-	// 立即禁用 onoff_done 中断，防止抖动期间的重复触发
-	XScuGic_Disable(&intc, OnOffDone_INTR_ID);
-	// printf("OnOff interrupt detected and disabled. Starting debounce timer for %.1f ms.\n", g_debounce_time_ms);
-
-	// 启动一次性防抖定时器
-	start_debounce_timer(g_debounce_time_ms);
+	// 解析并填充时间戳结构体
+	timestamp->hour = (uint8_t)(hour_tens * 10 + hour_ones);
+	timestamp->minute = (uint8_t)(minute_tens * 10 + minute_ones);
+	timestamp->second = (uint8_t)(second_tens * 10 + second_ones);
+	timestamp->day_sec = latch_daysec_bin;
+	timestamp->sub_sec = latch_subsec_bin;
 }

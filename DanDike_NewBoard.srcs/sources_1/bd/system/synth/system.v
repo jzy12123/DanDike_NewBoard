@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Thu Jun  5 20:09:09 2025
+//Date        : Tue Jun 17 17:39:45 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -8497,14 +8497,10 @@ module system
   (* X_INTERFACE_INFO = "xilinx.com:interface:gpio:1.0 rgb_data TRI_T" *) output [18:0]rgb_data_tri_t;
   output [1:0]yad_os_0;
 
-  wire AC_8_channel_0_bm_syn_end;
-  wire AC_8_channel_0_date_update;
   wire AC_8_channel_0_irig_b_out_0;
   wire AC_8_channel_0_mm2s_introut;
   (* DEBUG = "true" *) (* MARK_DEBUG *) wire AC_8_channel_0_onoff_done;
   wire AC_8_channel_0_pps_50_0;
-  wire AC_8_channel_0_pps_bm2cpu;
-  wire AC_8_channel_0_pps_in2cpu;
   wire AC_8_channel_0_prog_empty;
   wire [1:0]AC_8_channel_0_yad_os_0;
   wire [0:0]Op1_0_0_1;
@@ -9010,7 +9006,7 @@ module system
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
   wire v_tc_0_irq;
-  wire [15:0]xlconcat_0_dout;
+  wire [11:0]xlconcat_0_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -9252,17 +9248,13 @@ module system
         .WrSerial_0_wr_load(onoff_config_axi_0_WrSerial_wr_load),
         .WrSerial_0_wr_sclk(onoff_config_axi_0_WrSerial_wr_sclk),
         .WrSerial_0_wr_sdo(onoff_config_axi_0_WrSerial_wr_sdo),
-        .bm_syn_end(AC_8_channel_0_bm_syn_end),
         .clk_10MHz_0(clk_10MHz_0_1),
-        .date_update(AC_8_channel_0_date_update),
         .irig_b_in_0(irig_b_in_0_1),
         .irig_b_out_0(AC_8_channel_0_irig_b_out_0),
         .mm2s_introut(AC_8_channel_0_mm2s_introut),
         .onoff_done(AC_8_channel_0_onoff_done),
         .pps_50_0(AC_8_channel_0_pps_50_0),
-        .pps_bm2cpu(AC_8_channel_0_pps_bm2cpu),
         .pps_gps_0(pps_gps_0_1),
-        .pps_in2cpu(AC_8_channel_0_pps_in2cpu),
         .pps_in_0(pps_in_0_1),
         .prog_empty(AC_8_channel_0_prog_empty),
         .s2mm_introut(axi_dma_0_s2mm_introut),
@@ -10120,10 +10112,6 @@ module system
         .In1(v_tc_0_irq),
         .In10(RTC_EEPROM_iic2intc_irpt),
         .In11(AC_8_channel_0_onoff_done),
-        .In12(AC_8_channel_0_pps_in2cpu),
-        .In13(AC_8_channel_0_pps_bm2cpu),
-        .In14(AC_8_channel_0_bm_syn_end),
-        .In15(AC_8_channel_0_date_update),
         .In2(axi_dma_0_s2mm_introut),
         .In3(AC_8_channel_0_mm2s_introut),
         .In4(AC_8_channel_0_prog_empty),
