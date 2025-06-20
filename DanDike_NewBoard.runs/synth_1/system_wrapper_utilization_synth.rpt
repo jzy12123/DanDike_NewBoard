@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Tue Jun 17 17:46:12 2025
+| Date         : Thu Jun 19 19:46:11 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
 | Design       : system_wrapper
@@ -30,13 +30,13 @@ Table of Contents
 +----------------------------+-------+-------+-----------+-------+
 |          Site Type         |  Used | Fixed | Available | Util% |
 +----------------------------+-------+-------+-----------+-------+
-| Slice LUTs*                | 20278 |     0 |     53200 | 38.12 |
-|   LUT as Logic             | 18060 |     0 |     53200 | 33.95 |
+| Slice LUTs*                | 20298 |     0 |     53200 | 38.15 |
+|   LUT as Logic             | 18080 |     0 |     53200 | 33.98 |
 |   LUT as Memory            |  2218 |     0 |     17400 | 12.75 |
 |     LUT as Distributed RAM |   662 |     0 |           |       |
 |     LUT as Shift Register  |  1556 |     0 |           |       |
-| Slice Registers            | 29196 |     0 |    106400 | 27.44 |
-|   Register as Flip Flop    | 29196 |     0 |    106400 | 27.44 |
+| Slice Registers            | 29203 |     0 |    106400 | 27.45 |
+|   Register as Flip Flop    | 29203 |     0 |    106400 | 27.45 |
 |   Register as Latch        |     0 |     0 |    106400 |  0.00 |
 | F7 Muxes                   |   473 |     0 |     26600 |  1.78 |
 | F8 Muxes                   |   100 |     0 |     13300 |  0.75 |
@@ -59,7 +59,7 @@ Table of Contents
 | 20    |          Yes |           - |          Set |
 | 647   |          Yes |           - |        Reset |
 | 948   |          Yes |         Set |            - |
-| 27581 |          Yes |       Reset |            - |
+| 27588 |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -69,10 +69,10 @@ Table of Contents
 +-------------------+------+-------+-----------+-------+
 |     Site Type     | Used | Fixed | Available | Util% |
 +-------------------+------+-------+-----------+-------+
-| Block RAM Tile    |   42 |     0 |       140 | 30.00 |
-|   RAMB36/FIFO*    |   40 |     0 |       140 | 28.57 |
+| Block RAM Tile    |   48 |     0 |       140 | 34.29 |
+|   RAMB36/FIFO*    |   46 |     0 |       140 | 32.86 |
 |     FIFO36E1 only |    5 |       |           |       |
-|     RAMB36E1 only |   35 |       |           |       |
+|     RAMB36E1 only |   41 |       |           |       |
 |   RAMB18          |    4 |     0 |       280 |  1.43 |
 |     RAMB18E1 only |    4 |       |           |       |
 +-------------------+------+-------+-----------+-------+
@@ -156,14 +156,14 @@ Table of Contents
 +------------+-------+----------------------+
 |  Ref Name  |  Used |  Functional Category |
 +------------+-------+----------------------+
-| FDRE       | 27581 |         Flop & Latch |
-| LUT3       |  7215 |                  LUT |
-| LUT6       |  6246 |                  LUT |
-| LUT4       |  3032 |                  LUT |
-| LUT5       |  2998 |                  LUT |
-| LUT2       |  1766 |                  LUT |
+| FDRE       | 27588 |         Flop & Latch |
+| LUT3       |  7211 |                  LUT |
+| LUT6       |  6267 |                  LUT |
+| LUT4       |  3034 |                  LUT |
+| LUT5       |  2987 |                  LUT |
+| LUT2       |  1790 |                  LUT |
 | RAMD32     |   992 |   Distributed Memory |
-| LUT1       |   978 |                  LUT |
+| LUT1       |   977 |                  LUT |
 | FDSE       |   948 |         Flop & Latch |
 | SRL16E     |   818 |   Distributed Memory |
 | CARRY4     |   785 |           CarryLogic |
@@ -175,7 +175,7 @@ Table of Contents
 | MUXF8      |   100 |                MuxFx |
 | IBUF       |    50 |                   IO |
 | OBUF       |    42 |                   IO |
-| RAMB36E1   |    35 |         Block Memory |
+| RAMB36E1   |    41 |         Block Memory |
 | OBUFT      |    29 |                   IO |
 | FDPE       |    20 |         Flop & Latch |
 | BUFG       |    10 |                Clock |

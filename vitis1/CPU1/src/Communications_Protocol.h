@@ -12,6 +12,7 @@
 #include "Msg_que.h"
 #include "Rc64.h"
 #include <math.h>
+#include "Amplifier_Switch.h"
 
 #define JSON_ADDR 0x3AC00000
 
@@ -40,7 +41,6 @@ typedef enum
 	BaseDataDCS = 301,
 	BaseDataDCM = 401,
 	DI = 501,
-	DISOE = 510,
 	DO = 502,
 	InnerBattery = 2,
 	VMData = 110
@@ -56,7 +56,6 @@ typedef struct
 	bool BaseDataDCS;
 	bool BaseDataDCM;
 	bool DI;
-	bool DISOE;
 	bool DO;
 	bool InnerBattery;
 	bool VMData; // DK51D专用数据上报
@@ -155,22 +154,8 @@ typedef struct
 } LineDO;
 extern LineDO lineDO;
 
-// 510=DISOE, 开入量事件记录
-// 10 * （1+1+2+4）=> 80
-typedef struct
-{
-	uint8_t Chn;   // 通道号,从1开始;
-	uint8_t Val;   // 0=分,1=合
-	uint16_t MS;   // 毫秒,0~1000
-	uint32_t TIME; // 从1970年经过的秒数
-} SingleDisoe;
-typedef struct
-{
-	SingleDisoe DISOE[DisoeMsgNum];
-} LineDisoe;
-extern LineDisoe lineDisoe;
+#define MAXPAYLOAD (2 * sizeof(u32) + sizeof(DevState)) + (2 * sizeof(u32) + sizeof(LineAC)) + (2 * sizeof(u32) + sizeof(LineHarm)) + (2 * sizeof(u32) + sizeof(LineDI)) + (2 * sizeof(u32) + sizeof(LineDO)) + sizeof(u32) // 数据区+帧尾区									  // 帧
 
-#define MAXPAYLOAD (2 * sizeof(u32) + sizeof(DevState)) + (2 * sizeof(u32) + sizeof(LineAC)) + (2 * sizeof(u32) + sizeof(LineHarm)) + (2 * sizeof(u32) + sizeof(LineDI)) + (2 * sizeof(u32)) + (2 * sizeof(u32) + sizeof(LineDO)) + (2 * sizeof(u32) + sizeof(LineDisoe)) + sizeof(u32) // 数据区+帧尾区
 typedef struct
 {
 	// 帧头区
@@ -182,7 +167,6 @@ typedef struct
 	u8 reserved[3]; // 00 00 00
 	// 数据区
 	char payload[MAXPAYLOAD]; // 帧尾区也放进payload
-							  //    char endFooter[4];			// E1E2E3E4
 } UDPPacket;
 
 /*****************************************************************************************************
@@ -278,7 +262,6 @@ typedef struct
 // 3.4 开出设置
 typedef struct
 {
-
 	int Chn;
 	bool val;
 } SetDO_Vals;
@@ -286,6 +269,7 @@ typedef struct
 {
 	SetDO_Vals Vals[ChnsBO];
 } SetDO;
+extern SetDO setDO;
 
 // 定义JSON回报结构体
 typedef struct
@@ -303,6 +287,8 @@ extern const char ARM_Ver_Full[];
 
 extern uint8_t paused_bClosedLoop_state;
 extern uint8_t target_powamp_enable_state_after_pause;
+
+extern uint32_t g_do_output_state; // <--- 新增: 开出状态全局变量
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/
@@ -315,7 +301,6 @@ void initLineAC(LineAC *lineAC);
 void initLineHarm(LineHarm *lineHarm);
 void initLineDI(LineDI *lineDI);
 void initLineDO(LineDO *lineDO);
-void initLineDisoe(LineDisoe *lineDisoe);
 void init_JsonUdp(void);
 
 int Parse_JsonCommand(char *buffer);
@@ -330,11 +315,11 @@ void handle_SetDCM(cJSON *data);
 void handle_SetACS(cJSON *data);
 void handle_SetACM(cJSON *data);
 void handle_SetHarm(cJSON *data);
-void handle_SetInterHarm(cJSON *data);
+void handle_SetDI(cJSON *data);
 void handle_SetDO(cJSON *data);
 void handle_StopDCS(cJSON *data);
-void handle_SetHarmStatus(cJSON *data); // NEW
-void handle_SetACStatus(cJSON *data);	// NEW
+void handle_SetHarmStatus(cJSON *data); 
+void handle_SetACStatus(cJSON *data);	
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);

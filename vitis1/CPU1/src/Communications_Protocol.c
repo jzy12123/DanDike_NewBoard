@@ -30,8 +30,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.250527.0946";
-const char ARM_Ver_Full[] = "[Ver]=V1.250617.1920";
+const char FPGA_Ver_Full[] = "[Ver]=V1.250620.1941";
+const char ARM_Ver_Full[] = "[Ver]=V1.250620.2039";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -45,6 +45,8 @@ static bool harmonics_are_paused = false;
 static float paused_Wave_Amplitude[8];
 uint8_t paused_bClosedLoop_state;
 uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
+
+uint32_t g_do_output_state = 0; // <--- 新增: 存储开出硬件状态
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -101,6 +103,7 @@ int Parse_JsonCommand(char *buffer)
         {"SetACS", handle_SetACS},
         {"SetACM", handle_SetACM},
         {"SetHarm", handle_SetHarm},
+        {"SetDI", handle_SetDI},
         {"SetDO", handle_SetDO},
         {"StopDCS", handle_StopDCS},
         {"SetHarmStatus", handle_SetHarmStatus},
@@ -115,7 +118,7 @@ int Parse_JsonCommand(char *buffer)
     extractContentBetweenPipes(buffer);
 
     // 打印buffer里的数据
-    // printf("CPU1: Recived_JSON: %s\r\n", buffer);
+    printf("CPU1: Recived_JSON: %s\r\n", buffer);
 
     // 使用cJSON解析JSON字符串
     cJSON *json = cJSON_Parse(buffer);
@@ -170,7 +173,7 @@ void handle_GetFunCodeList(cJSON *data)
     // 定义 FunCode 列表
     const char *CmdList[] = {
         "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetReportEnable",
-        "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetDO",
+        "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetDO", "SetDI",
         "StopDCS", "SetHarmStatus", "SetACStatus", "SetCalibrateAC",
         "WriteCalibrateAC", "RestoreCalibrateDefault"};
 
@@ -490,9 +493,27 @@ void handle_GetDevState(cJSON *data)
     }
     cJSON_AddItemToObject(dataObj, "DCM", dcm);
 
+    // 根据全局配置获取当前DI/DO的有效位数
+    int num_bits;
+    switch (g_onoff_bit_width)
+    {
+    case bit_16:
+        num_bits = 16;
+        break;
+    case bit_24:
+        num_bits = 24;
+        break;
+    case bit_32:
+        num_bits = 32;
+        break;
+    case bit_8:
+    default:
+        num_bits = 8;
+        break;
+    }
     // DO 信息
     cJSON *doInfo = cJSON_CreateArray();
-    for (int i = 0; i < ChnsBO; i++)
+    for (int i = 0; i < num_bits; i++) // 使用动态的num_bits
     {
         cJSON_AddItemToArray(doInfo, cJSON_CreateNumber(lineDO.DO[i].v));
     }
@@ -500,7 +521,7 @@ void handle_GetDevState(cJSON *data)
 
     // DI 信息
     cJSON *diInfo = cJSON_CreateArray();
-    for (int i = 0; i < ChnsBI; i++)
+    for (int i = 0; i < num_bits; i++)
     {
         cJSON_AddItemToArray(diInfo, cJSON_CreateNumber(lineDI.DI[i].v));
     }
@@ -556,7 +577,7 @@ void handle_GetDevState(cJSON *data)
     free(string);
 }
 
-ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true, true};
+ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true};
 /**
  * @brief 处理 handle_SetReportEnable 的逻辑
  *
@@ -620,14 +641,6 @@ void handle_SetReportEnable(cJSON *data)
         reportStatus.DI = cJSON_IsTrue(DI);
     }
 
-    // 获取 DISOE 并更新使能状态
-    cJSON *DISOE = cJSON_GetObjectItem(data, "DISOE");
-    if (DISOE != NULL)
-    {
-        // DISOE 使能状态更新
-        reportStatus.DISOE = cJSON_IsTrue(DISOE);
-    }
-
     // 获取 DO 并更新使能状态
     cJSON *DO = cJSON_GetObjectItem(data, "DO");
     if (DO != NULL)
@@ -666,7 +679,6 @@ void handle_SetReportEnable(cJSON *data)
     cJSON_AddBoolToObject(dataObj, "BaseDataDCS", reportStatus.BaseDataDCS);
     cJSON_AddBoolToObject(dataObj, "BaseDataDCM", reportStatus.BaseDataDCM);
     cJSON_AddBoolToObject(dataObj, "DI", reportStatus.DI);
-    cJSON_AddBoolToObject(dataObj, "DISOE", reportStatus.DISOE);
     cJSON_AddBoolToObject(dataObj, "DO", reportStatus.DO);
     cJSON_AddBoolToObject(dataObj, "InnerBattery", reportStatus.InnerBattery);
     cJSON_AddBoolToObject(dataObj, "VMData", reportStatus.VMData);
@@ -1300,41 +1312,153 @@ void handle_SetHarm(cJSON *data)
 }
 
 SetDO setDO;
+/**
+ * @brief 处理 SetDO (开出设置) 请求
+ * @param data 包含开出设置数据的 cJSON 对象
+ */
 void handle_SetDO(cJSON *data)
 {
-    // 处理 handle_SetDO 的逻辑
-    //    xil_printf("CPU1: Handling handle_SetDO...\r\n");
+    cJSON *val_item = NULL;
 
-    int dataCount = cJSON_GetArraySize(data);
-    for (int i = 0; i < dataCount; i++)
+    // 检查输入数据是否为数组
+    if (!cJSON_IsArray(data))
     {
-        cJSON *Vals = cJSON_GetArrayItem(data, i);
-
-        setDO.Vals[i].Chn = cJSON_GetObjectItem(Vals, "Chn")->valueint;
-        setDO.Vals[i].val = cJSON_GetObjectItem(Vals, "val")->valueint;
-    }
-    // 打印解析结果以验证
-
-    for (int i = 0; i < ChnsBO; i++)
-    {
-        printf("CHn: %d, val: %d\r\n",
-               setDO.Vals[i].Chn,
-               setDO.Vals[i].val);
+        xil_printf("CPU1: SetDO Error: Data is not an array.\r\n");
+        return;
     }
 
-    // 映射到硬件
-    // 开关量 下次做
-    //	Control_OnOff(bit_8 , 0xf0000000);//读写开关量模块 可配置8、16、24、32位 //8位模式下，0xf0000000为高4位写1
+    // 根据全局配置获取当前DI/DO的有效位数
+    int num_bits;
+    switch (g_onoff_bit_width)
+    {
+    case bit_16:
+        num_bits = 16;
+        break;
+    case bit_24:
+        num_bits = 24;
+        break;
+    case bit_32:
+        num_bits = 32;
+        break;
+    case bit_8:
+    default:
+        num_bits = 8;
+        break;
+    }
 
-    // 回报JSON
+    // 遍历JSON数组中的每一个设置项
+    cJSON_ArrayForEach(val_item, data)
+    {
+        cJSON *chn_item = cJSON_GetObjectItem(val_item, "Chn");
+        cJSON *val_num_item = cJSON_GetObjectItem(val_item, "val");
+
+        if (chn_item && cJSON_IsNumber(chn_item) && val_num_item && cJSON_IsNumber(val_num_item))
+        {
+            int chn = chn_item->valueint;             // 获取通道号 (例如 1-8)
+            bool val = (val_num_item->valueint != 0); // 获取设置值 (0 或 1)
+
+            // 检查通道号是否在当前模式的有效范围内
+            if (chn >= 1 && chn <= num_bits)
+            {
+                // 根据新的硬件观察结果，Chn:1 -> bit 24, Chn:8 -> bit 31
+                // 公式为: bit_position = 23 + chn
+                // 注意: 此公式目前仅根据8位模式的行为推断，如需扩展到16/24/32位，可能需要更复杂的映射
+                int bit_position = 23 + chn;
+
+                // 根据val的值来设置或清除相应的比特位
+                if (val)
+                {
+                    g_do_output_state |= (1 << bit_position); // 设置位
+                }
+                else
+                {
+                    g_do_output_state &= ~(1 << bit_position); // 清除位
+                }
+
+                // 更新用于UDP回报的结构体，其索引仍为 chn-1
+                lineDO.DO[chn - 1].v = val;
+            }
+            else
+            {
+                // 如果通道号超出范围，则打印警告
+                xil_printf("CPU1: SetDO Warning: Channel %d is out of range for current %d-bit mode.\r\n", chn, num_bits);
+            }
+        }
+    }
+
+    // 将更新后的32位状态字写入硬件
+    OnOff_Write_Continuous(g_do_output_state);
+
+    // 打印日志，显示写入硬件的最终值
+    printf("CPU1: SetDO: Wrote 0x%08lX to hardware DO register for %d-bit mode.\r\n", g_do_output_state, num_bits);
+
+    // 准备并发送成功的回报
     ReplyData replyData;
     strcpy(replyData.FunCode, "SetDO");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
-    // 写入回报指令到共享内存
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = true; // 更新UDP标志
+    // 标记UDP数据需要更新
+    udp_data_changed_flag = true;
+}
+/**
+ * @brief 处理 SetDI (设置开入参数) 请求 (修改后)
+ * @param data 包含分辨率设置的cJSON对象
+ */
+void handle_SetDI(cJSON *data)
+{
+    char *result = "Failure";                     // 默认结果为失败
+    double resolution_reply = g_debounce_time_ms; // 默认回复当前值
+
+    cJSON *resolution_item = cJSON_GetObjectItem(data, "Resolution");
+    if (resolution_item && cJSON_IsNumber(resolution_item))
+    {
+        double resolution_val = resolution_item->valuedouble;
+        printf("CPU1: Received SetDI with Resolution: %.1f ms\r\n", resolution_val);
+
+        // 检查分辨率是否在有效范围内 [0.1, 100.0]
+        if (resolution_val >= 0.1f && resolution_val <= 100.0f)
+        {
+            g_debounce_time_ms = resolution_val; // 更新全局防抖时间
+            result = "Success";
+            resolution_reply = g_debounce_time_ms; // 回复中反映已成功设置的值
+            printf("CPU1: Debounce time set to: %.1f ms\r\n", g_debounce_time_ms);
+        }
+        else
+        {
+            printf("CPU1: SetDI Error: Resolution value %.1f is out of range (0.1 ~ 100.0 ms).\r\n", resolution_val);
+        }
+    }
+    else
+    {
+        printf("CPU1: SetDI Error: 'Resolution' field is missing or not a number.\r\n");
+    }
+
+    // 准备并发送回复
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetDI");
+    cJSON_AddStringToObject(reply, "Result", result);
+
+    cJSON *reply_data = cJSON_CreateObject();
+    cJSON_AddNumberToObject(reply_data, "Resolution", resolution_reply);
+    cJSON_AddItemToObject(reply, "Data", reply_data);
+
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
+    {
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
+    }
+    cJSON_Delete(reply);
 }
 
 void handle_StopDCS(cJSON *data)
@@ -2722,17 +2846,6 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
         //        printf("DO header only: %zu\r\n", header_size);
     }
 
-    if (ReportStatus.DISOE)
-    {
-        payload_size += header_size + sizeof(LineDisoe);
-        //        printf("DISOE size: %zu\r\n", header_size + sizeof(LineDisoe));
-    }
-    else
-    {
-        payload_size += header_size;
-        //        printf("DISOE header only: %zu\r\n", header_size);
-    }
-
     //    printf("Total dynamic payload size: %zu\r\n", payload_size);
     return payload_size;
 }
@@ -2746,7 +2859,6 @@ LineAC lineAC;
 LineHarm lineHarm;
 LineDI lineDI;
 LineDO lineDO;
-LineDisoe lineDisoe;
 void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 {
     if (udp_data_changed_flag == 0)
@@ -2839,19 +2951,6 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     {
         memcpy(payload_ptr, &lineDO, sizeof(LineDO));
         payload_ptr += sizeof(LineDO);
-    }
-
-    // LineDisoe
-    structType = DISOE;
-    structLength = ReportStatus.DISOE ? sizeof(LineDisoe) : 0;
-    memcpy(payload_ptr, &structType, sizeof(structType));
-    payload_ptr += sizeof(structType);
-    memcpy(payload_ptr, &structLength, sizeof(structLength));
-    payload_ptr += sizeof(structLength);
-    if (ReportStatus.DISOE)
-    {
-        memcpy(payload_ptr, &lineDisoe, sizeof(LineDisoe));
-        payload_ptr += sizeof(LineDisoe);
     }
 
     /* 写UDP帧尾*/
@@ -2981,18 +3080,6 @@ void initLineDO(LineDO *lineDO)
     udp_data_changed_flag = true; // 更新UDP标志
 }
 
-void initLineDisoe(LineDisoe *lineDisoe)
-{
-    for (int i = 0; i < DisoeMsgNum; i++)
-    {
-        lineDisoe->DISOE[i].Chn = i;
-        lineDisoe->DISOE[i].Val = 0;
-        lineDisoe->DISOE[i].MS = 0;
-        lineDisoe->DISOE[i].TIME = 0;
-    }
-    udp_data_changed_flag = true; // 更新UDP标志
-}
-
 // Function to write data to shared memory
 void write_UDP_to_shared_memory(UINTPTR base_addr, void *data, size_t size)
 {
@@ -3060,6 +3147,5 @@ void init_JsonUdp(void)
     initLineHarm(&lineHarm);
     initLineDI(&lineDI);
     initLineDO(&lineDO);
-    initLineDisoe(&lineDisoe);
     udp_data_changed_flag = true; // 更新UDP标志
 }

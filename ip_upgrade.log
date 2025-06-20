@@ -1,6 +1,48 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Thu Jun 19 19:36:53 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_stimer_onoff_pa_rw_A_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the conversion of system_stimer_onoff_pa_rw_A_0_0 (xilinx.com:user:stimer_onoff_pa_rw:1.0 (Rev. 4)) to Vivado generation flows.
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Thu Jun 19 16:20:27 2025
+| Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-2
+------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'system_stimer_onoff_pa_rw_A_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of system_stimer_onoff_pa_rw_A_0_0 (xilinx.com:user:stimer_onoff_pa_rw:1.0) from (Rev. 3) to (Rev. 4)
+
+
+
+
+
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
 | Date         : Sun Jun 15 16:40:07 2025
 | Host         : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 | Command      : upgrade_ip

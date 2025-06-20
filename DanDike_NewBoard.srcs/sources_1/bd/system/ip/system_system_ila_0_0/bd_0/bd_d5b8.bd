@@ -98,7 +98,7 @@
             "value": "FALSE"
           },
           "C_DATA_DEPTH": {
-            "value": "32768"
+            "value": "65536"
           },
           "C_EN_STRG_QUAL": {
             "value": "0"

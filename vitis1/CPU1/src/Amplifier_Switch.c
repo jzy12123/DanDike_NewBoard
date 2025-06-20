@@ -7,10 +7,11 @@
 #include "Amplifier_Switch.h"
 // 全局变量定义
 XTtcPs DebounceTimer;
-float g_debounce_time_ms = DEBOUNCE_TIME_10MS; // 全局可配置的防抖时间，默认10ms
-// 存储最后一次中断触发时的数据和时间戳
-static volatile uint32_t last_onoff_data;
-static volatile OnOff_Timestamp_t last_captured_time;
+float g_debounce_time_ms = DEBOUNCE_TIME_10MS;		  // 全局可配置的防抖时间，默认10ms
+Read_Bit g_onoff_bit_width = bit_8;					  // 新增：定义全局变量并提供默认值
+static volatile uint32_t last_onoff_data;			  // 存储最后一次中断触发时的数据
+static volatile OnOff_Timestamp_t last_captured_time; // 存储最后一次中断触发的时间戳
+static uint32_t previous_stable_onoff_data = 0;		  // 新增: 存储上一次稳定的开入状态
 /**
  * @brief 读取串行数据，检测并处理保护故障
  *
@@ -366,6 +367,105 @@ void start_debounce_timer(float timeout_ms)
 	// 启动定时器
 	XTtcPs_Start(&DebounceTimer);
 }
+
+/**
+ * @brief 创建并上报开入量事件记录 (DISOE)
+ * @param stable_data 稳定的开入数据
+ * @param changed_bits 与上次相比发生变化的位
+ * @param timestamp 事件发生的时间戳
+ * @comment 此函数被 debounce_timer_handler 调用，负责生成JSON并发送
+ */
+void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const volatile OnOff_Timestamp_t *timestamp)
+{
+	// 1. 创建顶层JSON对象
+	cJSON *report = cJSON_CreateObject();
+	cJSON_AddStringToObject(report, "FunType", "Report");
+	cJSON_AddStringToObject(report, "FunCode", "DISOE");
+
+	// 2. 创建Data数组
+	cJSON *data_array = cJSON_CreateArray();
+
+	// 3. 填充时间字符串
+	char time_str[40];
+	In_CurrTime current_time;
+	read_current_time(&current_time); // 获取当前的年月日
+	// 组合成完整的时间戳: YYYY-MM-DD HH:MM:SS.ms
+	sprintf(time_str, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
+			current_time.curr_year, current_time.curr_month, current_time.curr_day,
+			timestamp->hour, timestamp->minute, timestamp->second,
+			(unsigned int)(timestamp->sub_sec / 10000)); // 亚秒单位是0.1us, 转为ms
+	int num_bits;
+	switch (g_onoff_bit_width)
+	{
+	case bit_16:
+		num_bits = 16;
+		break;
+	case bit_24:
+		num_bits = 24;
+		break;
+	case bit_32:
+		num_bits = 32;
+		break;
+	case bit_8:
+	default:
+		num_bits = 8;
+		break;
+	}
+
+	// 从最低位开始遍历到最高位
+	for (int i = 0; i < num_bits; i++)
+	{
+		// 检查第 i 位是否发生了变化
+		if ((changed_bits >> i) & 1)
+		{
+			cJSON *event_item = cJSON_CreateObject();
+			char chn_str[4];
+
+			// 修正后的通道号映射逻辑: bit i -> Chn (i+1)
+			int channel_num = i + 1;
+
+			// 值的逻辑取反 (硬件0=动作, 上报1=动作)
+			int value = 1 - ((stable_data >> i) & 1);
+
+			sprintf(chn_str, "%d", channel_num);
+			cJSON_AddStringToObject(event_item, "Time", time_str);
+			cJSON_AddStringToObject(event_item, "Chn", chn_str);
+			cJSON_AddStringToObject(event_item, "val", value ? "1" : "0");
+
+			cJSON_AddItemToArray(data_array, event_item);
+		}
+	}
+
+	// 5. 将Data数组添加到主对象
+	cJSON_AddItemToObject(report, "Data", data_array);
+
+	// 6. 转换JSON为字符串并发送
+	char *string = cJSON_PrintUnformatted(report);
+	if (string)
+	{
+		size_t stringLength = strlen(string);
+		char *finalString = (char *)malloc(stringLength + 3);
+		if (finalString)
+		{
+			snprintf(finalString, stringLength + 3, "|%s|", string);
+			ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
+			if (bytesWritten < 0)
+			{
+				xil_printf("CPU1: DISOE Report: Failed to write to message queue.\r\n");
+			}
+			else
+			{
+				xil_printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
+			}
+			free(finalString);
+		}
+		free(string);
+	}
+
+	// 7. 清理
+	cJSON_Delete(report);
+}
+
 /**
  * @brief 开关中断处理函数
  *
@@ -378,40 +478,11 @@ void start_debounce_timer(float timeout_ms)
  */
 void onoff_handler(void)
 {
-	// 检查设定的防抖时间
-	if (g_debounce_time_ms <= 0.1f)
-	{
-		// --- 防抖时间无意义，直接处理事件 ---
+	// 1. 每次中断触发，都重新读取硬件锁存的最新数据和时间戳
+	OnOff_Read_LatchedData(bit_8, (uint32_t *)&last_onoff_data, (OnOff_Timestamp_t *)&last_captured_time);
 
-		// 1. 立即读取硬件锁存的数据和时间戳
-		OnOff_Timestamp_t immediate_event_time;
-		uint32_t immediate_event_data;
-		OnOff_Read_LatchedData(bit_8, &immediate_event_data, &immediate_event_time);
-
-		// 2. 打印信息，表明已跳过防抖并立即生成SOE
-		printf("--------------------------------------------------\r\n");
-		printf("CPU1: SOE Event Valid (Debounce Bypassed)!\r\n");
-		printf("CPU1: Debounce Time Setting (<= 0.1ms) is shorter than hardware limit.\r\n");
-		printf("CPU1: Event Processed Instantly at: %u:%u:%u:%lu\r\n",
-			   immediate_event_time.hour, immediate_event_time.minute,
-			   immediate_event_time.second, (uint32_t)immediate_event_time.sub_sec);
-		printf("CPU1: Event Data: 0x%08lX\r\n", immediate_event_data);
-		printf("--------------------------------------------------\r\n");
-
-		// TODO: 在这里添加您的JSON上报逻辑
-		// 使用 immediate_event_time 和 immediate_event_data 生成SOE记录
-	}
-	else
-	{
-		// --- 正常执行可重触发防抖流程 ---
-
-		// 1. 每次中断触发，都重新读取硬件锁存的最新数据和时间戳
-		OnOff_Read_LatchedData(bit_8, (uint32_t *)&last_onoff_data, (OnOff_Timestamp_t *)&last_captured_time);
-
-
-		// 3. 启动或重新启动防抖定时器
-		start_debounce_timer(g_debounce_time_ms);
-	}
+	// 2. 启动或重新启动防抖定时器
+	start_debounce_timer(g_debounce_time_ms);
 }
 /**
  * @brief 防抖定时器的中断服务程序 (最终版)
@@ -424,53 +495,58 @@ void debounce_timer_handler(void *CallBackRef)
 	XTtcPs_Stop(&DebounceTimer);
 	XTtcPs_ClearInterruptStatus(&DebounceTimer, XTTCPS_IXR_INTERVAL_MASK);
 
-	// 新增：在处理开始时，立即读取当前时间作为“结束时间”
-	In_CurrTime debounce_complete_time;
-	read_current_time(&debounce_complete_time);
-
-	// 2. 读取防抖结束后，当前稳定的硬件输入数据
-	uint32_t stable_input_data;
-	OnOff_Timestamp_t temp_timestamp; // 这个时间戳是硬件最新的，我们不用它来计算延时
-	OnOff_Read_LatchedData(bit_8, &stable_input_data, &temp_timestamp);
+	// 2. 读取防抖结束后，当前稳定的硬件输入数据 (使用新函数，不更新时间戳)
+	uint32_t stable_input_data = OnOff_Read_Current_Input(bit_8);
 
 	// 3. 检查信号是否真的稳定
 	if (stable_input_data == last_onoff_data)
 	{
 		// 信号稳定，是有效事件
+		// 计算变化的位
+		uint32_t changed_bits = stable_input_data ^ previous_stable_onoff_data;
 
-		// 新增：计算精确的实际防抖时间
-		// 假设防抖时间远小于1分钟，我们只处理秒级的进位
-		long long start_subsec = last_captured_time.sub_sec;
-		long long end_subsec = debounce_complete_time.curr_subsec;
-
-		// 新增：处理秒进位的情况
-		// 如果秒数不同，说明计时跨越了秒的边界
-		if (debounce_complete_time.curr_second != last_captured_time.second)
+		if (changed_bits != 0)
 		{
-			// 为结束时间的亚秒值加上一个整秒对应的单位数 (1秒 = 10,000,000个0.1us单位)
-			end_subsec += 10000000;
+			printf("--------------------------------------------------\r\n");
+			printf("CPU1: SOE Event Valid! Stable Data: 0x%02lX, Changed Bits: 0x%02lX\r\n", stable_input_data, changed_bits);
+			printf("--------------------------------------------------\r\n");
+
+			// 调用新的辅助函数上报JSON
+			report_di_soe_event(stable_input_data, changed_bits, &last_captured_time);
+
+			// 更新上一次的稳定状态
+			previous_stable_onoff_data = stable_input_data;
+
+			// 根据当前位宽，更新 lineDI 结构体用于UDP上报
+			int num_bits;
+			switch (g_onoff_bit_width)
+			{
+			case bit_16:
+				num_bits = 16;
+				break;
+			case bit_24:
+				num_bits = 24;
+				break;
+			case bit_32:
+				num_bits = 32;
+				break;
+			case bit_8:
+			default:
+				num_bits = 8;
+				break;
+			}
+
+			for (int i = 0; i < num_bits; ++i)
+			{
+				lineDI.DI[i].v = (stable_input_data >> i) & 1;
+			}
+			// 将未使用的位清零，确保UDP报文的整洁
+			for (int i = num_bits; i < ChnsDI; ++i)
+			{
+				lineDI.DI[i].v = 0;
+			}
+			udp_data_changed_flag = true; // 触发UDP更新
 		}
-
-		long long diff_subsec = end_subsec - start_subsec;
-
-		// 新增：将亚秒单位 (0.1us) 转换为毫秒
-		float elapsed_ms = (float)diff_subsec / 10000.0f;
-
-		// 打印最终的有效事件信息，并包含防抖时间
-		printf("--------------------------------------------------\r\n");
-		printf("CPU1: SOE Event Valid!\r\n");
-		// printf("CPU1: Debounce Time Setting: %.1f ms\r\n", g_debounce_time_ms);
-		printf("CPU1: Measured Debounce Delay: %.3f ms\r\n", elapsed_ms); // 新增此行，显示计算出的实际延时
-		printf("CPU1: Event Trigger Time (T2): %u:%u:%u:%lu\r\n",
-			   last_captured_time.hour, last_captured_time.minute,
-			   last_captured_time.second, (uint32_t)last_captured_time.sub_sec);
-		// printf("CPU1: Debounce Complete Time:    %u:%u:%u:%lu\r\n",
-		// 	   debounce_complete_time.curr_hour, debounce_complete_time.curr_minute,
-		// 	   debounce_complete_time.curr_second, debounce_complete_time.curr_subsec);
-		printf("CPU1: Stable Data: 0x%08lX\r\n", stable_input_data);
-		printf("--------------------------------------------------\r\n");
-
-		// TODO: 在这里添加您的JSON上报逻辑
 	}
 	else
 	{
@@ -489,16 +565,31 @@ void debounce_timer_handler(void *CallBackRef)
  */
 void OnOff_Start(Read_Bit bit_width, uint8_t start)
 {
-	uint32_t reg_control_value = 0; // 用于构建写入 slv_reg8 的值
+	uint32_t reg_control_value = 0;
 	uint8_t local_start_bit = 0;
 	sleep(1); // 等待硬件初始化完成
-	// 冗余中断映射
+	// 1. 配置中断
 	XScuGic_InterruptMaptoCpu(&intc, CPU1_ID, OnOffDone_INTR_ID);
-	/*开关量模块配置*/
+
+	// 2. 设置全局位宽变量
+	g_onoff_bit_width = bit_width;
+
+	// 3. 配置并启动硬件模块
 	local_start_bit = start;
-	reg_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((bit_width + 1) & 0x7) << 16);
+	reg_control_value = (((uint32_t)local_start_bit & 0x1) << 24) | (((g_onoff_bit_width + 1) & 0x7) << 16);
 	Xil_Out32(Amplifier_OnOff_BASEADDR + OnOff_Status_ADDR, reg_control_value);
-	printf("CPU1: OnOff Module Start to %d-bit Mode,start is %u.\r\n", 8 * (bit_width + 1), local_start_bit);
+	printf("CPU1: OnOff Module Start to %d-bit Mode, start is %u.\r\n", 8 * (g_onoff_bit_width + 1), local_start_bit);
+
+	usleep(1000); // 短暂延时，确保硬件状态稳定
+
+	// 4. 在硬件启动后，读取真实的初始状态来同步软件变量
+	previous_stable_onoff_data = OnOff_Read_Current_Input(g_onoff_bit_width);
+	printf("CPU1: Initial DI state synchronized to: 0x%lX\r\n", previous_stable_onoff_data);
+
+	// 5. 初始化开出(DO)通道状态
+	g_do_output_state = 0;					   // 软件状态清零
+	OnOff_Write_Continuous(g_do_output_state); // 硬件状态清零
+	printf("CPU1: Initial DO state set to OFF (0x00).\r\n");
 }
 /**
  * @brief 停止开关量模块
@@ -539,35 +630,31 @@ void OnOff_Write_Continuous(uint32_t output_data)
  * @param read_data 用于存储读取的32位开关量数据的指针。
  * @param timestamp 用于存储读取的时间戳的结构体指针。
  */
-void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, OnOff_Timestamp_t *timestamp)
+void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, volatile OnOff_Timestamp_t *timestamp)
 {
 	if (!read_data || !timestamp)
 	{
 		return;
 	}
 
-	/*读取开入数据*/
-	/*开关量模块输入*/
-	uint32_t Read_OnOff;
+	/*读取开关量数据寄存器*/
+	uint32_t raw_onoff_data = Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR);
 	switch (bit_width)
 	{
-	case 0:
-		Read_OnOff = (u8)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+	case bit_8:
+		*read_data = raw_onoff_data & 0xFF;
 		break;
-	case 1:
-		Read_OnOff = (u16)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
+	case bit_16:
+		*read_data = raw_onoff_data & 0xFFFF;
 		break;
-	case 2:
-		Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR)) & 0x00FFFFFF;
+	case bit_24:
+		*read_data = raw_onoff_data & 0xFFFFFF;
 		break;
-	case 3:
-		Read_OnOff = (u32)invert_Binary(Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR));
-		break;
+	case bit_32:
 	default:
-		xil_printf("CPU1: Invalid Data_width in Control_OnOff. Reading as 32-bit.\r\n"); // 无效数据宽度
+		*read_data = raw_onoff_data;
 		break;
 	}
-	*read_data = Read_OnOff;
 
 	/*读取时间戳寄存器*/
 	uint32_t reg11_val, reg12_val, reg13_val;
@@ -620,4 +707,27 @@ void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, OnOff_Times
 	timestamp->second = (uint8_t)(second_tens * 10 + second_ones);
 	timestamp->day_sec = latch_daysec_bin;
 	timestamp->sub_sec = latch_subsec_bin;
+}
+
+/**
+ * @brief 读取当前实时的开关量输入值，不影响锁存的时间戳
+ */
+u32 OnOff_Read_Current_Input(Read_Bit bit_width)
+{
+	uint32_t current_data;
+	current_data = Xil_In32(Amplifier_OnOff_BASEADDR + OnOff_Read_ADDR);
+
+	// 根据位宽进行屏蔽
+	switch (bit_width)
+	{
+	case bit_8:
+		return current_data & 0xFF;
+	case bit_16:
+		return current_data & 0xFFFF;
+	case bit_24:
+		return current_data & 0xFFFFFF;
+	case bit_32:
+	default:
+		return current_data;
+	}
 }
