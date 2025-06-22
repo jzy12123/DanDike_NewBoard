@@ -352,29 +352,29 @@ void timer_intr_handler(void *CallBackRef)
     //                    rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
     //     }
     // }
-    /* 5. 新增：调用对时任务的超时处理器 */
-    TimeSync_TimeoutHandler();
-    // 查看对时状态函数
-    TimeSyncStatus sync_status = GetGpsTimeSyncStatus();
-    if (sync_status == TIME_SYNC_FAILURE)
-    {
-        // 对时失败，可以决定是否要等待一段时间后重试
-        xil_printf("Main Loop: GPS sync failed. Can decide to retry later.\r\n");
-        // 例如，可以设置一个标志，在几分钟后再次调用 StartGpsTimeSync()
-        g_gps_sync_status = TIME_SYNC_IDLE; // 将状态重置为空闲，以便可以再次启动
-    }
-    else if (sync_status == TIME_SYNC_SUCCESS)
-    {
-        xil_printf("Main Loop: GPS sync was successful.\r\n");
-        g_gps_sync_status = TIME_SYNC_IDLE; // 重置状态
-    }
-    else if (sync_status == TIME_SYNC_IN_PROGRESS)
-    {
-        xil_printf("Main Loop: GPS sync is in progress.\r\n");
-    }
+    // /* 5. 新增：调用对时任务的超时处理器 */
+    // TimeSync_TimeoutHandler();
+    // // 查看对时状态函数
+    // TimeSyncStatus sync_status = GetGpsTimeSyncStatus();
+    // if (sync_status == TIME_SYNC_FAILURE)
+    // {
+    //     // 对时失败，可以决定是否要等待一段时间后重试
+    //     xil_printf("Main Loop: GPS sync failed. Can decide to retry later.\r\n");
+    //     // 例如，可以设置一个标志，在几分钟后再次调用 StartGpsTimeSync()
+    //     g_gps_sync_status = TIME_SYNC_IDLE; // 将状态重置为空闲，以便可以再次启动
+    // }
+    // else if (sync_status == TIME_SYNC_SUCCESS)
+    // {
+    //     xil_printf("Main Loop: GPS sync was successful.\r\n");
+    //     g_gps_sync_status = TIME_SYNC_IDLE; // 重置状态
+    // }
+    // else if (sync_status == TIME_SYNC_IN_PROGRESS)
+    // {
+    //     xil_printf("Main Loop: GPS sync is in progress.\r\n");
+    // }
 
-    // 清除定时器中断标志
-    XScuTimer_ClearInterruptStatus(timer_ptr);
+    // // 清除定时器中断标志
+    // XScuTimer_ClearInterruptStatus(timer_ptr);
 }
 
 // 定时器初始化程序
@@ -443,29 +443,29 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     {
         return XST_FAILURE;
     }
-    // // 步骤2: 【关键】手动将查找的配置信息赋给GIC实例。
-    // // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
-    // int_ins_ptr->Config = intc_config;
+    // 步骤2: 【关键】手动将查找的配置信息赋给GIC实例。
+    // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
+    int_ins_ptr->Config = intc_config;
 
-    // // 步骤3: 【关键】手动初始化CPU1的GIC接口寄存器
-    // // 这个操作替代了不存在的XScuGic_CpuIfInit函数
-    // //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
-    // //! 0xF0 是一个安全通用值。
-    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
+    // 步骤3: 【关键】手动初始化CPU1的GIC接口寄存器
+    // 这个操作替代了不存在的XScuGic_CpuIfInit函数
+    //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
+    //! 0xF0 是一个安全通用值。
+    Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
 
-    // //! b. 使能CPU1的GIC接口，使其可以接收中断。
-    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
+    //! b. 使能CPU1的GIC接口，使其可以接收中断。
+    Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
 
-    // // 步骤4: 【关键】手动设置驱动实例为“就绪”状态。
-    // // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
-    // int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
+    // 步骤4: 【关键】手动设置驱动实例为“就绪”状态。
+    // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
+    int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
 
-    // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
-    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
-    if (status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
+    // // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
+    // status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
+    // if (status != XST_SUCCESS)
+    // {
+    //     return XST_FAILURE;
+    // }
 
     // 建立中断异常处理
     Xil_ExceptionInit();

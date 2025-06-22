@@ -108,3 +108,4 @@ domain active {zynq_fsbl}
 bsp reload
 catch {bsp regenerate}
 platform generate
+platform generate -domains standalone_ps7_cortexa9_1 

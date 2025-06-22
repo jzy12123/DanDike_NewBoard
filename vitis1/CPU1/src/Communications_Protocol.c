@@ -31,7 +31,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250620.1941";
-const char ARM_Ver_Full[] = "[Ver]=V1.250620.2039";
+const char ARM_Ver_Full[] = "[Ver]=V1.250621.1138";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -1418,7 +1418,7 @@ void handle_SetDI(cJSON *data)
         printf("CPU1: Received SetDI with Resolution: %.1f ms\r\n", resolution_val);
 
         // 检查分辨率是否在有效范围内 [0.1, 100.0]
-        if (resolution_val >= 0.1f && resolution_val <= 100.0f)
+        if (resolution_val >= 0.09f && resolution_val <= 100.01f)
         {
             g_debounce_time_ms = resolution_val; // 更新全局防抖时间
             result = "Success";
@@ -2551,7 +2551,7 @@ void report_protection_event(u8 ProectFault)
     }
 
     // Convert the JSON to a string
-    char *string = cJSON_Print(report);
+    char *string = cJSON_PrintUnformatted(report);
     if (string == NULL)
     {
         xil_printf("Failed to print JSON.\r\n");

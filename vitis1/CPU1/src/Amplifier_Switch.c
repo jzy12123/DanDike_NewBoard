@@ -441,26 +441,36 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 
 	// 6. 转换JSON为字符串并发送
 	char *string = cJSON_PrintUnformatted(report);
-	if (string)
+	if (string == NULL)
 	{
-		size_t stringLength = strlen(string);
-		char *finalString = (char *)malloc(stringLength + 3);
-		if (finalString)
-		{
-			snprintf(finalString, stringLength + 3, "|%s|", string);
-			ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
-			if (bytesWritten < 0)
-			{
-				xil_printf("CPU1: DISOE Report: Failed to write to message queue.\r\n");
-			}
-			else
-			{
-				xil_printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
-			}
-			free(finalString);
-		}
-		free(string);
+		xil_printf("Failed to print JSON.\r\n");
+		cJSON_Delete(report);
+		return;
 	}
+
+	size_t stringLength = strlen(string);
+	char *finalString = (char *)malloc(stringLength + 3);
+	if (finalString == NULL)
+	{
+		xil_printf("Failed to allocate memory for final JSON string.\r\n");
+		cJSON_Delete(report);
+		free(string);
+		return;
+	}
+	snprintf(finalString, stringLength + 3, "|%s|", string);
+
+	// Write to message queue
+	ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
+	if (bytesWritten < 0)
+	{
+		xil_printf("CPU1: DISOE Report: Failed to write to message queue.\r\n");
+	}
+	else
+	{
+		xil_printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
+	}
+	free(finalString);
+	free(string);
 
 	// 7. 清理
 	cJSON_Delete(report);
@@ -538,7 +548,7 @@ void debounce_timer_handler(void *CallBackRef)
 
 			for (int i = 0; i < num_bits; ++i)
 			{
-				lineDI.DI[i].v = (stable_input_data >> i) & 1;
+				lineDI.DI[i].v = 1 - (stable_input_data >> i) & 1; // 核心修改：对硬件状态位进行逻辑反转，与DISOE上报逻辑保持一致
 			}
 			// 将未使用的位清零，确保UDP报文的整洁
 			for (int i = num_bits; i < ChnsDI; ++i)
