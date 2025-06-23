@@ -15,7 +15,7 @@
 #include "Rc64.h"
 #include "mutex_utils.h"
 #include "gps.h"
-#include "gps_sync.h"
+#include "Timer_sync.h"
 #include "soft_timer.h"
 #include "8025IIC.h"
 #include "IIC_Master.h"
@@ -164,6 +164,7 @@ int main()
 	InitializeQueues();
 	init_JsonUdp();
 	PID_Init_All();
+	TimeSync_Init(); // --- 新增 --- 初始化对时管理器
 	xil_printf("CPU1: Start Main Timer...\r\n");
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息

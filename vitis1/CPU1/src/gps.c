@@ -1,5 +1,5 @@
 #include "gps.h"
-#include "gps_sync.h"	// 引入对时管理模块
+#include "Timer_sync.h" // 引入对时管理模块
 #include "soft_timer.h" // 引入软时钟
 #include "8025IIC.h"	// 引入硬件RTC
 #include "string.h"		// for memset
@@ -103,12 +103,11 @@ void GpsTimeoutHandler(void *CallBackRef)
 	XTtcPs_ClearInterruptStatus(TimerInstancePtr, XTTCPS_IXR_INTERVAL_MASK);
 	XTtcPs_Stop(TimerInstancePtr);
 
-	// 仅在对时进行中才处理
-	if (g_gps_sync_status != TIME_SYNC_IN_PROGRESS)
+	// --- 修改 --- 仅在GPS对时进行中才处理
+	if (g_TimeSyncManager.status != TIME_SYNC_IN_PROGRESS || g_TimeSyncManager.current_mode != SYNC_MODE_GPS)
 	{
 		return;
 	}
-
 	if (GPS_Ctrl_State.uart_cont > 0)
 	{
 		UART_RX_BUF[GPS_Ctrl_State.uart_cont] = '\0';
@@ -121,7 +120,6 @@ void GpsTimeoutHandler(void *CallBackRef)
 
 			if (gpsx.utc.year > 2020)
 			{ // 基本的年份有效性检查 //
-				// ... (与main.c中完全相同的代码来更新软时钟和硬件RTC)
 				Out_RealTime new_time_to_set_soft;
 				RTC_Time_t new_time_to_set_rtc;
 
@@ -153,13 +151,25 @@ void GpsTimeoutHandler(void *CallBackRef)
 					xil_printf("GPS SYNC: SoftTimer updated, RTC set FAILED.\n"); //
 				}
 
-				// 核心修改: 对时成功，更新状态并禁用中断
-				g_gps_sync_status = TIME_SYNC_SUCCESS;
-				XScuGic_Disable(&intc, GPS_UARTLITE_INT_IRQ_ID);
-				XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
-				StopGpsTimeSyncTimer();
+				// --- 核心修改 ---: 通知对时管理器任务成功
+				NotifySyncSuccess();
+			}
+			else
+			{
+				// 年份无效，也视为失败
+				NotifySyncFailure();
 			}
 		}
+		else
+		{
+			// RMC状态无效，也视为失败
+			NotifySyncFailure();
+		}
+	}
+	else
+	{
+		// 缓冲区为空，也视为失败
+		NotifySyncFailure();
 	}
 	GPS_Ctrl_State.uart_cont = 0; // 清理缓冲区
 }
@@ -529,7 +539,7 @@ void GPS_Analysis(nmea_msg *gpsx, u8 *buf)
 	// NMEA_GNGGA_Analysis(gpsx, buf);	//GPGGA解析
 	// NMEA_GNGSA_Analysis(gpsx, buf);	//GPGSA解析
 	NMEA_GNRMC_Analysis(gpsx, buf); // GPRMC解析
-	//	NMEA_GNVTG_Analysis(gpsx, buf);	//GNVTG解析
+									//	NMEA_GNVTG_Analysis(gpsx, buf);	//GNVTG解析
 }
 
 // 显示GPS定位信息
@@ -640,7 +650,7 @@ void GPS_ConvertUTCToBeijing(nmea_msg *gps_data)
 		// 处理日期进位（月份和年份）
 		int current_month_days = days_in_month(year, month);
 		if (current_month_days == 0)
-		{	// 无效月份或年份导致无法获取天数
+		{ // 无效月份或年份导致无法获取天数
 			// 可以选择报错或保持原样，这里简单返回避免后续错误
 			return;
 		}

@@ -31,7 +31,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250620.1941";
-const char ARM_Ver_Full[] = "[Ver]=V1.250621.1138";
+const char ARM_Ver_Full[] = "[Ver]=V1.250623.1529";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -110,7 +110,8 @@ int Parse_JsonCommand(char *buffer)
         {"SetACStatus", handle_SetACStatus},
         {"SetCalibrateAC", handle_SetCalibrateAC},
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
-        {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault}};
+        {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
+        {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
@@ -1820,6 +1821,29 @@ void handle_SetCalibrateAC(cJSON *data)
         setACS.Vals[i].IR = irValue;
         setACS.Vals[i].U = uValue;
         setACS.Vals[i].I_ = iValue;
+        // 新增：强制设置校准时的基准相位
+        // printf输出保持英文
+        // printf("Setting phase for channel %d\n", setACS.Vals[i].Chn);
+        switch (setACS.Vals[i].Chn)
+        {
+        case 1: // A相通道
+            setACS.Vals[i].PhU = 0.0f;
+            setACS.Vals[i].PhI = 0.0f;
+            break;
+        case 2: // B相通道
+            setACS.Vals[i].PhU = 240.0f;
+            setACS.Vals[i].PhI = 240.0f;
+            break;
+        case 3: // C相通道
+            setACS.Vals[i].PhU = 120.0f;
+            setACS.Vals[i].PhI = 120.0f;
+            break;
+        case 4: // X通道 (通常为零相)
+        default:
+            setACS.Vals[i].PhU = 0.0f;
+            setACS.Vals[i].PhI = 0.0f;
+            break;
+        }
     }
 
     // 更新波形幅度和范围
@@ -1829,6 +1853,8 @@ void handle_SetCalibrateAC(cJSON *data)
         Wave_Amplitude[i + 4] = (float)(setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100;
         Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);
         Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+        Phase_shift[i] = setACS.Vals[i].PhU;
+        Phase_shift[i + 4] = setACS.Vals[i].PhI;
     }
     // 应用设置
     enable = 0xff;
@@ -2395,6 +2421,95 @@ send_reply_restore:;
     free(string_to_send);
     cJSON_Delete(reply);
 }
+
+void handle_SetSysTimeSyncMode(cJSON *data)
+{
+    char *result_str = "Failure";
+    char *current_mode_str = "Unknown";
+    SyncModeType mode_to_start = SYNC_MODE_NONE;
+
+    if (!data || !cJSON_IsObject(data))
+    {
+        xil_printf("CPU1: SetSysTimeSyncMode: Data field is missing or not an object.\r\n");
+        goto send_reply;
+    }
+
+    cJSON *sync_mode_item = cJSON_GetObjectItem(data, "SyncMode");
+    if (!sync_mode_item || !cJSON_IsString(sync_mode_item))
+    {
+        xil_printf("CPU1: SetSysTimeSyncMode: SyncMode is missing or not a string.\r\n");
+        goto send_reply;
+    }
+
+    const char *requested_mode = sync_mode_item->valuestring;
+    current_mode_str = (char *)requested_mode; // 用于回复
+
+    if (strcmp(requested_mode, "BD") == 0)
+    {
+        mode_to_start = SYNC_MODE_GPS;
+    }
+    else if (strcmp(requested_mode, "IRIG-B") == 0)
+    {
+        mode_to_start = SYNC_MODE_IRIGB;
+    }
+    else if (strcmp(requested_mode, "Manual") == 0)
+    {
+        mode_to_start = SYNC_MODE_MANUAL;
+    }
+    else if (strcmp(requested_mode, "SNTP") == 0)
+    {
+        mode_to_start = SYNC_MODE_SNTP;
+    }
+    else
+    {
+        xil_printf("CPU1: SetSysTimeSyncMode: Unknown SyncMode value '%s'.\r\n", requested_mode);
+        goto send_reply;
+    }
+
+    if (StartSystemSync(mode_to_start, data) == 0)
+    {
+        // 对于异步任务，回复 "Doing"
+        if (mode_to_start == SYNC_MODE_GPS || mode_to_start == SYNC_MODE_IRIGB)
+        {
+            result_str = "Doing";
+        }
+        else
+        { // 对于同步任务 (Manual), 成功就是成功
+            result_str = "Success";
+        }
+    }
+    else
+    {
+        // StartSystemSync 失败 (例如，任务已在进行中)
+        result_str = "Failure";
+    }
+
+send_reply:;
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetSysTimeSyncMode");
+    cJSON_AddStringToObject(reply, "Result", result_str);
+
+    cJSON *reply_data = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply_data, "SyncMode", current_mode_str);
+    cJSON_AddItemToObject(reply, "Data", reply_data);
+
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
+    {
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
+    }
+    cJSON_Delete(reply);
+}
+
 // 生成JSON字符串并写入共享内存的函数
 void write_reply_to_shared_memory(ReplyData *replyData)
 {

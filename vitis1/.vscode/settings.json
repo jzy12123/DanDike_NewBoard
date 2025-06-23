@@ -30,6 +30,8 @@
         "xttcps.h": "c",
         "xil_cache.h": "c",
         "communications_protocol.h": "c",
-        "msg_que.h": "c"
+        "msg_que.h": "c",
+        "adda.h": "c",
+        "soft_timer.h": "c"
     }
 }

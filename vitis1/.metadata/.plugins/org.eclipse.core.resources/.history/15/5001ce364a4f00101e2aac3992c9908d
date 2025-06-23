@@ -548,7 +548,7 @@ void debounce_timer_handler(void *CallBackRef)
 
 			for (int i = 0; i < num_bits; ++i)
 			{
-				lineDI.DI[i].v = (1 - ((stable_input_data >> i) & 1)); // 核心修改：对硬件状态位进行逻辑反转，与DISOE上报逻辑保持一致
+				lineDI.DI[i].v = 1 - (stable_input_data >> i) & 1; // 核心修改：对硬件状态位进行逻辑反转，与DISOE上报逻辑保持一致
 			}
 			// 将未使用的位清零，确保UDP报文的整洁
 			for (int i = num_bits; i < ChnsDI; ++i)

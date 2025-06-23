@@ -13,6 +13,7 @@
 #include "Rc64.h"
 #include <math.h>
 #include "Amplifier_Switch.h"
+#include "Timer_sync.h" // --- 新增 --- 包含新的对时模块头文件
 
 #define JSON_ADDR 0x3AC00000
 
@@ -323,7 +324,7 @@ void handle_SetACStatus(cJSON *data);
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);
-
+void handle_SetSysTimeSyncMode(cJSON *data);
 // 主动上报
 void report_protection_event(u8 ProectFault);
 #endif

@@ -25,7 +25,7 @@
 #include "gps.h"
 #include "soft_timer.h"
 #include "8025IIC.h"
-#include "gps_sync.h"
+#include "Timer_sync.h"
 /*
  * ∂®“Â
  */

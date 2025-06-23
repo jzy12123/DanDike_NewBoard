@@ -11,7 +11,7 @@ u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
 u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
 
 // 波形修改参数
-float Phase_shift[8] = {0, 120, 240, 0, 0, 120, 240, 0}; // 8路波形相位偏移 单位度
+float Phase_shift[8] = {0, 240, 120, 0, 0, 240, 120, 0}; // 8路波形相位偏移 单位度
 uint16_t enable = 0xff;                                  // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -64,14 +64,14 @@ const double DA_CorrectConst_20[8][3] = {
 const double DA_CorrectPhaseConst_100[8][3] = {
     // 电压通道 (UA, UB, UC, UX) - 分别对应 6.5V, 3.25V, 1.876V
     {0.0, 0.0, 0.0},          // UA 相位校准参数
-    {-0.012, -0.006, -0.003}, // UB 相位校准参数
-    {-0.017, -0.006, -0.001}, // UC 相位校准参数
+    {-0.017, -0.006, -0.001}, // UB 相位校准参数
+    {-0.012, -0.006, -0.003}, // UC 相位校准参数
     {0.0, 0.0, 0.0},          // UX 相位校准参数
 
     // 电流通道 (IA, IB, IC, IX) - 分别对应 5A, 1A, 0.2A
     {-0.205, -0.310, -0.184}, // IA 相位校准参数
-    {-0.195, -0.293, -0.166}, // IB 相位校准参数
-    {-0.204, -0.304, -0.177}, // IC 相位校准参数
+    {-0.204, -0.304, -0.177}, // IB 相位校准参数
+    {-0.195, -0.293, -0.166}, // IC 相位校准参数
     {0.0, 0.0, 0.0}           // IX 相位校准参数
 };
 // AD校准参数数组
@@ -352,26 +352,8 @@ void timer_intr_handler(void *CallBackRef)
     //                    rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
     //     }
     // }
-    // /* 5. 新增：调用对时任务的超时处理器 */
-    // TimeSync_TimeoutHandler();
-    // // 查看对时状态函数
-    // TimeSyncStatus sync_status = GetGpsTimeSyncStatus();
-    // if (sync_status == TIME_SYNC_FAILURE)
-    // {
-    //     // 对时失败，可以决定是否要等待一段时间后重试
-    //     xil_printf("Main Loop: GPS sync failed. Can decide to retry later.\r\n");
-    //     // 例如，可以设置一个标志，在几分钟后再次调用 StartGpsTimeSync()
-    //     g_gps_sync_status = TIME_SYNC_IDLE; // 将状态重置为空闲，以便可以再次启动
-    // }
-    // else if (sync_status == TIME_SYNC_SUCCESS)
-    // {
-    //     xil_printf("Main Loop: GPS sync was successful.\r\n");
-    //     g_gps_sync_status = TIME_SYNC_IDLE; // 重置状态
-    // }
-    // else if (sync_status == TIME_SYNC_IN_PROGRESS)
-    // {
-    //     xil_printf("Main Loop: GPS sync is in progress.\r\n");
-    // }
+    /* 5. 调用新的对时任务周期处理器 */
+    TimeSync_TickHandler();
 
     // // 清除定时器中断标志
     // XScuTimer_ClearInterruptStatus(timer_ptr);
@@ -443,29 +425,26 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     {
         return XST_FAILURE;
     }
-    // 步骤2: 【关键】手动将查找的配置信息赋给GIC实例。
-    // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
-    int_ins_ptr->Config = intc_config;
-
-    // 步骤3: 【关键】手动初始化CPU1的GIC接口寄存器
-    // 这个操作替代了不存在的XScuGic_CpuIfInit函数
-    //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
-    //! 0xF0 是一个安全通用值。
-    Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
-
-    //! b. 使能CPU1的GIC接口，使其可以接收中断。
-    Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
-
-    // 步骤4: 【关键】手动设置驱动实例为“就绪”状态。
-    // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
-    int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
-
-    // // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
-    // status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
-    // if (status != XST_SUCCESS)
-    // {
-    //     return XST_FAILURE;
-    // }
+    /////////////////////////////////////////////////////////
+    // //【关键】手动将查找的配置信息赋给GIC实例。
+    // // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
+    // int_ins_ptr->Config = intc_config;
+    // //【关键】手动初始化CPU1的GIC接口寄存器
+    // // 这个操作替代了不存在的XScuGic_CpuIfInit函数
+    // //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
+    // //! 0xF0 是一个安全通用值。
+    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
+    // //! b. 使能CPU1的GIC接口，使其可以接收中断。
+    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
+    // // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
+    // int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
+    //////////////////////////////////////
+    // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
+    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
+    if (status != XST_SUCCESS)
+    {
+        return XST_FAILURE;
+    }
 
     // 建立中断异常处理
     Xil_ExceptionInit();
@@ -476,10 +455,10 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, timer_id, 0x20, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0x10, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_uart_intr_id, 0xA0, 0x03);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, timer_id, 0xA0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 0xB0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0xB0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_uart_intr_id, 0xA8, 0x03);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_ttc_intr_id, 0xA8, 0x03);
     // 为中断设置中断处理函数
     XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
@@ -515,7 +494,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_Enable(int_ins_ptr, timer_id);
     XScuGic_Enable(int_ins_ptr, onoffdone_id);
     XScuGic_Enable(int_ins_ptr, debounce_timer_irpt_id);
-    // 核心修改: 移除GPS中断的使能，它们将按需开启
+    // --- 修改 ---: 移除GPS中断的默认使能，它们将由对时任务按需开启和关闭
     // XScuGic_Enable(int_ins_ptr, gps_uart_intr_id);
     // XScuGic_Enable(int_ins_ptr, gps_ttc_intr_id);
 
