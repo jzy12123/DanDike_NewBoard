@@ -355,8 +355,8 @@ void timer_intr_handler(void *CallBackRef)
     /* 5. 调用新的对时任务周期处理器 */
     TimeSync_TickHandler();
 
-    // // 清除定时器中断标志
-    // XScuTimer_ClearInterruptStatus(timer_ptr);
+    // 清除定时器中断标志
+    XScuTimer_ClearInterruptStatus(timer_ptr);
 }
 
 // 定时器初始化程序
@@ -470,22 +470,22 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_Connect(int_ins_ptr, gps_uart_intr_id, (Xil_InterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
     XScuGic_Connect(int_ins_ptr, gps_ttc_intr_id, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
 
-    // 将中断从CPU0取消映射
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, onoffdone_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, debounce_timer_irpt_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_uart_intr_id);
-    XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_ttc_intr_id);
-    // 将中断映射到CPU1
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, onoffdone_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, debounce_timer_irpt_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_uart_intr_id);
-    XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_ttc_intr_id);
+    // // 将中断从CPU0取消映射
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, onoffdone_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, debounce_timer_irpt_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_uart_intr_id);
+    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_ttc_intr_id);
+    // // 将中断映射到CPU1
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, onoffdone_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, debounce_timer_irpt_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_uart_intr_id);
+    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_ttc_intr_id);
 
     // 使能
     XScuGic_Enable(int_ins_ptr, rx_intr_id);
@@ -500,9 +500,9 @@ int setup_intr_system(XScuGic *int_ins_ptr,
 
     // 使能中断
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA
-    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
-    XScuTimer_EnableInterrupt(timer_ptr);                                  // 定时器
-    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK); // 使能TTC定时器自身的间隔中断输出
+    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE); // DMA
+    XScuTimer_EnableInterrupt(timer_ptr);                                     // 定时器
+    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK);    // 使能TTC定时器自身的间隔中断输出
 
     return XST_SUCCESS;
 }

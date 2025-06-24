@@ -298,3 +298,25 @@ static int parse_and_set_manual_time(const char *time_str)
     xil_printf("CPU1: System time set manually to: %s\r\n", time_str);
     return 0;
 }
+
+/**
+ * @brief 检查从RTC读取的时间是否有效
+ * @param TimePtr 指向待检查的RTC时间结构体
+ * @return 如果时间有效则返回true, 否则返回false
+ */
+bool is_rtc_time_valid(const RTC_Time_t *TimePtr)
+{
+    if (TimePtr->month < 1 || TimePtr->month > 12)
+        return false;
+    if (TimePtr->day < 1 || TimePtr->day > 31)
+        return false;
+    if (TimePtr->hour > 23)
+        return false;
+    if (TimePtr->min > 59)
+        return false;
+    if (TimePtr->sec > 59)
+        return false;
+    if (TimePtr->year > 99)
+        return false; // 年份是两位数
+    return true;
+}

@@ -109,3 +109,14 @@ bsp reload
 catch {bsp regenerate}
 platform generate
 platform generate -domains standalone_ps7_cortexa9_1 
+platform active {system_wrapper}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+bsp reload
+domain active {zynq_fsbl}
+bsp reload
+bsp reload
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+platform clean
+platform generate

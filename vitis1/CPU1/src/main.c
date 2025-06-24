@@ -21,7 +21,6 @@
 #include "IIC_Master.h"
 
 // ================= 功能函数声明 =================
-static bool is_rtc_time_valid(const RTC_Time_t *TimePtr);
 static void RunADCPIDCycle(void);
 // ===============================================
 int main()
@@ -500,24 +499,4 @@ void RunADCPIDCycle(void)
 	dac_parameters_updated_by_command = true;
 }
 
-/**
- * @brief 检查从RTC读取的时间是否有效
- * @param TimePtr 指向待检查的RTC时间结构体
- * @return 如果时间有效则返回true, 否则返回false
- */
-static bool is_rtc_time_valid(const RTC_Time_t *TimePtr)
-{
-	if (TimePtr->month < 1 || TimePtr->month > 12)
-		return false;
-	if (TimePtr->day < 1 || TimePtr->day > 31)
-		return false;
-	if (TimePtr->hour > 23)
-		return false;
-	if (TimePtr->min > 59)
-		return false;
-	if (TimePtr->sec > 59)
-		return false;
-	if (TimePtr->year > 99)
-		return false; // 年份是两位数
-	return true;
-}
+
