@@ -1,0 +1,20 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Fri Jun 27 09:43:56 2025
+# Process ID: 12976
+# Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent10676 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+# Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+update_compile_order -fileset sources_1
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_intc:4.1 axi_intc_0
+endgroup
+delete_bd_objs [get_bd_cells axi_intc_0]
+save_project_as DanDike_AXIInterrupt C:/Users/saber/Desktop/DanDike_AXIInterrupt -exclude_run_results -force

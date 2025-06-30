@@ -6,6 +6,7 @@
 #include "soft_timer.h"
 #include "8025IIC.h"
 #include <stdio.h>
+#include "xintc.h"
 
 // --- 全局变量定义 ---
 volatile TimeSyncManager_t g_TimeSyncManager;
@@ -54,9 +55,7 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
         // 复位GPS接收逻辑并使能中断
         GPS_Ctrl_State.uart_cont = 0;
         memset((void *)UART_RX_BUF, 0, sizeof(UART_RX_BUF));
-        XScuGic_InterruptMaptoCpu(&intc, CPU1_ID, GPS_UARTLITE_INT_IRQ_ID);
-        XScuGic_InterruptMaptoCpu(&intc, CPU1_ID, GPS_TTC_INT_IRQ_ID);
-        XScuGic_Enable(&intc, GPS_UARTLITE_INT_IRQ_ID);
+        XIntc_Enable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XScuGic_Enable(&intc, GPS_TTC_INT_IRQ_ID);
         break;
 
@@ -160,7 +159,7 @@ void NotifySyncSuccess(void)
     // 清理资源
     if (g_TimeSyncManager.current_mode == SYNC_MODE_GPS)
     {
-        XScuGic_Disable(&intc, GPS_UARTLITE_INT_IRQ_ID);
+        XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
     }
     // TODO: 添加其他模式的清理逻辑
@@ -183,7 +182,7 @@ void NotifySyncFailure(void)
     // 清理资源
     if (g_TimeSyncManager.current_mode == SYNC_MODE_GPS)
     {
-        XScuGic_Disable(&intc, GPS_UARTLITE_INT_IRQ_ID);
+        XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
     }
     // TODO: 添加其他模式的清理逻辑

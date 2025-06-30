@@ -488,6 +488,7 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
  */
 void onoff_handler(void)
 {
+
 	// 1. 每次中断触发，都重新读取硬件锁存的最新数据和时间戳
 	OnOff_Read_LatchedData(bit_8, (uint32_t *)&last_onoff_data, (OnOff_Timestamp_t *)&last_captured_time);
 
@@ -578,8 +579,6 @@ void OnOff_Start(Read_Bit bit_width, uint8_t start)
 	uint32_t reg_control_value = 0;
 	uint8_t local_start_bit = 0;
 	sleep(1); // 等待硬件初始化完成
-	// 1. 配置中断
-	XScuGic_InterruptMaptoCpu(&intc, CPU1_ID, OnOffDone_INTR_ID);
 
 	// 2. 设置全局位宽变量
 	g_onoff_bit_width = bit_width;

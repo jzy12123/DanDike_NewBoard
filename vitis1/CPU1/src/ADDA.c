@@ -2,17 +2,18 @@
 /*
  * 变量
  */
-XAxiDma axidma;  // XAxiDma实例
-XScuGic intc;    // 中断控制器的实例
-XScuTimer Timer; // 定时器驱动程序实例
+XAxiDma axidma;          // XAxiDma实例
+XScuGic intc;            // 中断控制器的实例
+XIntc AxiIntc_BareMetal; // AXI中断控制器实例
+XScuTimer Timer;         // 定时器驱动程序实例
 // ad
 int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
 u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
 
 // 波形修改参数
-float Phase_shift[8] = {0, 240, 120, 0, 0, 240, 120, 0}; // 8路波形相位偏移 单位度
-uint16_t enable = 0xff;                                  // 使能通道输出
+float Phase_shift[8] = {0, -120, 120, 0, 0, -120, 120, 0}; // 8路波形相位偏移 单位度
+uint16_t enable = 0xff;                                    // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
@@ -312,7 +313,6 @@ void underflow_handler()
 void timer_intr_handler(void *CallBackRef)
 {
     XScuTimer *timer_ptr = (XScuTimer *)CallBackRef;
-
     /*1 消息队列*/
     // 读取消息队列
     char buffer[MAX_DATA_LEN];
@@ -354,7 +354,6 @@ void timer_intr_handler(void *CallBackRef)
     // }
     /* 5. 调用新的对时任务周期处理器 */
     TimeSync_TickHandler();
-
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }
@@ -384,126 +383,159 @@ int timer_init(XScuTimer *timer_ptr)
 #define XSCUGIC_CPU_CTRL_OFFSET 0x00U     // CPU Interface Control Register (ICCICR)
 #define XSCGIC_PRIORITY_MASK_OFFSET 0x04U // Interrupt Priority Mask Register (ICCPMR)
 #define XSCGIC_CPU_INTERFACE_ENABLE 0x01U // ICCICR中使能CPU接口的位
+
 /**
- * @brief 初始化并配置中断控制器和中断处理函数
- *
- * 该函数用于初始化中断控制器，并设置不同中断源的中断处理函数和优先级。
- *
- * @param gps_ttc_ptr GPS TTC定时器指针
- * @param rx_intr_id RX中断ID
- * @param tx_intr_id TX中断ID
- * @param underflow_id 下溢中断ID
- * @param onoffdone_id 开关完成中断ID
- * @param timer_id 主定时器中断ID
- * @param debounce_timer_irpt_id 去抖动定时器中断ID
- * @param gps_uart_intr_id GPS UART中断ID
- * @param gps_ttc_intr_id GPS TTC中断ID
- *
+ * @brief 初始化并配置中断控制器和中断处理函数（新架构版）
  * @return 成功返回XST_SUCCESS，失败返回XST_FAILURE
  */
 int setup_intr_system(XScuGic *int_ins_ptr,
-                      XAxiDma *axidma_ptr,
-                      XScuTimer *timer_ptr, // 主定时器
+                      XScuTimer *timer_ptr,
                       XTtcPs *debounce_timer_ptr,
-                      XUartLite *gps_uart_ptr, // GPS Uart
-                      XTtcPs *gps_ttc_ptr,     // GPS TTC定时器
-                      u16 rx_intr_id,
-                      u16 tx_intr_id,
-                      u16 underflow_id,
-                      u16 onoffdone_id,
-                      u16 timer_id, // 主定时器中断ID
-                      u16 debounce_timer_irpt_id,
-                      u16 gps_uart_intr_id, // GPS Uart中断ID
-                      u16 gps_ttc_intr_id)
+                      XUartLite *gps_uart_ptr,
+                      XTtcPs *gps_ttc_ptr)
 {
+    XIntc_Config *intc_baremetal_config;
     int status;
-    XScuGic_Config *intc_config;
-    // 初始化中断控制器驱动
-    // 步骤1: 查找GIC硬件配置
-    intc_config = XScuGic_LookupConfig(INTC_DEVICE_ID);
-    if (NULL == intc_config)
+    XScuGic_Config *gic_config;
+    /* =================================================================
+     * 步骤 1: 初始化GIC (通用中断控制器)
+     * 这是所有中断的基础，必须最先初始化。
+     * ================================================================= */
+    gic_config = XScuGic_LookupConfig(XPAR_SCUGIC_0_DEVICE_ID);
+    if (NULL == gic_config)
     {
         return XST_FAILURE;
     }
-    /////////////////////////////////////////////////////////
-    // //【关键】手动将查找的配置信息赋给GIC实例。
-    // // 这一步确保了驱动的其他函数可以找到正确的硬件基地址，但它本身不操作硬件。
-    // int_ins_ptr->Config = intc_config;
-    // //【关键】手动初始化CPU1的GIC接口寄存器
-    // // 这个操作替代了不存在的XScuGic_CpuIfInit函数
-    // //! a. 设置中断优先级屏蔽寄存器，允许所有优先级的中断。
-    // //! 0xF0 是一个安全通用值。
-    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_PRIORITY_MASK_OFFSET, 0xF0);
-    // //! b. 使能CPU1的GIC接口，使其可以接收中断。
-    // Xil_Out32(intc_config->CpuBaseAddress + XSCGIC_CPU_CTRL_OFFSET, XSCGIC_CPU_INTERFACE_ENABLE);
-    // // 因为我们跳过了包含此操作的CfgInitialize，所以需要手动设置。
-    // int_ins_ptr->IsReady = XIL_COMPONENT_IS_READY;
-    //////////////////////////////////////
-    // !关键修改：注释掉下面的 XScuGic_CfgInitialize 函数调用。这个函数会重置整个GIC，破坏Linux已经建立好的中断环境。
-    status = XScuGic_CfgInitialize(int_ins_ptr, intc_config, intc_config->CpuBaseAddress);
+    status = XScuGic_CfgInitialize(int_ins_ptr, gic_config, gic_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
         return XST_FAILURE;
     }
 
-    // 建立中断异常处理
+    /* =================================================================
+     * 步骤 2: 设置CPU的顶层异常处理
+     * 将GIC的中断处理函数连接到CPU的中断异常向量上。
+     * ================================================================= */
     Xil_ExceptionInit();
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void *)int_ins_ptr);
-    Xil_ExceptionEnable(); // 使能IRQ中断
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, int_ins_ptr);
+    Xil_ExceptionEnable();
 
-    // 设置优先级和触发类型
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, rx_intr_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, tx_intr_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, underflow_id, 8, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, timer_id, 0xA0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, onoffdone_id, 0xB0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, debounce_timer_irpt_id, 0xB0, 0x3);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_uart_intr_id, 0xA8, 0x03);
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, gps_ttc_intr_id, 0xA8, 0x03);
-    // 为中断设置中断处理函数
-    XScuGic_Connect(int_ins_ptr, rx_intr_id, (Xil_InterruptHandler)rx_intr_handler, axidma_ptr);
-    XScuGic_Connect(int_ins_ptr, tx_intr_id, (Xil_InterruptHandler)tx_intr_handler, axidma_ptr);
-    XScuGic_Connect(int_ins_ptr, underflow_id, (Xil_InterruptHandler)underflow_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, timer_id, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
-    XScuGic_Connect(int_ins_ptr, onoffdone_id, (Xil_InterruptHandler)onoff_handler, (void *)1);
-    XScuGic_Connect(int_ins_ptr, debounce_timer_irpt_id, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
-    XScuGic_Connect(int_ins_ptr, gps_uart_intr_id, (Xil_InterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
-    XScuGic_Connect(int_ins_ptr, gps_ttc_intr_id, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
+    /* =================================================================
+     * 步骤 3: 初始化裸机专用的AXI中断控制器 (AXI INTC)
+     * ================================================================= */
+    status = XIntc_Initialize(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_DEVICE_ID);
+    if (status != XST_SUCCESS)
+    {
+        printf("ERROR: Failed to initialize BareMetal AXI INTC\n");
+        return XST_FAILURE;
+    }
 
-    // // 将中断从CPU0取消映射
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, rx_intr_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, tx_intr_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, underflow_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, onoffdone_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, debounce_timer_irpt_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_uart_intr_id);
-    // XScuGic_InterruptUnmapFromCpu(int_ins_ptr, CPU0_ID, gps_ttc_intr_id);
-    // // 将中断映射到CPU1
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, rx_intr_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, tx_intr_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, underflow_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, onoffdone_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, debounce_timer_irpt_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_uart_intr_id);
-    // XScuGic_InterruptMaptoCpu(int_ins_ptr, CPU1_ID, gps_ttc_intr_id);
+    /* =================================================================
+     * 步骤 4: 将【具体】的中断服务程序连接到【AXI INTC】的输入引脚
+     * ================================================================= */
+    // Pin 0: s2mm_introut (DMA ADC完成)
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR,
+                           (XInterruptHandler)rx_intr_handler, (void *)&axidma);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
 
-    // 使能
-    XScuGic_Enable(int_ins_ptr, rx_intr_id);
-    XScuGic_Enable(int_ins_ptr, tx_intr_id);
-    XScuGic_Enable(int_ins_ptr, underflow_id);
-    XScuGic_Enable(int_ins_ptr, timer_id);
-    XScuGic_Enable(int_ins_ptr, onoffdone_id);
-    XScuGic_Enable(int_ins_ptr, debounce_timer_irpt_id);
-    // --- 修改 ---: 移除GPS中断的默认使能，它们将由对时任务按需开启和关闭
-    // XScuGic_Enable(int_ins_ptr, gps_uart_intr_id);
-    // XScuGic_Enable(int_ins_ptr, gps_ttc_intr_id);
+    // Pin 1: mm2s_introut (DMA DAC完成)
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR,(XInterruptHandler)tx_intr_handler, (void *)&axidma);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
 
-    // 使能中断
+    // Pin 2: prog_empty (FIFO空) -> underflow_handler
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR,(XInterruptHandler)underflow_handler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // Pin 3: onoff_done (开关量完成) -> onoff_handler
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR,(XInterruptHandler)onoff_handler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // Pin 4: power_pulse_P(电能脉冲)
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR,(XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // Pin 5: power_pulse_Q
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR,(XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // Pin 6: interrupt (GPS UART)
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR,(XInterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // Pin 7: bm_sync_end
+    // Pin 8: date_update (日期更新)
+    // Pin 9: PPS_IN
+    // Pin 10: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
+
+    /* =================================================================
+     * 步骤 5: 将【AXI INTC】作为一个整体，注册到【GIC】的28号私有中断上
+     * ================================================================= */
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0xA8, 0x1); // 高电平
+    status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR,
+                             (Xil_ExceptionHandler)BareMetal_Intc_Handler, (void *)&AxiIntc_BareMetal);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    /* =================================================================
+     * 步骤 6: 注册其他不经过AXI INTC的【PS内部】系统中断
+     * ================================================================= */
+    // 主定时器中断 (PS私有定时器，ID=XPAR_SCUTIMER_INTR)
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3);
+    status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // GPS超时TTC定时器中断 (PS TTC，ID=XPAR_XTTCPS_1_INTR)
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0xA0, 0x03);
+    status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_1_INTR, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // 开关量防抖TTC定时器中断 (PS TTC, ID=XPAR_XTTCPS_0_INTR)
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3);
+    status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    /* =================================================================
+     * 步骤 7: 启动AXI INTC并使能所有中断
+     * 这是最后一步，确保所有框架都搭建好之后再打开中断。
+     * ================================================================= */
+    status = XIntc_Start(&AxiIntc_BareMetal, XIN_REAL_MODE);
+    if (status != XST_SUCCESS)
+    {
+        return XST_FAILURE;
+    }
+    // 使能AXI INTC上的中断输入
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR); // todo 暂时关闭，因为fifo一直为空一直返回中断
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR);                        // 初始化的时候不使能GPS中断，在启动GPS对时再使能
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_RTC_EEPROM_AXI_IIC_0_IIC2INTC_IRPT_INTR);              // 裸机下不使用该中断
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR);
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR);
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR);
+
+    // 使能GIC上的中断
+    XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_SCUTIMER_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_1_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_0_INTR);
+
+    // 使能PS外设中断源
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE); // DMA
     XScuTimer_EnableInterrupt(timer_ptr);                                     // 定时器
-    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK);    // 使能TTC定时器自身的间隔中断输出
+    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK);    // 使能TTC定时
 
+    printf("BareMetal interrupt system initialized with AXI INTC.\r\n");
     return XST_SUCCESS;
 }
 
@@ -873,4 +905,17 @@ int get_current_index_by_value(float current)
         return 1; // 1A
     else
         return 2; // 0.2A
+}
+
+/**
+ * @brief axi_intc_BareMetal 的主中断服务程序
+ * @details 当GIC的28号中断触发时，此函数被调用。
+ * 它的职责是调用AXI INTC驱动提供的处理函数，
+ * 该函数会自动查询INTC的状态并调用已注册的具体中断源的服务程序。
+ * @param CallBackRef 回调引用，这里是AXI INTC实例的指针
+ */
+void BareMetal_Intc_Handler(void *CallbackRef)
+{
+    // printf("CPU1: BareMetal_Intc_Handler\n");
+    XIntc_InterruptHandler((XIntc *)CallbackRef);
 }

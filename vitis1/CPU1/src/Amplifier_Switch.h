@@ -54,8 +54,7 @@
 #define LATCH_TIME_HMS_REG_OFFSET (11 * 4) // slv_reg11: 存储时、分、秒的BCD码
 #define LATCH_DAYSEC_REG_OFFSET (12 * 4)   // slv_reg12: 存储日内秒 (二进制)
 #define LATCH_SUBSEC_REG_OFFSET (13 * 4)   // slv_reg13: 存储亚秒 (二进制)
-// 中断
-#define OnOffDone_INTR_ID 87U
+
 // 定义开关量位数
 typedef enum
 {

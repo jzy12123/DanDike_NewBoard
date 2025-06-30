@@ -576,7 +576,7 @@
       bit  IRQ_P2F_SPI1;
       bit  IRQ_P2F_UART1;
       bit  IRQ_P2F_CAN1;
-      bit  [11 : 0] IRQ_F2P;
+      bit  [5 : 0] IRQ_F2P;
       bit  Core0_nFIQ;
       bit  Core0_nIRQ;
       bit  Core1_nFIQ;
@@ -837,6 +837,7 @@
   S_AXI_HP1_WDATA,
   S_AXI_HP1_WSTRB,
   IRQ_F2P,
+  Core1_nIRQ,
   FCLK_CLK0,
   FCLK_CLK1,
   FCLK_CLK2,
@@ -898,7 +899,7 @@
       parameter C_S_AXI_HP3_DATA_WIDTH = 64;
       parameter C_M_AXI_GP0_THREAD_ID_WIDTH = 12;
       parameter C_M_AXI_GP1_THREAD_ID_WIDTH = 12;
-      parameter C_NUM_F2P_INTR_INPUTS = 12;
+      parameter C_NUM_F2P_INTR_INPUTS = 6;
       parameter C_IRQ_F2P_MODE = "DIRECT";
       parameter C_DQ_WIDTH = 32;
       parameter C_DQS_WIDTH = 4;
@@ -1085,7 +1086,8 @@
       input  [5 : 0] S_AXI_HP1_WID;
       input  [63 : 0] S_AXI_HP1_WDATA;
       input  [7 : 0] S_AXI_HP1_WSTRB;
-      input  [11 : 0] IRQ_F2P;
+      input  [5 : 0] IRQ_F2P;
+      input  Core1_nIRQ;
       output  FCLK_CLK0;
       output  FCLK_CLK1;
       output  FCLK_CLK2;
@@ -1542,54 +1544,6 @@ end
 always@(negedge IRQ_F2P[5])
 begin
     ps7_set_input_IRQ_F2P(5,0);
-end
-always@(posedge IRQ_F2P[6])
-begin
-    ps7_set_input_IRQ_F2P(6,1);
-end
-always@(negedge IRQ_F2P[6])
-begin
-    ps7_set_input_IRQ_F2P(6,0);
-end
-always@(posedge IRQ_F2P[7])
-begin
-    ps7_set_input_IRQ_F2P(7,1);
-end
-always@(negedge IRQ_F2P[7])
-begin
-    ps7_set_input_IRQ_F2P(7,0);
-end
-always@(posedge IRQ_F2P[8])
-begin
-    ps7_set_input_IRQ_F2P(8,1);
-end
-always@(negedge IRQ_F2P[8])
-begin
-    ps7_set_input_IRQ_F2P(8,0);
-end
-always@(posedge IRQ_F2P[9])
-begin
-    ps7_set_input_IRQ_F2P(9,1);
-end
-always@(negedge IRQ_F2P[9])
-begin
-    ps7_set_input_IRQ_F2P(9,0);
-end
-always@(posedge IRQ_F2P[10])
-begin
-    ps7_set_input_IRQ_F2P(10,1);
-end
-always@(negedge IRQ_F2P[10])
-begin
-    ps7_set_input_IRQ_F2P(10,0);
-end
-always@(posedge IRQ_F2P[11])
-begin
-    ps7_set_input_IRQ_F2P(11,1);
-end
-always@(negedge IRQ_F2P[11])
-begin
-    ps7_set_input_IRQ_F2P(11,0);
 end
 
 always@(posedge M_AXI_GP0_ACLK)

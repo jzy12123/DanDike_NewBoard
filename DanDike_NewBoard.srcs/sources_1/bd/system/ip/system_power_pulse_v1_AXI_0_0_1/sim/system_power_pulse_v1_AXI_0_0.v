@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:user:power_pulse_v1_AXI:1.0
-// IP Revision: 2
+// IP Revision: 3
 
 `timescale 1ns/1ps
 

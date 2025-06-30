@@ -15,8 +15,9 @@
 #include <math.h>
 #include "xbram_hw.h"
 #include "xaxidma_hw.h"
-#include "xttcps.h" // TTC驱动头文件
-#include "xuartlite.h" // 新增: UartLite驱动头文件
+#include "xttcps.h"    // TTC驱动头文件
+#include "xuartlite.h" // UartLite驱动头文件
+#include "xintc.h"     // 添加AXI INTC驱动程序的头文件
 
 #include "Amplifier_Switch.h"
 #include "Communications_Protocol.h"
@@ -26,6 +27,7 @@
 #include "soft_timer.h"
 #include "8025IIC.h"
 #include "Timer_sync.h"
+#include "power_pulse.h"
 /*
  * 定义
  */
@@ -37,7 +39,6 @@
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID // 定时器ID
 #define TIMER_IRPT_INTR XPAR_SCUTIMER_INTR         // 定时器中断ID
 #define TIMER_LOAD_VALUE 0x9EC969D                 // 定时器装载0.5s
-
 
 // 软中断
 #define CPU0_ID XSCUGIC_SPI_CPU0_MASK // CPU0 ID
@@ -80,10 +81,9 @@ typedef enum
 /*
  * 变量
  */
-
-// 新增: 外部声明来自main.c的全局变量
 extern XUartLite GpsUartLiteInst;
 extern XTtcPs GpsTtcTimerInst;
+extern XIntc AxiIntc_BareMetal;
 // 波形修改参数
 extern uint16_t Wave_NewData[8][DATA_LEN];
 extern float Phase_shift[8]; // 8路波形相位偏移 单位度
@@ -141,20 +141,12 @@ int timer_init(XScuTimer *timer_ptr);
 void timer_intr_handler(void *CallBackRef);
 
 // 中断初始化
+void BareMetal_Intc_Handler(void *CallbackRef);
 int setup_intr_system(XScuGic *int_ins_ptr,
-                      XAxiDma *axidma_ptr,
-                      XScuTimer *timer_ptr, // 主定时器
+                      XScuTimer *timer_ptr,
                       XTtcPs *debounce_timer_ptr,
-                      XUartLite *gps_uart_ptr, // GPS Uart
-                      XTtcPs *gps_ttc_ptr,     // GPS TTC定时器
-                      u16 rx_intr_id,
-                      u16 tx_intr_id,
-                      u16 underflow_id,
-                      u16 onoffdone_id,
-                      u16 timer_id, // 主定时器中断ID
-                      u16 debounce_timer_irpt_id,
-                      u16 gps_uart_intr_id, // GPS Uart中断ID
-                      u16 gps_ttc_intr_id); // GPS TTC中断ID
+                      XUartLite *gps_uart_ptr,
+                      XTtcPs *gps_ttc_ptr);
 
 void start_dma_dac();
 // dds_dac

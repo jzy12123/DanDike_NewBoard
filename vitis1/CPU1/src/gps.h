@@ -5,9 +5,9 @@
 #include "xttcps.h"	   // TTC驱动头文件
 #include "xuartlite.h" // UartLite驱动头文件
 #include "xuartlite_l.h"
-// ================= 新增功能全局变量 =================
+// ================= 全局变量 =================
 #define GPS_UARTLITE_DEVICE_ID XPAR_AXI_UARTLITE_0_DEVICE_ID
-#define GPS_UARTLITE_INT_IRQ_ID XPAR_FABRIC_AXI_UARTLITE_0_INTERRUPT_INTR
+#define BAREMETAL_INTC_GPS_UART_INTR_ID XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR // 这将是 AXI_INTC的 3
 
 // 使用TTC定时器作为GPS接收超时定时器，以避免与主循环的私有定时器冲突
 #define GPS_TTC_DEVICE_ID XPAR_XTTCPS_1_DEVICE_ID // 假设使用TTC1
@@ -20,7 +20,6 @@ typedef struct
 	int uart_cont;
 	volatile u8 REV_Finish_Flag;
 } GPS_Recv_Ctrl_t;
-
 
 // GPS NMEA-0183协议重要参数结构体定义
 // 卫星信息
@@ -73,10 +72,10 @@ typedef struct
 	u16 hdop;							// 水平精度因子 0~500,对应实际值0~50.0
 	u16 vdop;							// 垂直精度因子 0~500,对应实际值0~50.0
 
-	int altitude;  // 海拔高度,放大了10倍,实际除以10.单位:0.1m
-	u16 speed;	   // 地面速率,放大了1000倍,实际除以10.单位:0.001公里/小时
+	int altitude; // 海拔高度,放大了10倍,实际除以10.单位:0.1m
+	u16 speed;	  // 地面速率,放大了1000倍,实际除以10.单位:0.001公里/小时
 
-	u8 rmc_status; // GPRMC 状态: 'A' = 有效, 'V' = 无效  
+	u8 rmc_status; // GPRMC 状态: 'A' = 有效, 'V' = 无效
 } nmea_msg;
 
 // SkyTra S1216F8 配置波特率结构体

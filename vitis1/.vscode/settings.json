@@ -33,6 +33,7 @@
         "msg_que.h": "c",
         "adda.h": "c",
         "soft_timer.h": "c",
-        "timer_sync.h": "c"
+        "timer_sync.h": "c",
+        "xil_io.h": "c"
     }
 }

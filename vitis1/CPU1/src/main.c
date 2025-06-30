@@ -19,13 +19,14 @@
 #include "soft_timer.h"
 #include "8025IIC.h"
 #include "IIC_Master.h"
+#include "power_pulse.h"
 
 // ================= 功能函数声明 =================
 static void RunADCPIDCycle(void);
 // ===============================================
 int main()
 {
-	sleep(30); // 必须要有等待linux启动
+//	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -142,13 +143,10 @@ int main()
 	}
 	/************************** 建立中断系统 *****************************/
 	xil_printf("CPU1: Initializing Interrupt System...\r\n");
-	status = setup_intr_system(&intc, &axidma, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst,
-							   DMA_RX_INTR_ID, DMA_TX_INTR_ID, Underflow_INTR_ID,
-							   OnOffDone_INTR_ID, TIMER_IRPT_INTR, DEBOUNCE_TIMER_IRPT_INTR,
-							   GPS_UARTLITE_INT_IRQ_ID, GPS_TTC_INT_IRQ_ID);
+	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst);
 	if (status != XST_SUCCESS)
 	{
-		xil_printf("Failed intr setup\r\n");
+		xil_printf("CPU1: Failed intr setup\r\n");
 	}
 
 	/************************** 禁用Cache*****************************/
@@ -163,7 +161,8 @@ int main()
 	InitializeQueues();
 	init_JsonUdp();
 	PID_Init_All();
-	TimeSync_Init(); // --- 新增 --- 初始化对时管理器
+	TimeSync_Init();
+	PowerPulse_Init();
 	xil_printf("CPU1: Start Main Timer...\r\n");
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
@@ -246,12 +245,16 @@ int main()
 				// ADCDMA失败
 				//  printf("ADC NotReady !\r\n");
 			}
+			/*电能输入轮询 临时测试 */
+			PowerPulse_PollInput();
 		}
 		/*AC交流源关闭或者没有获得锁*/
 		else
 		{
 			usleep(10000); // 延时10ms
 		}
+
+	
 	}
 }
 
@@ -264,6 +267,8 @@ void RunADCPIDCycle(void)
 	lineAC.totalP = 0.0;
 	lineAC.totalQ = 0.0;
 	lineAC.totalPF = 0.0;
+
+	// 循环处理4个通道（A, B, C, X），但只累加前3个通道的总功率
 	for (int i = 0; i < 4; i++)
 	{
 		// 分析FFT
@@ -329,9 +334,12 @@ void RunADCPIDCycle(void)
 		lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f)); // 无功功率
 		lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);								 // 功率因数
 
-		// 累加到总功率
-		lineAC.totalP += lineAC.p[i];
-		lineAC.totalQ += lineAC.q[i];
+		// *************** 只累加前三个通道(A, B, C)的功率 ***************
+		if (i < 3)
+		{
+			lineAC.totalP += lineAC.p[i];
+			lineAC.totalQ += lineAC.q[i];
+		}
 
 		// 初始化总谐波畸变率变量
 		double thdu = 0.0;
@@ -456,10 +464,12 @@ void RunADCPIDCycle(void)
 					break;
 				}
 				// 确保在0-360度
+				lineHarm.harm[i].phu[j] = fmod(lineHarm.harm[i].phu[j], 360.0);
 				if (lineHarm.harm[i].phu[j] < 0)
 				{
 					lineHarm.harm[i].phu[j] += 360;
 				}
+				lineHarm.harm[i].phi[j] = fmod(lineHarm.harm[i].phi[j], 360.0);
 				if (lineHarm.harm[i].phi[j] < 0)
 				{
 					lineHarm.harm[i].phi[j] += 360;
@@ -477,26 +487,18 @@ void RunADCPIDCycle(void)
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
-
-		// 总功率因数
-		double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);
-		if (totalApparentPower > 0)
-		{
-			lineAC.totalPF = lineAC.totalP / totalApparentPower;
-		}
-		else
-		{
-			lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
-		}
 	}
-	/*PID闭环调整输出*/
-	// 生成交流信号
-	// str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
-	//  控制功放
-	// power_amplifier_control(Wave_Amplitude, Wave_Range, devState.bClosedLoop == 1 ? PID_ON : PID_OFF, POWAMP_ON);
+	// 总功率因数
+	double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);
+	if (totalApparentPower > 0.0001) // 增加一个小的阈值防止除以极小值
+	{
+		lineAC.totalPF = lineAC.totalP / totalApparentPower;
+	}
+	else
+	{
+		lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
+	}
 	// 标记UDP数据已更新
 	udp_data_changed_flag = true;
 	dac_parameters_updated_by_command = true;
 }
-
-

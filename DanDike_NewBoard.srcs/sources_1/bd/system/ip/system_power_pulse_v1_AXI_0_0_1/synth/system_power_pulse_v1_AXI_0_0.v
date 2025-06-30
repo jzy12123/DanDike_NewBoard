@@ -48,11 +48,11 @@
 
 
 // IP VLNV: xilinx.com:user:power_pulse_v1_AXI:1.0
-// IP Revision: 2
+// IP Revision: 3
 
 (* X_CORE_INFO = "power_pulse_v1_AXI,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_power_pulse_v1_AXI_0_0,power_pulse_v1_AXI,{}" *)
-(* CORE_GENERATION_INFO = "system_power_pulse_v1_AXI_0_0,power_pulse_v1_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=power_pulse_v1_AXI,x_ipVersion=1.0,x_ipCoreRevision=2,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
+(* CORE_GENERATION_INFO = "system_power_pulse_v1_AXI_0_0,power_pulse_v1_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=power_pulse_v1_AXI,x_ipVersion=1.0,x_ipCoreRevision=3,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=4}" *)
 (* IP_DEFINITION_SOURCE = "package_project" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_power_pulse_v1_AXI_0_0 (

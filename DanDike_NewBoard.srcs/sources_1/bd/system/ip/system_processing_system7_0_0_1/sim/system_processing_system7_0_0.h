@@ -239,7 +239,8 @@ public:
   sc_core::sc_in< sc_dt::sc_bv<6> > S_AXI_HP1_WID;
   sc_core::sc_in< sc_dt::sc_bv<64> > S_AXI_HP1_WDATA;
   sc_core::sc_in< sc_dt::sc_bv<8> > S_AXI_HP1_WSTRB;
-  sc_core::sc_in< sc_dt::sc_bv<12> > IRQ_F2P;
+  sc_core::sc_in< sc_dt::sc_bv<6> > IRQ_F2P;
+  sc_core::sc_in< bool > Core1_nIRQ;
   sc_core::sc_out< bool > FCLK_CLK0;
   sc_core::sc_out< bool > FCLK_CLK1;
   sc_core::sc_out< bool > FCLK_CLK2;
@@ -482,7 +483,8 @@ public:
   sc_core::sc_in< sc_dt::sc_bv<6> > S_AXI_HP1_WID;
   sc_core::sc_in< sc_dt::sc_bv<64> > S_AXI_HP1_WDATA;
   sc_core::sc_in< sc_dt::sc_bv<8> > S_AXI_HP1_WSTRB;
-  sc_core::sc_in< sc_dt::sc_bv<12> > IRQ_F2P;
+  sc_core::sc_in< sc_dt::sc_bv<6> > IRQ_F2P;
+  sc_core::sc_in< bool > Core1_nIRQ;
   sc_core::sc_out< bool > FCLK_CLK0;
   sc_core::sc_out< bool > FCLK_CLK1;
   sc_core::sc_out< bool > FCLK_CLK2;
@@ -725,7 +727,8 @@ public:
   sc_core::sc_in< sc_dt::sc_bv<6> > S_AXI_HP1_WID;
   sc_core::sc_in< sc_dt::sc_bv<64> > S_AXI_HP1_WDATA;
   sc_core::sc_in< sc_dt::sc_bv<8> > S_AXI_HP1_WSTRB;
-  sc_core::sc_in< sc_dt::sc_bv<12> > IRQ_F2P;
+  sc_core::sc_in< sc_dt::sc_bv<6> > IRQ_F2P;
+  sc_core::sc_in< bool > Core1_nIRQ;
   sc_core::sc_out< bool > FCLK_CLK0;
   sc_core::sc_out< bool > FCLK_CLK1;
   sc_core::sc_out< bool > FCLK_CLK2;
@@ -972,7 +975,8 @@ public:
   sc_core::sc_in< sc_dt::sc_bv<6> > S_AXI_HP1_WID;
   sc_core::sc_in< sc_dt::sc_bv<64> > S_AXI_HP1_WDATA;
   sc_core::sc_in< sc_dt::sc_bv<8> > S_AXI_HP1_WSTRB;
-  sc_core::sc_in< sc_dt::sc_bv<12> > IRQ_F2P;
+  sc_core::sc_in< sc_dt::sc_bv<6> > IRQ_F2P;
+  sc_core::sc_in< bool > Core1_nIRQ;
   sc_core::sc_out< bool > FCLK_CLK0;
   sc_core::sc_out< bool > FCLK_CLK1;
   sc_core::sc_out< bool > FCLK_CLK2;
@@ -1229,7 +1233,8 @@ public:
   sc_core::sc_in< sc_dt::sc_bv<6> > S_AXI_HP1_WID;
   sc_core::sc_in< sc_dt::sc_bv<64> > S_AXI_HP1_WDATA;
   sc_core::sc_in< sc_dt::sc_bv<8> > S_AXI_HP1_WSTRB;
-  sc_core::sc_in< sc_dt::sc_bv<12> > IRQ_F2P;
+  sc_core::sc_in< sc_dt::sc_bv<6> > IRQ_F2P;
+  sc_core::sc_in< bool > Core1_nIRQ;
   sc_core::sc_out< bool > FCLK_CLK0;
   sc_core::sc_out< bool > FCLK_CLK1;
   sc_core::sc_out< bool > FCLK_CLK2;

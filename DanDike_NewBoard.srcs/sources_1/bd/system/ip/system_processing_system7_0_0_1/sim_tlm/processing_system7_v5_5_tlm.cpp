@@ -190,6 +190,7 @@ processing_system7_v5_5_tlm :: processing_system7_v5_5_tlm (sc_core::sc_module_n
         ,S_AXI_HP1_RDISSUECAP1_EN("S_AXI_HP1_RDISSUECAP1_EN")
         ,S_AXI_HP1_WRISSUECAP1_EN("S_AXI_HP1_WRISSUECAP1_EN")
         ,IRQ_F2P("IRQ_F2P")
+        ,Core1_nIRQ("Core1_nIRQ")
         ,FCLK_CLK0("FCLK_CLK0")
         ,FCLK_CLK1("FCLK_CLK1")
         ,FCLK_CLK2("FCLK_CLK2")

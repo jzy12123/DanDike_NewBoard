@@ -216,6 +216,7 @@ S_AXI_HP1_WID,
 S_AXI_HP1_WDATA, 
 S_AXI_HP1_WSTRB, 
 IRQ_F2P, 
+Core1_nIRQ, 
 FCLK_CLK0, 
 FCLK_CLK1, 
 FCLK_CLK2, 
@@ -402,7 +403,8 @@ input [5 : 0] S_AXI_HP1_AWID;
 input [5 : 0] S_AXI_HP1_WID;
 input [63 : 0] S_AXI_HP1_WDATA;
 input [7 : 0] S_AXI_HP1_WSTRB;
-input [11 : 0] IRQ_F2P;
+input [5 : 0] IRQ_F2P;
+input Core1_nIRQ;
 output FCLK_CLK0;
 output FCLK_CLK1;
 output FCLK_CLK2;
