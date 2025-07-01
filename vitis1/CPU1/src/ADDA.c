@@ -1,4 +1,5 @@
 #include "ADDA.h"
+#include "xscugic_hw.h"
 /*
  * 变量
  */
@@ -132,7 +133,7 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
     {
         // 先刷新，再失效
         Xil_DCacheFlushRange(addr, size);
-        // Xil_DCacheInvalidateRange(addr, size);
+        Xil_DCacheInvalidateRange(addr, size);
     }
 
     // 添加内存屏障确保操作顺序
@@ -161,7 +162,7 @@ void rx_intr_handler(void *callback)
         {
             u32 dma_s2mm_status_on_error;
             dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34);
-            // printf("CPU1:DMA RX IOC occurred with an error. S2MM_DMASR = 0x%08X\n", dma_s2mm_status_on_error);
+            printf("CPU1_Debug: DMA RX IOC occurred with an error. S2MM_DMASR = 0x%08X\n", (unsigned int)dma_s2mm_status_on_error);
 
             // 检查具体的错误位
             if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
@@ -385,7 +386,8 @@ int timer_init(XScuTimer *timer_ptr)
 #define XSCGIC_CPU_INTERFACE_ENABLE 0x01U // ICCICR中使能CPU接口的位
 
 /**
- * @brief 初始化并配置中断控制器和中断处理函数（新架构版）
+ * @brief 初始化并配置中断控制器和中断处理函数（AMP安全最终版）
+ * @details 此版本修正了初始化顺序，以防止在中断处理程序就绪前发生中断导致系统挂起。
  * @return 成功返回XST_SUCCESS，失败返回XST_FAILURE
  */
 int setup_intr_system(XScuGic *int_ins_ptr,
@@ -394,35 +396,40 @@ int setup_intr_system(XScuGic *int_ins_ptr,
                       XUartLite *gps_uart_ptr,
                       XTtcPs *gps_ttc_ptr)
 {
-    XIntc_Config *intc_baremetal_config;
     int status;
     XScuGic_Config *gic_config;
+
     /* =================================================================
-     * 步骤 1: 初始化GIC (通用中断控制器)
-     * 这是所有中断的基础，必须最先初始化。
+     * 步骤 1: 【最优先】设置CPU的顶层异常处理框架
+     * 先搭建好中断处理的“骨架”，确保任何意外中断都能被引导到GIC处理函数。
      * ================================================================= */
+    // printf("--> Step 1: Initializing Exception Handling...\n");
     gic_config = XScuGic_LookupConfig(XPAR_SCUGIC_0_DEVICE_ID);
     if (NULL == gic_config)
     {
+        printf("ERROR: XScuGic_LookupConfig failed.\n");
         return XST_FAILURE;
     }
+    // // 将GIC的配置信息赋给实例，此时还未操作硬件
+    // int_ins_ptr->Config = gic_config;
     status = XScuGic_CfgInitialize(int_ins_ptr, gic_config, gic_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
         return XST_FAILURE;
     }
 
-    /* =================================================================
-     * 步骤 2: 设置CPU的顶层异常处理
-     * 将GIC的中断处理函数连接到CPU的中断异常向量上。
-     * ================================================================= */
     Xil_ExceptionInit();
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, int_ins_ptr);
-    Xil_ExceptionEnable();
+    // 将GIC的驱动处理函数注册为CPU的官方中断处理入口
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
+                                 (Xil_ExceptionHandler)XScuGic_InterruptHandler,
+                                 int_ins_ptr);
 
     /* =================================================================
-     * 步骤 3: 初始化裸机专用的AXI中断控制器 (AXI INTC)
+     * 步骤 2: 初始化并连接所有中断源
+     * 在这一步，我们只做软件配置（连接处理函数），不使能任何中断。
      * ================================================================= */
+    // printf("--> Step 2: Initializing Interrupt Sources...\n");
+    // 初始化裸机专用的AXI INTC
     status = XIntc_Initialize(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_DEVICE_ID);
     if (status != XST_SUCCESS)
     {
@@ -430,89 +437,85 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
     }
 
-    /* =================================================================
-     * 步骤 4: 将【具体】的中断服务程序连接到【AXI INTC】的输入引脚
-     * ================================================================= */
+    // printf("--> Step 2.5: Connecting Interrupt Sources...\n");
+    // 连接PL中断源到AXI INTC
     // Pin 0: s2mm_introut (DMA ADC完成)
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR,
                            (XInterruptHandler)rx_intr_handler, (void *)&axidma);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
+    // printf("--> Step 2.5: 1...\n");
 
     // Pin 1: mm2s_introut (DMA DAC完成)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR,(XInterruptHandler)tx_intr_handler, (void *)&axidma);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR, (XInterruptHandler)tx_intr_handler, (void *)&axidma);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 2...\n");
     // Pin 2: prog_empty (FIFO空) -> underflow_handler
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR,(XInterruptHandler)underflow_handler, (void *)0);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR, (XInterruptHandler)underflow_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 3...\n");
     // Pin 3: onoff_done (开关量完成) -> onoff_handler
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR,(XInterruptHandler)onoff_handler, (void *)0);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR, (XInterruptHandler)onoff_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 4...\n");
     // Pin 4: power_pulse_P(电能脉冲)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR,(XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR, (XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 5...\n");
     // Pin 5: power_pulse_Q
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR,(XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR, (XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 6...\n");
     // Pin 6: interrupt (GPS UART)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR,(XInterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR, (XInterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 7...\n");
     // Pin 7: bm_sync_end
     // Pin 8: date_update (日期更新)
     // Pin 9: PPS_IN
     // Pin 10: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
 
-    /* =================================================================
-     * 步骤 5: 将【AXI INTC】作为一个整体，注册到【GIC】的28号私有中断上
-     * ================================================================= */
+    // 连接AXI INTC的输出到GIC
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0xA8, 0x1); // 高电平
     status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR,
                              (Xil_ExceptionHandler)BareMetal_Intc_Handler, (void *)&AxiIntc_BareMetal);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
-    /* =================================================================
-     * 步骤 6: 注册其他不经过AXI INTC的【PS内部】系统中断
-     * ================================================================= */
+    // printf("--> Step 2.5: 8...\n");
     // 主定时器中断 (PS私有定时器，ID=XPAR_SCUTIMER_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 9...\n");
     // GPS超时TTC定时器中断 (PS TTC，ID=XPAR_XTTCPS_1_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0xA0, 0x03);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0xA0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_1_INTR, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-
+    // printf("--> Step 2.5: 10...\n");
     // 开关量防抖TTC定时器中断 (PS TTC, ID=XPAR_XTTCPS_0_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     /* =================================================================
-     * 步骤 7: 启动AXI INTC并使能所有中断
-     * 这是最后一步，确保所有框架都搭建好之后再打开中断。
+     * 步骤 4: 【关键】手动初始化CPU1的GIC接口并使能所有中断
+     * 此时异常处理已就绪，可以安全地打开硬件中断了。
      * ================================================================= */
+    // printf("--> Step 4: Enabling Interrupts...\n");
+    // 启动AXI INTC
     status = XIntc_Start(&AxiIntc_BareMetal, XIN_REAL_MODE);
     if (status != XST_SUCCESS)
-    {
         return XST_FAILURE;
-    }
+
     // 使能AXI INTC上的中断输入
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);
@@ -529,13 +532,17 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_1_INTR);
     XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_0_INTR);
 
+    // 使能外设自身的中断产生
     // 使能PS外设中断源
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA
     XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE); // DMA
     XScuTimer_EnableInterrupt(timer_ptr);                                     // 定时器
     XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK);    // 使能TTC定时
 
-    printf("BareMetal interrupt system initialized with AXI INTC.\r\n");
+    // 【最后一步】打开CPU的总中断开关
+    Xil_ExceptionEnable();
+
+    printf("CPU1: BareMetal AMP-safe interrupt system initialized SUCCESSFULLY.\n");
     return XST_SUCCESS;
 }
 
@@ -580,9 +587,11 @@ bool AdcFinish_Flag; // ADc完成标志，在中断处理函数中写1，主循环中读取
 void Adc_Data_processing()
 {
     /************************** 数据处理 *****************************/
+    // 调试: 只打印第一个周期的第一个采样点，避免信息刷屏
+    static int debug_print_once = 1;
+
     // 指向 DMA 缓冲区中有效数据的起始位置
     int current_rx_buffer_offset_u16 = 0;
-
     // 外层循环：遍历所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的数据块
     for (int cycle_idx = 0; cycle_idx < AD_SAMP_CYCLE_NUMBER; cycle_idx++) //
     {

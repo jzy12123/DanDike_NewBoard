@@ -26,7 +26,7 @@ static void RunADCPIDCycle(void);
 // ===============================================
 int main()
 {
-//	sleep(30); // 必须要有等待linux启动
+	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -253,8 +253,6 @@ int main()
 		{
 			usleep(10000); // 延时10ms
 		}
-
-	
 	}
 }
 
