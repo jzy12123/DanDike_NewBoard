@@ -501,11 +501,12 @@ void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_ad
         }
     }
 
-    // // 打印extended_data，用来测试波形是否正确
-    // for (int i = 0; i < N; i++)
-    // {
-    //     printf("x=%d\n", extended_data[i]);
-    // }
+    //   // 打印extended_data，用来测试波形是否正确
+    //   for (int i = 0; i < N; i++)
+    //   {
+    //       printf("x=%d\n", extended_data[i]);
+    //   }
+
     //  计算直流分量（平均值）
     double dc_offset = 0.0;
     for (int i = 0; i < N; i++)

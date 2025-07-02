@@ -403,7 +403,7 @@ input [5 : 0] S_AXI_HP1_AWID;
 input [5 : 0] S_AXI_HP1_WID;
 input [63 : 0] S_AXI_HP1_WDATA;
 input [7 : 0] S_AXI_HP1_WSTRB;
-input [5 : 0] IRQ_F2P;
+input [7 : 0] IRQ_F2P;
 input Core1_nIRQ;
 output FCLK_CLK0;
 output FCLK_CLK1;

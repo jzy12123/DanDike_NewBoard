@@ -186,6 +186,12 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_
 # IP: bd/system/ip/system_stimer_onoff_pa_rw_A_0_0/system_stimer_onoff_pa_rw_A_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_stimer_onoff_pa_rw_A_0_0 || ORIG_REF_NAME==system_stimer_onoff_pa_rw_A_0_0} -quiet] -quiet
 
+# IP: bd/system/ip/system_xlconcat_0_1/system_xlconcat_0_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_xlconcat_0_1 || ORIG_REF_NAME==system_xlconcat_0_1} -quiet] -quiet
+
+# IP: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] -quiet
+
 # IP: bd/system/ip/system_tier2_xbar_0_0_1/system_tier2_xbar_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_0_0 || ORIG_REF_NAME==system_tier2_xbar_0_0} -quiet] -quiet
 
@@ -224,12 +230,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto
 
 # IP: bd/system/ip/system_auto_pc_9/system_auto_pc_9.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_9 || ORIG_REF_NAME==system_auto_pc_9} -quiet] -quiet
-
-# IP: bd/system/ip/system_xlconcat_0_1/system_xlconcat_0_1.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_xlconcat_0_1 || ORIG_REF_NAME==system_xlconcat_0_1} -quiet] -quiet
-
-# IP: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] -quiet
 
 # XDC: bd/system/ip/system_processing_system7_0_0_1/system_processing_system7_0_0.xdc
 set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_processing_system7_0_0 || ORIG_REF_NAME==system_processing_system7_0_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
@@ -360,6 +360,14 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_ooc.xdc
 
+# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xdc
+set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
+
+# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0_clocks.xdc
+#dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
+
+# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0_ooc.xdc
+
 # XDC: bd/system/ip/system_auto_pc_0_2/system_auto_pc_0_ooc.xdc
 
 # XDC: bd/system/ip/system_auto_pc_1_2/system_auto_pc_1_ooc.xdc
@@ -379,13 +387,5 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 # XDC: bd/system/ip/system_auto_pc_7_2/system_auto_pc_7_ooc.xdc
 
 # XDC: bd/system/ip/system_auto_pc_9/system_auto_pc_9_ooc.xdc
-
-# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xdc
-set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
-
-# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0_clocks.xdc
-#dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
-
-# XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0_ooc.xdc
 
 # XDC: bd/system/system_ooc.xdc

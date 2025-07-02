@@ -2,10 +2,10 @@
 <Root MajorVersion="0" MinorVersion="39">
   <CompositeFile CompositeFileTopName="system" CanBeSetAsTop="true" CanDisplayChildGraph="true">
     <Description>Composite Fileset</Description>
-    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1751249670"/>
-    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1751249670"/>
-    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1751249670"/>
-    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1751249670"/>
+    <Generation Name="SYNTHESIS" State="GENERATED" Timestamp="1751458010"/>
+    <Generation Name="IMPLEMENTATION" State="GENERATED" Timestamp="1751458010"/>
+    <Generation Name="SIMULATION" State="GENERATED" Timestamp="1751458010"/>
+    <Generation Name="HW_HANDOFF" State="GENERATED" Timestamp="1751458010"/>
     <FileCollection Name="SOURCES" Type="SOURCES">
       <File Name="ip\system_processing_system7_0_0_1\system_processing_system7_0_0.xci" Type="IP">
         <Instance HierarchyPath="processing_system7_0"/>
@@ -274,6 +274,22 @@
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SIMULATION"/>
       </File>
+      <File Name="ip\system_xlconcat_0_1\system_xlconcat_0_1.xci" Type="IP">
+        <Instance HierarchyPath="xlconcat_BareMetal"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip\system_axi_intc_0_0\system_axi_intc_0_0.xci" Type="IP">
+        <Instance HierarchyPath="axi_intc_BareMetal"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
       <File Name="ip\system_tier2_xbar_0_0_1\system_tier2_xbar_0_0.xci" Type="IP">
         <Instance HierarchyPath="ps7_0_axi_periph/tier2_xbar_0"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
@@ -372,22 +388,6 @@
       </File>
       <File Name="ip\system_auto_pc_9\system_auto_pc_9.xci" Type="IP">
         <Instance HierarchyPath="lcd/axi_mem_intercon/s00_couplers/auto_pc"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip\system_xlconcat_0_1\system_xlconcat_0_1.xci" Type="IP">
-        <Instance HierarchyPath="xlconcat_BareMetal"/>
-        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
-        <Library Name="xil_defaultlib"/>
-        <UsedIn Val="SYNTHESIS"/>
-        <UsedIn Val="IMPLEMENTATION"/>
-        <UsedIn Val="SIMULATION"/>
-      </File>
-      <File Name="ip\system_axi_intc_0_0\system_axi_intc_0_0.xci" Type="IP">
-        <Instance HierarchyPath="axi_intc_BareMetal"/>
         <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
         <Library Name="xil_defaultlib"/>
         <UsedIn Val="SYNTHESIS"/>

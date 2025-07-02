@@ -163,14 +163,57 @@ int main()
 	PID_Init_All();
 	TimeSync_Init();
 	PowerPulse_Init();
+	// /*******************************************************************************************/
+	// /* VITIS 裸机调试 - 手动设置启动参数                                         */
+	// /*******************************************************************************************/
+	// xil_printf("CPU1: VITIS DEBUG - Manually setting startup parameters...\r\n");
+	// memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude)); // 幅值全部清零
+	// memset(harmonics, 0, sizeof(harmonics));		   // 谐波清零
+	// memset(numHarmonics, 0, sizeof(numHarmonics));
+	// // 1. 设置交流输出参数，模拟 "SetACS" 指令
+	// Wave_Frequency = 50.0f;		// 设置频率为50Hz
+
+	// setACS.Vals[0].U =1;			// 设置电压幅值为0.5V
+	// setACS.Vals[0].I_ = 1;
+	// setACS.Vals[1].U = 2;
+	// setACS.Vals[1].I_ = 2;
+	// setACS.Vals[2].U = 3;
+	// setACS.Vals[2].I_ = 3;
+	// setACS.Vals[3].U = 4;
+	// setACS.Vals[3].I_ = 4;
+	// for (int i = 0; i < 4; i++)		// 遍历4个通道
+	// {
+	// 	// 设置电压通道参数
+	// 	setACS.Vals[i].UR = 6.5f;											 // 电压量程设置为6.5V
+
+	// 	Wave_Amplitude[i] = (setACS.Vals[i].U / setACS.Vals[i].UR) * 100.0f; // 计算幅值百分比
+	// 	Wave_Range[i] = voltage_to_output(setACS.Vals[i].UR);				 // 获取量程对应的硬件编码
+
+	// 	// 设置电流通道参数 (这里我们让电流为0，只测试电压)
+	// 	setACS.Vals[i].IR = 5.0f; // 电流量程设置为5A
+
+	// 	Wave_Amplitude[i + 4] = (setACS.Vals[i].I_ / setACS.Vals[i].IR) * 100.0f; // 计算幅值百分比				 // 获取量程对应的硬件编码
+	// 	Wave_Range[i + 4] = current_to_output(setACS.Vals[i].IR);
+	// }
+	// xil_printf("CPU1: VITIS DEBUG - Waveform parameters set for 6.5V output, 0A current.\r\n");
+
+	// // 2. 设置设备运行状态标志
+	// devState.bACRunning = 1;  // 设置为运行状态 (1=运行)
+	// devState.bClosedLoop = 0; // 设置为开环模式，调试初期避免PID控制器干扰
+	// xil_printf("CPU1: VITIS DEBUG - AC Running State ENABLED (bACRunning = 1), Open Loop Mode (bClosedLoop = 0).\r\n");
+
+	// // 3. 设置参数更新标志，以触发主循环中的硬件应用逻辑
+	// dac_parameters_updated_by_command = true;
+	// xil_printf("CPU1: VITIS DEBUG - Parameter update flag SET (dac_parameters_updated_by_command = true).\r\n");
+
+	// /************************** 初始化完成，准备进入主循环 *****************************/
 	xil_printf("CPU1: Start Main Timer...\r\n");
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
+	//开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 1);
-	//	// 开启GPS对时
-	// StartGpsTimeSync();
 
 	/*******************************************************************************************/
 	while (1)
@@ -245,8 +288,6 @@ int main()
 				// ADCDMA失败
 				//  printf("ADC NotReady !\r\n");
 			}
-			/*电能输入轮询 临时测试 */
-			PowerPulse_PollInput();
 		}
 		/*AC交流源关闭或者没有获得锁*/
 		else
@@ -485,6 +526,8 @@ void RunADCPIDCycle(void)
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
+		// 调试信息：打印最终计算出的电压和电流值
+		// printf("CPU1_Debug: Channel=%d, Final U=%.4f, Final I=%.4f\r\n", i, lineAC.u[i], lineAC.i[i]);
 	}
 	// 总功率因数
 	double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);

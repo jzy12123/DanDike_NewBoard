@@ -182,34 +182,12 @@ void rx_intr_handler(void *callback)
                 // 这个错误（DMADecErr）在没有TLAST时是预期的
                 // printf("CPU1: DMA Decode Error detected (potentially due to missing TLAST, will proceed with data processing).\n");
             }
-            //            /*复位DMA*/
-            //            // 在 Dma_Start 中，调用 SafeDmaTransfer 之前
-            //            // printf("CPU1: Resetting DMA before new transfer...\n");
-            //            XAxiDma_Reset(&axidma);
-            //            int reset_timeout = 1000000; // 定义一个合适的超时计数
-            //            while (reset_timeout > 0)
-            //            {
-            //                if (XAxiDma_ResetIsDone(&axidma))
-            //                    break;
-            //                reset_timeout--;
-            //            }
-            //            if (reset_timeout == 0)
-            //            {
-            //                printf("CPU1: CRITICAL - DMA Reset timed out!\n");
-            //            }
-            //            else
-            //            {
-            //                // printf("CPU1: DMA Reset successful.\n");
-            //            }
-            //            // 清除S2MM通道的状态寄存器中的中断和错误标志（通过向相应位写1来清除）
-            //            XAxiDma_WriteReg(axidma.RegBase, 0x34, XAxiDma_ReadReg(axidma.RegBase, 0x34) | 0x0000F070); // 清除所有已知错误和IOC/Delay IRQ标志
-            //            // 重新使能你需要的中断 (IOC 和 Error)
-            //            XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_IOC_MASK | XAXIDMA_IRQ_ERROR_MASK, XAXIDMA_DEVICE_TO_DMA);
         }
 
         /*处理DDR数据*/
         u32 total_dma_bytes_for_sync = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * sizeof(u16);
         sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_for_sync, XAXIDMA_DEVICE_TO_DMA);
+
         Adc_Data_processing();
         AdcFinish_Flag = 1; // 设置ADC（及数据处理）完成标志
         return;
@@ -410,8 +388,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         printf("ERROR: XScuGic_LookupConfig failed.\n");
         return XST_FAILURE;
     }
-    // // 将GIC的配置信息赋给实例，此时还未操作硬件
-    // int_ins_ptr->Config = gic_config;
+
     status = XScuGic_CfgInitialize(int_ins_ptr, gic_config, gic_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
@@ -437,49 +414,36 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
     }
 
-    // printf("--> Step 2.5: Connecting Interrupt Sources...\n");
     // 连接PL中断源到AXI INTC
-    // Pin 0: s2mm_introut (DMA ADC完成)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR,
-                           (XInterruptHandler)rx_intr_handler, (void *)&axidma);
-    if (status != XST_SUCCESS)
-        return XST_FAILURE;
-    // printf("--> Step 2.5: 1...\n");
-
-    // Pin 1: mm2s_introut (DMA DAC完成)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR, (XInterruptHandler)tx_intr_handler, (void *)&axidma);
-    if (status != XST_SUCCESS)
-        return XST_FAILURE;
-    // printf("--> Step 2.5: 2...\n");
-    // Pin 2: prog_empty (FIFO空) -> underflow_handler
+    // Pin 0: prog_empty (FIFO空) -> underflow_handler
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR, (XInterruptHandler)underflow_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 3...\n");
-    // Pin 3: onoff_done (开关量完成) -> onoff_handler
+
+    // Pin 1: onoff_done (开关量完成) -> onoff_handler
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR, (XInterruptHandler)onoff_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 4...\n");
-    // Pin 4: power_pulse_P(电能脉冲)
+
+    // Pin 2: power_pulse_P(电能脉冲)
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR, (XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 5...\n");
-    // Pin 5: power_pulse_Q
+
+    // Pin 3: power_pulse_Q
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR, (XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 6...\n");
-    // Pin 6: interrupt (GPS UART)
+
+    // Pin 4: interrupt (GPS UART)
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR, (XInterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 7...\n");
-    // Pin 7: bm_sync_end
-    // Pin 8: date_update (日期更新)
-    // Pin 9: PPS_IN
-    // Pin 10: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
+
+    // Pin 5: bm_sync_end
+    // Pin 6: date_update (日期更新)
+    // Pin 7: PPS_IN
+    // Pin 8: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
 
     // 连接AXI INTC的输出到GIC
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0xA8, 0x1); // 高电平
@@ -487,22 +451,34 @@ int setup_intr_system(XScuGic *int_ins_ptr,
                              (Xil_ExceptionHandler)BareMetal_Intc_Handler, (void *)&AxiIntc_BareMetal);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 8...\n");
+
     // 主定时器中断 (PS私有定时器，ID=XPAR_SCUTIMER_INTR)
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 9...\n");
+
     // GPS超时TTC定时器中断 (PS TTC，ID=XPAR_XTTCPS_1_INTR)
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0xA0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_1_INTR, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
-    // printf("--> Step 2.5: 10...\n");
+
     // 开关量防抖TTC定时器中断 (PS TTC, ID=XPAR_XTTCPS_0_INTR)
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // DMA ADC完成中断
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR, 0x8, 0x3); // 上升沿
+    status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR, (Xil_ExceptionHandler)rx_intr_handler, (void *)&axidma);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
+    // DMA DAC完成中断
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR, 0x8, 0x3); // 上升沿
+    status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR, (Xil_ExceptionHandler)tx_intr_handler, (void *)&axidma);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
@@ -517,8 +493,8 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
 
     // 使能AXI INTC上的中断输入
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);//在AXI Interrupt上删除了
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR); // todo 暂时关闭，因为fifo一直为空一直返回中断
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR);                        // 初始化的时候不使能GPS中断，在启动GPS对时再使能
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_RTC_EEPROM_AXI_IIC_0_IIC2INTC_IRPT_INTR);              // 裸机下不使用该中断
@@ -531,6 +507,8 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_Enable(int_ins_ptr, XPAR_SCUTIMER_INTR);
     XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_1_INTR);
     XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_0_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);
 
     // 使能外设自身的中断产生
     // 使能PS外设中断源
@@ -566,89 +544,58 @@ int code_to_real(u16 x)
 }
 
 bool AdcFinish_Flag; // ADc完成标志，在中断处理函数中写1，主循环中读取
-
 /**
- * @brief 处理DMA传输完成后的ADC数据 (单个完整批次)
+ * @brief 处理DMA传输完成后的ADC数据 (修改后，采用指针访问以提高效率和清晰度)
  *
- * 此函数在rx_intr_handler中被调用，当一次包含所有原始周期的ADC数据
- * 通过DMA完整传输到rx_buffer_ptr后执行。
- * 它负责将rx_buffer_ptr中的整个数据块，按照AD_SAMP_CYCLE_NUMBER个原始周期的结构，
- * 逐个原始周期地进行处理（码值转换），并将结果通过Xil_Out32写入到共享DDR内存(Share_addr)。
- *
- * @details
- * - rx_buffer_ptr 包含了所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的、所有通道的、交错的ADC数据。
- * - 外层循环遍历 AD_SAMP_CYCLE_NUMBER 个“原始周期”。
- * - 内层循环遍历每个“原始周期”内的 sample_points 个采样时刻。
- * - `current_rx_buffer_offset_u16` 用于追踪在 `rx_buffer_ptr` (u16指针) 中当前处理的“原始周期”数据块的起始索引。
- * - `k_rx` 作为 `rx_buffer_ptr` 的索引，在每个“原始周期”开始时基于 `current_rx_buffer_offset_u16` 初始化，
- * 并在内层循环中递增，以正确读取每个通道在每个采样时刻的数据。
- * - 写入 `Share_addr` 时，使用 `cycle_idx` (当前“原始周期”的索引) 来计算正确的内存偏移。
+ * 此函数在rx_intr_handler中被调用。
+ * 它负责将DMA缓冲区rx_buffer_ptr中的交错数据，正确地“解交错”并写入到
+ * 共享DDR内存(Share_addr)中，确保每个通道的数据在内存中是连续存放的。
  */
 void Adc_Data_processing()
 {
-    /************************** 数据处理 *****************************/
-    // 调试: 只打印第一个周期的第一个采样点，避免信息刷屏
-    static int debug_print_once = 1;
+    // 定义指向共享内存区域的指针数组，每个指针对应一个逻辑通道的基地址
+    volatile u32 *channel_dest_base_ptrs[CHANNL_MAX];
 
-    // 指向 DMA 缓冲区中有效数据的起始位置
-    int current_rx_buffer_offset_u16 = 0;
     // 外层循环：遍历所有 AD_SAMP_CYCLE_NUMBER 个“原始周期”的数据块
-    for (int cycle_idx = 0; cycle_idx < AD_SAMP_CYCLE_NUMBER; cycle_idx++) //
+    for (int cycle_idx = 0; cycle_idx < AD_SAMP_CYCLE_NUMBER; cycle_idx++)
     {
-        // k_rx 指向 rx_buffer_ptr 中当前“原始周期”的第一个采样点数据 (即通道0的第0个点，或按实际交错顺序的第一个点)
-        int k_rx = current_rx_buffer_offset_u16;
+        // 1. 计算当前处理周期的共享内存基地址
+        u32 *current_cycle_base_addr = (u32 *)(Share_addr + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32));
 
-        // 内层循环：遍历当前“原始周期”内的 sample_points 个采样时刻
-        for (int i = 0; i < sample_points; i++) // i 是当前周期内的采样点索引
+        // 2. 初始化8个通道在本周期的目标写入地址指针
+        for (int ch = 0; ch < CHANNL_MAX; ch++)
         {
-            // 假设ADC数据在rx_buffer_ptr中的交错顺序是：
-            // 时刻0: CH4(JIA), CH0(JUA), CH5(JIB), CH1(JUB), CH6(JIC), CH2(JUC), CH7(JIX), CH3(JUX)
-            // 所以 k_rx 对应 JIA, k_rx+1 对应 JUA, k_rx+2 对应 JIB, ..., k_rx+7 对应 JUX
-            // 写入 Share_addr 时，目标地址结构是：
-            // Share_addr_base + (通道逻辑偏移) + (周期偏移) + (周期内点偏移)
-            // 通道逻辑偏移: channel_logic_id * sample_points * sizeof(u32)
-            // 周期偏移:     cycle_idx * CHANNL_MAX * sample_points * sizeof(u32)
-            // 周期内点偏移: i * sizeof(u32)
-
-            // JUA (逻辑通道0, 物理索引1 in rx_buffer_ptr group)
-            Xil_Out32(Share_addr + 0 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 1]));
-
-            // JUB (逻辑通道1, 物理索引3)
-            Xil_Out32(Share_addr + 1 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 3]));
-
-            // JUC (逻辑通道2, 物理索引5)
-            Xil_Out32(Share_addr + 2 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 5]));
-
-            // JUX (逻辑通道3, 物理索引7)
-            Xil_Out32(Share_addr + 3 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 7]));
-
-            // JIA (逻辑通道4, 物理索引0)
-            Xil_Out32(Share_addr + 4 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 0]));
-
-            // JIB (逻辑通道5, 物理索引2)
-            Xil_Out32(Share_addr + 5 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 2]));
-
-            // JIC (逻辑通道6, 物理索引4)
-            Xil_Out32(Share_addr + 6 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 4]));
-
-            // JIX (逻辑通道7, 物理索引6)
-            Xil_Out32(Share_addr + 7 * sample_points * sizeof(u32) + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32) + i * sizeof(u32),
-                      (u32)code_to_real(rx_buffer_ptr[k_rx + 6]));
-
-            k_rx += CHANNL_MAX; // 移动到 rx_buffer_ptr 中下一组8通道交错数据 (即下一个采样时刻的数据)
+            channel_dest_base_ptrs[ch] = current_cycle_base_addr + ch * sample_points;
         }
-        // 当前“原始周期”的数据已处理完毕并写入Share_addr。
-        // 更新 current_rx_buffer_offset_u16 以指向 rx_buffer_ptr 中下一个“原始周期”数据块的起始位置。
-        // 由于 k_rx 已经在内层循环中正确递增并覆盖了一个周期的所有数据，
-        // current_rx_buffer_offset_u16 应该直接等于下一个周期的起始 k_rx 值。
-        current_rx_buffer_offset_u16 = k_rx;
+
+        // 3. 计算DMA缓冲区中当前周期的起始地址
+        u16 *current_cycle_dma_src_ptr = rx_buffer_ptr + cycle_idx * CHANNL_MAX * sample_points;
+
+        // 4. 内层循环：遍历当前周期的所有采样点，进行解交错和写入
+        for (int i = 0; i < sample_points; i++)
+        {
+            // 按照硬件实际的交错顺序读取DMA源数据
+            // 物理顺序: JIA(0), JUA(1), JIB(2), JUB(3), JIC(4), UC(5), JIX(6), UX(7)
+            u16 raw_ia = current_cycle_dma_src_ptr[i * CHANNL_MAX + 0];
+            u16 raw_ua = current_cycle_dma_src_ptr[i * CHANNL_MAX + 1];
+            u16 raw_ib = current_cycle_dma_src_ptr[i * CHANNL_MAX + 2];
+            u16 raw_ub = current_cycle_dma_src_ptr[i * CHANNL_MAX + 3];
+            u16 raw_ic = current_cycle_dma_src_ptr[i * CHANNL_MAX + 4];
+            u16 raw_uc = current_cycle_dma_src_ptr[i * CHANNL_MAX + 5];
+            u16 raw_ix = current_cycle_dma_src_ptr[i * CHANNL_MAX + 6];
+            u16 raw_ux = current_cycle_dma_src_ptr[i * CHANNL_MAX + 7];
+
+            // 将转换后的值通过指针写入对应的连续内存区域
+            // 逻辑顺序: UA, UB, UC, UX, IA, IB, IC, IX
+            *(channel_dest_base_ptrs[0] + i) = (u32)code_to_real(raw_ua);
+            *(channel_dest_base_ptrs[1] + i) = (u32)code_to_real(raw_ub);
+            *(channel_dest_base_ptrs[2] + i) = (u32)code_to_real(raw_uc);
+            *(channel_dest_base_ptrs[3] + i) = (u32)code_to_real(raw_ux);
+            *(channel_dest_base_ptrs[4] + i) = (u32)code_to_real(raw_ia);
+            *(channel_dest_base_ptrs[5] + i) = (u32)code_to_real(raw_ib);
+            *(channel_dest_base_ptrs[6] + i) = (u32)code_to_real(raw_ic);
+            *(channel_dest_base_ptrs[7] + i) = (u32)code_to_real(raw_ix);
+        }
     }
 }
 

@@ -1643,13 +1643,13 @@ proc create_root_design { parentCell } {
   # Create instance: xlconcat_BareMetal, and set properties
   set xlconcat_BareMetal [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_BareMetal ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {11} \
+   CONFIG.NUM_PORTS {9} \
  ] $xlconcat_BareMetal
 
   # Create instance: xlconcat_Linux, and set properties
   set xlconcat_Linux [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_Linux ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {6} \
+   CONFIG.NUM_PORTS {8} \
  ] $xlconcat_Linux
 
   # Create interface connections
@@ -1692,23 +1692,23 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net rgb2lcd_0_rgb_data [get_bd_intf_ports rgb_data] [get_bd_intf_pins lcd/rgb_data]
 
   # Create port connections
-  connect_bd_net -net AC_8_channel_0_bm_syn_end1 [get_bd_pins AC_8_channel_0/bm_syn_end] [get_bd_pins xlconcat_BareMetal/In7]
-  connect_bd_net -net AC_8_channel_0_date_update [get_bd_pins AC_8_channel_0/date_update] [get_bd_pins xlconcat_BareMetal/In8]
+  connect_bd_net -net AC_8_channel_0_bm_syn_end1 [get_bd_pins AC_8_channel_0/bm_syn_end] [get_bd_pins xlconcat_BareMetal/In5]
+  connect_bd_net -net AC_8_channel_0_date_update [get_bd_pins AC_8_channel_0/date_update] [get_bd_pins xlconcat_BareMetal/In6]
   connect_bd_net -net AC_8_channel_0_irig_b_out_0 [get_bd_ports irig_b_out_0] [get_bd_pins AC_8_channel_0/irig_b_out_0]
-  connect_bd_net -net AC_8_channel_0_mm2s_introut [get_bd_pins AC_8_channel_0/mm2s_introut] [get_bd_pins xlconcat_BareMetal/In1]
-  connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins xlconcat_BareMetal/In3]
+  connect_bd_net -net AC_8_channel_0_mm2s_introut [get_bd_pins AC_8_channel_0/mm2s_introut] [get_bd_pins xlconcat_Linux/In7]
+  connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins xlconcat_BareMetal/In1]
   connect_bd_net -net AC_8_channel_0_pps_50_0 [get_bd_ports pps_50_0] [get_bd_pins AC_8_channel_0/pps_50_0]
-  connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_BareMetal/In9]
-  connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_BareMetal/In2]
-  connect_bd_net -net AC_8_channel_0_s2mm_introut [get_bd_pins AC_8_channel_0/s2mm_introut] [get_bd_pins xlconcat_BareMetal/In0]
+  connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_BareMetal/In7]
+  connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_BareMetal/In0]
+  connect_bd_net -net AC_8_channel_0_s2mm_introut [get_bd_pins AC_8_channel_0/s2mm_introut] [get_bd_pins xlconcat_Linux/In6]
   connect_bd_net -net AC_8_channel_0_yad_os_0 [get_bd_ports yad_os_0] [get_bd_pins AC_8_channel_0/yad_os_0]
   connect_bd_net -net Op1_0_0_1 [get_bd_ports key_BoardINT0] [get_bd_pins key_board/Op1_0]
   connect_bd_net -net Op1_0_2 [get_bd_ports Coder_Int] [get_bd_pins coder/Op1_0]
   connect_bd_net -net PWM_0_pwm [get_bd_ports lcd_bl] [get_bd_pins lcd/lcd_bl]
-  connect_bd_net -net RTC_EEPROM_iic2intc_irpt [get_bd_pins RTC_EEPROM/iic2intc_irpt] [get_bd_pins xlconcat_BareMetal/In10]
+  connect_bd_net -net RTC_EEPROM_iic2intc_irpt [get_bd_pins RTC_EEPROM/iic2intc_irpt] [get_bd_pins xlconcat_BareMetal/In8]
   connect_bd_net -net a_in_0_1 [get_bd_ports Coder_A] [get_bd_pins coder/a_in_0]
   connect_bd_net -net axi_intc_0_irq [get_bd_pins axi_intc_BareMetal/irq] [get_bd_pins processing_system7_0/Core1_nIRQ]
-  connect_bd_net -net axi_uartlite_0_interrupt [get_bd_pins axi_uartlite_0/interrupt] [get_bd_pins xlconcat_BareMetal/In6]
+  connect_bd_net -net axi_uartlite_0_interrupt [get_bd_pins axi_uartlite_0/interrupt] [get_bd_pins xlconcat_BareMetal/In4]
   connect_bd_net -net b_in_0_1 [get_bd_ports Coder_B] [get_bd_pins coder/b_in_0]
   connect_bd_net -net clk_10MHz_0_1 [get_bd_ports clk_10MHz_0] [get_bd_pins AC_8_channel_0/clk_10MHz_0]
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports lcd_clk] [get_bd_pins lcd/lcd_clk]
@@ -1719,8 +1719,8 @@ proc create_root_design { parentCell } {
   connect_bd_net -net key_board_iic2intc_irpt [get_bd_pins key_board/iic2intc_irpt] [get_bd_pins xlconcat_Linux/In2]
   connect_bd_net -net lcd_irq [get_bd_pins lcd/irq] [get_bd_pins xlconcat_Linux/In1]
   connect_bd_net -net lcd_mm2s_introut [get_bd_pins lcd/mm2s_introut] [get_bd_pins xlconcat_Linux/In0]
-  connect_bd_net -net power_pulse_v1_AXI_0_intrpt_p [get_bd_pins power_pulse_v1_AXI_0/intrpt_p] [get_bd_pins xlconcat_BareMetal/In4]
-  connect_bd_net -net power_pulse_v1_AXI_0_intrpt_q [get_bd_pins power_pulse_v1_AXI_0/intrpt_q] [get_bd_pins xlconcat_BareMetal/In5]
+  connect_bd_net -net power_pulse_v1_AXI_0_intrpt_p [get_bd_pins power_pulse_v1_AXI_0/intrpt_p] [get_bd_pins xlconcat_BareMetal/In2]
+  connect_bd_net -net power_pulse_v1_AXI_0_intrpt_q [get_bd_pins power_pulse_v1_AXI_0/intrpt_q] [get_bd_pins xlconcat_BareMetal/In3]
   connect_bd_net -net power_pulse_v1_AXI_0_pulse_p_out [get_bd_ports pulse_p_out_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_p_out]
   connect_bd_net -net power_pulse_v1_AXI_0_pulse_q_out [get_bd_ports pulse_q_out_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_q_out]
   connect_bd_net -net pps_gps_0_1 [get_bd_ports pps_gps_0] [get_bd_pins AC_8_channel_0/pps_gps_0]

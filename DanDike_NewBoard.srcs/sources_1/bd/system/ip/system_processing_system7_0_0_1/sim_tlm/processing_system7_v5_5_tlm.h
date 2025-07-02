@@ -179,7 +179,7 @@ class processing_system7_v5_5_tlm : public sc_core::sc_module   {
     sc_core::sc_in<bool> S_AXI_HP1_ACLK;
     sc_core::sc_in<bool> S_AXI_HP1_RDISSUECAP1_EN;
     sc_core::sc_in<bool> S_AXI_HP1_WRISSUECAP1_EN;
-    sc_core::sc_in<sc_dt::sc_bv<6> >  IRQ_F2P;
+    sc_core::sc_in<sc_dt::sc_bv<8> >  IRQ_F2P;
     sc_core::sc_in<bool> Core1_nIRQ;
     sc_core::sc_out<bool> FCLK_CLK0;
     sc_core::sc_out<bool> FCLK_CLK1;

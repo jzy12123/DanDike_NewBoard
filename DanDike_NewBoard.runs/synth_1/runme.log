@@ -14,6 +14,7 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+add_files: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1139.379 ; gain = 0.000
 Command: synth_design -top system_wrapper -part xc7z020clg400-2
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
@@ -21,9 +22,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020
 INFO: [Device 21-403] Loading part xc7z020clg400-2
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 10204
+INFO: [Synth 8-7075] Helper process launched with PID 27292
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1234.578 ; gain = 94.750
+Starting RTL Elaboration : Time (s): cpu = 00:00:08 ; elapsed = 00:00:09 . Memory (MB): peak = 1234.844 ; gain = 95.465
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-2048] function gpo_bit_used does not always return a value [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1529/hdl/axi_iic_v2_0_vh_rfs.vhd:1147]
 INFO: [Synth 8-6157] synthesizing module 'system_wrapper' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v:12]
@@ -3928,12 +3929,12 @@ INFO: [Synth 8-638] synthesizing module 'system_axi_intc_0_0' [c:/Users/saber/De
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: 32'b11111111111111111111101111111100 
+	Parameter C_KIND_OF_INTR bound to: 32'b11111111111111111111101011111100 
 	Parameter C_KIND_OF_EDGE bound to: 32'b11111111111111111111111111111111 
 	Parameter C_KIND_OF_LVL bound to: 32'b11111111111111111111111111111111 
-	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111100000000000 
+	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111111000000000 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
@@ -3956,12 +3957,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: -1028 - type: integer 
+	Parameter C_KIND_OF_INTR bound to: -1284 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -512 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
@@ -3981,12 +3982,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 INFO: [Synth 8-638] synthesizing module 'intc_core' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/47b8/hdl/axi_intc_v4_1_vh_rfs.vhd:794]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_DWIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: -1028 - type: integer 
+	Parameter C_KIND_OF_INTR bound to: -1284 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -512 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_HAS_IPR bound to: 1 - type: integer 
 	Parameter C_HAS_SIE bound to: 1 - type: integer 
@@ -6566,7 +6567,7 @@ WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_r
 	Parameter C_S_AXI_HP2_DATA_WIDTH bound to: 64 - type: integer 
 	Parameter C_S_AXI_HP3_DATA_WIDTH bound to: 64 - type: integer 
 	Parameter C_INCLUDE_ACP_TRANS_CHECK bound to: 0 - type: integer 
-	Parameter C_NUM_F2P_INTR_INPUTS bound to: 6 - type: integer 
+	Parameter C_NUM_F2P_INTR_INPUTS bound to: 8 - type: integer 
 	Parameter C_FCLK_CLK0_BUF bound to: TRUE - type: string 
 	Parameter C_FCLK_CLK1_BUF bound to: TRUE - type: string 
 	Parameter C_FCLK_CLK2_BUF bound to: TRUE - type: string 
@@ -8798,8 +8799,8 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter IN125_WIDTH bound to: 1 - type: integer 
 	Parameter IN126_WIDTH bound to: 1 - type: integer 
 	Parameter IN127_WIDTH bound to: 1 - type: integer 
-	Parameter dout_width bound to: 11 - type: integer 
-	Parameter NUM_PORTS bound to: 11 - type: integer 
+	Parameter dout_width bound to: 9 - type: integer 
+	Parameter NUM_PORTS bound to: 9 - type: integer 
 	Parameter IN0_WIDTH bound to: 1 - type: integer 
 	Parameter IN1_WIDTH bound to: 1 - type: integer 
 	Parameter IN2_WIDTH bound to: 1 - type: integer 
@@ -8928,21 +8929,21 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter IN125_WIDTH bound to: 1 - type: integer 
 	Parameter IN126_WIDTH bound to: 1 - type: integer 
 	Parameter IN127_WIDTH bound to: 1 - type: integer 
-	Parameter dout_width bound to: 6 - type: integer 
-	Parameter NUM_PORTS bound to: 6 - type: integer 
+	Parameter dout_width bound to: 8 - type: integer 
+	Parameter NUM_PORTS bound to: 8 - type: integer 
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:38 ; elapsed = 00:00:45 . Memory (MB): peak = 2054.746 ; gain = 914.918
+Finished RTL Elaboration : Time (s): cpu = 00:00:42 ; elapsed = 00:00:48 . Memory (MB): peak = 2045.863 ; gain = 906.484
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:41 ; elapsed = 00:00:49 . Memory (MB): peak = 2054.746 ; gain = 914.918
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:46 ; elapsed = 00:00:52 . Memory (MB): peak = 2045.863 ; gain = 906.484
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:41 ; elapsed = 00:00:49 . Memory (MB): peak = 2054.746 ; gain = 914.918
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:46 ; elapsed = 00:00:52 . Memory (MB): peak = 2045.863 ; gain = 906.484
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2209.359 ; gain = 12.473
+Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2212.188 ; gain = 10.457
 INFO: [Netlist 29-17] Analyzing 586 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
@@ -9062,7 +9063,7 @@ Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapp
 INFO: [Project 1-1715] 8 XPM XDC files have been applied to the design.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.066 . Memory (MB): peak = 2918.020 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.051 . Memory (MB): peak = 2920.941 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 469 instances were transformed.
   FDR => FDRE: 381 instances
@@ -9071,9 +9072,9 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   MUXCY_L => MUXCY: 28 instances
   SRL16 => SRL16E: 4 instances
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 2918.020 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2920.941 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:01:35 ; elapsed = 00:01:44 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Constraint Validation : Time (s): cpu = 00:01:42 ; elapsed = 00:01:46 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
@@ -9619,7 +9620,7 @@ INFO: [Synth 8-3354] encoded FSM with state register 'gen_axi.write_cs_reg' usin
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'axi_data_fifo_v2_1_21_axic_reg_srl_fifo__parameterized0'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:01 ; elapsed = 00:02:17 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:10 ; elapsed = 00:02:19 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -9724,7 +9725,7 @@ Detailed RTL Component Info :
 	                4 Bit    Registers := 258   
 	                3 Bit    Registers := 133   
 	                2 Bit    Registers := 201   
-	                1 Bit    Registers := 2593  
+	                1 Bit    Registers := 2579  
 +---Multipliers : 
 	               4x32  Multipliers := 1     
 	               6x32  Multipliers := 1     
@@ -9786,11 +9787,11 @@ Detailed RTL Component Info :
 	   2 Input   12 Bit        Muxes := 77    
 	   3 Input   12 Bit        Muxes := 3     
 	   8 Input   12 Bit        Muxes := 1     
-	   2 Input   11 Bit        Muxes := 7     
+	   2 Input   11 Bit        Muxes := 6     
 	   2 Input   10 Bit        Muxes := 31    
 	   4 Input   10 Bit        Muxes := 1     
 	  10 Input   10 Bit        Muxes := 2     
-	   2 Input    9 Bit        Muxes := 42    
+	   2 Input    9 Bit        Muxes := 43    
 	   3 Input    9 Bit        Muxes := 2     
 	   2 Input    8 Bit        Muxes := 110   
 	   7 Input    8 Bit        Muxes := 8     
@@ -9811,15 +9812,14 @@ Detailed RTL Component Info :
 	   8 Input    5 Bit        Muxes := 1     
 	  10 Input    5 Bit        Muxes := 1     
 	   5 Input    5 Bit        Muxes := 2     
-	   2 Input    4 Bit        Muxes := 282   
+	   2 Input    4 Bit        Muxes := 280   
 	   8 Input    4 Bit        Muxes := 2     
 	   9 Input    4 Bit        Muxes := 5     
 	   6 Input    4 Bit        Muxes := 1     
 	   4 Input    4 Bit        Muxes := 8     
-	   3 Input    4 Bit        Muxes := 37    
+	   3 Input    4 Bit        Muxes := 38    
 	  13 Input    4 Bit        Muxes := 1     
 	  30 Input    4 Bit        Muxes := 1     
-	   5 Input    4 Bit        Muxes := 1     
 	   4 Input    3 Bit        Muxes := 26    
 	  11 Input    3 Bit        Muxes := 18    
 	   2 Input    3 Bit        Muxes := 88    
@@ -10364,7 +10364,7 @@ INFO: [Synth 8-4471] merging register 'bus2ip_reset_reg' into 'AXI_LITE_IPIF_I/I
 INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:02:55 ; elapsed = 00:03:17 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:07 ; elapsed = 00:03:19 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -10428,7 +10428,7 @@ Start Applying XDC Timing Constraints
 INFO: [Synth 8-5578] Moved timing constraint from pin 'system_i/lcd/clk_wiz_0/inst/clk_in1' to pin 'processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O'
 INFO: [Synth 8-5819] Moved 1 constraints on hierarchical pins to their respective driving/loading pins
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:09 ; elapsed = 00:03:33 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:21 ; elapsed = 00:03:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
@@ -10437,7 +10437,7 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:03:22 ; elapsed = 00:03:47 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Timing Optimization : Time (s): cpu = 00:03:35 ; elapsed = 00:03:48 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -10484,7 +10484,7 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:03:46 ; elapsed = 00:04:15 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Technology Mapping : Time (s): cpu = 00:03:59 ; elapsed = 00:04:15 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -10505,37 +10505,37 @@ WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int2_
 WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int_cdc_to_inferred:in0 to constant 0
 WARNING: [Synth 8-3295] tying undriven pin CDC_SINGLE_REMAP_UNDERFLOW_INST/xpm_cdc_single_inst:src_in to constant 0
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:03:56 ; elapsed = 00:04:26 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished IO Insertion : Time (s): cpu = 00:04:10 ; elapsed = 00:04:27 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:03:56 ; elapsed = 00:04:27 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Renaming Generated Instances : Time (s): cpu = 00:04:10 ; elapsed = 00:04:27 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:02 ; elapsed = 00:04:33 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:16 ; elapsed = 00:04:33 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:04:02 ; elapsed = 00:04:33 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Renaming Generated Ports : Time (s): cpu = 00:04:16 ; elapsed = 00:04:33 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:04:03 ; elapsed = 00:04:34 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Handling Custom Attributes : Time (s): cpu = 00:04:17 ; elapsed = 00:04:34 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:04:03 ; elapsed = 00:04:34 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Renaming Generated Nets : Time (s): cpu = 00:04:17 ; elapsed = 00:04:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -10606,11 +10606,11 @@ Report Cell Usage:
 |8     |IDELAYCTRL |     1|
 |9     |IDELAYE2   |     5|
 |10    |LUT1       |   953|
-|11    |LUT2       |  1686|
+|11    |LUT2       |  1681|
 |12    |LUT3       |  5693|
-|13    |LUT4       |  2698|
-|14    |LUT5       |  2653|
-|15    |LUT6       |  5535|
+|13    |LUT4       |  2697|
+|14    |LUT5       |  2641|
+|15    |LUT6       |  5528|
 |16    |MMCME2_ADV |     1|
 |17    |MUXCY_L    |    21|
 |18    |MUXF7      |   408|
@@ -10628,27 +10628,27 @@ Report Cell Usage:
 |36    |FDCE       |   648|
 |37    |FDPE       |    20|
 |38    |FDR        |   196|
-|39    |FDRE       | 23445|
-|40    |FDSE       |   842|
+|39    |FDRE       | 23426|
+|40    |FDSE       |   843|
 |41    |IBUF       |    22|
 |42    |IOBUF      |    29|
 |43    |OBUF       |    42|
 +------+-----------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:04:03 ; elapsed = 00:04:34 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Finished Writing Synthesis Report : Time (s): cpu = 00:04:18 ; elapsed = 00:04:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 204 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:02:33 ; elapsed = 00:03:46 . Memory (MB): peak = 2918.020 ; gain = 914.918
-Synthesis Optimization Complete : Time (s): cpu = 00:04:03 ; elapsed = 00:04:35 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+Synthesis Optimization Runtime : Time (s): cpu = 00:02:42 ; elapsed = 00:03:48 . Memory (MB): peak = 2920.941 ; gain = 906.484
+Synthesis Optimization Complete : Time (s): cpu = 00:04:18 ; elapsed = 00:04:36 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.967 . Memory (MB): peak = 2918.020 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.970 . Memory (MB): peak = 2920.941 ; gain = 0.000
 INFO: [Netlist 29-17] Analyzing 1648 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 WARNING: [Opt 31-32] Removing redundant IBUF since it is not being driven by a top-level port. system_i/lcd/clk_wiz_0/inst/CLK_CORE_DRP_I/clk_inst/clkin1_ibufg 
 Resolution: The tool has removed redundant IBUF. To resolve this warning, check for redundant IBUF in the input design.
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2918.020 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2920.941 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 402 instances were transformed.
   (MUXCY,XORCY) => CARRY4: 7 instances
@@ -10661,9 +10661,9 @@ INFO: [Project 1-111] Unisim Transformation Summary:
 INFO: [Common 17-83] Releasing license: Synthesis
 1551 Infos, 273 Warnings, 1 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:04:21 ; elapsed = 00:04:55 . Memory (MB): peak = 2918.020 ; gain = 1778.191
+synth_design: Time (s): cpu = 00:04:36 ; elapsed = 00:04:58 . Memory (MB): peak = 2920.941 ; gain = 1781.562
 INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
 INFO: [Common 17-1381] The checkpoint 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.dcp' has been generated.
-write_checkpoint: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 2918.020 ; gain = 0.000
+write_checkpoint: Time (s): cpu = 00:00:12 ; elapsed = 00:00:08 . Memory (MB): peak = 2920.941 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Mon Jun 30 10:19:50 2025...
+INFO: [Common 17-206] Exiting Vivado at Wed Jul  2 20:12:18 2025...

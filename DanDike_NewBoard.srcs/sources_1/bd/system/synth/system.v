@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Mon Jun 30 10:13:59 2025
+//Date        : Wed Jul  2 20:06:42 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -8548,8 +8548,8 @@ module system
   wire v_axi4s_vid_out_0_vid_active_video;
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
-  wire [10:0]xlconcat_BareMetal_dout;
-  wire [5:0]xlconcat_Linux_dout;
+  wire [8:0]xlconcat_BareMetal_dout;
+  wire [7:0]xlconcat_Linux_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -9691,17 +9691,15 @@ module system
         .peripheral_aresetn(rst_ps7_0_100M_peripheral_aresetn),
         .slowest_sync_clk(processing_system7_0_FCLK_CLK0));
   system_xlconcat_0_1 xlconcat_BareMetal
-       (.In0(AC_8_channel_0_s2mm_introut),
-        .In1(AC_8_channel_0_mm2s_introut),
-        .In10(RTC_EEPROM_iic2intc_irpt),
-        .In2(AC_8_channel_0_prog_empty),
-        .In3(AC_8_channel_0_onoff_done),
-        .In4(power_pulse_v1_AXI_0_intrpt_p),
-        .In5(power_pulse_v1_AXI_0_intrpt_q),
-        .In6(axi_uartlite_0_interrupt),
-        .In7(AC_8_channel_0_bm_syn_end1),
-        .In8(AC_8_channel_0_date_update),
-        .In9(AC_8_channel_0_pps_in2cpu),
+       (.In0(AC_8_channel_0_prog_empty),
+        .In1(AC_8_channel_0_onoff_done),
+        .In2(power_pulse_v1_AXI_0_intrpt_p),
+        .In3(power_pulse_v1_AXI_0_intrpt_q),
+        .In4(axi_uartlite_0_interrupt),
+        .In5(AC_8_channel_0_bm_syn_end1),
+        .In6(AC_8_channel_0_date_update),
+        .In7(AC_8_channel_0_pps_in2cpu),
+        .In8(RTC_EEPROM_iic2intc_irpt),
         .dout(xlconcat_BareMetal_dout));
   system_xlconcat_0_0 xlconcat_Linux
        (.In0(lcd_mm2s_introut),
@@ -9710,6 +9708,8 @@ module system
         .In3(key_board_Res),
         .In4(coder_intrpt),
         .In5(coder_Res),
+        .In6(AC_8_channel_0_s2mm_introut),
+        .In7(AC_8_channel_0_mm2s_introut),
         .dout(xlconcat_Linux_dout));
 endmodule
 
