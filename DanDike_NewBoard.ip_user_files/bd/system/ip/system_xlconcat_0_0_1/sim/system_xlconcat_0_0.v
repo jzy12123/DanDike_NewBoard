@@ -60,15 +60,6 @@ module system_xlconcat_0_0 (
   In3,
   In4,
   In5,
-  In6,
-  In7,
-  In8,
-  In9,
-  In10,
-  In11,
-  In12,
-  In13,
-  In14,
   dout
 );
 
@@ -78,16 +69,7 @@ input wire [0 : 0] In2;
 input wire [0 : 0] In3;
 input wire [0 : 0] In4;
 input wire [0 : 0] In5;
-input wire [0 : 0] In6;
-input wire [0 : 0] In7;
-input wire [0 : 0] In8;
-input wire [0 : 0] In9;
-input wire [0 : 0] In10;
-input wire [0 : 0] In11;
-input wire [0 : 0] In12;
-input wire [0 : 0] In13;
-input wire [0 : 0] In14;
-output wire [14 : 0] dout;
+output wire [5 : 0] dout;
 
   xlconcat_v2_1_4_xlconcat #(
     .IN0_WIDTH(1),
@@ -218,8 +200,8 @@ output wire [14 : 0] dout;
     .IN125_WIDTH(1),
     .IN126_WIDTH(1),
     .IN127_WIDTH(1),
-    .dout_width(15),
-    .NUM_PORTS(15)
+    .dout_width(6),
+    .NUM_PORTS(6)
   ) inst (
     .In0(In0),
     .In1(In1),
@@ -227,15 +209,15 @@ output wire [14 : 0] dout;
     .In3(In3),
     .In4(In4),
     .In5(In5),
-    .In6(In6),
-    .In7(In7),
-    .In8(In8),
-    .In9(In9),
-    .In10(In10),
-    .In11(In11),
-    .In12(In12),
-    .In13(In13),
-    .In14(In14),
+    .In6(1'B0),
+    .In7(1'B0),
+    .In8(1'B0),
+    .In9(1'B0),
+    .In10(1'B0),
+    .In11(1'B0),
+    .In12(1'B0),
+    .In13(1'B0),
+    .In14(1'B0),
     .In15(1'B0),
     .In16(1'B0),
     .In17(1'B0),

@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Wed Jul  2 20:06:42 2025
+//Date        : Sat Jul 12 16:07:31 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -542,7 +542,7 @@ module AC_8_channel_0_imp_1V5LWYH
   wire stimer_onoff_pa_rw_A_0_bm_syn_end;
   wire stimer_onoff_pa_rw_A_0_date_update;
   wire stimer_onoff_pa_rw_A_0_irig_b_out;
-  wire stimer_onoff_pa_rw_A_0_onoff_done;
+  (* DEBUG = "true" *) wire stimer_onoff_pa_rw_A_0_onoff_done;
   wire stimer_onoff_pa_rw_A_0_pps_50;
   wire stimer_onoff_pa_rw_A_0_pps_in2cpu;
 
@@ -7819,7 +7819,7 @@ module s00_couplers_imp_11SE3QO
         .s_axi_wvalid(s00_couplers_to_auto_pc_WVALID));
 endmodule
 
-(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=75,numReposBlks=45,numNonXlnxBlks=2,numHierBlks=30,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=31,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
+(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=76,numReposBlks=46,numNonXlnxBlks=2,numHierBlks=30,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=31,da_board_cnt=8,da_clkrst_cnt=9,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
 module system
    (AD_0_ad_ck,
     AD_0_ad_cs,
@@ -8020,7 +8020,7 @@ module system
   wire AC_8_channel_0_date_update;
   wire AC_8_channel_0_irig_b_out_0;
   wire AC_8_channel_0_mm2s_introut;
-  wire AC_8_channel_0_onoff_done;
+  (* DEBUG = "true" *) (* MARK_DEBUG *) wire AC_8_channel_0_onoff_done;
   wire AC_8_channel_0_pps_50_0;
   wire AC_8_channel_0_pps_in2cpu;
   wire AC_8_channel_0_prog_empty;
@@ -8077,7 +8077,7 @@ module system
   wire [7:0]adda_M00_AXI_WSTRB;
   wire adda_M00_AXI_WVALID;
   wire [0:0]axi_gpio_0_GPIO_TRI_O;
-  wire axi_intc_0_irq;
+  wire axi_intc_BareMetal_irq;
   wire [31:0]axi_mem_intercon_M00_AXI_ARADDR;
   wire [1:0]axi_mem_intercon_M00_AXI_ARBURST;
   wire [3:0]axi_mem_intercon_M00_AXI_ARCACHE;
@@ -8548,8 +8548,8 @@ module system
   wire v_axi4s_vid_out_0_vid_active_video;
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
-  wire [8:0]xlconcat_BareMetal_dout;
-  wire [7:0]xlconcat_Linux_dout;
+  wire [10:0]xlconcat_0_dout;
+  wire [5:0]xlconcat_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -8855,8 +8855,8 @@ module system
         .s_axi_wstrb(ps7_0_axi_periph_M10_AXI_WSTRB),
         .s_axi_wvalid(ps7_0_axi_periph_M10_AXI_WVALID));
   system_axi_intc_0_0 axi_intc_BareMetal
-       (.intr(xlconcat_BareMetal_dout),
-        .irq(axi_intc_0_irq),
+       (.intr(xlconcat_0_dout),
+        .irq(axi_intc_BareMetal_irq),
         .s_axi_aclk(processing_system7_0_FCLK_CLK0),
         .s_axi_araddr(ps7_0_axi_periph_M16_AXI_ARADDR[8:0]),
         .s_axi_aresetn(rst_ps7_0_100M_peripheral_aresetn),
@@ -9124,7 +9124,7 @@ module system
   (* BMM_INFO_PROCESSOR = "arm > system AC_8_channel_0/adda/axi_bram_ctrl_0" *) 
   (* KEEP_HIERARCHY = "yes" *) 
   system_processing_system7_0_0 processing_system7_0
-       (.Core1_nIRQ(axi_intc_0_irq),
+       (.Core1_nIRQ(axi_intc_BareMetal_irq),
         .DDR_Addr(DDR_addr[14:0]),
         .DDR_BankAddr(DDR_ba[2:0]),
         .DDR_CAS_n(DDR_cas_n),
@@ -9170,7 +9170,7 @@ module system
         .I2C1_SDA_I(processing_system7_0_IIC_1_SDA_I),
         .I2C1_SDA_O(processing_system7_0_IIC_1_SDA_O),
         .I2C1_SDA_T(processing_system7_0_IIC_1_SDA_T),
-        .IRQ_F2P(xlconcat_Linux_dout),
+        .IRQ_F2P(xlconcat_dout),
         .MIO(FIXED_IO_mio[53:0]),
         .M_AXI_GP0_ACLK(processing_system7_0_FCLK_CLK0),
         .M_AXI_GP0_ARADDR(processing_system7_0_M_AXI_GP0_ARADDR),
@@ -9690,27 +9690,31 @@ module system
         .mb_debug_sys_rst(1'b0),
         .peripheral_aresetn(rst_ps7_0_100M_peripheral_aresetn),
         .slowest_sync_clk(processing_system7_0_FCLK_CLK0));
-  system_xlconcat_0_1 xlconcat_BareMetal
-       (.In0(AC_8_channel_0_prog_empty),
-        .In1(AC_8_channel_0_onoff_done),
-        .In2(power_pulse_v1_AXI_0_intrpt_p),
-        .In3(power_pulse_v1_AXI_0_intrpt_q),
-        .In4(axi_uartlite_0_interrupt),
-        .In5(AC_8_channel_0_bm_syn_end1),
-        .In6(AC_8_channel_0_date_update),
-        .In7(AC_8_channel_0_pps_in2cpu),
-        .In8(RTC_EEPROM_iic2intc_irpt),
-        .dout(xlconcat_BareMetal_dout));
-  system_xlconcat_0_0 xlconcat_Linux
+  system_system_ila_0_0 system_ila_0
+       (.clk(processing_system7_0_FCLK_CLK0),
+        .probe0(AC_8_channel_0_onoff_done),
+        .probe1(axi_intc_BareMetal_irq));
+  system_xlconcat_0_0 xlconcat
        (.In0(lcd_mm2s_introut),
         .In1(lcd_irq),
         .In2(key_board_iic2intc_irpt),
         .In3(key_board_Res),
         .In4(coder_intrpt),
         .In5(coder_Res),
-        .In6(AC_8_channel_0_s2mm_introut),
-        .In7(AC_8_channel_0_mm2s_introut),
-        .dout(xlconcat_Linux_dout));
+        .dout(xlconcat_dout));
+  system_xlconcat_0_2 xlconcat_BareMetal
+       (.In0(AC_8_channel_0_s2mm_introut),
+        .In1(AC_8_channel_0_mm2s_introut),
+        .In10(RTC_EEPROM_iic2intc_irpt),
+        .In2(AC_8_channel_0_prog_empty),
+        .In3(AC_8_channel_0_onoff_done),
+        .In4(power_pulse_v1_AXI_0_intrpt_p),
+        .In5(power_pulse_v1_AXI_0_intrpt_q),
+        .In6(axi_uartlite_0_interrupt),
+        .In7(AC_8_channel_0_bm_syn_end1),
+        .In8(AC_8_channel_0_date_update),
+        .In9(AC_8_channel_0_pps_in2cpu),
+        .dout(xlconcat_0_dout));
 endmodule
 
 module system_axi_mem_intercon_0

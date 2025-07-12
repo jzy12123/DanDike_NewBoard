@@ -7,7 +7,7 @@
 #include "Amplifier_Switch.h"
 // 全局变量定义
 XTtcPs DebounceTimer;
-float g_debounce_time_ms = DEBOUNCE_TIME_10MS;		  // 全局可配置的防抖时间，默认10ms
+float g_debounce_time_ms = 100.0;						  // 全局可配置的防抖时间，默认100ms
 Read_Bit g_onoff_bit_width = bit_8;					  // 新增：定义全局变量并提供默认值
 static volatile uint32_t last_onoff_data;			  // 存储最后一次中断触发时的数据
 static volatile OnOff_Timestamp_t last_captured_time; // 存储最后一次中断触发的时间戳
@@ -502,6 +502,7 @@ void onoff_handler(void)
  */
 void debounce_timer_handler(void *CallBackRef)
 {
+	// printf("CPU1: Debounce Timer Handler Called\r\n");
 	// 1. 停止定时器并清除中断状态
 	XTtcPs_Stop(&DebounceTimer);
 	XTtcPs_ClearInterruptStatus(&DebounceTimer, XTTCPS_IXR_INTERVAL_MASK);
@@ -518,9 +519,9 @@ void debounce_timer_handler(void *CallBackRef)
 
 		if (changed_bits != 0)
 		{
-			printf("--------------------------------------------------\r\n");
-			printf("CPU1: SOE Event Valid! Stable Data: 0x%02lX, Changed Bits: 0x%02lX\r\n", stable_input_data, changed_bits);
-			printf("--------------------------------------------------\r\n");
+			// printf("--------------------------------------------------\r\n");
+			// printf("CPU1: SOE Event Valid! Stable Data: 0x%02lX, Changed Bits: 0x%02lX\r\n", stable_input_data, changed_bits);
+			// printf("--------------------------------------------------\r\n");
 
 			// 调用新的辅助函数上报JSON
 			report_di_soe_event(stable_input_data, changed_bits, &last_captured_time);
@@ -562,8 +563,7 @@ void debounce_timer_handler(void *CallBackRef)
 	else
 	{
 		// 信号不稳定（抖动）
-		printf("CPU1: Input bounce detected and ignored. Last captured data: 0x%08lX, but stable data is now: 0x%08lX\r\n",
-			   last_onoff_data, stable_input_data);
+		printf("CPU1: Input bounce detected and ignored. Last captured data: 0x%08lX, but stable data is now: 0x%08lX\r\n",last_onoff_data, stable_input_data);
 	}
 }
 

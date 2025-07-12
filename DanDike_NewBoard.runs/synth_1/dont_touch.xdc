@@ -186,11 +186,20 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_
 # IP: bd/system/ip/system_stimer_onoff_pa_rw_A_0_0/system_stimer_onoff_pa_rw_A_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_stimer_onoff_pa_rw_A_0_0 || ORIG_REF_NAME==system_stimer_onoff_pa_rw_A_0_0} -quiet] -quiet
 
-# IP: bd/system/ip/system_xlconcat_0_1/system_xlconcat_0_1.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_xlconcat_0_1 || ORIG_REF_NAME==system_xlconcat_0_1} -quiet] -quiet
-
 # IP: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] -quiet
+
+# IP: bd/system/ip/system_xlconcat_0_2/system_xlconcat_0_2.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_xlconcat_0_2 || ORIG_REF_NAME==system_xlconcat_0_2} -quiet] -quiet
+
+# IP: bd/system/ip/system_system_ila_0_0/system_system_ila_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_system_ila_0_0 || ORIG_REF_NAME==system_system_ila_0_0} -quiet] -quiet
+
+# Block Designs: bd/system/ip/system_system_ila_0_0/bd_0/bd_d5b8.bd
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==bd_d5b8 || ORIG_REF_NAME==bd_d5b8} -quiet] -quiet
+
+# IP: bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/bd_d5b8_ila_lib_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==bd_d5b8_ila_lib_0 || ORIG_REF_NAME==bd_d5b8_ila_lib_0} -quiet] -quiet
 
 # IP: bd/system/ip/system_tier2_xbar_0_0_1/system_tier2_xbar_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_tier2_xbar_0_0 || ORIG_REF_NAME==system_tier2_xbar_0_0} -quiet] -quiet
@@ -367,6 +376,16 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 #dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_intc_0_0 || ORIG_REF_NAME==system_axi_intc_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
 
 # XDC: bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0_ooc.xdc
+
+# XDC: bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila_impl.xdc
+set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==bd_d5b8_ila_lib_0 || ORIG_REF_NAME==bd_d5b8_ila_lib_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
+
+# XDC: bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila.xdc
+#dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==bd_d5b8_ila_lib_0 || ORIG_REF_NAME==bd_d5b8_ila_lib_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
+
+# XDC: bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/bd_d5b8_ila_lib_0_ooc.xdc
+
+# XDC: bd/system/ip/system_system_ila_0_0/bd_0/bd_d5b8_ooc.xdc
 
 # XDC: bd/system/ip/system_auto_pc_0_2/system_auto_pc_0_ooc.xdc
 

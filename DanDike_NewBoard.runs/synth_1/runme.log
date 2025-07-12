@@ -14,7 +14,7 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-add_files: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1139.379 ; gain = 0.000
+add_files: Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1138.895 ; gain = 0.000
 Command: synth_design -top system_wrapper -part xc7z020clg400-2
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
@@ -22,9 +22,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020
 INFO: [Device 21-403] Loading part xc7z020clg400-2
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 27292
+INFO: [Synth 8-7075] Helper process launched with PID 25124
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:08 ; elapsed = 00:00:09 . Memory (MB): peak = 1234.844 ; gain = 95.465
+Starting RTL Elaboration : Time (s): cpu = 00:00:10 ; elapsed = 00:00:14 . Memory (MB): peak = 1292.125 ; gain = 153.230
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-2048] function gpo_bit_used does not always return a value [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1529/hdl/axi_iic_v2_0_vh_rfs.vhd:1147]
 INFO: [Synth 8-6157] synthesizing module 'system_wrapper' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v:12]
@@ -3289,7 +3289,7 @@ INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/Da
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 6 - type: integer 
 	Parameter ADDR_LSB bound to: 2 - type: integer 
 	Parameter OPT_MEM_ADDR_BITS bound to: 3 - type: integer 
-INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/5ad4/STimer_OnOff_PA_RW_AXI.v:359]
+INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/2082/STimer_OnOff_PA_RW_AXI.v:362]
 	Parameter COUNTER_WIDTH bound to: 24 - type: integer 
 	Parameter MAX_COUNT_VALUE bound to: 10000000 - type: integer 
 	Parameter MAX_10MS bound to: 99999 - type: integer 
@@ -3330,7 +3330,7 @@ INFO: [Synth 8-226] default block is never used [c:/Users/saber/Desktop/share/Da
 	Parameter S1 bound to: 4'b1001 
 	Parameter S2 bound to: 4'b1010 
 	Parameter S3 bound to: 4'b1011 
-INFO: [Synth 8-155] case statement is not full and has no default [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/5ad4/soft_timer.v:788]
+INFO: [Synth 8-155] case statement is not full and has no default [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/2082/soft_timer.v:788]
 	Parameter idle bound to: 5'b00001 
 	Parameter tran595 bound to: 5'b00010 
 	Parameter latch bound to: 5'b00100 
@@ -3929,12 +3929,12 @@ INFO: [Synth 8-638] synthesizing module 'system_axi_intc_0_0' [c:/Users/saber/De
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: 32'b11111111111111111111101011111100 
+	Parameter C_KIND_OF_INTR bound to: 32'b11111111111111111111111111111111 
 	Parameter C_KIND_OF_EDGE bound to: 32'b11111111111111111111111111111111 
 	Parameter C_KIND_OF_LVL bound to: 32'b11111111111111111111111111111111 
-	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111111000000000 
+	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111100000000000 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
@@ -3957,12 +3957,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: -1284 - type: integer 
+	Parameter C_KIND_OF_INTR bound to: -1 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -512 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
@@ -3982,12 +3982,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 INFO: [Synth 8-638] synthesizing module 'intc_core' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/47b8/hdl/axi_intc_v4_1_vh_rfs.vhd:794]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_DWIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 9 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
-	Parameter C_KIND_OF_INTR bound to: -1284 - type: integer 
+	Parameter C_KIND_OF_INTR bound to: -1 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -512 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_HAS_IPR bound to: 1 - type: integer 
 	Parameter C_HAS_SIE bound to: 1 - type: integer 
@@ -6567,7 +6567,7 @@ WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_r
 	Parameter C_S_AXI_HP2_DATA_WIDTH bound to: 64 - type: integer 
 	Parameter C_S_AXI_HP3_DATA_WIDTH bound to: 64 - type: integer 
 	Parameter C_INCLUDE_ACP_TRANS_CHECK bound to: 0 - type: integer 
-	Parameter C_NUM_F2P_INTR_INPUTS bound to: 8 - type: integer 
+	Parameter C_NUM_F2P_INTR_INPUTS bound to: 6 - type: integer 
 	Parameter C_FCLK_CLK0_BUF bound to: TRUE - type: string 
 	Parameter C_FCLK_CLK1_BUF bound to: TRUE - type: string 
 	Parameter C_FCLK_CLK2_BUF bound to: TRUE - type: string 
@@ -8409,8 +8409,8 @@ INFO: [Synth 8-155] case statement is not full and has no default [c:/Users/sabe
 	Parameter C_RATIO bound to: 3 - type: integer 
 	Parameter C_SEL_WIDTH bound to: 2 - type: integer 
 	Parameter C_DATA_WIDTH bound to: 3 - type: integer 
-WARNING: [Synth 8-689] width (3) of port connection 'm_axi_arprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13326]
-WARNING: [Synth 8-689] width (3) of port connection 'm_axi_awprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13330]
+WARNING: [Synth 8-689] width (3) of port connection 'm_axi_arprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13330]
+WARNING: [Synth 8-689] width (3) of port connection 'm_axi_awprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13334]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_NUM_SLAVE_SLOTS bound to: 1 - type: integer 
 	Parameter C_NUM_MASTER_SLOTS bound to: 3 - type: integer 
@@ -8671,6 +8671,11 @@ INFO: [Synth 8-638] synthesizing module 'system_rst_ps7_0_100M_0' [c:/Users/sabe
 INFO: [Synth 8-3491] module 'proc_sys_reset' declared at 'c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/8842/hdl/proc_sys_reset_v5_0_vh_rfs.vhd:1264' bound to instance 'U0' of component 'proc_sys_reset' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:129]
 INFO: [Synth 8-256] done synthesizing module 'system_rst_ps7_0_100M_0' (430#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:74]
 WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_100M_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9686]
+WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9693]
+WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/synth/system_system_ila_0_0.v:228]
+WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/synth/bd_d5b8.v:25]
+WARNING: [Synth 8-7023] instance 'inst' of module 'ila_v6_2_11_ila' has 1033 connections declared, but only 1027 given [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/synth/bd_d5b8_ila_lib_0.v:3211]
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'ila_lib'. This will prevent further optimization [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/synth/bd_d5b8.v:25]
 	Parameter IN0_WIDTH bound to: 1 - type: integer 
 	Parameter IN1_WIDTH bound to: 1 - type: integer 
 	Parameter IN2_WIDTH bound to: 1 - type: integer 
@@ -8799,8 +8804,8 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter IN125_WIDTH bound to: 1 - type: integer 
 	Parameter IN126_WIDTH bound to: 1 - type: integer 
 	Parameter IN127_WIDTH bound to: 1 - type: integer 
-	Parameter dout_width bound to: 9 - type: integer 
-	Parameter NUM_PORTS bound to: 9 - type: integer 
+	Parameter dout_width bound to: 6 - type: integer 
+	Parameter NUM_PORTS bound to: 6 - type: integer 
 	Parameter IN0_WIDTH bound to: 1 - type: integer 
 	Parameter IN1_WIDTH bound to: 1 - type: integer 
 	Parameter IN2_WIDTH bound to: 1 - type: integer 
@@ -8929,23 +8934,26 @@ WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_10
 	Parameter IN125_WIDTH bound to: 1 - type: integer 
 	Parameter IN126_WIDTH bound to: 1 - type: integer 
 	Parameter IN127_WIDTH bound to: 1 - type: integer 
-	Parameter dout_width bound to: 8 - type: integer 
-	Parameter NUM_PORTS bound to: 8 - type: integer 
+	Parameter dout_width bound to: 11 - type: integer 
+	Parameter NUM_PORTS bound to: 11 - type: integer 
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'AC_8_channel_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8630]
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'xlconcat_BareMetal'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9705]
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'system_ila_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9693]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:42 ; elapsed = 00:00:48 . Memory (MB): peak = 2045.863 ; gain = 906.484
+Finished RTL Elaboration : Time (s): cpu = 00:00:58 ; elapsed = 00:01:08 . Memory (MB): peak = 2336.469 ; gain = 1197.574
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:46 ; elapsed = 00:00:52 . Memory (MB): peak = 2045.863 ; gain = 906.484
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:03 ; elapsed = 00:01:13 . Memory (MB): peak = 2336.469 ; gain = 1197.574
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:46 ; elapsed = 00:00:52 . Memory (MB): peak = 2045.863 ; gain = 906.484
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:01:03 ; elapsed = 00:01:13 . Memory (MB): peak = 2336.469 ; gain = 1197.574
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2212.188 ; gain = 10.457
-INFO: [Netlist 29-17] Analyzing 586 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2341.008 ; gain = 4.539
+INFO: [Netlist 29-17] Analyzing 649 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
@@ -9002,12 +9010,13 @@ Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard
 Finished Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_1/system_axi_iic_0_1_board.xdc] for cell 'system_i/RTC_EEPROM/axi_iic_0/U0'
 Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xdc] for cell 'system_i/axi_intc_BareMetal/U0'
 Finished Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_intc_0_0/system_axi_intc_0_0.xdc] for cell 'system_i/axi_intc_BareMetal/U0'
+Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila.xdc] for cell 'system_i/system_ila_0/inst/ila_lib/inst'
+Finished Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila.xdc] for cell 'system_i/system_ila_0/inst/ila_lib/inst'
 INFO: [Timing 38-2] Deriving generated clocks
 Parsing XDC File [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc]
 WARNING: [Vivado 12-507] No nets matched 'clk_10MHz_0_IBUF'. [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc:288]
-CRITICAL WARNING: [Common 17-55] 'set_property' expects at least one object. [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc:288]
-Resolution: If [get_<value>] was used to populate the object, check to make sure this command returns at least one valid object.
 Finished Parsing XDC File [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc]
+WARNING: [Project 1-498] One or more constraints failed evaluation while reading constraint file [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc] and the design contains unresolved black boxes. These constraints will be read post-synthesis (as long as their source constraint file is marked as used_in_implementation) and should be applied correctly then. You should review the constraints listed in the file [.Xil/system_wrapper_propImpl.xdc] and check the run log file to verify that these constraints were correctly applied.
 INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/system_wrapper_propImpl.xdc].
 Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapper_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Parsing XDC File [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/dont_touch.xdc]
@@ -9063,18 +9072,20 @@ Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapp
 INFO: [Project 1-1715] 8 XPM XDC files have been applied to the design.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.051 . Memory (MB): peak = 2920.941 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.054 . Memory (MB): peak = 3015.152 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
-  A total of 469 instances were transformed.
+  A total of 511 instances were transformed.
+  CFGLUT5 => CFGLUT5 (SRL16E, SRLC32E): 36 instances
+  CFGLUT5 => SRLC32E: 6 instances
   FDR => FDRE: 381 instances
   FDRSE => FDRSE (FDRE, LUT4, VCC): 27 instances
   IOBUF => IOBUF (IBUF, OBUFT): 29 instances
   MUXCY_L => MUXCY: 28 instances
   SRL16 => SRL16E: 4 instances
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2920.941 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 3015.152 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:01:42 ; elapsed = 00:01:46 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Constraint Validation : Time (s): cpu = 00:02:02 ; elapsed = 00:02:18 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
@@ -9119,7 +9130,7 @@ INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'slave
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'slave_attachment__parameterized1'
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'slave_attachment__parameterized2'
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'rotary_encoder'
-INFO: [Synth 8-802] inferred FSM for state register 'gpregsm1.curr_fwft_state_reg' in module 'rd_fwft'
+INFO: [Synth 8-802] inferred FSM for state register 'gpregsm1.curr_fwft_state_reg' in module 'fifo_generator_v13_2_5_rd_fwft'
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'axi_vdma_v6_3_10_axis_dwidth_converter_v1_0_axisc_upsizer'
 INFO: [Synth 8-802] inferred FSM for state register 'dmacntrl_cs_reg' in module 'axi_vdma_sm'
 INFO: [Synth 8-802] inferred FSM for state register 'sig_pcc_sm_state_reg' in module 'axi_datamover_pcc__parameterized0'
@@ -9135,6 +9146,11 @@ INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'axi_p
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'axi_data_fifo_v2_1_21_axic_reg_srl_fifo'
 INFO: [Synth 8-802] inferred FSM for state register 'gen_axi.write_cs_reg' in module 'axi_crossbar_v2_1_23_decerr_slave__parameterized0'
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'axi_data_fifo_v2_1_21_axic_reg_srl_fifo__parameterized0'
+INFO: [Synth 8-802] inferred FSM for state register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s'
+INFO: [Synth 8-802] inferred FSM for state register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized0'
+INFO: [Synth 8-802] inferred FSM for state register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized1'
+INFO: [Synth 8-802] inferred FSM for state register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized2'
+INFO: [Synth 8-802] inferred FSM for state register 'current_state_reg' in module 'ltlib_v1_0_0_generic_memrd'
 ---------------------------------------------------------------------------------------------------
                    State |                     New Encoding |                Previous Encoding 
 ---------------------------------------------------------------------------------------------------
@@ -9455,7 +9471,7 @@ INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'rotary_encoder'
 WARNING: [Synth 8-327] inferring latch for variable 'reg_data_out_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/154f/hdl/PWM_AXI.sv:388]
-INFO: [Synth 8-6159] Found Keep on FSM register 'gpregsm1.curr_fwft_state_reg' in module 'rd_fwft', re-encoding will not be performed
+INFO: [Synth 8-6159] Found Keep on FSM register 'gpregsm1.curr_fwft_state_reg' in module 'fifo_generator_v13_2_5_rd_fwft', re-encoding will not be performed
 ---------------------------------------------------------------------------------------------------
                    State |                     New Encoding |                Previous Encoding 
 ---------------------------------------------------------------------------------------------------
@@ -9619,8 +9635,60 @@ INFO: [Synth 8-3354] encoded FSM with state register 'gen_axi.write_cs_reg' usin
                   iSTATE |                             0100 |                               00
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'axi_data_fifo_v2_1_21_axic_reg_srl_fifo__parameterized0'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                    IDLE |                             0001 |                             0001
+                     REG |                             0010 |                             0010
+                     P2S |                             0100 |                             0100
+                     S2P |                             1000 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                    IDLE |                             0001 |                             0001
+                     REG |                             0010 |                             0010
+                     P2S |                             0100 |                             0100
+                     S2P |                             1000 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized0'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                    IDLE |                             0001 |                             0001
+                     REG |                             0010 |                             0010
+                     P2S |                             0100 |                             0100
+                     S2P |                             1000 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized1'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+                    IDLE |                             0001 |                             0001
+                     REG |                             0010 |                             0010
+                     P2S |                             0100 |                             0100
+                     S2P |                             1000 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'xsdbs_v1_0_2_reg_p2s__parameterized2'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+*
+              RESET_ADDR |                          0000001 |                          0000001
+            REQUEST_READ |                          0000010 |                          0000010
+           WAIT_READ_ACK |                          0000100 |                          0000100
+             OUTPUT_DATA |                          0001000 |                          0001000
+                    IDLE |                          0010000 |                          0010000
+       INCREMENT_ADDRESS |                          1000000 |                          1000000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'ltlib_v1_0_0_generic_memrd'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:10 ; elapsed = 00:02:19 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:32 ; elapsed = 00:02:53 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -9628,224 +9696,6 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
 ---------------------------------------------------------------------------------
-Detailed RTL Component Info : 
-+---Adders : 
-	   2 Input   32 Bit       Adders := 12    
-	   2 Input   31 Bit       Adders := 1     
-	   2 Input   24 Bit       Adders := 1     
-	   3 Input   23 Bit       Adders := 1     
-	   2 Input   17 Bit       Adders := 1     
-	   2 Input   16 Bit       Adders := 5     
-	   2 Input   13 Bit       Adders := 7     
-	   2 Input   12 Bit       Adders := 73    
-	   4 Input   12 Bit       Adders := 10    
-	   3 Input   12 Bit       Adders := 1     
-	   4 Input   11 Bit       Adders := 16    
-	   3 Input   11 Bit       Adders := 5     
-	   2 Input   11 Bit       Adders := 1     
-	   2 Input   10 Bit       Adders := 7     
-	   4 Input   10 Bit       Adders := 3     
-	   3 Input   10 Bit       Adders := 1     
-	   2 Input    9 Bit       Adders := 16    
-	   2 Input    8 Bit       Adders := 40    
-	   3 Input    8 Bit       Adders := 6     
-	   4 Input    8 Bit       Adders := 14    
-	   2 Input    7 Bit       Adders := 8     
-	   4 Input    7 Bit       Adders := 5     
-	   3 Input    7 Bit       Adders := 1     
-	   2 Input    6 Bit       Adders := 138   
-	   3 Input    6 Bit       Adders := 13    
-	   2 Input    5 Bit       Adders := 65    
-	   3 Input    5 Bit       Adders := 10    
-	   4 Input    5 Bit       Adders := 8     
-	   2 Input    4 Bit       Adders := 180   
-	   3 Input    4 Bit       Adders := 5     
-	   4 Input    4 Bit       Adders := 10    
-	   2 Input    3 Bit       Adders := 39    
-	   3 Input    3 Bit       Adders := 11    
-	   2 Input    2 Bit       Adders := 24    
-	   4 Input    2 Bit       Adders := 7     
-	   2 Input    1 Bit       Adders := 9     
-	   3 Input    1 Bit       Adders := 4     
-+---XORs : 
-	   2 Input     11 Bit         XORs := 2     
-	   2 Input     10 Bit         XORs := 2     
-	   2 Input      1 Bit         XORs := 371   
-+---Registers : 
-	             2178 Bit    Registers := 50    
-	              512 Bit    Registers := 6     
-	              178 Bit    Registers := 1     
-	              167 Bit    Registers := 1     
-	              164 Bit    Registers := 2     
-	              160 Bit    Registers := 2     
-	              158 Bit    Registers := 2     
-	              153 Bit    Registers := 2     
-	              149 Bit    Registers := 3     
-	              147 Bit    Registers := 2     
-	              146 Bit    Registers := 2     
-	              140 Bit    Registers := 4     
-	              136 Bit    Registers := 2     
-	              128 Bit    Registers := 10    
-	               96 Bit    Registers := 1     
-	               90 Bit    Registers := 1     
-	               75 Bit    Registers := 6     
-	               73 Bit    Registers := 32    
-	               72 Bit    Registers := 2     
-	               71 Bit    Registers := 2     
-	               64 Bit    Registers := 16    
-	               47 Bit    Registers := 41    
-	               45 Bit    Registers := 4     
-	               39 Bit    Registers := 26    
-	               36 Bit    Registers := 5     
-	               35 Bit    Registers := 1     
-	               34 Bit    Registers := 3     
-	               33 Bit    Registers := 1     
-	               32 Bit    Registers := 233   
-	               31 Bit    Registers := 1     
-	               27 Bit    Registers := 2     
-	               26 Bit    Registers := 1     
-	               25 Bit    Registers := 1     
-	               24 Bit    Registers := 4     
-	               23 Bit    Registers := 17    
-	               19 Bit    Registers := 3     
-	               18 Bit    Registers := 4     
-	               17 Bit    Registers := 7     
-	               16 Bit    Registers := 65    
-	               15 Bit    Registers := 2     
-	               14 Bit    Registers := 28    
-	               13 Bit    Registers := 9     
-	               12 Bit    Registers := 149   
-	               11 Bit    Registers := 38    
-	               10 Bit    Registers := 42    
-	                9 Bit    Registers := 33    
-	                8 Bit    Registers := 117   
-	                7 Bit    Registers := 41    
-	                6 Bit    Registers := 94    
-	                5 Bit    Registers := 82    
-	                4 Bit    Registers := 258   
-	                3 Bit    Registers := 133   
-	                2 Bit    Registers := 201   
-	                1 Bit    Registers := 2579  
-+---Multipliers : 
-	               4x32  Multipliers := 1     
-	               6x32  Multipliers := 1     
-+---RAMs : 
-	             328K Bit	(2048 X 164 bit)          RAMs := 1     
-	             294K Bit	(2048 X 147 bit)          RAMs := 1     
-	             292K Bit	(2048 X 146 bit)          RAMs := 1     
-	              27K Bit	(1024 X 27 bit)          RAMs := 1     
-	               9K Bit	(128 X 75 bit)          RAMs := 1     
-	              368 Bit	(16 X 23 bit)          RAMs := 1     
-	              240 Bit	(16 X 15 bit)          RAMs := 1     
-+---Muxes : 
-	   2 Input 2178 Bit        Muxes := 25    
-	   2 Input  512 Bit        Muxes := 6     
-	   2 Input  160 Bit        Muxes := 1     
-	   2 Input  153 Bit        Muxes := 2     
-	   2 Input  149 Bit        Muxes := 2     
-	   2 Input  144 Bit        Muxes := 1     
-	   2 Input  140 Bit        Muxes := 2     
-	   2 Input  136 Bit        Muxes := 1     
-	   2 Input  128 Bit        Muxes := 8     
-	   2 Input   73 Bit        Muxes := 32    
-	   2 Input   72 Bit        Muxes := 2     
-	   2 Input   64 Bit        Muxes := 62    
-	   2 Input   48 Bit        Muxes := 3     
-	   2 Input   47 Bit        Muxes := 41    
-	   3 Input   39 Bit        Muxes := 6     
-	   2 Input   39 Bit        Muxes := 6     
-	   2 Input   36 Bit        Muxes := 4     
-	   2 Input   33 Bit        Muxes := 1     
-	   2 Input   32 Bit        Muxes := 250   
-	   4 Input   32 Bit        Muxes := 21    
-	   6 Input   32 Bit        Muxes := 1     
-	  16 Input   32 Bit        Muxes := 16    
-	   7 Input   32 Bit        Muxes := 2     
-	   5 Input   32 Bit        Muxes := 10    
-	   8 Input   32 Bit        Muxes := 1     
-	  13 Input   32 Bit        Muxes := 1     
-	   4 Input   31 Bit        Muxes := 1     
-	   4 Input   29 Bit        Muxes := 11    
-	   4 Input   28 Bit        Muxes := 17    
-	   2 Input   28 Bit        Muxes := 1     
-	   2 Input   24 Bit        Muxes := 2     
-	   2 Input   23 Bit        Muxes := 10    
-	   4 Input   23 Bit        Muxes := 2     
-	   3 Input   23 Bit        Muxes := 1     
-	   2 Input   19 Bit        Muxes := 1     
-	   2 Input   17 Bit        Muxes := 4     
-	   6 Input   17 Bit        Muxes := 1     
-	   2 Input   16 Bit        Muxes := 44    
-	   8 Input   16 Bit        Muxes := 9     
-	  10 Input   16 Bit        Muxes := 1     
-	   3 Input   16 Bit        Muxes := 1     
-	   2 Input   14 Bit        Muxes := 16    
-	   2 Input   13 Bit        Muxes := 7     
-	   3 Input   13 Bit        Muxes := 1     
-	  13 Input   13 Bit        Muxes := 1     
-	   5 Input   12 Bit        Muxes := 2     
-	   2 Input   12 Bit        Muxes := 77    
-	   3 Input   12 Bit        Muxes := 3     
-	   8 Input   12 Bit        Muxes := 1     
-	   2 Input   11 Bit        Muxes := 6     
-	   2 Input   10 Bit        Muxes := 31    
-	   4 Input   10 Bit        Muxes := 1     
-	  10 Input   10 Bit        Muxes := 2     
-	   2 Input    9 Bit        Muxes := 43    
-	   3 Input    9 Bit        Muxes := 2     
-	   2 Input    8 Bit        Muxes := 110   
-	   7 Input    8 Bit        Muxes := 8     
-	   8 Input    8 Bit        Muxes := 6     
-	   2 Input    7 Bit        Muxes := 68    
-	   4 Input    7 Bit        Muxes := 8     
-	   8 Input    7 Bit        Muxes := 2     
-	   7 Input    7 Bit        Muxes := 1     
-	   6 Input    7 Bit        Muxes := 1     
-	  10 Input    7 Bit        Muxes := 1     
-	   2 Input    6 Bit        Muxes := 57    
-	   6 Input    6 Bit        Muxes := 1     
-	  10 Input    6 Bit        Muxes := 1     
-	   2 Input    5 Bit        Muxes := 71    
-	   3 Input    5 Bit        Muxes := 2     
-	  17 Input    5 Bit        Muxes := 1     
-	   6 Input    5 Bit        Muxes := 2     
-	   8 Input    5 Bit        Muxes := 1     
-	  10 Input    5 Bit        Muxes := 1     
-	   5 Input    5 Bit        Muxes := 2     
-	   2 Input    4 Bit        Muxes := 280   
-	   8 Input    4 Bit        Muxes := 2     
-	   9 Input    4 Bit        Muxes := 5     
-	   6 Input    4 Bit        Muxes := 1     
-	   4 Input    4 Bit        Muxes := 8     
-	   3 Input    4 Bit        Muxes := 38    
-	  13 Input    4 Bit        Muxes := 1     
-	  30 Input    4 Bit        Muxes := 1     
-	   4 Input    3 Bit        Muxes := 26    
-	  11 Input    3 Bit        Muxes := 18    
-	   2 Input    3 Bit        Muxes := 88    
-	   8 Input    3 Bit        Muxes := 2     
-	   3 Input    3 Bit        Muxes := 2     
-	   5 Input    3 Bit        Muxes := 1     
-	   6 Input    3 Bit        Muxes := 5     
-	   7 Input    3 Bit        Muxes := 2     
-	  21 Input    3 Bit        Muxes := 2     
-	   2 Input    2 Bit        Muxes := 649   
-	   3 Input    2 Bit        Muxes := 9     
-	   4 Input    2 Bit        Muxes := 89    
-	   7 Input    2 Bit        Muxes := 12    
-	   5 Input    2 Bit        Muxes := 1     
-	   6 Input    1 Bit        Muxes := 227   
-	   4 Input    1 Bit        Muxes := 116   
-	  10 Input    1 Bit        Muxes := 104   
-	   7 Input    1 Bit        Muxes := 68    
-	  12 Input    1 Bit        Muxes := 18    
-	   2 Input    1 Bit        Muxes := 1835  
-	   3 Input    1 Bit        Muxes := 79    
-	   5 Input    1 Bit        Muxes := 43    
-	   8 Input    1 Bit        Muxes := 26    
-	   9 Input    1 Bit        Muxes := 20    
-	  11 Input    1 Bit        Muxes := 8     
-	  13 Input    1 Bit        Muxes := 3     
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -9861,11 +9711,6 @@ Finished Part Resource Summary
 ---------------------------------------------------------------------------------
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
-DSP Report: Generating DSP timer_inst/day_sec1, operation Mode is: (A:0x258)*B.
-DSP Report: operator timer_inst/day_sec1 is absorbed into DSP timer_inst/day_sec1.
-DSP Report: Generating DSP timer_inst/day_sec, operation Mode is: PCIN+(A:0xe10)*B.
-DSP Report: operator timer_inst/day_sec is absorbed into DSP timer_inst/day_sec.
-DSP Report: operator timer_inst/day_sec0 is absorbed into DSP timer_inst/day_sec.
 INFO: [Synth 8-4471] merging register 'GEN_RESET_FOR_S2MM.RESET_I/soft_reset_d1_reg' into 'GEN_RESET_FOR_MM2S.RESET_I/soft_reset_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/89d8/hdl/axi_dma_v7_1_vh_rfs.vhd:727]
 INFO: [Synth 8-4471] merging register 'GEN_ENABLE_INDET_BTT.I_SF_DATA_CNTL_STATUS_FIFO/sig_init_reg_reg' into 'I_WRESP_STATUS_FIFO/sig_init_reg_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4ab6/hdl/axi_datamover_v5_1_vh_rfs.vhd:1961]
 INFO: [Synth 8-4471] merging register 'GEN_ENABLE_INDET_BTT.I_SF_DATA_CNTL_STATUS_FIFO/sig_init_reg2_reg' into 'I_WRESP_STATUS_FIFO/sig_init_reg2_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4ab6/hdl/axi_datamover_v5_1_vh_rfs.vhd:1962]
@@ -9936,6 +9781,47 @@ INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST/GENERATE_LEVEL
 INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST_OUT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d5) is unused and will be removed from module axi_dma.
 INFO: [Synth 8-3332] Sequential element (I_RST_MODULE/REG_HRD_RST_OUT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d6) is unused and will be removed from module axi_dma.
 INFO: [Synth 8-3332] Sequential element (GEN_INCLUDE_IBTTCC.I_S2MM_MSTR_IBTTCC/FSM_onehot_sig_csm_state_reg[3]) is unused and will be removed from module axi_datamover_s2mm_full_wrap.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[45][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[44][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][16] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\ram_reg[45][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[43][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[42][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[41][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[40][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[39][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[38][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[37][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[36][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[35][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[34][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[32][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[30][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[28][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[26][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[25][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[24][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[23][16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[63][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[46][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[45][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[44][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[33][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[31][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[29][1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ram_reg[27][1] )
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-4471] merging register 'bus2ip_reset_reg' into 'AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/rst_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4318/hdl/axi_gpio_v2_0_vh_rfs.vhd:1677]
 INFO: [Synth 8-4471] merging register 'DYNAMIC_SLAVE_MODE_FRAME_CNT.valid_frame_sync_reg' into 'VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.mstrfrm_tstsync_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/7860/hdl/axi_vdma_v6_3_rfs.vhd:64573]
 INFO: [Synth 8-4471] merging register 'DYNAMIC_SLAVE_MODE_FRAME_CNT.tstvect_fsync_d1_reg' into 'I_SM/frame_sync_d1_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/7860/hdl/axi_vdma_v6_3_rfs.vhd:64599]
@@ -10202,25 +10088,8 @@ INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[2] )
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[3] )
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.ADDR32.I_MM2S_DMA_MNGR/VIDEO_GENLOCK_I/DYNAMIC_GENLOCK_FOR_SLAVE.slv_frame_ref_out_reg[4] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d2 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.MM2S_LINEBUFFER_I/GEN_LINEBUF_NO_SOF.GEN_LINEBUFFER.I_MSTR_SKID/sig_sready_stop_reg_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_upsizer_conversion.axisc_upsizer_0/gen_data_accumulator[1].acc_user_reg[6] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_upsizer_conversion.axisc_upsizer_0/acc_user_reg[2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/\U_TC_TOP/intr_status_int_reg[11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\I_PRMRY_DATAMOVER/GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/I_ADDR_CNTL/sig_next_burst_reg_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/queue_id_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d3 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_vdma_0/U0/\GEN_SPRT_FOR_MM2S.GEN_AXIS_MM2S_DWIDTH_CONV.AXIS_MM2S_DWIDTH_CONVERTER_I/GEN_DWIDTH_NO_SOF.MM2S_AXIS_DWIDTH_CONVERTER_I/gen_downsizer_conversion.axisc_downsizer_0/r0_user_reg[2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/multiple_id_non_split_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/incr_need_to_split_q_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/S_AXI_ABURST_Q_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/ACTIVE_LOW_AUX.ACT_LO_AUX/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_s_level_out_d4 )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/split_ongoing_reg )
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-7067] Removed DRAM instance axi_mem_intercon/s00_couplers/auto_pc/inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst/i_0/i_3/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gdm.dm_gen.dm/RAM_reg_0_31_0_0 from module partition due to constant propagation
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/AUX_LPF[1].asr_lpf_reg[1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (rst_ps7_0_142M/U0/\EXT_LPF/lpf_asr_reg )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst /i_0/\inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gdm.dm_gen.dm/gpr1.dout_i_reg[0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (axi_mem_intercon/\s00_couplers/auto_pc /\inst/gen_axi4_axi3.axi3_conv_inst/USE_READ.USE_SPLIT_R.read_addr_inst/USE_R_CHANNEL.cmd_queue/inst/fifo_gen_inst /\inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/goreg_dm.dout_i_reg[0] )
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[31]) is unused and will be removed from module system_PWM_0_0.
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[30]) is unused and will be removed from module system_PWM_0_0.
 INFO: [Synth 8-3332] Sequential element (inst/PWM_AXI_inst/reg_data_out_reg[29]) is unused and will be removed from module system_PWM_0_0.
@@ -10318,29 +10187,6 @@ INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CD
 INFO: [Synth 8-3332] Sequential element (GEN_SPRT_FOR_MM2S.MM2S_VID_CDC_I/GEN_CDC_FOR_ASYNC.OTHR_FSYNC_CDC_I/GENERATE_PULSE_P_S_CDC_OPEN_ENDED.P_IN_CROSS2SCNDRY_s_out_d5) is unused and will be removed from module axi_vdma.
 INFO: [Common 17-14] Message 'Synth 8-3332' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3332' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][0] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][1] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][2] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][3] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][4] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][5] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][6] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][7] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][8] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][9] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][10] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][11] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][12] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][13] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][14] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][15] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][16] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][17] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][18] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][19] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][20] )
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (v_tc_0/U0/U_VIDEO_CTRL/\AXI4_LITE_INTERFACE.GENR_MUX0/GEN_TREE.GEN_BRANCH[50].GEN_MUX_REG.data_out_reg_reg[50][21] )
-INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/aw.aw_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
@@ -10360,75 +10206,35 @@ INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_axilite.gen_b2s_conv.axilite_b2s/SI_REG/ar.ar_pipe/m_payload_i_reg' and it is trimmed from '73' to '65' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_sasd.crossbar_sasd_0/reg_slice_r/m_payload_i_reg' and it is trimmed from '36' to '35' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
 INFO: [Synth 8-3936] Found unconnected internal register 'inst/gen_sasd.crossbar_sasd_0/reg_slice_r/m_payload_i_reg' and it is trimmed from '36' to '35' bits. [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/af2c/hdl/axi_register_slice_v2_1_vl_rfs.v:1731]
-INFO: [Synth 8-4471] merging register 'bus2ip_reset_reg' into 'AXI_LITE_IPIF_I/I_SLAVE_ATTACHMENT/rst_reg' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/4318/hdl/axi_gpio_v2_0_vh_rfs.vhd:1677]
 INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-4471] merging register 'N_DDR_MODE.PROBE_STATUS[0].probe_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[1].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'N_DDR_MODE.PROBE_STATUS[1].probe_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[1].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'CNT_WIDTH_STATUS[0].cnt_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'CNT_WIDTH_STATUS[1].cnt_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'CNT_WIDTH_STATUS[2].cnt_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'CNT_WIDTH_STATUS[3].cnt_width_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_1/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_2/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[1].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_3/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'reg_0/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_4/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[1].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_5/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_86/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'reg_88c/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
+INFO: [Synth 8-4471] merging register 'u_ila_cap_ctrl/u_cap_addrgen/u_cap_window_counter/u_wcnt_hcmp/allx_typeA_match_detection.ltlib_v1_0_0_allx_typeA_inst/probeDelay1_reg[15:0]' into 'u_ila_cap_ctrl/u_cap_addrgen/u_cap_window_counter/u_wcnt_lcmp/allx_typeA_match_detection.ltlib_v1_0_0_allx_typeA_inst/probeDelay1_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1b7e/hdl/ltlib_v1_0_vl_rfs.v:711]
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:07 ; elapsed = 00:03:19 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:30 ; elapsed = 00:03:59 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
----------------------------------------------------------------------------------
-Start ROM, RAM, DSP, Shift Register and Retiming Reporting
----------------------------------------------------------------------------------
-
-Block RAM: Preliminary Mapping	Report (see note below)
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-|Module Name                                                                                                                                                                                                                                | RTL Object                       | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/GEN_INCLUDE_MM2S_SF.I_RD_SF/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst            | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 147(NO_CHANGE)   | W |   | 2 K x 147(NO_CHANGE)   |   | R | Port A and B     | 1      | 8      | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 146(NO_CHANGE)   | W |   | 2 K x 146(NO_CHANGE)   |   | R | Port A and B     | 1      | 8      | 
-|axis_data_fifo_1/\inst/gen_fifo.xpm_fifo_axis_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst                                                                                                                                    | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 164(READ_FIRST)  | W |   | 2 K x 164(WRITE_FIRST) |   | R | Port A and B     | 1      | 7      | 
-|axi_vdma_0/U0/\I_PRMRY_DATAMOVER/GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/GEN_INCLUDE_MM2S_SF.I_RD_SF/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst           | gen_wr_a.gen_word_narrow.mem_reg | 128 x 75(NO_CHANGE)    | W |   | 128 x 75(NO_CHANGE)    |   | R | Port A and B     | 1      | 1      | 
-|v_axi4s_vid_out_0/inst/\COUPLER_INST/generate_async_fifo.FIFO_INST/XPM_FIFO_ASYNC_INST /\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst                                                                            | gen_wr_a.gen_word_narrow.mem_reg | 1 K x 27(NO_CHANGE)    | W |   | 1 K x 27(WRITE_FIRST)  |   | R | Port A and B     | 0      | 1      | 
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-
-Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
-
-Distributed RAM: Preliminary Mapping	Report (see note below)
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-|Module Name                                                                                                                                                                                                                                                                                                     | RTL Object                       | Inference      | Size (Depth x Width) | Primitives    | 
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-|\m00_nodes/m00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 158             | RAM32M x 27	  | 
-|\m00_nodes/m00_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 158             | RAM32M x 27	  | 
-|\m00_nodes/m00_b_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 19              | RAM32M x 4	   | 
-|\m00_nodes/m00_b_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 7               | RAM32M x 2	   | 
-|\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 19              | RAM32M x 4	   | 
-|\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 149             | RAM32M x 25	  | 
-|\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[1].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                  | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 4 x 1                | RAM16X1D x 1	 | 
-|\m00_nodes/m00_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 178             | RAM32M x 30	  | 
-|\s00_nodes/s00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 140             | RAM32M x 24	  | 
-|\s00_nodes/s00_r_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 167             | RAM32M x 28	  | 
-|\s01_nodes/s01_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 140             | RAM32M x 24	  | 
-|\s01_nodes/s01_b_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 25              | RAM32M x 5	   | 
-|\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 18              | RAM32M x 3	   | 
-|\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 160             | RAM32M x 27	  | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_INCLUDE_REALIGNER.I_S2MM_REALIGNER/GEN_INCLUDE_SCATTER.I_S2MM_SCATTER/I_TSTRB_FIFO/USE_SYNC_FIFO.I_SYNC_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | Implied        | 16 x 23              | RAM32M x 4	   | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst                                                                     | gen_wr_a.gen_word_narrow.mem_reg | Implied        | 16 x 15              | RAM32M x 3	   | 
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-
-Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
-
-DSP: Preliminary Mapping	Report (see note below)
-+-------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|Module Name  | DSP Mapping      | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
-+-------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|time_counter | (A:0x258)*B      | 3      | 10     | -      | -      | 13     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|time_counter | PCIN+(A:0xe10)*B | 12     | 5      | -      | -      | 17     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-+-------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-
-Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
----------------------------------------------------------------------------------
-Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
----------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5578] Moved timing constraint from pin 'system_i/lcd/clk_wiz_0/inst/clk_in1' to pin 'processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O'
 INFO: [Synth 8-5819] Moved 1 constraints on hierarchical pins to their respective driving/loading pins
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:21 ; elapsed = 00:03:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:46 ; elapsed = 00:04:17 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
@@ -10437,54 +10243,13 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:03:35 ; elapsed = 00:03:48 . Memory (MB): peak = 2920.941 ; gain = 1781.562
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-Start ROM, RAM, DSP, Shift Register and Retiming Reporting
----------------------------------------------------------------------------------
-
-Block RAM: Final Mapping	Report
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-|Module Name                                                                                                                                                                                                                                | RTL Object                       | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/GEN_INCLUDE_MM2S_SF.I_RD_SF/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst            | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 147(NO_CHANGE)   | W |   | 2 K x 147(NO_CHANGE)   |   | R | Port A and B     | 1      | 8      | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 146(NO_CHANGE)   | W |   | 2 K x 146(NO_CHANGE)   |   | R | Port A and B     | 1      | 8      | 
-|axis_data_fifo_1/\inst/gen_fifo.xpm_fifo_axis_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst                                                                                                                                    | gen_wr_a.gen_word_narrow.mem_reg | 2 K x 164(READ_FIRST)  | W |   | 2 K x 164(WRITE_FIRST) |   | R | Port A and B     | 1      | 7      | 
-|axi_vdma_0/U0/\I_PRMRY_DATAMOVER/GEN_MM2S_FULL.I_MM2S_FULL_WRAPPER/GEN_INCLUDE_MM2S_SF.I_RD_SF/I_DATA_FIFO/BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst           | gen_wr_a.gen_word_narrow.mem_reg | 128 x 75(NO_CHANGE)    | W |   | 128 x 75(NO_CHANGE)    |   | R | Port A and B     | 1      | 1      | 
-|v_axi4s_vid_out_0/inst/\COUPLER_INST/generate_async_fifo.FIFO_INST/XPM_FIFO_ASYNC_INST /\gnuram_async_fifo.xpm_fifo_base_inst /\gen_sdpram.xpm_memory_base_inst                                                                            | gen_wr_a.gen_word_narrow.mem_reg | 1 K x 27(NO_CHANGE)    | W |   | 1 K x 27(WRITE_FIRST)  |   | R | Port A and B     | 0      | 1      | 
-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
-
-
-Distributed RAM: Final Mapping	Report
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-|Module Name                                                                                                                                                                                                                                                                                                     | RTL Object                       | Inference      | Size (Depth x Width) | Primitives    | 
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-|\m00_nodes/m00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 158             | RAM32M x 27	  | 
-|\m00_nodes/m00_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 158             | RAM32M x 27	  | 
-|\m00_nodes/m00_b_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 19              | RAM32M x 4	   | 
-|\m00_nodes/m00_b_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 7               | RAM32M x 2	   | 
-|\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 19              | RAM32M x 4	   | 
-|\m00_nodes/m00_r_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 149             | RAM32M x 25	  | 
-|\m00_nodes/m00_w_node/inst /\inst_si_handler/gen_si_handler.gen_request_fifos.gen_req_fifo[1].inst_req_fifo/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                  | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 4 x 1                | RAM16X1D x 1	 | 
-|\m00_nodes/m00_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 178             | RAM32M x 30	  | 
-|\s00_nodes/s00_ar_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 140             | RAM32M x 24	  | 
-|\s00_nodes/s00_r_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 167             | RAM32M x 28	  | 
-|\s01_nodes/s01_aw_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                           | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 140             | RAM32M x 24	  | 
-|\s01_nodes/s01_b_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 25              | RAM32M x 5	   | 
-|\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.gen_fifo_req.inst_fifo_req/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                      | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 18              | RAM32M x 3	   | 
-|\s01_nodes/s01_w_node/inst /\inst_mi_handler/gen_normal_area.inst_fifo_node_payld/gen_xpm_memory_fifo.inst_fifo/gen_mem_rep[0].inst_xpm_memory /xpm_memory_base_inst                                                                                                                                            | gen_wr_a.gen_word_narrow.mem_reg | User Attribute | 32 x 160             | RAM32M x 27	  | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_INCLUDE_REALIGNER.I_S2MM_REALIGNER/GEN_INCLUDE_SCATTER.I_S2MM_SCATTER/I_TSTRB_FIFO/USE_SYNC_FIFO.I_SYNC_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst  | gen_wr_a.gen_word_narrow.mem_reg | Implied        | 16 x 23              | RAM32M x 4	   | 
-|axi_dma_0/U0/I_PRMRY_DATAMOVER/\GEN_S2MM_FULL.I_S2MM_FULL_WRAPPER /\GEN_ENABLE_INDET_BTT_SF.I_INDET_BTT/I_XD_FIFO/NON_BLK_MEM.I_SYNC_FIFOGEN_FIFO/xpm_fifo_instance.xpm_fifo_sync_inst /xpm_fifo_base_inst/\gen_sdpram.xpm_memory_base_inst                                                                     | gen_wr_a.gen_word_narrow.mem_reg | Implied        | 16 x 15              | RAM32M x 3	   | 
-+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+----------------+----------------------+---------------+
-
----------------------------------------------------------------------------------
-Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+Finished Timing Optimization : Time (s): cpu = 00:03:59 ; elapsed = 00:04:33 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:03:59 ; elapsed = 00:04:15 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Technology Mapping : Time (s): cpu = 00:04:25 ; elapsed = 00:05:03 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -10504,83 +10269,78 @@ Finished Final Netlist Cleanup
 WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int2_inferred:in0 to constant 0
 WARNING: [Synth 8-3295] tying undriven pin I_AXI_DMA_REG_MODULE/strm_valid_int_cdc_to_inferred:in0 to constant 0
 WARNING: [Synth 8-3295] tying undriven pin CDC_SINGLE_REMAP_UNDERFLOW_INST/xpm_cdc_single_inst:src_in to constant 0
+WARNING: [Synth 8-3295] tying undriven pin dummy_inferred:in0 to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[36] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[35] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[34] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[33] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[32] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[31] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[30] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[29] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[28] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[27] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[26] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[25] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[24] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[23] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[22] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[21] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[20] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[19] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[18] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[17] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[16] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[15] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[14] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[13] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[12] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[11] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[10] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[9] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[8] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[7] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[6] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[5] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[4] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[3] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[2] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[1] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[0] to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:trig_in to constant 0
+WARNING: [Synth 8-3295] tying undriven pin inst:trig_out_ack to constant 0
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:04:10 ; elapsed = 00:04:27 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished IO Insertion : Time (s): cpu = 00:04:35 ; elapsed = 00:05:14 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:04:10 ; elapsed = 00:04:27 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Renaming Generated Instances : Time (s): cpu = 00:04:35 ; elapsed = 00:05:14 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:16 ; elapsed = 00:04:33 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:41 ; elapsed = 00:05:21 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:04:16 ; elapsed = 00:04:33 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Renaming Generated Ports : Time (s): cpu = 00:04:41 ; elapsed = 00:05:21 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:04:17 ; elapsed = 00:04:34 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Handling Custom Attributes : Time (s): cpu = 00:04:42 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:04:17 ; elapsed = 00:04:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-Start ROM, RAM, DSP, Shift Register and Retiming Reporting
----------------------------------------------------------------------------------
-
-Static Shift Register Report:
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
-|Module Name            | RTL Name                                                                                                                                | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
-|fifo_generator_v13_2_5 | inst_fifo_gen/gconvfifo.rf/gbi.bi/g7ser_birst.rstbt/rsync.ric.rd_rst_fb_reg[0]                                                          | 5      | 1     | NO           | NO                 | YES               | 1      | 0       | 
-|axi_vdma               | AXI_LITE_REG_INTERFACE_I/GEN_AXI_LITE_IF.AXI_LITE_IF_I/GEN_LITE_IS_ASYNC.GEN_MM2S_ONLY_ASYNC_LITE_ACCESS.prepare_wrce_pulse_lite_d6_reg | 6      | 1     | NO           | NO                 | NO                | 1      | 0       | 
-|axi_vdma               | AXI_LITE_REG_INTERFACE_I/GEN_AXI_LITE_IF.AXI_LITE_IF_I/GEN_LITE_IS_ASYNC.GEN_MM2S_ONLY_ASYNC_LITE_ACCESS.sig_arvalid_arrived_d4_reg     | 3      | 1     | NO           | NO                 | NO                | 1      | 0       | 
-|video_ctrl             | AXI4_LITE_INTERFACE.GENR_MUX0/GEN_SEL_DELAY[5].sel_int_reg[5][0]                                                                        | 5      | 1     | NO           | NO                 | YES               | 1      | 0       | 
-|video_ctrl             | AXI4_LITE_INTERFACE.CORE_MUX0/GEN_SEL_DELAY[3].sel_int_reg[3][0]                                                                        | 3      | 1     | NO           | NO                 | YES               | 1      | 0       | 
-|video_ctrl             | AXI4_LITE_INTERFACE.GENR_MUX0/GEN_SEL_DELAY[4].sel_int_reg[4][0]                                                                        | 4      | 1     | NO           | NO                 | YES               | 1      | 0       | 
-|v_tc                   | U_TC_TOP/detect_en_d_reg[3]                                                                                                             | 4      | 1     | YES          | NO                 | YES               | 1      | 0       | 
-|v_tc                   | U_TC_TOP/generate_en_d_reg[3]                                                                                                           | 4      | 1     | YES          | NO                 | YES               | 1      | 0       | 
-|axi_uartlite           | UARTLITE_CORE_I/UARTLITE_RX_I/data_shift_reg[15]                                                                                        | 16     | 1     | YES          | NO                 | YES               | 1      | 0       | 
-|axi_uartlite           | UARTLITE_CORE_I/UARTLITE_TX_I/data_shift_reg[15]                                                                                        | 15     | 1     | YES          | NO                 | YES               | 1      | 0       | 
-+-----------------------+-----------------------------------------------------------------------------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
-
-
-Dynamic Shift Register Report:
-+------------+---------------------------+--------+------------+--------+---------+--------+--------+--------+
-|Module Name | RTL Name                  | Length | Data Width | SRL16E | SRLC32E | Mux F7 | Mux F8 | Mux F9 | 
-+------------+---------------------------+--------+------------+--------+---------+--------+--------+--------+
-|dsrl        | INFERRED_GEN.data_reg[3]  | 59     | 59         | 59     | 0       | 0      | 0      | 0      | 
-|dsrl__1     | INFERRED_GEN.data_reg[3]  | 55     | 55         | 55     | 0       | 0      | 0      | 0      | 
-|dsrl__2     | INFERRED_GEN.data_reg[3]  | 8      | 8          | 8      | 0       | 0      | 0      | 0      | 
-|dsrl__3     | INFERRED_GEN.data_reg[5]  | 2      | 2          | 2      | 0       | 0      | 0      | 0      | 
-|dsrl__4     | INFERRED_GEN.data_reg[5]  | 30     | 30         | 30     | 0       | 0      | 0      | 0      | 
-|dsrl__5     | INFERRED_GEN.data_reg[3]  | 34     | 34         | 34     | 0       | 0      | 0      | 0      | 
-|dsrl__6     | INFERRED_GEN.data_reg[3]  | 53     | 53         | 53     | 0       | 0      | 0      | 0      | 
-|dsrl__7     | shift_reg_reg             | 16     | 1          | 1      | 0       | 0      | 0      | 0      | 
-|dsrl__8     | INFERRED_GEN.data_reg[15] | 8      | 8          | 8      | 0       | 0      | 0      | 0      | 
-|dsrl__9     | INFERRED_GEN.data_reg[3]  | 68     | 68         | 68     | 0       | 0      | 0      | 0      | 
-|dsrl__10    | INFERRED_GEN.data_reg[3]  | 38     | 38         | 38     | 0       | 0      | 0      | 0      | 
-|dsrl__11    | memory_reg[3]             | 20     | 20         | 20     | 0       | 0      | 0      | 0      | 
-|dsrl__12    | memory_reg[3]             | 2      | 2          | 2      | 0       | 0      | 0      | 0      | 
-|dsrl__13    | memory_reg[31]            | 34     | 34         | 0      | 34      | 0      | 0      | 0      | 
-|dsrl__14    | memory_reg[31]            | 13     | 13         | 0      | 13      | 0      | 0      | 0      | 
-+------------+---------------------------+--------+------------+--------+---------+--------+--------+--------+
-
----------------------------------------------------------------------------------
-Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+Finished Renaming Generated Nets : Time (s): cpu = 00:04:42 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -10599,59 +10359,64 @@ Report Cell Usage:
 |1     |BIBUF      |   130|
 |2     |BUFG       |    10|
 |3     |BUFIO      |     1|
-|4     |CARRY4     |   702|
-|5     |DSP48E1    |     2|
-|6     |FIFO36E1   |     5|
-|7     |IDDR       |     5|
-|8     |IDELAYCTRL |     1|
-|9     |IDELAYE2   |     5|
-|10    |LUT1       |   953|
-|11    |LUT2       |  1681|
-|12    |LUT3       |  5693|
-|13    |LUT4       |  2697|
-|14    |LUT5       |  2641|
-|15    |LUT6       |  5528|
-|16    |MMCME2_ADV |     1|
-|17    |MUXCY_L    |    21|
-|18    |MUXF7      |   408|
-|19    |MUXF8      |    38|
-|20    |ODDR       |     5|
-|21    |PS7        |     1|
-|22    |RAM16X1D   |     1|
-|23    |RAM32M     |   165|
-|24    |RAMB18E1   |     4|
-|27    |RAMB36E1   |    29|
-|32    |SRL16      |     4|
-|33    |SRL16E     |   599|
-|34    |SRLC32E    |   379|
-|35    |XORCY      |    28|
-|36    |FDCE       |   648|
-|37    |FDPE       |    20|
-|38    |FDR        |   196|
-|39    |FDRE       | 23426|
-|40    |FDSE       |   843|
-|41    |IBUF       |    22|
-|42    |IOBUF      |    29|
-|43    |OBUF       |    42|
+|4     |CARRY4     |   729|
+|5     |CFGLUT5    |    42|
+|6     |DSP48E1    |     2|
+|7     |FIFO36E1   |     5|
+|8     |IDDR       |     5|
+|9     |IDELAYCTRL |     1|
+|10    |IDELAYE2   |     5|
+|11    |LUT1       |   982|
+|12    |LUT2       |  1731|
+|13    |LUT3       |  5819|
+|14    |LUT4       |  2770|
+|15    |LUT5       |  2751|
+|16    |LUT6       |  5837|
+|17    |MMCME2_ADV |     1|
+|18    |MUXCY_L    |    21|
+|19    |MUXF7      |   410|
+|20    |MUXF8      |    38|
+|21    |ODDR       |     5|
+|22    |PS7        |     1|
+|23    |RAM16X1D   |     1|
+|24    |RAM32M     |   165|
+|25    |RAMB18E1   |     4|
+|28    |RAMB36E1   |    35|
+|35    |SRL16      |     4|
+|36    |SRL16E     |   609|
+|37    |SRLC16E    |     2|
+|38    |SRLC32E    |   400|
+|39    |XORCY      |    28|
+|40    |FDCE       |   648|
+|41    |FDPE       |    20|
+|42    |FDR        |   196|
+|43    |FDRE       | 24682|
+|44    |FDSE       |   852|
+|45    |IBUF       |    22|
+|46    |IOBUF      |    29|
+|47    |OBUF       |    42|
 +------+-----------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:04:18 ; elapsed = 00:04:35 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Finished Writing Synthesis Report : Time (s): cpu = 00:04:43 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 0 critical warnings and 204 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:02:42 ; elapsed = 00:03:48 . Memory (MB): peak = 2920.941 ; gain = 906.484
-Synthesis Optimization Complete : Time (s): cpu = 00:04:18 ; elapsed = 00:04:36 . Memory (MB): peak = 2920.941 ; gain = 1781.562
+Synthesis finished with 0 errors, 0 critical warnings and 244 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:02:47 ; elapsed = 00:04:27 . Memory (MB): peak = 3015.152 ; gain = 1197.574
+Synthesis Optimization Complete : Time (s): cpu = 00:04:43 ; elapsed = 00:05:24 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.970 . Memory (MB): peak = 2920.941 ; gain = 0.000
-INFO: [Netlist 29-17] Analyzing 1648 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 3015.152 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1725 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 WARNING: [Opt 31-32] Removing redundant IBUF since it is not being driven by a top-level port. system_i/lcd/clk_wiz_0/inst/CLK_CORE_DRP_I/clk_inst/clkin1_ibufg 
 Resolution: The tool has removed redundant IBUF. To resolve this warning, check for redundant IBUF in the input design.
+INFO: [Chipscope 16-324] Core: system_i/system_ila_0/inst/ila_lib UUID: 45d3035b-fe74-5890-a869-ed7d93cda129 
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 2920.941 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 3015.152 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
-  A total of 402 instances were transformed.
+  A total of 444 instances were transformed.
   (MUXCY,XORCY) => CARRY4: 7 instances
+  CFGLUT5 => CFGLUT5 (SRL16E, SRLC32E): 36 instances
+  CFGLUT5 => SRLC32E: 6 instances
   FDR => FDRE: 196 instances
   IOBUF => IOBUF (IBUF, OBUFT): 29 instances
   RAM16X1D => RAM32X1D (RAMD32(x2)): 1 instance 
@@ -10659,11 +10424,10 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   SRL16 => SRL16E: 4 instances
 
 INFO: [Common 17-83] Releasing license: Synthesis
-1551 Infos, 273 Warnings, 1 Critical Warnings and 0 Errors encountered.
+1580 Infos, 318 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:04:36 ; elapsed = 00:04:58 . Memory (MB): peak = 2920.941 ; gain = 1781.562
-INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
+synth_design: Time (s): cpu = 00:05:00 ; elapsed = 00:05:45 . Memory (MB): peak = 3015.152 ; gain = 1876.258
 INFO: [Common 17-1381] The checkpoint 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.dcp' has been generated.
-write_checkpoint: Time (s): cpu = 00:00:12 ; elapsed = 00:00:08 . Memory (MB): peak = 2920.941 ; gain = 0.000
+write_checkpoint: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 3015.152 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Wed Jul  2 20:12:18 2025...
+INFO: [Common 17-206] Exiting Vivado at Sat Jul 12 16:13:51 2025...
