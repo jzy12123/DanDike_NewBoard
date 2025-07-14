@@ -41,3 +41,4 @@ refresh_hw_device [lindex [get_hw_devices xc7z020_1] 0]
 open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
 close_bd_design [get_bd_designs system]
 close_hw_manager
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}

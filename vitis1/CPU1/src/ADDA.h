@@ -41,7 +41,7 @@
 #define TIMER_LOAD_VALUE 0x9EC969D                 // 定时器装载0.5s
 
 // 软中断
-#define CPU0_ID XSCUGIC_SPI_CPU0_MASK // CPU0 ID
+#define _ID XSCUGIC_SPI_CPU0_MASK     // CPU0 ID
 #define CPU1_ID XSCUGIC_SPI_CPU1_MASK // CPU1 ID
 
 // dma中断

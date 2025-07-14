@@ -35,6 +35,7 @@
         "soft_timer.h": "c",
         "timer_sync.h": "c",
         "xil_io.h": "c",
-        "xscugic_hw.h": "c"
+        "xscugic_hw.h": "c",
+        "xintc.h": "c"
     }
 }

@@ -358,3 +358,4 @@ domain active {zynq_fsbl}
 bsp reload
 catch {bsp regenerate}
 platform generate
+platform generate -domains zynq_fsbl 

@@ -213,6 +213,7 @@ int main()
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	//开关量初始化 放到前面会死机
+	OnOff_Start(bit_8, 0);
 	OnOff_Start(bit_8, 1);
 
 	/*******************************************************************************************/
@@ -221,7 +222,6 @@ int main()
 		/* 1. 应用硬件参数的逻辑（如果被JSON指令修改） */
 		if (dac_parameters_updated_by_command)
 		{
-			// printf("CPU1: Main loop: dac_parameters_updated_by_command is true. Applying settings.\n"); // 中文注释：主循环：dac_parameters_updated_by_command 为真，应用设置。
 
 			if (devState.bACRunning == 1) // 运行状态
 			{
