@@ -359,3 +359,4 @@ bsp reload
 catch {bsp regenerate}
 platform generate
 platform generate -domains zynq_fsbl 
+platform generate -domains standalone_ps7_cortexa9_1 

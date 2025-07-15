@@ -206,6 +206,7 @@ int main()
 	// dac_parameters_updated_by_command = true;
 	// xil_printf("CPU1: VITIS DEBUG - Parameter update flag SET (dac_parameters_updated_by_command = true).\r\n");
 
+
 	// /************************** 初始化完成，准备进入主循环 *****************************/
 	xil_printf("CPU1: Start Main Timer...\r\n");
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
@@ -526,7 +527,7 @@ void RunADCPIDCycle(void)
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
-		// // 调试信息：打印最终计算出的电压和电流值
+		// 调试信息：打印最终计算出的电压和电流值
 		// printf("CPU1_Debug: Channel=%d, Final U=%.4f, Final I=%.4f\r\n", i, lineAC.u[i], lineAC.i[i]);
 	}
 	// 总功率因数
@@ -539,6 +540,10 @@ void RunADCPIDCycle(void)
 	{
 		lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
 	}
+
+	//输出电能脉冲
+	PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
+
 	// 标记UDP数据已更新
 	udp_data_changed_flag = true;
 	dac_parameters_updated_by_command = true;
