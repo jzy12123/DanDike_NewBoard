@@ -706,3 +706,42 @@ timestamp=[2025-07-15 09:40:17], mode=PLATFORM_GENERATION, duration=0:00:26.559,
 timestamp=[2025-07-15 09:40:27], mode=BUILD, duration=0:00:05.500, duration_ms=5500, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-07-15 09:41:51], mode=BUILD, duration=0:00:01.648, duration_ms=1648, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-07-15 09:43:40], mode=BUILD, duration=0:00:01.649, duration_ms=1649, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 17:19:57], mode=BUILD, duration=0:00:02.738, duration_ms=2738, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 17:22:18], mode=BUILD, duration=0:00:03.336, duration_ms=3336, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 17:24:01], mode=BUILD, duration=0:00:03.530, duration_ms=3530, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 17:38:21], mode=BUILD, duration=0:00:01.290, duration_ms=1290, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 19:45:41], mode=BUILD, duration=0:00:02.034, duration_ms=2034, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 20:42:53], mode=BUILD, duration=0:00:02.203, duration_ms=2203, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 20:49:04], mode=BUILD, duration=0:00:01.363, duration_ms=1363, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 20:50:24], mode=BUILD, duration=0:00:01.280, duration_ms=1280, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-15 20:53:49], mode=BUILD, duration=0:00:00.553, duration_ms=553, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 10:22:34], mode=WORKBENCH_START, duration=0:00:29.283, duration_ms=29283, data={}
+timestamp=[2025-07-16 10:22:39], mode=WORKBENCH_UI_INIT, duration=0:00:04.775, duration_ms=4775, data={editors_count=8, platform_editors_count=0, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-07-16 10:22:41], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.353, duration_ms=353, data={}
+timestamp=[2025-07-16 10:35:02], mode=BUILD, duration=0:00:04.228, duration_ms=4228, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 10:42:10], mode=BUILD, duration=0:00:01.551, duration_ms=1551, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 10:52:05], mode=BUILD, duration=0:00:06.384, duration_ms=6384, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 10:55:34], mode=BUILD, duration=0:00:06.341, duration_ms=6341, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 10:59:56], mode=BUILD, duration=0:00:06.158, duration_ms=6158, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:05:00], mode=BUILD, duration=0:00:06.209, duration_ms=6209, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:08:41], mode=BUILD, duration=0:00:06.082, duration_ms=6082, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:11:48], mode=BUILD, duration=0:00:04.211, duration_ms=4211, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:17:47], mode=BUILD, duration=0:00:02.345, duration_ms=2345, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:20:12], mode=BUILD, duration=0:00:01.599, duration_ms=1599, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 11:29:17], mode=BUILD, duration=0:00:01.970, duration_ms=1970, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 15:59:26], mode=WORKBENCH_START, duration=0:00:12.987, duration_ms=12987, data={}
+timestamp=[2025-07-16 15:59:27], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.106, duration_ms=106, data={}
+timestamp=[2025-07-16 15:59:27], mode=WORKBENCH_UI_INIT, duration=0:00:01.244, duration_ms=1244, data={editors_count=8, platform_editors_count=0, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-07-16 15:59:51], mode=BUILD, duration=0:00:03.926, duration_ms=3926, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:04:31], mode=BUILD, duration=0:00:06.326, duration_ms=6326, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:17:12], mode=BUILD, duration=0:00:02.594, duration_ms=2594, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:28:19], mode=BUILD, duration=0:00:04.375, duration_ms=4375, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:28:34], mode=BUILD, duration=0:00:00.680, duration_ms=680, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:35:38], mode=BUILD, duration=0:00:04.402, duration_ms=4402, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:38:08], mode=BUILD, duration=0:00:04.370, duration_ms=4370, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:40:48], mode=BUILD, duration=0:00:01.566, duration_ms=1566, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:42:18], mode=BUILD, duration=0:00:01.657, duration_ms=1657, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:42:32], mode=BUILD, duration=0:00:01.631, duration_ms=1631, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:44:13], mode=BUILD, duration=0:00:00.641, duration_ms=641, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:44:43], mode=BUILD, duration=0:00:01.789, duration_ms=1789, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-07-16 16:46:21], mode=BUILD, duration=0:00:01.573, duration_ms=1573, data={name=CPU1, configuration=Debug, clean_build=false}

@@ -1,9 +1,12 @@
 // power_pulse.c
 
 #include "power_pulse.h"
-#include "xscugic.h"                 // 用于中断清除
-#include "Communications_Protocol.h" // 为了使用 cJSON
+#include "xscugic.h" // 用于中断清除
 #include "xil_io.h"
+
+EnergyTest_t g_EnergyTest_P; // P通道测试状态
+EnergyTest_t g_EnergyTest_Q; // Q通道测试状态
+
 // 全局变量，用于存储电能脉冲的配置和状态
 volatile PowerPulse_t g_PowerPulse = {
     .pulseConstantP = 7200, // 默认值
@@ -149,7 +152,13 @@ void PowerPulse_P_IntrHandler(void *CallbackRef)
         g_PowerPulse.measuredPowerP = 0.0;
     }
 
-    printf("CPU1: P pulse received. Measured Power: %.4f kW\r\n", g_PowerPulse.measuredPowerP);
+    // printf("CPU1: P pulse received. Measured Power: %.4f kW\r\n", g_PowerPulse.measuredPowerP);
+
+    // --- 新增：电能误差测试逻辑 ---
+    if (g_EnergyTest_P.isActive && g_EnergyTest_P.testMode == 'P')
+    {
+        process_energy_pulse(&g_EnergyTest_P, lineAC.totalP / 1000.0);
+    }
 }
 
 /**
@@ -171,5 +180,91 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
         g_PowerPulse.measuredPowerQ = 0.0;
     }
 
-    printf("CPU1: Q pulse received. Measured Power: %.4f kvar\r\n", g_PowerPulse.measuredPowerQ);
+    // printf("CPU1: Q pulse received. Measured Power: %.4f kvar\r\n", g_PowerPulse.measuredPowerQ);
+
+    // --- 新增：电能误差测试逻辑 ---
+    if (g_EnergyTest_Q.isActive && g_EnergyTest_Q.testMode == 'Q')
+    {
+        process_energy_pulse(&g_EnergyTest_Q, lineAC.totalQ / 1000.0);
+    }
+}
+
+/**
+ * @brief 处理电能脉冲，用于误差测试
+ * @param test_state 指向当前测试（P或Q）的状态结构体
+ * @param measured_power_kw Zynq系统当前测量的功率（kW或kvar）
+ */
+void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_power_kw)
+{
+    test_state->currentPulseCount++;
+
+    // 如果是本轮的第一个脉冲，记录开始时间
+    if (test_state->currentPulseCount == 1)
+    {
+        read_current_time((In_CurrTime *)&test_state->roundStartTime);
+    }
+
+    uint32_t total_pulses_for_one_round = test_state->targetRounds * test_state->freqDivFactor;
+
+    // 如果累计脉冲数达到一轮的目标值
+    if (test_state->currentPulseCount >= total_pulses_for_one_round)
+    {
+        In_CurrTime round_end_time;
+        read_current_time(&round_end_time);
+
+        // 1. 计算时间差
+        double time_elapsed = time_diff_seconds(&round_end_time, (const In_CurrTime *)&test_state->roundStartTime);
+        if (time_elapsed <= 0)
+        {                                      // 防止无效时间差
+            test_state->currentPulseCount = 0; // 重启本轮计数
+            return;
+        }
+
+        // 2. 计算测量能量 (E_meas)
+        double e_meas_kwh = measured_power_kw * (time_elapsed / 3600.0);
+
+        // 3. 计算标准能量 (E_std)
+        double e_std_kwh = (double)total_pulses_for_one_round / (double)test_state->pulseConstant;
+
+        // 4. 计算误差
+        if (e_std_kwh > 1e-12)
+        { // 避免除以零
+            double error = ((e_meas_kwh - e_std_kwh) / e_std_kwh) * 100.0;
+            if (test_state->currentTestNum < 99)
+            {
+                test_state->errs[test_state->currentTestNum] = error;
+            }
+        }
+
+        test_state->currentTestNum++;
+
+        // 5. 检查测试是否全部完成
+        const char *result_str;
+        if (test_state->currentTestNum >= test_state->targetTimes)
+        {
+            result_str = "Success";
+            test_state->isActive = false; // 结束测试
+        }
+        else
+        {
+            result_str = "Doing";
+        }
+
+        // 6. 上报 TaskEvent
+        extern void report_energy_test_event(const volatile EnergyTest_t *test_state, const char *result);
+        report_energy_test_event(test_state, result_str);
+
+        // 7. 重置脉冲计数器，准备下一轮
+        test_state->currentPulseCount = 0;
+    }
+}
+/**
+ * @brief 新增：初始化电能误差测试状态
+ */
+void init_EnergyTest(void)
+{
+    memset((void *)&g_EnergyTest_P, 0, sizeof(EnergyTest_t));
+    memset((void *)&g_EnergyTest_Q, 0, sizeof(EnergyTest_t));
+    g_EnergyTest_P.isActive = false;
+    g_EnergyTest_Q.isActive = false;
 }

@@ -6,7 +6,10 @@
 #include "xparameters.h"
 #include "xil_io.h"
 #include "stdint.h"
-
+#include "stdbool.h"
+#include "soft_timer.h"
+#include "Communications_Protocol.h" // 为了使用 cJSON
+#include <string.h>
 // IP核基地址
 #define POWER_PULSE_BASE XPAR_POWER_PULSE_V1_AXI_0_BASEADDR
 
@@ -16,10 +19,6 @@
 #define PP_REG_P_DATA 0x08
 #define PP_REG_Q_DATA 0x0C
 
-// 中断ID (这些值需要从 xparameters.h 中查找并替换)
-#define INTR_ID_PULSE_P XPS_FPGA12_INT_ID
-#define INTR_ID_PULSE_Q XPS_FPGA13_INT_ID
-
 // 电能脉冲相关的配置和状态
 typedef struct
 {
@@ -28,14 +27,34 @@ typedef struct
     double measuredPowerP;   // 中断测量的有功功率 (kW)
     double measuredPowerQ;   // 中断测量的无功功率 (kvar)
 } PowerPulse_t;
-
 extern volatile PowerPulse_t g_PowerPulse;
+
+// 电能脉冲误差测试结构体
+typedef struct
+{
+    volatile bool isActive; // 测试是否正在进行
+    volatile char testMode; // 'P' 或 'Q'
+    uint32_t pulseConstant; // 被测表的脉冲常数
+    uint32_t freqDivFactor; // 分频系数
+    uint32_t targetRounds;  // 目标圈数 (每轮的脉冲数)
+    uint32_t targetTimes;   // 目标测试次数
+
+    volatile uint32_t currentPulseCount; // 当前累计的脉冲数
+    volatile uint32_t currentTestNum;    // 当前已完成的测试次数
+    double errs[99];                     // 存储每次测试的误差结果，最多99次
+
+    volatile In_CurrTime roundStartTime; // 当前一轮测试的起始时间戳
+} EnergyTest_t;
+extern EnergyTest_t g_EnergyTest_P; // P通道测试状态
+extern EnergyTest_t g_EnergyTest_Q; // Q通道测试状态
 
 // 函数声明
 void PowerPulse_Init(void);
 void PowerPulse_UpdateOutput(double total_p_watts, double total_q_var);
 void PowerPulse_P_IntrHandler(void *CallbackRef);
 void PowerPulse_Q_IntrHandler(void *CallbackRef);
-void PowerPulse_PollInput(void); // <-- 新增轮询函数声明
+void PowerPulse_PollInput(void); // 新增轮询函数声明
 
-#endif /* POWER_PULSE_H_ */
+void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_power_kw);
+void init_EnergyTest(void); // 新增初始化函数
+#endif

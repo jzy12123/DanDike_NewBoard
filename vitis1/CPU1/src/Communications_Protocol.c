@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250707.1958";
-const char ARM_Ver_Full[] = "[Ver]=V1.250715.0943";
+const char ARM_Ver_Full[] = "[Ver]=V1.250716.1617";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -86,6 +86,7 @@ int Parse_JsonCommand(char *buffer)
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
         {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode},
+        {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"SetPulseOut", handle_SetPulseOut}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
@@ -347,14 +348,15 @@ void handle_GetDevBaseInfo(cJSON *data)
 
     // 新增：EnergyPulse 信息
     cJSON *energyPulse = cJSON_CreateObject();
-    cJSON_AddNumberToObject(energyPulse, "ChnCountIn", 2);  // 示例值
-    cJSON_AddNumberToObject(energyPulse, "ChnCountOut", 2); // 示例值
+    cJSON_AddNumberToObject(energyPulse, "ChnCountIn", 2);  // 电能脉冲输入通道数
+    cJSON_AddNumberToObject(energyPulse, "ChnCountOut", 2); // 电能脉冲输出通道数
+
     cJSON_AddItemToObject(dataObj, "EnergyPulse", energyPulse);
 
     // 新增：ClockPulse 信息 PPS信号
     cJSON *clockPulse = cJSON_CreateObject();
-    cJSON_AddNumberToObject(clockPulse, "ChnCountIn", 4);  // 示例值
-    cJSON_AddNumberToObject(clockPulse, "ChnCountOut", 1); // 示例值
+    cJSON_AddNumberToObject(clockPulse, "ChnCountIn", 2);  // 示例值
+    cJSON_AddNumberToObject(clockPulse, "ChnCountOut", 2); // 示例值
     const char *clockPulseOutModes[] = {"Seconds", "Minutes"};
     cJSON *outModeArray = cJSON_CreateStringArray(clockPulseOutModes, sizeof(clockPulseOutModes) / sizeof(clockPulseOutModes[0]));
     cJSON_AddItemToObject(clockPulse, "OutMode", outModeArray);
@@ -2592,6 +2594,133 @@ send_reply:;
     }
     cJSON_Delete(reply);
 }
+
+/**
+ * @brief 上报电能误差测试的TaskEvent
+ * @param test_state 指向测试状态结构体的指针
+ * @param result "Doing" 或 "Success"
+ */
+void report_energy_test_event(const volatile EnergyTest_t *test_state, const char *result)
+{
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "TaskEvent");
+    // FunCode 在协议中是 SetTaskClockTest，这里遵循协议
+    cJSON_AddStringToObject(report, "FunCode", "SetTaskClockTest");
+    cJSON_AddStringToObject(report, "Result", result);
+
+    cJSON *data_array = cJSON_CreateArray();
+    cJSON *chn_obj = cJSON_CreateObject();
+
+    // 根据测试模式确定通道号
+    int chn_num = (test_state->testMode == 'P') ? 1 : 2;
+    cJSON_AddNumberToObject(chn_obj, "Chn", chn_num);
+    cJSON_AddNumberToObject(chn_obj, "Round", test_state->targetRounds);
+    cJSON_AddNumberToObject(chn_obj, "TestedTimes", test_state->currentTestNum);
+
+    // 创建误差数组
+    cJSON *errs_array = cJSON_CreateArray();
+    for (int i = 0; i < test_state->currentTestNum; i++)
+    {
+        cJSON_AddItemToArray(errs_array, cJSON_CreateNumber(test_state->errs[i]));
+    }
+    cJSON_AddItemToObject(chn_obj, "Errs", errs_array);
+
+    cJSON_AddItemToArray(data_array, chn_obj);
+    cJSON_AddItemToObject(report, "Data", data_array);
+
+    char *string = cJSON_PrintUnformatted(report);
+    if (string)
+    {
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
+    }
+    cJSON_Delete(report);
+}
+
+/**
+ * @brief 处理 "SetTaskEnergyTest" JSON指令
+ * @param data 指向JSON中"Data"字段的cJSON对象
+ */
+void handle_SetTaskEnergyTest(cJSON *data)
+{
+    char *result = "Failure";
+    volatile EnergyTest_t *p_test_state = NULL; // 指向 P 或 Q 测试状态的指针
+
+    if (!data)
+    {
+        goto send_reply;
+    }
+
+    cJSON *test_mode_item = cJSON_GetObjectItem(data, "TestMode");
+    cJSON *pulse_const_item = cJSON_GetObjectItem(data, "PulseConstant");
+    cJSON *freq_div_item = cJSON_GetObjectItem(data, "FreqDivFactor");
+    cJSON *round_item = cJSON_GetObjectItem(data, "Round");
+    cJSON *test_times_item = cJSON_GetObjectItem(data, "TestTimes");
+
+    // 参数校验
+    if (!cJSON_IsString(test_mode_item) || !cJSON_IsNumber(pulse_const_item) || !cJSON_IsNumber(freq_div_item) || !cJSON_IsNumber(round_item))
+    {
+        printf("CPU1: SetTaskEnergyTest: Missing or invalid parameters.\n");
+        goto send_reply;
+    }
+
+    // 确定测试模式并获取对应的状态结构体
+    if (strcmp(test_mode_item->valuestring, "P") == 0)
+    {
+        p_test_state = &g_EnergyTest_P;
+        p_test_state->testMode = 'P';
+    }
+    else if (strcmp(test_mode_item->valuestring, "Q") == 0)
+    {
+        p_test_state = &g_EnergyTest_Q;
+        p_test_state->testMode = 'Q';
+    }
+    else
+    {
+        printf("CPU1: SetTaskEnergyTest: Invalid TestMode.\n");
+        goto send_reply;
+    }
+
+    // 另一个测试正在进行中
+    if (p_test_state->isActive)
+    {
+        printf("CPU1: SetTaskEnergyTest: A test is already active on this channel.\n");
+        goto send_reply;
+    }
+
+    // 重置并填充测试参数
+    memset((void *)p_test_state, 0, sizeof(EnergyTest_t));
+    p_test_state->testMode = (strcmp(test_mode_item->valuestring, "P") == 0) ? 'P' : 'Q';
+    p_test_state->pulseConstant = pulse_const_item->valueint;
+    p_test_state->freqDivFactor = freq_div_item->valueint;
+    p_test_state->targetRounds = round_item->valueint;
+    p_test_state->targetTimes = cJSON_IsNumber(test_times_item) ? test_times_item->valueint : 1;
+
+    // 更多参数校验
+    if (p_test_state->pulseConstant == 0 || p_test_state->freqDivFactor == 0 || p_test_state->targetRounds == 0 || p_test_state->targetTimes == 0 || p_test_state->targetTimes > 99)
+    {
+        printf("CPU1: SetTaskEnergyTest: Numerical parameters cannot be zero.\n");
+        goto send_reply;
+    }
+
+    p_test_state->isActive = true; // 激活测试
+    result = "Success";
+
+send_reply:;
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "SetTaskEnergyTest");
+    strcpy(replyData.Result, result);
+    replyData.hasClosedLoop = false;
+    write_reply_to_shared_memory(&replyData);
+}
+
 // 生成JSON字符串并写入共享内存的函数
 void write_reply_to_shared_memory(ReplyData *replyData)
 {

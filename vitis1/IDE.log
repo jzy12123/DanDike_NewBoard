@@ -7411,3 +7411,143 @@ con
 09:42:01 INFO  : Launch script is exported to file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\DDK\_ide\scripts\debugger_cpu1-default.tcl'
 09:43:36 INFO  : Disconnected from the channel tcfchan#3.
 09:43:39 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:19:54 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:22:15 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:23:58 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:38:19 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+19:45:39 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+20:42:51 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+20:49:02 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+20:50:23 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+20:53:49 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:22:21 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+10:22:27 INFO  : XSCT server has started successfully.
+10:22:27 INFO  : plnx-install-location is set to ''
+10:22:27 INFO  : Successfully done setting XSCT server connection channel  
+10:22:28 INFO  : Successfully done setting workspace for the tool. 
+10:22:41 INFO  : Platform repository initialization has completed.
+10:22:43 INFO  : Registering command handlers for Vitis TCF services
+10:22:51 INFO  : Successfully done query RDI_DATADIR 
+10:34:54 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:42:08 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:51:59 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:55:28 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:59:50 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:04:54 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:08:35 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:11:43 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:17:45 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:20:11 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:29:15 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:59:19 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+15:59:22 INFO  : XSCT server has started successfully.
+15:59:22 INFO  : plnx-install-location is set to ''
+15:59:22 INFO  : Successfully done setting XSCT server connection channel  
+15:59:22 INFO  : Successfully done setting workspace for the tool. 
+15:59:27 INFO  : Platform repository initialization has completed.
+15:59:27 INFO  : Successfully done query RDI_DATADIR 
+15:59:28 INFO  : Registering command handlers for Vitis TCF services
+15:59:44 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:04:24 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:17:09 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:28:14 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:28:33 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:35:33 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:38:04 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:40:46 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:42:16 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:42:30 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:44:12 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:44:41 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:44:49 INFO  : Connected to target on host '127.0.0.1' and port '3121'.
+16:44:49 INFO  : Jtag cable 'Digilent JTAG-SMT2 210251A08870' is selected.
+16:44:49 INFO  : 'jtag frequency' command is executed.
+16:44:49 INFO  : Context for 'APU' is selected.
+16:44:50 INFO  : System reset is completed.
+16:44:53 INFO  : 'after 3000' command is executed.
+16:44:53 INFO  : 'targets -set -filter {jtag_cable_name =~ "Digilent JTAG-SMT2 210251A08870" && level==0 && jtag_device_ctx=="jsn-JTAG-SMT2-210251A08870-23727093-0"}' command is executed.
+16:44:55 INFO  : Device configured successfully with "C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/bitstream/system_wrapper.bit"
+16:44:55 INFO  : Context for 'APU' is selected.
+16:44:55 INFO  : Hardware design and registers information is loaded from 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa'.
+16:44:55 INFO  : 'configparams force-mem-access 1' command is executed.
+16:44:55 INFO  : Context for 'APU' is selected.
+16:44:55 INFO  : Sourcing of 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/psinit/ps7_init.tcl' is done.
+16:44:56 INFO  : 'ps7_init' command is executed.
+16:44:56 INFO  : 'ps7_post_config' command is executed.
+16:44:56 INFO  : Context for processor 'ps7_cortexa9_1' is selected.
+16:44:57 INFO  : The application 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf' is downloaded to processor 'ps7_cortexa9_1'.
+16:44:57 INFO  : 'configparams force-mem-access 0' command is executed.
+16:44:57 INFO  : ----------------XSDB Script----------------
+connect -url tcp:127.0.0.1:3121
+targets -set -nocase -filter {name =~"APU*"}
+rst -system
+after 3000
+targets -set -filter {jtag_cable_name =~ "Digilent JTAG-SMT2 210251A08870" && level==0 && jtag_device_ctx=="jsn-JTAG-SMT2-210251A08870-23727093-0"}
+fpga -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/bitstream/system_wrapper.bit
+targets -set -nocase -filter {name =~"APU*"}
+loadhw -hw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa -mem-ranges [list {0x40000000 0xbfffffff}] -regs
+configparams force-mem-access 1
+targets -set -nocase -filter {name =~"APU*"}
+source C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/psinit/ps7_init.tcl
+ps7_init
+ps7_post_config
+targets -set -nocase -filter {name =~ "*A9*#1"}
+dow C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf
+configparams force-mem-access 0
+----------------End of Script----------------
+
+16:44:57 INFO  : Context for processor 'ps7_cortexa9_1' is selected.
+16:44:57 INFO  : 'con' command is executed.
+16:44:57 INFO  : ----------------XSDB Script (After Launch)----------------
+targets -set -nocase -filter {name =~ "*A9*#1"}
+con
+----------------End of Script----------------
+
+16:44:57 INFO  : Launch script is exported to file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\DDK\_ide\scripts\debugger_cpu1-default.tcl'
+16:46:19 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:46:23 INFO  : Disconnected from the channel tcfchan#1.
+16:46:24 INFO  : Connected to target on host '127.0.0.1' and port '3121'.
+16:46:24 INFO  : Jtag cable 'Digilent JTAG-SMT2 210251A08870' is selected.
+16:46:24 INFO  : 'jtag frequency' command is executed.
+16:46:24 INFO  : Context for 'APU' is selected.
+16:46:24 INFO  : System reset is completed.
+16:46:27 INFO  : 'after 3000' command is executed.
+16:46:27 INFO  : 'targets -set -filter {jtag_cable_name =~ "Digilent JTAG-SMT2 210251A08870" && level==0 && jtag_device_ctx=="jsn-JTAG-SMT2-210251A08870-23727093-0"}' command is executed.
+16:46:29 INFO  : Device configured successfully with "C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/bitstream/system_wrapper.bit"
+16:46:29 INFO  : Context for 'APU' is selected.
+16:46:32 INFO  : Hardware design and registers information is loaded from 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa'.
+16:46:32 INFO  : 'configparams force-mem-access 1' command is executed.
+16:46:32 INFO  : Context for 'APU' is selected.
+16:46:32 INFO  : Sourcing of 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/psinit/ps7_init.tcl' is done.
+16:46:33 INFO  : 'ps7_init' command is executed.
+16:46:33 INFO  : 'ps7_post_config' command is executed.
+16:46:33 INFO  : Context for processor 'ps7_cortexa9_1' is selected.
+16:46:34 INFO  : The application 'C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf' is downloaded to processor 'ps7_cortexa9_1'.
+16:46:34 INFO  : 'configparams force-mem-access 0' command is executed.
+16:46:34 INFO  : ----------------XSDB Script----------------
+connect -url tcp:127.0.0.1:3121
+targets -set -nocase -filter {name =~"APU*"}
+rst -system
+after 3000
+targets -set -filter {jtag_cable_name =~ "Digilent JTAG-SMT2 210251A08870" && level==0 && jtag_device_ctx=="jsn-JTAG-SMT2-210251A08870-23727093-0"}
+fpga -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/bitstream/system_wrapper.bit
+targets -set -nocase -filter {name =~"APU*"}
+loadhw -hw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa -mem-ranges [list {0x40000000 0xbfffffff}] -regs
+configparams force-mem-access 1
+targets -set -nocase -filter {name =~"APU*"}
+source C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/_ide/psinit/ps7_init.tcl
+ps7_init
+ps7_post_config
+targets -set -nocase -filter {name =~ "*A9*#1"}
+dow C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/Debug/CPU1.elf
+configparams force-mem-access 0
+----------------End of Script----------------
+
+16:46:34 INFO  : Context for processor 'ps7_cortexa9_1' is selected.
+16:46:34 INFO  : 'con' command is executed.
+16:46:34 INFO  : ----------------XSDB Script (After Launch)----------------
+targets -set -nocase -filter {name =~ "*A9*#1"}
+con
+----------------End of Script----------------
+
+16:46:34 INFO  : Launch script is exported to file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\DDK\_ide\scripts\debugger_cpu1-default.tcl'

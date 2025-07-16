@@ -315,7 +315,6 @@ int debounce_timer_init()
 	TimerConfig->InputClockHz = 111111115; // TTC时钟频率设置为 111.111115 MHz
 	xil_printf("CPU1: TTC0 clock frequency set to %u Hz based on hardware design.\r\n", (unsigned int)TimerConfig->InputClockHz);
 
-	// ------------------- 结束修改 -------------------
 
 	// 使用修正后的配置初始化TTC设备驱动
 	Status = XTtcPs_CfgInitialize(&DebounceTimer, TimerConfig, TimerConfig->BaseAddress);

@@ -36,6 +36,7 @@
         "timer_sync.h": "c",
         "xil_io.h": "c",
         "xscugic_hw.h": "c",
-        "xintc.h": "c"
+        "xintc.h": "c",
+        "power_pulse.h": "c"
     }
 }

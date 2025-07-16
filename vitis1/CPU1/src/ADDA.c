@@ -307,31 +307,7 @@ void timer_intr_handler(void *CallBackRef)
     /*3 读故障信号*/
     RdSerial(); // 读取并处理硬件故障信号
 
-    /*4 新增: 定期打印时间和RTC状态 */
-    // static int report_counter = 0; // 静态计数器，用于分时执行任务
-    // report_counter++;
-    // if (report_counter >= 2)
-    // { // 假设主定时器是0.5s，这里大约每秒打印一次
-    //     report_counter = 0;
-
-    //     In_CurrTime soft_time_read;
-    //     RTC_Time_t rtc_time_read;
-
-    //     read_current_time(&soft_time_read); // 读取软时钟
-    //     xil_printf("SoftTimer: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-    //                (soft_time_read.curr_year % 100), soft_time_read.curr_month,
-    //                soft_time_read.curr_day, soft_time_read.curr_hour,
-    //                soft_time_read.curr_minute, soft_time_read.curr_second);
-
-    //     // 读取并打印硬件RTC
-    //     if (Rtc8025_GetTime(RTC_AXI_IIC_BASEADDR, &rtc_time_read) == XST_SUCCESS)
-    //     {
-    //         xil_printf("HW-RTC:    20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-    //                    rtc_time_read.year, rtc_time_read.month, rtc_time_read.day,
-    //                    rtc_time_read.hour, rtc_time_read.min, rtc_time_read.sec);
-    //     }
-    // }
-    /* 5. 调用新的对时任务周期处理器 */
+    /* 4. 调用新的对时任务周期处理器 */
     TimeSync_TickHandler();
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
@@ -465,7 +441,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // Pin 10: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
 
     //  连接AXI INTC的输出到GIC
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0xA0, 0x1);             // 高电平触发
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40, 0x1);             // 高电平触发
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 1); // 将中断映射到目标CPU1
     status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, (Xil_ExceptionHandler)BareMetal_Intc_Handler, (void *)&AxiIntc_BareMetal);
 
@@ -474,7 +450,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
 
     // GPS超时TTC定时器中断 (PS TTC，ID=XPAR_XTTCPS_1_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0xA0, 0x3);             // 上升沿
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0x40, 0x3);             // 上升沿
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_XTTCPS_1_INTR, 1); // 将中断映射到目标CPU1
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_1_INTR, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
 
