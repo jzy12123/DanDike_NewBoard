@@ -67,13 +67,14 @@ typedef struct
 } ReportEnableStatus;
 extern ReportEnableStatus reportStatus;
 
-// 100=DevState, 装置状态
+// 100=DevState, 装置状态（16字节）
+// 字节顺序：bACMeterMode, bClosedLoop, bACRunning, bHarmRunning, Reserved4..Reserved15
 typedef struct
 {
 	uint8_t bACMeterMode; // 1字节 // 0=交流源状态;1=交流表状态
-	uint8_t bACRunning;	  // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
-	uint8_t bClosedLoop;  // 0=开环状态;1=闭环状态
-	uint8_t Reserved3;
+	uint8_t bClosedLoop;  // 1字节 // 0=开环状态;1=闭环状态
+	uint8_t bACRunning;   // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
+	uint8_t bHarmRunning; // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
 	uint8_t Reserved4;
 	uint8_t Reserved5;
 	uint8_t Reserved6;
@@ -115,20 +116,22 @@ typedef struct
 extern LineAC lineAC;
 
 // 102=HarmData，谐波数据
-// 交流通道谐波       HarmNumberMax*6*8+16  => HarmNumberMax为32时=1552
+// 交流通道谐波（下标0=直流，1=基波，2..=谐波），
+// u/i：对谐波（索引>=2）按含量（百分数）表示；P/Q：按幅值表示
+// 大小估算：(HarmNumberMax+1)*6*8+16
 typedef struct
 {
-	double u[HarmNumberMax];   // u[HrNo]
-	double i[HarmNumberMax];   // i[HrNo]
-	double phu[HarmNumberMax]; // phu[HrNo]
-	double phi[HarmNumberMax]; // phi[HrNo]
-	double p[HarmNumberMax];   // p[HrNo]
-	double q[HarmNumberMax];   // q[HrNo]
+    double u[HarmNumberMax + 1];   // u[HrNo], 0=DC,1=Base,2+=Harm
+    double i[HarmNumberMax + 1];   // i[HrNo]
+    double phu[HarmNumberMax + 1]; // phu[HrNo]
+    double phi[HarmNumberMax + 1]; // phi[HrNo]
+    double p[HarmNumberMax + 1];   // p[HrNo]
+    double q[HarmNumberMax + 1];   // q[HrNo]
 
 	double totalP; // 当前通道的总有功
 	double totalQ;
 } Harm;
-// 交流线路——谐波              ChnsAC*1552  => 6208
+// 交流线路——谐波
 typedef struct
 {
 	Harm harm[ChnsAC]; // harm[ChnsAC]

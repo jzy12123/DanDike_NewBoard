@@ -1497,6 +1497,7 @@ void handle_SetHarmStatus(cJSON *data)
         harmonics_are_paused = false;
 
         // 标记参数已更改，主循环将调用 str_wr_bram
+        devState.bHarmRunning = 0; // 谐波停止
         dac_parameters_updated_by_command = true;
         udp_data_changed_flag = true;
         reply_status_str = "Stop";
@@ -1514,6 +1515,7 @@ void handle_SetHarmStatus(cJSON *data)
         // 临时将 numHarmonics 清零，以便主循环调用 str_wr_bram 时不输出谐波
         memset(numHarmonics, 0, sizeof(numHarmonics));
 
+        devState.bHarmRunning = 2; // 谐波暂停
         dac_parameters_updated_by_command = true;
         udp_data_changed_flag = true;
         reply_status_str = "Pause";
@@ -1531,6 +1533,7 @@ void handle_SetHarmStatus(cJSON *data)
         }
         // 如果不是从暂停状态恢复，"Run"意味着使用当前（可能已通过SetHarm设置的）谐波参数
 
+        devState.bHarmRunning = 1; // 谐波运行
         dac_parameters_updated_by_command = true;
         udp_data_changed_flag = true;
         reply_status_str = "Run";
@@ -3327,9 +3330,9 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 void initDevState(DevState *devState)
 {
     devState->bACMeterMode = 0; // 0=交流源状态;1=交流表状态
-    devState->bACRunning = 0;   // 0=停止状态;1=运行状态    //默认停止
     devState->bClosedLoop = 1;  // 0=开环状态;1=闭环状态    //默认闭环
-    devState->Reserved3 = 0;
+    devState->bACRunning = 0;   // 0=停止状态;1=运行状态    //默认停止
+    devState->bHarmRunning = 0; // 0=停止状态;1=运行状态;2=暂停状态
     devState->Reserved4 = 0;
     devState->Reserved5 = 0;
     devState->Reserved6 = 0;
@@ -3374,7 +3377,7 @@ void initLineHarm(LineHarm *lineHarm)
 {
     for (int i = 0; i < ChnsAC; i++)
     {
-        for (int j = 0; j < HarmNumberMax; j++)
+        for (int j = 0; j <= HarmNumberMax; j++)
         {
             lineHarm->harm[i].u[j] = 0.0;
             lineHarm->harm[i].i[j] = 0.0;

@@ -442,12 +442,20 @@ void RunADCPIDCycle(void)
 		double baseU = harmonic_info_U[0][1];
 		double baseI = harmonic_info_I[0][1];
 
-		for (int j = 1; j < HarmNumberMax; j++)
+		// 填充直流分量（索引0）
+		lineHarm.harm[i].u[0] = 0.0;   // 直流电压（暂设为0）
+		lineHarm.harm[i].i[0] = 0.0;   // 直流电流（暂设为0）
+		lineHarm.harm[i].phu[0] = 0.0; // 直流相位（直流无相位）
+		lineHarm.harm[i].phi[0] = 0.0; // 直流相位（直流无相位）
+		lineHarm.harm[i].p[0] = 0.0;   // 直流有功功率
+		lineHarm.harm[i].q[0] = 0.0;   // 直流无功功率（直流无无功）
+
+		for (int j = 1; j <= HarmNumberMax; j++)
 		{
 			// 电压和电流幅值处理
 			if (j == 1)
 			{
-				// 基波(j=0)特殊处理
+				// 基波(索引1)特殊处理：使用实际幅值
 				lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
 				lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
 
@@ -457,7 +465,7 @@ void RunADCPIDCycle(void)
 			}
 			else
 			{
-				// 谐波(j>0)计算为基波的百分比
+				// 谐波(索引2及以上)：u/i计算为基波的百分比
 				if (baseU > 0.0001)
 				{ // 避免除以接近零的值
 					lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU) * 100.0;
@@ -520,9 +528,18 @@ void RunADCPIDCycle(void)
 			// 计算谐波的相位差（角度）
 			double phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
 
-			// 计算谐波的有功和无功功率
-			lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
-			lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(phase_diff * M_PI / 180.0);
+			// 计算谐波的有功和无功功率（P/Q按幅值表示）
+			if (j == 1) {
+				// 基波：直接用实际幅值计算功率
+				lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
+				lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(phase_diff * M_PI / 180.0);
+			} else {
+				// 谐波：需要将百分比转换回实际幅值来计算功率
+				double actual_u = (lineHarm.harm[i].u[j] / 100.0) * baseU / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+				double actual_i = (lineHarm.harm[i].i[j] / 100.0) * baseI / AD_Correct[i + 4][idx_i] * setACS.Vals[i].IR;
+				lineHarm.harm[i].p[j] = actual_u * actual_i * cos(phase_diff * M_PI / 180.0);
+				lineHarm.harm[i].q[j] = actual_u * actual_i * sin(phase_diff * M_PI / 180.0);
+			}
 
 			// 累加到总功率
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
