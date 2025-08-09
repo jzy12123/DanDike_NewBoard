@@ -160,3 +160,33 @@ void read_bm_time(In_BmTime *Bm_Time)
     Bm_Time->bm_second = bcd_to_int_byte(reg1 & 0x7F);
     Bm_Time->bm_daysec = reg2 & 0x1FFFF; // Assuming binary
 }
+
+/**
+ * @brief 计算两个 In_CurrTime 结构体之间的时间差（单位：秒）
+ * @param end_time 结束时间戳
+ * @param start_time 开始时间戳
+ * @return double类型的时间差（秒）
+ */
+double time_diff_seconds(const In_CurrTime *end_time, const In_CurrTime *start_time)
+{
+    // 亚秒部分基于10MHz时钟 (1个单位 = 100ns = 0.1us)
+    const double subsec_per_second = 10000000.0;
+
+    // 计算总的日内秒（整数部分）
+    double total_seconds_end = (double)end_time->curr_daysec;
+    double total_seconds_start = (double)start_time->curr_daysec;
+
+    // 计算总的亚秒（小数部分）
+    double total_subsec_end = (double)end_time->curr_subsec / subsec_per_second;
+    double total_subsec_start = (double)start_time->curr_subsec / subsec_per_second;
+
+    double diff = (total_seconds_end + total_subsec_end) - (total_seconds_start + total_subsec_start);
+
+    // 处理跨天情况 (假设测试时间不会超过一天)
+    if (diff < 0)
+    {
+        diff += 86400.0; // 一天的秒数
+    }
+
+    return diff;
+}

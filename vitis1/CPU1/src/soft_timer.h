@@ -70,5 +70,5 @@ int calculate_weekday_iso(int y, int m, int d); // 1=Monday, ..., 7=Sunday
 void write_soft_timer(Out_RealTime *time_data);
 void read_current_time(In_CurrTime *Curr_Time);
 void read_bm_time(In_BmTime *Bm_Time);
-
+double time_diff_seconds(const In_CurrTime *end_time, const In_CurrTime *start_time);
 #endif /* SOFT_TIMER_H_ */

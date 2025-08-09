@@ -462,11 +462,13 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
 	if (bytesWritten < 0)
 	{
-		xil_printf("CPU1: DISOE Report: Failed to write to message queue.\r\n");
+		printf("CPU1: DISOE Report: Failed to write to message queue.\r\n");
 	}
 	else
 	{
-		xil_printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
+		// 打印finalString的长度和内容
+		// printf("CPU1: DISOE Report Length: %zu\r\n", strlen(finalString));
+		printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
 	}
 	free(finalString);
 	free(string);
