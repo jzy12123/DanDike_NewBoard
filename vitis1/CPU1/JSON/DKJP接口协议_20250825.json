@@ -1,10 +1,13 @@
-升级记录
 (
-	20250809: {
-		1、 新增 20.3【结构体类型标识】中的 3 标识：LocationTime，位置与时间状态数据结构 
-		2、 修改 20.3【结构体类型标识】中的 100 标识：DevState，调换了bACRunning和bClosedLoop的位置，同时增加bHarmRunning状态；
-		3、 修改 20.3【结构体类型标识】中的 102 标识：HarmData 的描述和约定；
+	20250825:{
+		1、 修改 SetHarm 指令下行结构，添加"Reset"节点用于描述是否先清空谐波；
+	}
+	20250814: {
+		1、 (先不做) 新增 20.3【结构体类型标识】中的 3 标识：LocationTime，位置与时间状态数据结构 
+		2、 （完成） 修改 20.3【结构体类型标识】中的 100 标识：DevState，调换了 nACRunning 和 bClosedLoop 的位置，同时增加 nHarmRunning 状态；
+		3、 （完成） 修改 20.3【结构体类型标识】中的 102 标识：HarmData 的描述和约定；
 		4、 基础约定 中增加了相位的表示及范围约束；
+		5、 （完成） 修改 2.3开入量事件记录 Report.DISOE 上报Data区格式，增加"DIVals"属性，以规避结构体上送COS比SOE上报还晚的问题；同时弃用 20.3【结构体类型标识】中的 501 标识(ARM端暂时保留发送也无所谓);
 	}
 	
 	20250714: {
@@ -218,7 +221,7 @@
 							 "StopDC",
 							 "SetACStatus",
 							 "SetHarmStatus",
-							 "ClearInterHarm","","",""],
+							 "SetInterHarmStatus","","",""],
 				"ReportList":		["ProtectEvent","DISOE","BaseDataAC","BaseDataDC","BaseDataIO","HarmData","InterHarmData"],			//常规数据上报
 				"TaskEventList":	["SetSysTimeSyncMode","SetProgress","SetTaskClockTest","SetTaskEnergyTest",""]												//事务数据上报
 			}							 
@@ -347,7 +350,7 @@
 						],			
 				"DCM":	[	  //按顺序列出通道及当前量程 	 
 							{"Chn":1, "UR":57.7, "IR":1},
-							{"Chn":2, "UR":57.7, "IR":1},					 
+							{"Chn":2, "UR":57.7, "IR":1},					  
 						]	
 			
 				"DO":[0,1,0,1...], 	//按顺序列出当前所有开出通道的实时状态
@@ -557,10 +560,22 @@
 
 	2.3开入量事件记录
 	(
-		上行:
+		上行:	
 		{
 			"FunType": "Report",	 
 			"FunCode": "DISOE",					//开入变位（仅上送新变位的Chn，且上送节点应按"Time"时间顺序排序）   
+			"Data":{
+					"DIVals": [0,1,0,1...], 		   //COS: 按顺序列出所有通道状态  	
+					"SOE":[							   //仅包含新变位的通道
+							{"Time":"2024-01-31 00:00:00.123", "Chn":"1", "val":1/0},     
+							{"Time":"2024-01-31 00:00:00.123", "Chn":"3", "val":1/0},
+							{"Time":"2024-01-31 00:00:00.124", "Chn":"2", "val":1/0},
+							{"Time":"2024-01-31 00:00:00.125", "Chn":"4", "val":1/0},
+							...
+					]
+			}
+			
+			//原有格式，弃用
 			"Data": [
 				{"Time":"2024-01-31 00:00:00.123", "Chn":"1", "val":1/0},     //
 				{"Time":"2024-01-31 00:00:00.123", "Chn":"3", "val":1/0},
@@ -630,11 +645,11 @@
 			"FunType": "Report",	 
 			"FunCode": "BaseDataIO",		
 			"Data": {	 		
-				//方式一
+				//方式一（推荐）
 				"DIVals": [0,1,0,1...]	//按顺序列出所有通道及状态
 				"DOVals": [0,1,0,1...]	//按顺序列出所有通道及状态
 				
-				//方式二
+				//方式二（弃用）
 				"DI": 	[	  //按顺序列出所有通道及状态
 							{"Chn": "1", "val":0/1},
 							{"Chn": "2", "val":0/1},	
@@ -657,7 +672,7 @@
 			"FunType": "Report",	 
 			"FunCode": "HarmData",	
 			"Data": {		//按线路顺序列出每线路包含通道的实时基本数据信息
-				"ACRunning": 0/1,					//0表示未运行,无"Chns"节点;1表示运行,有"Chns"节点	
+				"HarmRunning": 0/1,					//0表示未运行,无"Chns"节点;1表示运行,有"Chns"节点	
 				
 				//方式一
 				"Chns":[
@@ -954,24 +969,26 @@
 		{
 			"FunType": "Cmd",	 
 			"FunCode": "SetHarm",				 
-			"Data": [ 		//按线路顺序列出需要设置的输出数据(可只列需要改变的项)
-						//方式一  [Line, Chn, HN, U, PhU, I, PhI]
-						[1, 1, 2, 0.1, 0, 0.1, 0],	 	//不设置的次数可以不包含
-						...
-						[1, 1, 63, 0.1, 0, 0.1, 0],
-						...
-						[2, 4, 2, 0.1, 0, 0.1, 0],	 	 
-						...
-						[2, 4, 63, 0.1, 0, 0.1, 0],
-			
-						//方式二(推荐)
-						{"Line":1, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},	//除Line和Chn之外的属性均为可选
-						{"Line":1, "Chn":1, "HN":3, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
-						...
-						{"Line":1, "Chn":4, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
-						{"Line":2, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
-						...					
-					]							 
+			"Data":
+				"Reset": false/true,			//Reset：缺省false表示继续追加谐波参数；true表示先清空之前的所有谐波，然后使用参数；
+				"vals":[ 		//按线路顺序列出需要设置的输出数据(可只列需要改变的项)
+							//方式一  [Line, Chn, HN, U, PhU, I, PhI]
+							[1, 1, 2, 0.1, 0, 0.1, 0],	 	//不设置的次数可以不包含
+							...
+							[1, 1, 63, 0.1, 0, 0.1, 0],
+							...
+							[2, 4, 2, 0.1, 0, 0.1, 0],	 	 
+							...
+							[2, 4, 63, 0.1, 0, 0.1, 0],
+				
+							//方式二(推荐)
+							{"Line":1, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},	//除Line和Chn之外的属性均为可选
+							{"Line":1, "Chn":1, "HN":3, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
+							...
+							{"Line":1, "Chn":4, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
+							{"Line":2, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
+							...					
+						]							 
 		}
 		上行:
 		{
@@ -1022,10 +1039,10 @@
 	3.3.5间谐波设置
 	3.3.6清空间谐波
 	(
-		//同谐波设置,仅 FunCode 为 "SetInterHarm"/"ClearInterHarm", 谐波次数为 0.1,0.2,0.5的整数倍?
+		//同谐波设置,仅 FunCode 为 "SetInterHarmStatus", 谐波次数为 0.1,0.2,0.5的整数倍?
 	)
 
-	3.3.7交流表或源 的 暂停/恢复/关闭(同时清空所有基波、谐波、间谐波输出)
+	3.3.7交流源 的 暂停/恢复/关闭(同时清空所有基波、谐波、间谐波输出)
 	(
 		下行:
 		//Stop: 不管是 Pause 还是 Run 状态均有效，清除设置的所有基波、谐波、间谐波输出参数并停止交流所有输出；	
@@ -2127,7 +2144,7 @@
 		{
 			"FunType": "Cmd",	   
 			"FunCode": "RestoreCalibrateDefault",					 
-			//"Data": ["AC","DCS","DCM"]			//需要恢复的项目列表	
+			//"Data": ["AC","DCS","DCM"]			//（弃用）需要恢复的项目列表
 			"Data": {
 					"Type":  "ALL"/"AC"/"DCS"/"DCM",		//恢复项目,"ALL"特指所有项目；
 					"AllRange": false/true							//缺省false表示仅恢复当前量程组，如【6.5V,5A】；true表示恢复所有量程组；  
@@ -2331,7 +2348,7 @@
 				
 			● 3=位置与时间状态
 				(
-					struct LocationTime                    72字节
+					struct LocationTime                    80字节
 					{
 						byte     Valid;       			 1字节		//0=无效;1=有效
 						byte     Reserved1;           1字节		//保留字节
@@ -2360,8 +2377,8 @@
 					{
 						byte     bACMeterMode;     1字节		//0=交流源状态;1=交流表状态
 						byte     bClosedLoop;          1字节		//0=开环状态;1=闭环状态		
-						byte     bACRunning;           1字节		//0=停止状态;1=运行状态；2=暂停状态   						
-						byte     bHarmRunning;       1字节      //0=停止状态;1=运行状态；2=暂停状态。	注：bACRunning 和 bHarmRunning 相互独立，互不影响。
+						byte     nACRunning;           1字节		//0=停止状态;1=运行状态；2=暂停状态   						
+						byte     nHarmRunning;       1字节      //0=停止状态;1=运行状态；2=暂停状态。	注：nACRunning 和 nHarmRunning 相互独立，互不影响。
 						byte     Reserved4;               1字节
 						byte     Reserved5;               1字节
 						byte     Reserved6;               1字节
@@ -2431,7 +2448,7 @@
 					struct VMData   //                  11*8+62*8 => 584Byte
 					{
 						byte     bACMeterMode;     1字节		//0=交流源状态;1=交流表状态
-						byte     bACRunning;           1字节		//0=停止状态;1=运行状态
+						byte     nACRunning;           1字节		//0=停止状态;1=运行状态
 						byte     bVoltAlarm;             1字节		//终端的电压越限告警电平状态(国网:报警对应5V保持状态)0=低电平;1=高电平
 						byte     Reserved3;               1字节
 						byte     Reserved4;               1字节
@@ -2475,7 +2492,7 @@
 		)
 		【5】开关量类型(500~599)
 		(
-			● 501=DI,开入实时状态		//0=分,1=合
+			● 501=DI,开入实时状态		//0=分,1=合  （弃用，改为 开入量事件记录 Report.DISOE 中同步上报）
 				【特殊说明】:每通道1字节,每种装置的通道不一致,但应保证总字节数为8的倍数,不足时用0xFF凑齐。
 				
 			● 502=DO,开出实时状态		//0=分,1=合

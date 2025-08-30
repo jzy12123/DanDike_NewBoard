@@ -1,9 +1,44 @@
-16:16:20 **** Incremental Build of configuration Debug for project CPU1 ****
+17:09:57 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
+'Building file: ../src/kiss_fft/kfc.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/kiss_fft/kfc.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/kiss_fft/kfc.d" -MT"src/kiss_fft/kfc.o" -o "src/kiss_fft/kfc.o" "../src/kiss_fft/kfc.c"
+'Finished building: ../src/kiss_fft/kfc.c'
+' '
+'Building file: ../src/kiss_fft/kiss_fft.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/kiss_fft/kiss_fft.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/kiss_fft/kiss_fft.d" -MT"src/kiss_fft/kiss_fft.o" -o "src/kiss_fft/kiss_fft.o" "../src/kiss_fft/kiss_fft.c"
+'Finished building: ../src/kiss_fft/kiss_fft.c'
+' '
+'Building file: ../src/kiss_fft/kiss_fftnd.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/kiss_fft/kiss_fftnd.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/kiss_fft/kiss_fftnd.d" -MT"src/kiss_fft/kiss_fftnd.o" -o "src/kiss_fft/kiss_fftnd.o" "../src/kiss_fft/kiss_fftnd.c"
+'Finished building: ../src/kiss_fft/kiss_fftnd.c'
+' '
+'Building file: ../src/kiss_fft/kiss_fftndr.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/kiss_fft/kiss_fftndr.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/kiss_fft/kiss_fftndr.d" -MT"src/kiss_fft/kiss_fftndr.o" -o "src/kiss_fft/kiss_fftndr.o" "../src/kiss_fft/kiss_fftndr.c"
+'Finished building: ../src/kiss_fft/kiss_fftndr.c'
+' '
+'Building file: ../src/kiss_fft/kiss_fftr.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/kiss_fft/kiss_fftr.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/kiss_fft/kiss_fftr.d" -MT"src/kiss_fft/kiss_fftr.o" -o "src/kiss_fft/kiss_fftr.o" "../src/kiss_fft/kiss_fftr.c"
+'Finished building: ../src/kiss_fft/kiss_fftr.c'
+' '
+'Building file: ../src/8025IIC.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/8025IIC.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/8025IIC.d" -MT"src/8025IIC.o" -o "src/8025IIC.o" "../src/8025IIC.c"
+'Finished building: ../src/8025IIC.c'
+' '
+'Building file: ../src/ADDA.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/ADDA.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/ADDA.d" -MT"src/ADDA.o" -o "src/ADDA.o" "../src/ADDA.c"
+'Finished building: ../src/ADDA.c'
+' '
 'Building file: ../src/Amplifier_Switch.c'
 'Invoking: ARM v7 gcc compiler'
 arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Amplifier_Switch.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Amplifier_Switch.d" -MT"src/Amplifier_Switch.o" -o "src/Amplifier_Switch.o" "../src/Amplifier_Switch.c"
@@ -14,6 +49,70 @@ arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Amplifier_Switch.o
 arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Communications_Protocol.d" -MT"src/Communications_Protocol.o" -o "src/Communications_Protocol.o" "../src/Communications_Protocol.c"
 'Finished building: ../src/Communications_Protocol.c'
 ' '
+'Building file: ../src/IIC_Master.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/IIC_Master.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/IIC_Master.d" -MT"src/IIC_Master.o" -o "src/IIC_Master.o" "../src/IIC_Master.c"
+'Finished building: ../src/IIC_Master.c'
+' '
+'Building file: ../src/Msg_Que.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Msg_Que.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Msg_Que.d" -MT"src/Msg_Que.o" -o "src/Msg_Que.o" "../src/Msg_Que.c"
+'Finished building: ../src/Msg_Que.c'
+' '
+'Building file: ../src/My_KissFft.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/My_KissFft.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/My_KissFft.d" -MT"src/My_KissFft.o" -o "src/My_KissFft.o" "../src/My_KissFft.c"
+../src/My_KissFft.c: In function 'perform_fft_with_window':
+../src/My_KissFft.c:331:9: warning: variable 'fundamental_idx' set but not used [-Wunused-but-set-variable]
+  331 |     int fundamental_idx = 0;
+      |         ^~~~~~~~~~~~~~~
+'Finished building: ../src/My_KissFft.c'
+' '
+'Building file: ../src/PID.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/PID.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/PID.d" -MT"src/PID.o" -o "src/PID.o" "../src/PID.c"
+'Finished building: ../src/PID.c'
+' '
+'Building file: ../src/Rc64.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Rc64.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Rc64.d" -MT"src/Rc64.o" -o "src/Rc64.o" "../src/Rc64.c"
+'Finished building: ../src/Rc64.c'
+' '
+'Building file: ../src/Timer_sync.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Timer_sync.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Timer_sync.d" -MT"src/Timer_sync.o" -o "src/Timer_sync.o" "../src/Timer_sync.c"
+'Finished building: ../src/Timer_sync.c'
+' '
+'Building file: ../src/cJSON.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/cJSON.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/cJSON.d" -MT"src/cJSON.o" -o "src/cJSON.o" "../src/cJSON.c"
+'Finished building: ../src/cJSON.c'
+' '
+'Building file: ../src/gps.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/gps.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/gps.d" -MT"src/gps.o" -o "src/gps.o" "../src/gps.c"
+'Finished building: ../src/gps.c'
+' '
+'Building file: ../src/main.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.c"
+'Finished building: ../src/main.c'
+' '
+'Building file: ../src/mutex_utils.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/mutex_utils.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/mutex_utils.d" -MT"src/mutex_utils.o" -o "src/mutex_utils.o" "../src/mutex_utils.c"
+'Finished building: ../src/mutex_utils.c'
+' '
+'Building file: ../src/power_pulse.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/power_pulse.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/power_pulse.d" -MT"src/power_pulse.o" -o "src/power_pulse.o" "../src/power_pulse.c"
+'Finished building: ../src/power_pulse.c'
+' '
+'Building file: ../src/soft_timer.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/soft_timer.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/soft_timer.d" -MT"src/soft_timer.o" -o "src/soft_timer.o" "../src/soft_timer.c"
+'Finished building: ../src/soft_timer.c'
+' '
 'Building target: CPU1.elf'
 'Invoking: ARM v7 gcc linker'
 arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/8025IIC.o ./src/ADDA.o ./src/Amplifier_Switch.o ./src/Communications_Protocol.o ./src/IIC_Master.o ./src/Msg_Que.o ./src/My_KissFft.o ./src/PID.o ./src/Rc64.o ./src/Timer_sync.o ./src/cJSON.o ./src/gps.o ./src/main.o ./src/mutex_utils.o ./src/power_pulse.o ./src/soft_timer.o   -lm -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
@@ -22,9 +121,9 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 261932	   4592	21027712	21294236	144ec9c	CPU1.elf
+ 262796	   4592	21027904	21295292	144f0bc	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-16:16:22 Build Finished (took 2s.427ms)
+17:10:07 Build Finished (took 9s.472ms)
 

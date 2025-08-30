@@ -372,7 +372,7 @@ void start_debounce_timer(float timeout_ms)
  * @param stable_data 稳定的开入数据
  * @param changed_bits 与上次相比发生变化的位
  * @param timestamp 事件发生的时间戳
- * @comment 此函数被 debounce_timer_handler 调用，负责生成JSON并发送
+ * @comment 此函数被 debounce_timer_handler 调用，负责生成新的JSON格式并发送
  */
 void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const volatile OnOff_Timestamp_t *timestamp)
 {
@@ -381,18 +381,10 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	cJSON_AddStringToObject(report, "FunType", "Report");
 	cJSON_AddStringToObject(report, "FunCode", "DISOE");
 
-	// 2. 创建Data数组
-	cJSON *data_array = cJSON_CreateArray();
+	// 2. 创建新的 "Data" 对象
+	cJSON *data_obj = cJSON_CreateObject();
 
-	// 3. 填充时间字符串
-	char time_str[40];
-	In_CurrTime current_time;
-	read_current_time(&current_time); // 获取当前的年月日
-	// 组合成完整的时间戳: YYYY-MM-DD HH:MM:SS.ms
-	sprintf(time_str, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
-			current_time.curr_year, current_time.curr_month, current_time.curr_day,
-			timestamp->hour, timestamp->minute, timestamp->second,
-			(unsigned int)(timestamp->sub_sec / 10000)); // 亚秒单位是0.1us, 转为ms
+	// 3. 确定当前有效的开入通道数
 	int num_bits;
 	switch (g_onoff_bit_width)
 	{
@@ -411,34 +403,49 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 		break;
 	}
 
-	// 从最低位开始遍历到最高位
+	// 4. 创建并填充 "DIVals" 数组 (COS - Change of State)
+	cJSON *di_vals_array = cJSON_CreateArray();
 	for (int i = 0; i < num_bits; i++)
 	{
-		// 检查第 i 位是否发生了变化
+		// 硬件0代表动作，JSON中1代表动作，所以需要逻辑取反
+		int value = 1 - ((stable_data >> i) & 1);
+		cJSON_AddItemToArray(di_vals_array, cJSON_CreateNumber(value));
+	}
+	cJSON_AddItemToObject(data_obj, "DIVals", di_vals_array);
+
+	// 5. 创建并填充 "SOE" 数组 (SOE - Sequence of Events)
+	cJSON *soe_array = cJSON_CreateArray();
+	// 格式化时间戳字符串
+	char time_str[40];
+	In_CurrTime current_time;
+	read_current_time(&current_time); // 获取当前的年月日
+	sprintf(time_str, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
+			current_time.curr_year, current_time.curr_month, current_time.curr_day,
+			timestamp->hour, timestamp->minute, timestamp->second,
+			(unsigned int)(timestamp->sub_sec / 10000)); // 亚秒单位是0.1us, 转为ms
+
+	// 遍历变化的位
+	for (int i = 0; i < num_bits; i++)
+	{
 		if ((changed_bits >> i) & 1)
 		{
 			cJSON *event_item = cJSON_CreateObject();
-			char chn_str[4];
-
-			// 修正后的通道号映射逻辑: bit i -> Chn (i+1)
 			int channel_num = i + 1;
+			int value = 1 - ((stable_data >> i) & 1); // 同样需要逻辑取反
 
-			// 值的逻辑取反 (硬件0=动作, 上报1=动作)
-			int value = 1 - ((stable_data >> i) & 1);
-
-			sprintf(chn_str, "%d", channel_num);
 			cJSON_AddStringToObject(event_item, "Time", time_str);
-			cJSON_AddStringToObject(event_item, "Chn", chn_str);
-			cJSON_AddStringToObject(event_item, "val", value ? "1" : "0");
+			cJSON_AddNumberToObject(event_item, "Chn", channel_num);
+			cJSON_AddNumberToObject(event_item, "val", value);
 
-			cJSON_AddItemToArray(data_array, event_item);
+			cJSON_AddItemToArray(soe_array, event_item);
 		}
 	}
+	cJSON_AddItemToObject(data_obj, "SOE", soe_array);
 
-	// 5. 将Data数组添加到主对象
-	cJSON_AddItemToObject(report, "Data", data_array);
+	// 6. 将 "Data" 对象添加到主对象
+	cJSON_AddItemToObject(report, "Data", data_obj);
 
-	// 6. 转换JSON为字符串并发送
+	// 7. 转换JSON为字符串并发送
 	char *string = cJSON_PrintUnformatted(report);
 	if (string == NULL)
 	{
@@ -458,7 +465,7 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	}
 	snprintf(finalString, stringLength + 3, "|%s|", string);
 
-	// Write to message queue
+	// 写入消息队列
 	ssize_t bytesWritten = MsgQue_write(finalString, strlen(finalString));
 	if (bytesWritten < 0)
 	{
@@ -466,14 +473,12 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	}
 	else
 	{
-		// 打印finalString的长度和内容
-		// printf("CPU1: DISOE Report Length: %zu\r\n", strlen(finalString));
 		printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
 	}
 	free(finalString);
 	free(string);
 
-	// 7. 清理
+	// 8. 清理
 	cJSON_Delete(report);
 }
 
