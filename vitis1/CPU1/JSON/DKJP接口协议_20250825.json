@@ -2301,7 +2301,7 @@
 	20.3【结构体类型标识】
 	(
 		static const int LinesAC = 1;    //装置支持的AC线路数
-		static const int ChnsAC  = 3;    //AC每线路支持的通道数
+		static const int ChnsAC  = 4;    //AC每线路支持的通道数
 		static const int ChnsDCS = 1;
 		static const int ChnsDCM = 1;
 		static const int ChnsBI  = 1;

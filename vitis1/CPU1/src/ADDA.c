@@ -301,9 +301,11 @@ void timer_intr_handler(void *CallBackRef)
         // 解析JSON指令
         Parse_JsonCommand(buffer);
     }
+
     /*2 回报UDP结构体*/
     ReportUDP_Structure(reportStatus);
 
+    
     /*3 读故障信号*/
     RdSerial(); // 读取并处理硬件故障信号
 

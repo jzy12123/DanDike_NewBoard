@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250707.1958";
-const char ARM_Ver_Full[] = "[Ver]=V1.250718.1615";
+const char ARM_Ver_Full[] = "[Ver]=V1.250831.1953";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -1162,148 +1162,183 @@ void handle_SetACM(cJSON *data)
 }
 
 SetHarm setHarm;
+/**
+ * @brief 处理 SetHarm (谐波输出设置) 请求 (修改后支持Reset功能并精确记录)
+ * @param data 包含谐波设置数据的 cJSON 对象
+ * @details
+ * 该函数解析传入的JSON数据以设置谐波参数。
+ * JSON的Data对象应包含一个可选的"Reset"布尔值和一个"vals"数组。
+ * - "Reset": (可选) 如果为true，则在应用新设置前清除所有通道的现有谐波。默认为false。
+ * - "vals": (必需) 一个JSON对象数组，每个对象定义一个谐波分量。
+ * 该函数会精确更新 setHarm 全局结构体，以确保上报给UI的数据是完整的。
+ */
 void handle_SetHarm(cJSON *data)
 {
-    // printf("CPU1: 处理谐波设置命令...\r\n");
-
-    // 解析传入的数据
-    int dataCount = cJSON_GetArraySize(data);
-    printf("CPU1: %d harmonic Settings received\r\n", dataCount);
-
-    // 处理请求中的所有谐波
-    for (int i = 0; i < dataCount; i++)
+    // 中文注释: 首先检查传入的Data对象是否有效
+    if (data == NULL)
     {
-        cJSON *item = cJSON_GetArrayItem(data, i);
+        printf("CPU1: SetHarm Error: Missing Data object.\r\n");
+        // 可以选择发送一个失败的回复
+        return;
+    }
+
+    // 中文注释: 解析 "Reset" 字段
+    cJSON *reset_item = cJSON_GetObjectItem(data, "Reset");
+    bool reset_harmonics = false;
+    if (reset_item != NULL && cJSON_IsTrue(reset_item))
+    {
+        reset_harmonics = true;
+    }
+
+    // 中文注释: 如果 Reset 为 true，则清空所有谐波相关数据
+    if (reset_harmonics)
+    {
+        printf("CPU1: Resetting all harmonic settings before applying new ones.\r\n");
+        // 中文注释: 清空存储运行时谐波参数的全局数组
+        memset(numHarmonics, 0, sizeof(numHarmonics));
+        memset(harmonics, 0, sizeof(harmonics));
+        memset(harmonics_phases, 0, sizeof(harmonics_phases));
+        // 中文注释: 同时清空用于记录指令参数的全局结构体，确保状态一致
+        memset(&setHarm, 0, sizeof(SetHarm));
+        memset(&lineHarm, 0, sizeof(LineHarm));
+    }
+
+    // 中文注释: 解析 "vals" 数组
+    cJSON *vals_array = cJSON_GetObjectItem(data, "vals");
+    if (vals_array == NULL || !cJSON_IsArray(vals_array))
+    {
+        if (reset_harmonics)
+        {
+            printf("CPU1: Harmonics cleared as requested, no new values provided.\r\n");
+        }
+        else
+        {
+            printf("CPU1: SetHarm Error: 'vals' array is missing or not an array.\r\n");
+        }
+        goto finalize_and_reply;
+    }
+
+    int dataCount = cJSON_GetArraySize(vals_array);
+    printf("CPU1: %d harmonic settings received.\r\n", dataCount);
+
+    // 中文注释: 遍历 "vals" 数组中的每一个谐波设置项
+    cJSON *item; // 在循环外声明 item
+    cJSON_ArrayForEach(item, vals_array)
+    {
         if (item == NULL)
+            continue;
+
+        // 中文注释: 获取必要的参数：线路、通道和协波次数
+        cJSON *line_item = cJSON_GetObjectItem(item, "Line");
+        cJSON *chn_item = cJSON_GetObjectItem(item, "Chn");
+        cJSON *hn_item = cJSON_GetObjectItem(item, "HN");
+
+        // 中文注释: 确保 Line, Chn, HN 都存在且有效
+        if (!cJSON_IsNumber(line_item) || !cJSON_IsNumber(chn_item) || !cJSON_IsNumber(hn_item))
         {
+            printf("CPU1: SetHarm: Skipping item due to missing or invalid Line, Chn, or HN.\r\n");
             continue;
         }
 
-        // 获取必要的参数：线路和通道编号和谐波次数
-        cJSON *line = cJSON_GetObjectItem(item, "Line");
-        cJSON *chn = cJSON_GetObjectItem(item, "Chn");
-        cJSON *hn = cJSON_GetObjectItem(item, "HN");
+        int line = line_item->valueint;
+        int chn = chn_item->valueint;
+        int hn = hn_item->valueint;
 
-        // 至少需要通道号和谐波次数
-        if (!chn || !hn)
-        {
-            printf("CPU1: Missing required Chn or HN parameter, skipping\r\n");
-            continue;
-        }
+        // 中文注释: 获取可选参数：电压/电流的幅值和相位
+        cJSON *u_item = cJSON_GetObjectItem(item, "U");
+        cJSON *phU_item = cJSON_GetObjectItem(item, "PhU");
+        cJSON *i_item = cJSON_GetObjectItem(item, "I");
+        cJSON *phI_item = cJSON_GetObjectItem(item, "PhI");
 
-        // 获取可选参数
-        cJSON *u = cJSON_GetObjectItem(item, "U");
-        cJSON *phU = cJSON_GetObjectItem(item, "PhU");
-        cJSON *iField = cJSON_GetObjectItem(item, "I");
-        cJSON *phI = cJSON_GetObjectItem(item, "PhI");
+        // 中文注释: 计算用于硬件控制数组的索引 (channelIndex, harmonicIndex)
+        int channelIndex = chn - 1; // JSON中通道号从1开始
+        int harmonicIndex = hn - 2; // 2次谐波(HN=2)对应数组索引0
 
-        // 计算通道索引和谐波索引（从0开始）
-        int channelIndex = chn->valueint - 1; // JSON中通道从1开始
-        int harmonicIndex = hn->valueint - 2; // 谐波索引从0开始，对应第2次谐波
-
-        // 检查数组边界以防溢出
-        if (channelIndex < 0 || channelIndex >= CHANNL_MAX ||
+        // 中文注释: 边界检查，防止硬件控制数组越界
+        if (channelIndex < 0 || channelIndex >= ChnsAC ||
             harmonicIndex < 0 || harmonicIndex >= MAX_HARMONICS)
         {
-            printf("CPU1: Invalid Chn: %d, HN: %d - Index out of range\r\n",
-                   chn->valueint, hn->valueint);
+            printf("CPU1: Invalid hardware index from Chn: %d, HN: %d.\r\n", chn, hn);
             continue;
         }
 
-        // 存储在setHarm中用于记录
-        int setHarmIndex = i;
-        if (setHarmIndex < LinesAC * ChnsAC * HarmNumberMax)
-        {
-            if (line)
-                setHarm.Vals[setHarmIndex].Line = line->valueint;
-            setHarm.Vals[setHarmIndex].Chn = chn->valueint;
-            setHarm.Vals[setHarmIndex].HN = hn->valueint;
+        // 计算 setHarm.Vals[] 的精确索引
+        int line_idx = line - 1;
+        int chn_idx = chn - 1;
+        int hn_idx = hn - 1; // HN从1开始计数(基波为1), 所以数组索引为HN-1
 
-            // 只更新提供的参数，其他保持不变
-            if (u)
-                setHarm.Vals[setHarmIndex].U = (float)u->valuedouble;
-            if (phU)
-                setHarm.Vals[setHarmIndex].PhU = (float)phU->valuedouble;
-            if (iField)
-                setHarm.Vals[setHarmIndex].I_ = (float)iField->valuedouble;
-            if (phI)
-                setHarm.Vals[setHarmIndex].PhI = (float)phI->valuedouble;
+        // 中文注释: 计算公式：setHarmIndex = line_offset + channel_offset + harmonic_offset
+        int setHarmIndex = (line_idx * ChnsAC * HarmNumberMax) + (chn_idx * HarmNumberMax) + hn_idx;
+
+        // 中文注释: 边界检查，防止记录数组越界
+        if (setHarmIndex < 0 || setHarmIndex >= (LinesAC * ChnsAC * HarmNumberMax))
+        {
+            printf("CPU1: Invalid setHarm record index from Line:%d, Chn:%d, HN:%d.\r\n", line, chn, hn);
+            continue;
         }
 
-        // 更新电压(U)谐波
-        if (u != NULL)
+        // 中文注释: 更新用于记录的 setHarm 结构体
+        setHarm.Vals[setHarmIndex].Line = line;
+        setHarm.Vals[setHarmIndex].Chn = chn;
+        setHarm.Vals[setHarmIndex].HN = hn;
+        // 中文注释: 只有当JSON中提供了相应字段时才更新记录值
+        if (u_item)
+            setHarm.Vals[setHarmIndex].U = (float)u_item->valuedouble;
+        if (phU_item)
+            setHarm.Vals[setHarmIndex].PhU = (float)phU_item->valuedouble;
+        if (i_item)
+            setHarm.Vals[setHarmIndex].I_ = (float)i_item->valuedouble;
+        if (phI_item)
+            setHarm.Vals[setHarmIndex].PhI = (float)phI_item->valuedouble;
+
+        // 中文注释: 更新用于硬件输出的电压(U)谐波参数
+        if (u_item != NULL)
         {
-            float uValue = (float)u->valuedouble;
-
-            // 如果需要，更新最大谐波次数
-            if (hn->valueint > numHarmonics[channelIndex])
+            float uValue = (float)u_item->valuedouble;
+            if (hn > numHarmonics[channelIndex])
             {
-                numHarmonics[channelIndex] = hn->valueint;
+                numHarmonics[channelIndex] = hn;
             }
-
-            // 直接存储，因为harmonics中0.1表示10%
             harmonics[channelIndex][harmonicIndex] = uValue / 100.0f;
-
-            // 如果提供了相位
-            if (phU != NULL)
+            if (phU_item != NULL)
             {
-                harmonics_phases[channelIndex][harmonicIndex] = (float)phU->valuedouble;
+                harmonics_phases[channelIndex][harmonicIndex] = (float)phU_item->valuedouble;
             }
-
-            // printf("CPU1: Updated voltage harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
-            //        chn->valueint, hn->valueint, uValue, uValue / 100.0f);
-
-            if (phU != NULL)
-            {
-                // printf(", Phase: %.2f", (float)phU->valuedouble);
-            }
-            // printf("\r\n");
         }
 
-        // 更新电流(I)谐波（通道偏移4）
-        if (iField != NULL)
+        // 中文注释: 更新用于硬件输出的电流(I)谐波参数 (通道索引+4)
+        if (i_item != NULL)
         {
-            float iValue = (float)iField->valuedouble;
-
-            // 如果需要，更新最大谐波次数
-            if (hn->valueint > numHarmonics[channelIndex + 4])
-            {
-                numHarmonics[channelIndex + 4] = hn->valueint;
+            float iValue = (float)i_item->valuedouble;
+            int currentChannelIndex = channelIndex + 4; // 电流通道的硬件索引
+            if (currentChannelIndex < CHANNL_MAX)
+            { // 再次检查边界
+                if (hn > numHarmonics[currentChannelIndex])
+                {
+                    numHarmonics[currentChannelIndex] = hn;
+                }
+                harmonics[currentChannelIndex][harmonicIndex] = iValue / 100.0f;
+                if (phI_item != NULL)
+                {
+                    harmonics_phases[currentChannelIndex][harmonicIndex] = (float)phI_item->valuedouble;
+                }
             }
-
-            // 直接存储，因为harmonics中0.1表示10%
-            harmonics[channelIndex + 4][harmonicIndex] = iValue / 100.0f;
-
-            // 如果提供了相位
-            if (phI != NULL)
-            {
-                harmonics_phases[channelIndex + 4][harmonicIndex] = (float)phI->valuedouble;
-            }
-
-            // printf("CPU1: Updated current harmonic - Chn: %d, HN: %d, Amplitude: %.2f%% (stored as %.3f)",
-            //        chn->valueint, hn->valueint, iValue, iValue / 100.0f);
-
-            if (phI != NULL)
-            {
-                // printf(", Phase: %.2f", (float)phI->valuedouble);
-            }
-            // printf("\r\n");
         }
     }
 
-    // 使用更新后的谐波生成波形
-    printf("CPU1: Generating waveform with updated harmonics\r\n");
-    // str_wr_bram(PID_OFF);
-
-    // 准备并发送回复
+finalize_and_reply:
+    printf("CPU1: Generating waveform with updated harmonics.\r\n");
     ReplyData replyData;
     strcpy(replyData.FunCode, "SetHarm");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 
-    udp_data_changed_flag = true;             // 更新UDP标志
-    dac_parameters_updated_by_command = true; // 更新硬件操作标志
+       // 中文注释: 只要调用了SetHarm，就认为谐波进入了运行状态。
+    devState.bHarmRunning = 1; // 1 = 运行状态
+    // 中文注释: 设置标志位，通知主循环硬件参数已更新，并需要更新UDP数据
+    udp_data_changed_flag = true;
+    dac_parameters_updated_by_command = true;
 }
 
 SetDO setDO;

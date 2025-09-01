@@ -450,7 +450,9 @@ void RunADCPIDCycle(void)
 		lineHarm.harm[i].p[0] = 0.0;   // 直流有功功率
 		lineHarm.harm[i].q[0] = 0.0;   // 直流无功功率（直流无无功）
 
-		for (int j = 1; j <= HarmNumberMax; j++)
+		// 中文注释: 循环遍历所有谐波分量，从基波(j=1)到31次谐波(j=31)。
+		// HarmNumberMax为32，因此循环条件为 j < HarmNumberMax，以避免访问越界。
+		for (int j = 1; j < HarmNumberMax; j++)
 		{
 			// 电压和电流幅值处理
 			if (j == 1)

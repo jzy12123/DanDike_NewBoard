@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "communications_protocol.h": "c",
+        "adda.h": "c"
+    }
+}
