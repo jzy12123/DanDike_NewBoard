@@ -1,15 +1,20 @@
 (
-	20250825:{
+	20250901:{
 		1、 修改 SetHarm 指令下行结构，添加"Reset"节点用于描述是否先清空谐波；
+		2、 基础约定 中增加用 -1 表示 自动档，如果装置支持自动档，在"GetDevBaseInfo"的返回档位列表中应明确列出 -1 这档；
+		3、 "SetHarm" 下行指令增加 "HarmNumberTHD" 字段，用于设置装置计算 THD 所使用的谐波次数；同时，"GetDevState" 指令上行中增加 "HarmNumberTHD" 字段；
+		4、 "GetDevBaseInfo" 上行报文中的 "MaxHarmNumber" 节点更名为 "HarmNumberMax";
+		5、 新增录波指令 "WaveformRecord"，用于独立启动录波功能；
+		6、 "GetFunCodeList" 上行增加 "StructList" 节点；
+		7、 "SetTaskEnergyTest" 和 "SetTaskClockTest" 下行增加"Chns"节点，用于指定哪些通道启动测试，如果该节点不存在则缺省表示所有通道；
 	}
 	20250814: {
-		1、 (先不做) 新增 20.3【结构体类型标识】中的 3 标识：LocationTime，位置与时间状态数据结构 
-		2、 （完成） 修改 20.3【结构体类型标识】中的 100 标识：DevState，调换了 nACRunning 和 bClosedLoop 的位置，同时增加 nHarmRunning 状态；
-		3、 （完成） 修改 20.3【结构体类型标识】中的 102 标识：HarmData 的描述和约定；
+		1、 新增 20.3【结构体类型标识】中的 3 标识：LocationTime，位置与时间状态数据结构 
+		2、 修改 20.3【结构体类型标识】中的 100 标识：DevState，调换了 nACRunning 和 bClosedLoop 的位置，同时增加 nHarmRunning 状态；
+		3、 修改 20.3【结构体类型标识】中的 102 标识：HarmData 的描述和约定；
 		4、 基础约定 中增加了相位的表示及范围约束；
-		5、 （完成） 修改 2.3开入量事件记录 Report.DISOE 上报Data区格式，增加"DIVals"属性，以规避结构体上送COS比SOE上报还晚的问题；同时弃用 20.3【结构体类型标识】中的 501 标识(ARM端暂时保留发送也无所谓);
+		5、 修改 2.3开入量事件记录 Report.DISOE 上报Data区格式，增加"DIVals"属性，以规避结构体上送COS比SOE上报还晚的问题；同时弃用 20.3【结构体类型标识】中的 501 标识(ARM端暂时保留发送也无所谓);
 	}
-	
 	20250714: {
 		1、 新增 20.3【结构体类型标识】中的 111 标识：TWData, 行波测试仪数据结构（6相交流电流源）
 	}
@@ -26,7 +31,7 @@
 	20250610: {
 		1、 修改时钟对时模式的指令名 SetSyncMode 为 SetSysTimeSyncMode；（防止和后续的定时操作的同步混淆）
 		2、 修改20章结构体的对齐方式为：8字节对齐，不足时用0xFF补齐； （考虑兼容32位和64位系统）
-		3、 新增 1.7UI端修改服务端的零位处理（ARM不支持） 指令 SetServerZeroDrift，用于UI端修改服务端的零位处理参数；
+		3、 新增 1.7US端修改服务端的零位处理（ARM不支持） 指令 SetServerZeroDrift，用于US端修改服务端的零位处理参数；
 		4、 统一JSON中的IO状态值的描述为 0或者1； 【为了便于扩展，不采用 true/false 形式】
 	}
 	20250527: {
@@ -84,13 +89,16 @@
 0概述
 (   
 	(
-		本协议适用于采用核心板(CoreBoard,简称C端; 或者AMP的M核,CPU1)+工控机(IPC,简称I端; 或者AMP的A核,CPU0)架构的装置与上位机(PC,简称P端)各模块之间的通讯。 
-		协议采用TCP长连接。报文格式采用标准JSON,每帧报文发送时需在首尾添加“|”字符,即“|{...}|”形式。
+		A端：装置内ARM（CoreBoard 或者AMP的M核,CPU1）；
+		S端：装置内Linux侧（或者AMP的A核,CPU0），提供 A端和C端之间的通信服务；
+		C端：装置内的UI程序，或者PC端的应用程序；
+	
+		本协议适用于采用核心板+服务端架构的装置与客户端各模块之间的通讯。 
+		协议采用TCP长连接。报文格式采用标准JSON,每帧报文发送时需在首尾添加“|”字符，即“|{...}|”形式。
 		
-		I端与P端通讯时,全部采用TCP连接。I端为服务端,P端为客户端;
-		
-		I端与C端通讯时,除周期上送的Report部分外,其它指令和I/P端通讯完全一致。I端为服务端,P端为客户端;	
-		C端的Report部分采用UDP或内存共享方式,发送结构体至I端(单向传输),具体结构体格式详见后文。
+		C端与S端通讯时，全部采用TCP连接。 		
+		S端与A端通讯时，除周期上送的Struct部分外，其它指令和 C/S端 通讯完全一致。	
+		A端的Struct上报采用UDP或内存共享方式，发送结构体至S端(单向传输)，具体结构体格式详见后文。
 	)
 		
 	0.1缩略语
@@ -117,7 +125,7 @@
 
 	0.3基本结构
 	(
-		报文的首级节点可能包含 FunType、FunCode、Result、Data 四个节点,其中 FunType 和 FunCode 为必须存在的节点,Result 和 Data节点由具体指令决定是否存在;
+		报文的首级节点可能包含 FunType、FunCode、Result、Data 四个节点,其中 FunType 和 FunCode 为必须存在的节点，Result 和 Data节点由具体指令决定是否存在;
 
 	0.3.1下行
 		{
@@ -160,7 +168,7 @@
 		下行报文参数如果不合理,服务端应回错误原因;
 		协议中模拟量通道摒弃ABCX等相别描述方式,采用 1,2,3,4 序号对应表示;
 		 
-		服务端接收下行报文后先进行报文有效性判断,如果JSON语法正确,则C端必须进行回应;
+		服务端接收下行报文后先进行报文有效性判断,如果JSON语法正确,则A端必须进行回应;
 		如果报文参数不合理的,服务端应在Result置Failure状态的同时,在Data节点中用ErrInfo节点描述错误信息;
 		交互全部采用1问1答方式(同步处理),所有下行CMD命令服务端通过Reply回应;对于事务型命令,如果启动成功,后续数据通过TaskEvent主动上报。
 		
@@ -181,15 +189,16 @@
 		3. 双方处理报文时,应容错多余的属性或节点,选取自己能识别的所有项目即可。当然,如果缺失的是关键字时应忽略该子项。
 		4. 实际报文帧中的属性和子节点可能仅是此文档的子集,文档中给出的为可能出现的全集,因此,解析报文时应注意,选取自己能识别的所有项目即可。
 		5. 文档中出现的百分数,均统一采用100作为额定值。
-		6. 双方处理数据时,如果涉及比较大小时,应采用浮点数的模糊比较模式。如量程切换中常见的 57.7/57.74/57.735 场景。
+		6. 双方处理数据时,如果涉及比较大小时,应采用浮点数的模糊比较模式。如电压量程切换时应适当包容，常见的 57.7/57.74/57.735 均应正确识别为 100/√3 档位。
 		7. 协议采用JSON格式,应注意单词是区分大小写的!同时,本协议中的单词除个别约定俗成外,均采用大驼峰命名形式。
+		8. 档位信息中，用 -1 表示自动档。自动档在标准表中比较常见。如果某通道支持自动档，需在对应的支持档位列表中用 -1 列出。
 	
-		8. 建议RK3568地址分配
-				eth0: C端和I端间内部通讯用,配置为: 		192.168.98.241;
-				eth1: I端对外提供通讯协议或者连接被试终端用,IP可自行设置;
-				C端(核心板)TCPS的设置为: 			192.168.98.240:19980;  
-				C端(核心板)UDP发送目标设置为: 	192.168.98.241:19981;
-				I端(嵌入式)TCPS对外提供通讯服务端口为: 19982;  
+		9. 建议RK3568地址分配
+				eth0: A端和S端间内部通讯用,配置为: 		192.168.98.241;
+				eth1: S端对外提供通讯协议或者连接被试终端用,IP可自行设置;
+				A端(核心板)TCPS的设置为: 			192.168.98.240:19980;  
+				A端(核心板)UDP发送目标设置为: 	192.168.98.241:19981;
+				S端(嵌入式)TCPS对外提供通讯服务端口为: 19982;  
 		 
 	)
 
@@ -221,12 +230,17 @@
 							 "StopDC",
 							 "SetACStatus",
 							 "SetHarmStatus",
-							 "SetInterHarmStatus","","",""],
-				"ReportList":		["ProtectEvent","DISOE","BaseDataAC","BaseDataDC","BaseDataIO","HarmData","InterHarmData"],			//常规数据上报
-				"TaskEventList":	["SetSysTimeSyncMode","SetProgress","SetTaskClockTest","SetTaskEnergyTest",""]												//事务数据上报
+							 "SetInterHarmStatus",
+							 "","","",""],
+							 
+				"ReportList":		["ProtectEvent","DISOE"],   //常规数据上报     "BaseDataAC","BaseDataDC","BaseDataIO","HarmData","InterHarmData"		
+				
+				"TaskEventList":	["SetSysTimeSyncMode","SetProgress","SetTaskClockTest","SetTaskEnergyTest",
+				"SetTaskGradualChange","StateSequence","WaveformReplay","WaveformRecord"],									//事务数据上报
+				"StructList": [1,100,101...]   				//支持主动上送的结构体标识列表；
 			}							 
 		}
-	)
+	)  
 
 	1.2获取装置基本信息,如所有软硬件版本,量程等,(只要装置一定则回复内容也一定)
 	(
@@ -238,7 +252,7 @@
 		上行:
 		{
 			"FunType": "Reply",	 
-			"FunCode": "GetDevBaseInfo",	
+			"FunCode": "GetDevBaseInfo",	  
 			"Result":"Success",		
 			"Data": {										//下列项和仪器功能相关,均为可选相
 				"Model":"xxx",							//贴牌后型号,用于显示(ARM一般不提供此节点,由下位机软件配置并向PC提供)
@@ -259,7 +273,7 @@
 				
 				"AC":{
 					"Mode":["S","M"],						//支持的工作模式,S=源,M=表
-					"MaxHarmNumber": 63,					//最大谐波次数   【间谐波一致吗?】
+					"HarmNumberMax": 63,				//最大谐波次数   【间谐波一致吗?】
 					"LineCount": 2,							//线路数,一般每线路可能包含 1/3/4 个通道
 					"ChnCount": 4,							//每线路的通道数;
 					"Chns": [	//按线路顺序列出每线路包含的通道及量程列表信息 
@@ -303,70 +317,6 @@
 		}
 	)
 
-	1.3获取装置的实时状态
-	(
-		下行:
-		{
-			"FunType": "Cmd",	 
-			"FunCode": "GetDevState"			 						 
-		}
-		上行:
-		{
-			"FunType": "Reply",	 
-			"FunCode": "GetDevState",	
-			"Result":"Success",		
-			"Data": {										//下列项和仪器功能相关,均为可选相			 
-				"DevTime": "2024-01-31 00:00:00.123",		//系统时钟
-				"Temperature": 30,							//温度	
-				"SyncMode": "GPS/BD/IRIG-B/SNTP/Manual",	//当前的对时方式
-				"Longitude": 12.2,							//经度
-				"Latitude": 12.2,							//纬度						
-				"DI_Resolution": 1						//开入防抖分辨率,单位:ms，支持范围：0.1~100ms,缺省1ms
-				
-				"Task":{			//正在进行的事务信息,如果没有则无此节点, 单独拿出来?
-					"FunCode": "",
-					"StartTime": "2024-01-31 00:00:00.123"
-				}	
-								
-				//每通道的当前信息
-				"AC":{
-					"Mode":"S/M",
-					"ClosedLoop": true/false,						//(仅源模式有效)当前是否为闭环状态
-					"Chns": [	//按线路顺序列出每线路包含的通道及量程信息 
-								{"Line":1, "Chn":1, "UR": 57.7, "IR": 5},	
-								{"Line":1, "Chn":2, "UR": 57.7, "IR": 5},	
-								{"Line":1, "Chn":3, "UR": 57.7, "IR": 5},	
-								{"Line":1, "Chn":4, "UR": 57.7, "IR": 5},	
-								{"Line":2, "Chn":1, "UR": 57.7, "IR": 5},	
-								{"Line":2, "Chn":2, "UR": 57.7, "IR": 5},	 
-								{"Line":2, "Chn":3, "UR": 57.7, "IR": 5},	
-								{"Line":2, "Chn":4, "UR": 57.7, "IR": 5},	
-							]						
-				},					
-	 
-				"DCS":	[	  //按顺序列出通道及当前量程
-							{"Chn":1, "UR":57.7, "IR":1},
-							{"Chn":2, "UR":57.7, "IR":1},				 
-						],			
-				"DCM":	[	  //按顺序列出通道及当前量程 	 
-							{"Chn":1, "UR":57.7, "IR":1},
-							{"Chn":2, "UR":57.7, "IR":1},					  
-						]	
-			
-				"DO":[0,1,0,1...], 	//按顺序列出当前所有开出通道的实时状态
-				"DI":[0,1,0,1...], 	//按顺序列出当前所有开入通道的实时状态
-			
-				"EnergyPulse": {
-						"OutConstantP": 7200,                               //电能有功输出脉冲常数
-						"OutConstantQ": 7200 	 						    //电能无功输出脉冲常数						
-				},
-				"ClockPulse": {
-						"OutMode": "Seconds"/"Minutes"				//对外时钟脉冲模式：秒脉冲/分脉冲
-				}
-			}							 
-		}
-	)
-
 	1.4设置时间(对时)【事务】
 	(
 		下行:
@@ -400,7 +350,7 @@
 		}
 	)
 
-	1.5UI端修改服务端的数据主动上送使能及间隔设置（ARM不支持） 
+	1.5US端修改服务端的数据主动上送使能及间隔设置 （ARM不支持） 
 	(
 		下行:
 		{
@@ -437,7 +387,7 @@
 		}
 	)
 
-	1.6UI端修改服务端的Log（ARM不支持） 
+	1.6US端修改服务端的Log （ARM不支持） 
 	(
 		下行:
 		{
@@ -457,7 +407,7 @@
 		}
 	)
 	
-	1.7UI端修改服务端的零位处理（ARM不支持） 
+	1.7US端修改服务端的零位处理 （ARM不支持） 
 		{
 			"FunType": "Cmd",	 
 			"FunCode": "SetServerZeroDrift",					 
@@ -567,20 +517,20 @@
 			"Data":{
 					"DIVals": [0,1,0,1...], 		   //COS: 按顺序列出所有通道状态  	
 					"SOE":[							   //仅包含新变位的通道
-							{"Time":"2024-01-31 00:00:00.123", "Chn":"1", "val":1/0},     
-							{"Time":"2024-01-31 00:00:00.123", "Chn":"3", "val":1/0},
-							{"Time":"2024-01-31 00:00:00.124", "Chn":"2", "val":1/0},
-							{"Time":"2024-01-31 00:00:00.125", "Chn":"4", "val":1/0},
+							{"Time":"2024-01-31 00:00:00.123", "Chn":1, "val":1/0},     
+							{"Time":"2024-01-31 00:00:00.123", "Chn":3, "val":1/0},
+							{"Time":"2024-01-31 00:00:00.124", "Chn":2, "val":1/0},
+							{"Time":"2024-01-31 00:00:00.125", "Chn":4, "val":1/0},
 							...
 					]
 			}
 			
 			//原有格式，弃用
 			"Data": [
-				{"Time":"2024-01-31 00:00:00.123", "Chn":"1", "val":1/0},     //
-				{"Time":"2024-01-31 00:00:00.123", "Chn":"3", "val":1/0},
-				{"Time":"2024-01-31 00:00:00.124", "Chn":"2", "val":1/0},
-				{"Time":"2024-01-31 00:00:00.125", "Chn":"4", "val":1/0},
+				{"Time":"2024-01-31 00:00:00.123", "Chn":1, "val":1/0},     //
+				{"Time":"2024-01-31 00:00:00.123", "Chn":3, "val":1/0},
+				{"Time":"2024-01-31 00:00:00.124", "Chn":2, "val":1/0},
+				{"Time":"2024-01-31 00:00:00.125", "Chn":4, "val":1/0},
 				...
 			]		
 		}
@@ -638,7 +588,7 @@
 		}
 	)
 
-	2.6开关量基本数据周期上报(ARM不支持)
+	2.6开关量基本数据周期上报(ARM不支持) 
 	(
 		上行:
 		{
@@ -674,7 +624,7 @@
 			"Data": {		//按线路顺序列出每线路包含通道的实时基本数据信息
 				"HarmRunning": 0/1,					//0表示未运行,无"Chns"节点;1表示运行,有"Chns"节点	
 				
-				//方式一
+				//方式一（推荐，因为数据量太大）
 				"Chns":[
 						{"Line":1, "Chn":1, "P":0, "Q":0, //"THDU":0, "THDI":0,
 						 "HRs":[
@@ -781,7 +731,7 @@
 
 3.装置操作
 (
-	3.0 获取服务端状态(ARM不支持)
+	3.0获取服务端状态(ARM不支持)
 	(
 		下行:
 		{
@@ -943,7 +893,7 @@
 			"FunType": "Cmd",	 
 			"FunCode": "SetACM",					 
 			"Data": [		//按线路顺序列出需要设置的量程信息(可只列需要改变的项)
-						{"Line":1, "Chn":1, "UR": 57.7, "IR": 5},	
+						{"Line":1, "Chn":1, "UR": 57.7, "IR": 5},	   	// 自动档用-1表示     
 						{"Line":1, "Chn":2, "UR": 57.7, "IR": 5},
 						{"Line":1, "Chn":3, "UR": 57.7, "IR": 5},
 						{"Line":1, "Chn":4, "UR": 57.7, "IR": 5},
@@ -973,7 +923,7 @@
 				"Reset": false/true,			//Reset：缺省false表示继续追加谐波参数；true表示先清空之前的所有谐波，然后使用参数；
 				"vals":[ 		//按线路顺序列出需要设置的输出数据(可只列需要改变的项)
 							//方式一  [Line, Chn, HN, U, PhU, I, PhI]
-							[1, 1, 2, 0.1, 0, 0.1, 0],	 	//不设置的次数可以不包含
+							[1, 1, 2, 0.1, 0, 0.1, 0],	 	 
 							...
 							[1, 1, 63, 0.1, 0, 0.1, 0],
 							...
@@ -981,19 +931,20 @@
 							...
 							[2, 4, 63, 0.1, 0, 0.1, 0],
 				
-							//方式二(推荐)
+							//方式二
 							{"Line":1, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},	//除Line和Chn之外的属性均为可选
 							{"Line":1, "Chn":1, "HN":3, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
 							...
 							{"Line":1, "Chn":4, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
 							{"Line":2, "Chn":1, "HN":2, "U":0.1, "PhU":0, "I":0.1, "PhI":0},
 							...					
-						]							 
+						],							 
+				"HarmNumberTHD": 31			//设置装置计算 THD 所使用的谐波范围【2~HarmNumberTHD】次。新装置默认为HarmNumberMax。本节点不存在或者该值不在【2，HarmNumberMax】范围时忽略修改，保持原值。
 		}
 		上行:
 		{
 			"FunType": "Reply",	 
-			"FunCode": "SetHarm/SetInterHarm",
+			"FunCode": "SetHarm"/"SetInterHarm",
 			"Result":"Success/Failure",	
 			"Data": {
 			}		 
@@ -1207,7 +1158,8 @@
 				"PulseConstant": 7200, 					//电能表的有功电能常数，实际数值为正整数，范围： 1~10^10  
 				"FreqDivFactor": 1,							//分频系数: Frequency Division Factor
 				"Round":10, 									//Round: 测试圈数，即多少个脉冲出一次误差;  
-				"TestTimes":5									//TestTimes: 目标测试次数,缺省为1，表示测试1次之后结束。范围：1~99.
+				"TestTimes":5									//TestTimes: 目标测试次数,缺省为1，表示测试1次之后结束。范围：1~99；
+				"Chns": [1,2 ...]								//指定哪些通道启动测试，如果该节点不存在则缺省表示所有通道；
 			}							 
 		}                 
 		上行:(仅应答回一次)            
@@ -1222,16 +1174,16 @@
 			"FunType": "TaskEvent",	 
 			"FunCode": "SetTaskEnergyTest",	
 			"Result":"Doing/Success/Failure",		
-			"Data": [			//元素个数对应 GetDevBaseInfo 中 EnergyPulse.ChnCountIn  的值
+			"Data": [			//元素个数对应 下行指令中的"Chns"节点的值
 					{   "Chn": 1,								//通道1
 						"Round":10, 						//Round:  当前正在测试圈数;  								
 						"TestedTimes":2,					//TestedTimes: 当前已经完成测试次数;		
 						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：%		
 					},
 					{   "Chn": 2,								//通道2
-						"Round":10, 						//Round:  当前正在测试圈数;  								
-						"TestedTimes":2,					//TestedTimes: 当前已经完成测试次数;		
-						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：%		
+						"Round":8, 						     								
+						"TestedTimes":2,					 
+						"Errs": [ 0.02, 0.04, ... ]		 		
 					},
 					...
 			]
@@ -1247,7 +1199,8 @@
 			"Data": {
 						"PlusSeconds":1, 	//PlusSeconds :几秒一个脉冲,缺省为1,有特殊的如2等;  
 						"Round":10, 			//Round: 测试圈数;  
-						"TestTimes":5			//TestTimes: 目标测试次数,缺省为1 ，范围：1~99. 						【建议TestCount修改为TestTimes】
+						"TestTimes":5			//TestTimes: 目标测试次数,缺省为1 ，范围：1~99. 						 
+						"Chns": [1,2 ...]		//指定哪些通道启动测试，如果该节点不存在则缺省表示所有通道；
 					}							 
 		}                 
 		上行:(仅应答回一次)            
@@ -1264,16 +1217,16 @@
 			"Result":"Doing/Success/Failure",	
 			
 			//新版：采用数组，支持多通道
-			"Data": [			//元素个数对应 GetDevBaseInfo 中 ClockPulse.ChnCountIn 的值
+			"Data": [			//元素个数对应 下行指令中的"Chns"节点的值
 					{   "Chn": 1,								//通道1
 						"Round":10, 						//Round:  当前正在测试圈数;  								
 						"TestedTimes":2,					//TestedTimes: 当前已经完成测试次数;		
-						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：%		
+						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：秒/天		
 					},
 					{   "Chn": 2,								//通道2
 						"Round":10, 						//Round:  当前正在测试圈数;  								
 						"TestedTimes":2,					//TestedTimes: 当前已经完成测试次数;		
-						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：%		
+						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致，单位：秒/天		
 					},
 					...
 			]	
@@ -1283,7 +1236,7 @@
 						"Round":10, 						//Round:  当前正在测试圈数;  
 						"TestTimes":5						//TestTimes: 目标测试次数									
 						"TestedTimes":2,					//TestedTimes: 当前已经完成测试次数;		
-						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致,单位:秒/天		
+						"Errs": [ 0.02, 0.04, ... ]		//TestedTimes 顺序对应的误差列表,元素个数与TestedTimes一致,单位：秒/天		
 			}
 		}
 	)
@@ -1632,55 +1585,117 @@
 	
 	)
 	
-	4.6.波形回放【事务】	
+	4.6.录波【事务】	
 	(
-	    流程:波形文件下发、启动回放、录波文件读取
-		4.6.1 波形文件下发,通过FTP、内存共享等方式完成
+	    流程: 启动录波、上报启动，上报结束，录波文件读取
+		4.6.1 装置内部：波形文件通过FTP、内存共享等方式下载
 		(
-				//最好在装置本地存储文件(上位机整理转换后的文件),装置读取文件进行回放。这样可预存多套文件。
+				//ARM直接生成Comtraded的cfg和dat文件，服务端通过FTP、内存共享等方式下载至本地磁盘。			 
 				//dat数据文件采用标准Comtrade的二进制格式,其中采样序号从0开始;采样时标单位us;采样序号和采样时标均为4字节无符号整数;
-				//		采样数据编码格式由"DatCodeA"给出,通道数由"DatChnsA"和"DatChnsD"给出;
-				//     目前仅支持单一采样频率、ASCII/BINARY编码格式、cfg与dat文件分离的Comtrade类型;(其他类型不常见,未支持)
-				//回放时PC端只需提供dat文件(cfg参数由WaveformReplay指令提供),录波时装置需保存cfg和dat文件。
-				//录波结束主动通过Report上报RecComplete。			
-				//后导结束后自动退出暂态,在稳态中输出置0;
+				//录波结束主动通过Report上报RecComplete。
 		)
 		
-		4.6.2 启动回放
+		4.6.2 录波
 		(
 			下行:
 			{
 				"FunType": "Cmd",	 
-				"FunCode": "WaveformReplay",					 
+				"FunCode": "WaveformRecord",					 
 				"Data": {
-						"WaveFile":"waveplay",  		//波形文件名,假如装置只支持存放一个文件,则文件名为缺省的"waveplay"。
+						"WaveFile":"waverec",  		//录波文件名，如果以".dat"或".cfg"结束应识别为扩展名。
 						"WaveSamp": 12800			//波形数据的采样率(应与数据文件一致);(取值上限:51200)
 						"Freq": 50,							//额定频率
-						"StartMode":"",					//启动模式:0=立即启动;1=定时启动; 		
-						"StartTime":"2024-01-01 08:00:00.123",			//仅定时启动模式时有效,指明启动时刻。	
-						
-						"RepeatSource": "WaveCycle1"/"Special"    //缺省为WaveCycle1模式，表示从给定波形数据中取1周波数据； Special：给定幅值的标准正弦波，目前仅行波测试相关装置支持。
-						"RepeatSourceSpecial":[	 		//仅"RepeatSource"值为"Special"时有效；
-									{"Line":1, "Chn": 1, "PrevU":100, "PrevI":5, "BackU":100, "BackI":5},			//U、I为前导或后导的幅值
-									...
-								],	
-						
-						"RepeatCountPrev": 100,		//前导循环次数; 波形文件前导和后导统一约定为1个周波; 0=不需要循环;-1=循环直到开入触发条件满足;
-						"RepeatCountBack": 100,	//后导循环次数; 100~5000  分别对应2秒~100秒; 0=不需要循环;						
-						"TrigDI":[								//仅“RepeatCountPrev”=-1时有效,用于描述开入触发条件
+						"StartMode":0,					//启动模式:0=立即启动;1=定时启动;2=开入触发启动; 		
+						"StartTime":"2024-01-01 08:00:00.123",			//仅 StartMode=1 时有效,指明启动时刻。	
+						"TrigDI":[								//仅 StartMode=2 时有效,用于描述开入触发条件
 									{"Chn":1, "val":0/1},		
 									{"Chn":2, "val":0/1},
 						],
-						
-						//"TrigLogicAnd":true/false,      //仅“RepeatCountPrev”=-1时有效;缺省false为或;true为与	
-						"TrigLogic": -1/0/1, 				  //-1=禁用（缺省），0=或；1=与；
+						"TrigLogic": "And"/"Or", 	//仅 StartMode=2 时有效,用于描述开入触发条件间的逻辑关系
 						
 						"RecStartState":1,		//启动录波的参数; <=0表示不录波;1表示仅录波形文件对应区段(不含前导和后导);【待定:2表示在1的基础上多录1个周波的前导;3表示在前导之前1个周波开始。】
 						"RecMS":5000,			//【是否需要?】<=0表示一直录,>0表示指定录波时长ms。 所有启动录波情况下,不管该值是多少,如果达到硬件能力限制时长或者暂态输出停止时,均主动结束录波。
 						"RecSamp": 12800									//录波采样率;(取值上限:51200)
 						"RecFile":"waverec",  								//波形文件名,假如装置只支持存放一个文件,则文件名为缺省的"waverec"。
 							
-						"DO":[									//开出。前导结束时刻(前导除外的波形数据开始时)输出。  
+						"DO":[									//录波开始时刻开出。 未指定通道保持原值不变。
+									{"Chn":1, "val":0/1},		
+									{"Chn":2, "val":0/1},
+									...
+								],
+				}							 
+			}                 
+			上行:(仅应答回一次)       
+			{
+				"FunType": "Reply",	 
+				"FunCode": "WaveformRecord",	
+				"Result":"Success/Failure",		
+				"Data": {
+					"ErrInfo": "InsufficientStorage"/"StartTimeExpired"						//仅Failure时存在的错误信息描述
+										//InsufficientStorage:		磁盘空间不足。arm根据"RecMS"推算文件大小，判断磁盘空间是否满足。		
+										//StartTimeExpired:			定时启动模式时，指定的 "StartTime" 过期。 
+				}		 
+			}
+			上行:(结束时上报)
+			{
+				"FunType": "TaskEvent",	 
+				"FunCode": "WaveformRecord",	
+				"Result":"Success/Failure",		
+				"Data": { 
+					"WaveFile": ["waverec.cfg", "waverec.dat"], 	//录波文件名列表。
+					"FilePath": "userdata/waverec", 						//录波文件存放位置
+				}		 
+			}
+		)	
+	)	
+	
+	4.7.波形回放【事务】
+	(
+	    流程:波形文件下发、启动回放、录波文件读取
+		4.7.1 装置内部：波形文件下发,通过FTP、内存共享等方式完成
+		(
+				//最好在装置本地存储文件(上位机整理转换后的文件),装置读取文件进行回放。这样可预存多套文件。
+				//dat数据文件采用标准Comtrade的二进制格式,其中采样序号从0开始;采样时标单位us;采样序号和采样时标均为4字节无符号整数;
+				//		采样数据编码格式由"DatCodeA"给出,通道数由"DatChnsA"和"DatChnsD"给出;
+				//     目前仅支持单一采样频率、ASCII/BINARY编码格式、cfg与dat文件分离的Comtrade类型;(其他类型不常见,未支持)
+				//回放时PA端只需提供dat文件(cfg参数由WaveformReplay指令提供),录波时装置需保存cfg和dat文件。
+				//录波结束主动通过Report上报RecComplete。			
+				//后导结束后自动退出暂态,在稳态中输出置0;
+		)
+		
+		4.7.2 启动回放
+		(
+			下行:
+			{
+				"FunType": "Cmd",	 
+				"FunCode": "WaveformReplay",					 
+				"Data": {
+						"WaveFile":"waveplay.dat",  		//源波形文件名,假如装置只支持存放一个文件,则文件名为缺省的"waveplay"。
+						"WaveSamp": 12800					//波形数据的采样率(应与数据文件一致);(取值上限:51200)
+						"Freq": 50,									//额定频率
+						"StartMode": 0,							//启动模式:0=立即启动;1=定时启动; 		
+						"StartTime":"2024-01-01 08:00:00.123",			//仅定时启动模式时有效,指明启动时刻。	
+						
+						"RepeatSource": "WaveCycle1"/"Special"    //缺省为WaveCycle1模式，表示从给定波形数据中取1周波数据； Special：给定幅值的标准正弦波，目前仅行波测试相关装置支持。
+						"RepeatSourceSpecial":[	 			//仅"RepeatSource"值为"Special"时有效；
+									{"Line":1, "Chn": 1, "PrevU":100, "PrevI":5, "BackU":100, "BackI":5},			//U、I为前导或后导的幅值
+									...
+								],	
+						
+						"RepeatCountPrev": 100,			//前导循环次数; 波形文件前导和后导统一约定为1个周波; 0=不需要循环;-1=循环直到开入触发条件满足;
+						"RepeatCountBack": 100,			//后导循环次数; 100~5000  分别对应2秒~100秒; 0=不需要循环;						
+						"TrigDI":[										//仅 RepeatCountPrev=-1时有效,用于描述开入触发条件
+									{"Chn":1, "val":0/1},		
+									{"Chn":2, "val":0/1},
+						],
+						"TrigLogic": "And"/"Or", 			//仅 RepeatCountPrev=-1 时有效,用于描述开入触发条件间的逻辑关系		 
+						
+						"RecStartState":1,		//启动录波的参数; <=0表示不录波;1表示仅录波形文件对应区段(不含前导和后导);【待定:2表示在1的基础上多录1个周波的前导;3表示在前导之前1个周波开始。】
+						"RecMS":5000,			//【是否需要?】<=0表示一直录,>0表示指定录波时长ms。 所有启动录波情况下,不管该值是多少,如果达到硬件能力限制时长或者暂态输出停止时,均主动结束录波。
+						"RecSamp": 12800						//录波采样率;(取值上限:51200)
+						"RecFile":"waverec",  	        		//波形文件名，如果以".dat"或".cfg"结束应识别为扩展名。
+							
+						"DO":[									//开出。前导结束时刻(前导除外的波形数据开始时)输出。  未指定通道保持原值不变。
 									{"Chn":1, "val":0/1},		
 									{"Chn":2, "val":0/1},
 									...
@@ -1726,7 +1741,10 @@
 				"FunCode": "WaveformReplay",	
 				"Result":"Success/Failure",		
 				"Data": {
-					"ErrInfo":"WaveFileNotExist"/"InsufficientStorage"						//仅Failure时存在，错误信息描述,如:波形文件不存在, 磁盘空间不足等				
+					"ErrInfo":"WaveFileNotExist"/"InsufficientStorage"/"StartTimeExpired"						//仅Failure时存在的错误信息描述
+										//WaveFileNotExist: 		源波形文件不存在。
+										//InsufficientStorage:		磁盘空间不足。arm根据"RecMS"推算文件大小，判断磁盘空间是否满足。		
+										//StartTimeExpired:			定时启动模式时，指定的 "StartTime" 过期。 
 				}		 
 			}
 			上行:(结束时上报)
@@ -1735,15 +1753,17 @@
 				"FunCode": "WaveformReplay",	
 				"Result":"Success/Failure",		
 				"Data": { 
+					"WaveFile": ["waverec.cfg", "waverec.dat"], 	//录波文件名列表。
+					"FilePath": "/userdata/waverec", 				//录波文件存放位置
 				}		 
 			}
 		)	
 	)	
 	
 
-	4.7.闪变【事务】?
+	4.8.闪变【事务】?
 
-	4.8.骤升骤降【事务】  是否可用状态序列取代?
+	4.9.骤升骤降【事务】  是否可用状态序列取代?
 
 )
 
@@ -1905,7 +1925,7 @@
 			}
 		)
 	
-		10.1.6 (DK51D)UI端下发与终端的联机命令,服务端执行联机,并返回结果 
+		10.1.6 (DK51D)US端下发与终端的联机命令,服务端执行联机,并返回结果 
 		(
 			下行:
 			{
@@ -1935,7 +1955,7 @@
 			}
 		)
 		
-		10.1.7 (DK51D)UI端下发测试任务,服务端执行检测,并返回结果——(测试结束源输出保持)
+		10.1.7 (DK51D)US端下发测试任务,服务端执行检测,并返回结果——(测试结束源输出保持)
 		(
 			下行:
 			{
@@ -2098,7 +2118,7 @@
 			}
 		)
 
-		10.1.8 (DK51D)UI端下发停止测试任务(停止后源输出保持)
+		10.1.8 (DK51D)US端下发停止测试任务(停止后源输出保持)
 		(
 		下行:
 			{
@@ -2260,11 +2280,11 @@
 	)
 )
 
-20.C端与I端间的UDP或内存共享传输结构体
+20.A端与S端间的UDP或内存共享传输结构体
 (	
-    //所有Report指令仅用于I端和P端之间;C端和I端之间不采用,改为UDP结构体传输， 开机后C端默认所有Report使能为true开启状态。 
+    //所有JSON的Report指令仅用于S端和C端之间;A端和S端之间不采用,改为Struct结构体传输， 开机后A端主动上送支持的所有Struct结构体。 
 	//适当考虑冗余(保留字)!
-	//采用C->I单向传输;
+	//采用A->S单向传输;
 	
 	20.1【结构体的组成】
 	(
@@ -2291,7 +2311,7 @@
 		
 	20.2【说明】
 	{
-		1、 开机缺省所有类型均主动上送，I端可通过指令"SetReportEnable"修改是否上送标志。
+		1、 开机后A端主动循环上送支持的所有Struct结构体。
 		2 、装置具备的功能所对应的子结构体均应包含在整个大结构体中。如果某子功能上送使能关闭，则该子功能结构体内容长度置0,此时本子结构体长度为8字节。
 		3 、每种子结构体的内容部分均应为8字节的整数倍,设计子结构体时如果不足则应该使用0xFF凑齐。
 		4 、所有多字节数据均采用小端字节序。
@@ -2301,7 +2321,7 @@
 	20.3【结构体类型标识】
 	(
 		static const int LinesAC = 1;    //装置支持的AC线路数
-		static const int ChnsAC  = 4;    //AC每线路支持的通道数
+		static const int ChnsAC  = 3;    //AC每线路支持的通道数
 		static const int ChnsDCS = 1;
 		static const int ChnsDCM = 1;
 		static const int ChnsBI  = 1;
@@ -2375,8 +2395,8 @@
 				(
 					struct DevState    	//16字节    //所有Line和Chn均同步使用下列状态；
 					{
-						byte     bACMeterMode;     1字节		//0=交流源状态;1=交流表状态
-						byte     bClosedLoop;          1字节		//0=开环状态;1=闭环状态		
+						byte     bACMeterMode;     1字节		//0=交流源状态;1=交流表状态  
+						byte     bClosedLoop;          1字节		//0=开环状态;1=闭环状态		 
 						byte     nACRunning;           1字节		//0=停止状态;1=运行状态；2=暂停状态   						
 						byte     nHarmRunning;       1字节      //0=停止状态;1=运行状态；2=暂停状态。	注：nACRunning 和 nHarmRunning 相互独立，互不影响。
 						byte     Reserved4;               1字节
@@ -2416,7 +2436,7 @@
 
 						double totalP =0;        //当前线路的总有功
 						double totalQ =0;
-						double totalPF=0;
+						double totalPF=0;      
 					};
 				)
 
@@ -2435,14 +2455,26 @@
 						double totalQ=0;
 					};
 					
-					struct LineHarm   //交流线路——谐波              ChnsAC*(HarmNumberMax+1)*6*8+16  => 3*32=3*1552=4656
+					struct LineHarm   //交流线路——谐波              3*1552=4656
 					{
 						Harm   harm[ChnsAC];  		//harm[ChnsAC]
 					}
 				)
 				
 			● 103=InterHarmData,间谐波数据   
-			
+				(
+					struct Harm    //交流通道谐波                 HarmNumberMax*2*8  => HarmNumberMax为32时=512
+					{
+						double u[HarmNumberMax+1];        //u[HrNo] 		
+						double i[HarmNumberMax+1];         //i[HrNo]
+					};
+					
+					struct LineHarm   //交流线路——谐波               3*512=1536
+					{
+						Harm   harm[ChnsAC];  		//harm[ChnsAC]
+					}
+				)
+				
 			● 110=VMData, 电压监测仪数据               //除了整定误差用秒数据,其它试验全部用分钟数据。
 				(
 					struct VMData   //                  11*8+62*8 => 584Byte
@@ -2503,7 +2535,7 @@
 				//ARM上送所有缓存数据,所有事件应按时间从小到大的顺序有序给出,
 				//Server端自己对上送事件去重。
 									  
-				//{"Time":"2024-01-31 00:00:00.123", "Chn":"1", "val":1/0},
+				//{"Time":"2024-01-31 00:00:00.123", "Chn":1, "val":1/0},
 				{
 					uint8_t   Chn:	1字节		//通道号,从1开始;
 					uint8_t   Val:	1字节		//0=分,1=合					

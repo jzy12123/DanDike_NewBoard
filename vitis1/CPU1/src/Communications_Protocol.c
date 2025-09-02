@@ -273,7 +273,7 @@ void handle_GetDevBaseInfo(cJSON *data)
     const char *acModes[] = {"S", "M"};
     cJSON *acMode = cJSON_CreateStringArray(acModes, 2);
     cJSON_AddItemToObject(ac, "Mode", acMode);
-    cJSON_AddNumberToObject(ac, "MaxHarmNumber", HarmNumberMax);
+    cJSON_AddNumberToObject(ac, "HarmNumberMax", HarmNumberMax);
     cJSON_AddNumberToObject(ac, "LineCount", LinesAC);
     cJSON_AddNumberToObject(ac, "ChnCount", ChnsAC);
 
