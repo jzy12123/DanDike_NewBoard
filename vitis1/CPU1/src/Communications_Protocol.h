@@ -296,7 +296,8 @@ extern const char ARM_Ver_Full[];
 extern uint8_t paused_bClosedLoop_state;
 extern uint8_t target_powamp_enable_state_after_pause;
 
-extern uint32_t g_do_output_state; // <--- 新增: 开出状态全局变量
+extern uint32_t g_do_output_state;
+extern int g_harm_number_thd; // 新增: 用于计算THD的谐波次数
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/

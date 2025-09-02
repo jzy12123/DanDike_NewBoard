@@ -390,7 +390,7 @@ void RunADCPIDCycle(void)
 		{ // 避免除以零
 			double sum_of_squares_u = 0.0;
 			// 遍历从2次谐波到32次谐波
-			for (int h = 1; h < 32; h++)
+			for (int h = 1; h < g_harm_number_thd; h++)
 			{
 				// 计算第i次谐波的比值
 				double harmonic_ratio_u = harmonic_info_U[h][1] / harmonic_info_U[0][1];
@@ -410,7 +410,7 @@ void RunADCPIDCycle(void)
 		{ // 避免除以零
 			double sum_of_squares_i = 0.0;
 			// 遍历从2次谐波到32次谐波
-			for (int h = 1; h < 32; h++)
+			for (int h = 1; h < g_harm_number_thd; h++)
 			{
 				// 计算第i次谐波的比值
 				double harmonic_ratio_i = harmonic_info_I[h][1] / harmonic_info_I[0][1];

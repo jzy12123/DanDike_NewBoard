@@ -21,6 +21,7 @@ uint8_t paused_bClosedLoop_state;
 uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 
 uint32_t g_do_output_state = 0; // <--- 新增: 存储开出硬件状态
+int g_harm_number_thd = 31;     // 新增: THD谐波次数全局变量定义与初始化
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -160,6 +161,17 @@ void handle_GetFunCodeList(cJSON *data)
     const char *TaskEventList[] = {
         "SetSyncMode", "SetProgress"};
 
+    const int StructList[] = {
+        DeviceState,
+        BaseDataAC,
+        HarmData,
+        InterHarmData,
+        BaseDataDCS,
+        BaseDataDCM,
+        DI,
+        DO,
+        InnerBattery,
+        VMData};
     // 创建上行指令的 JSON 对象
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
@@ -176,6 +188,11 @@ void handle_GetFunCodeList(cJSON *data)
 
     cJSON *taskEventList = cJSON_CreateStringArray(TaskEventList, sizeof(TaskEventList) / sizeof(TaskEventList[0]));
     cJSON_AddItemToObject(dataObj, "TaskEventList", taskEventList);
+    
+    // --- 新增代码: 将StructList添加到JSON对象 ---
+    // 中文注释: 使用 cJSON_CreateIntArray 函数创建一个整数数组
+    cJSON *structListJson = cJSON_CreateIntArray(StructList, sizeof(StructList) / sizeof(StructList[0]));
+    cJSON_AddItemToObject(dataObj, "StructList", structListJson);
 
     cJSON_AddItemToObject(reply, "Data", dataObj);
 
@@ -299,6 +316,8 @@ void handle_GetDevBaseInfo(cJSON *data)
     }
     cJSON_AddItemToObject(ac, "Chns", acChns);
     cJSON_AddItemToObject(dataObj, "AC", ac);
+    // --- 新增代码: 添加 HarmNumberTHD 到回复中 ---
+    cJSON_AddNumberToObject(ac, "HarmNumberTHD", g_harm_number_thd);
 
     // DCS 信息
     cJSON *dcs = cJSON_CreateObject();
@@ -1326,6 +1345,23 @@ void handle_SetHarm(cJSON *data)
         }
     }
 
+    // --- 新增代码: 解析 HarmNumberTHD ---
+    cJSON *harm_thd_item = cJSON_GetObjectItem(data, "HarmNumberTHD");
+    if (harm_thd_item != NULL && cJSON_IsNumber(harm_thd_item))
+    {
+        int thd_num = harm_thd_item->valueint;
+        // 中文注释: 验证数值范围是否有效 [2, HarmNumberMax - 1]
+        if (thd_num >= 2 && thd_num < HarmNumberMax)
+        {
+            g_harm_number_thd = thd_num;
+            printf("CPU1: HarmNumberTHD has been set to %d.\n", g_harm_number_thd);
+        }
+        else
+        {
+            printf("CPU1: Warning: HarmNumberTHD value %d is out of range [2, %d]. Ignoring change.\n", thd_num, HarmNumberMax - 1);
+        }
+    }
+
 finalize_and_reply:
     printf("CPU1: Generating waveform with updated harmonics.\r\n");
     ReplyData replyData;
@@ -1334,7 +1370,7 @@ finalize_and_reply:
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 
-       // 中文注释: 只要调用了SetHarm，就认为谐波进入了运行状态。
+    // 中文注释: 只要调用了SetHarm，就认为谐波进入了运行状态。
     devState.bHarmRunning = 1; // 1 = 运行状态
     // 中文注释: 设置标志位，通知主循环硬件参数已更新，并需要更新UDP数据
     udp_data_changed_flag = true;
