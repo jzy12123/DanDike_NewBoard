@@ -335,6 +335,9 @@ void handle_RestoreCalibrateDefault(cJSON *data);
 void handle_SetSysTimeSyncMode(cJSON *data);
 void handle_SetPulseOut(cJSON *data);
 void handle_SetTaskEnergyTest(cJSON *data);
+void handle_TerminateRunningTask(cJSON *data);
+
 // 主动上报
 void report_protection_event(u8 ProectFault);
+void check_and_report_energy_test_status(void);
 #endif

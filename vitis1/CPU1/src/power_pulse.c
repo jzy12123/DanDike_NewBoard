@@ -13,6 +13,7 @@ volatile PowerPulse_t g_PowerPulse = {
     .pulseConstantQ = 7200, // 默认值
     .measuredPowerP = 0.0,
     .measuredPowerQ = 0.0};
+EnergyTestReportData_t g_energy_report_data = {{0}, false, {0}, {0}};
 
 /**
  * @brief 初始化电能脉冲IP核
@@ -154,7 +155,7 @@ void PowerPulse_P_IntrHandler(void *CallbackRef)
 
     // printf("CPU1: P pulse received. Measured Power: %.4f kW\r\n", g_PowerPulse.measuredPowerP);
 
-    // --- 新增：电能误差测试逻辑 ---
+    // 电能误差测试逻辑
     if (g_EnergyTest_P.isActive && g_EnergyTest_P.testMode == 'P')
     {
         process_energy_pulse(&g_EnergyTest_P, lineAC.totalP / 1000.0);
@@ -182,7 +183,7 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
 
     // printf("CPU1: Q pulse received. Measured Power: %.4f kvar\r\n", g_PowerPulse.measuredPowerQ);
 
-    // --- 新增：电能误差测试逻辑 ---
+    // 电能误差测试逻辑 ---
     if (g_EnergyTest_Q.isActive && g_EnergyTest_Q.testMode == 'Q')
     {
         process_energy_pulse(&g_EnergyTest_Q, lineAC.totalQ / 1000.0);
@@ -190,7 +191,7 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
 }
 
 /**
- * @brief 处理电能脉冲，用于误差测试
+ * @brief 处理电能脉冲 (已修正时间外推算法)
  * @param test_state 指向当前测试（P或Q）的状态结构体
  * @param measured_power_kw Zynq系统当前测量的功率（kW或kvar）
  */
@@ -198,66 +199,107 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
 {
     test_state->currentPulseCount++;
 
-    // 如果是本轮的第一个脉冲，记录开始时间
+    printf("CPU1: [DEBUG] Channel %c: Pulse count incremented to %lu.\n", test_state->testMode, test_state->currentPulseCount);
+
     if (test_state->currentPulseCount == 1)
     {
         read_current_time((In_CurrTime *)&test_state->roundStartTime);
+        printf("CPU1: [DEBUG] Channel %c: Round %lu started at Daysec: %lu, Subsec: %lu\n",
+               test_state->testMode, (test_state->currentTestNum + 1), test_state->roundStartTime.curr_daysec, test_state->roundStartTime.curr_subsec);
     }
 
     uint32_t total_pulses_for_one_round = test_state->targetRounds * test_state->freqDivFactor;
 
-    // 如果累计脉冲数达到一轮的目标值
     if (test_state->currentPulseCount >= total_pulses_for_one_round)
     {
         In_CurrTime round_end_time;
         read_current_time(&round_end_time);
 
-        // 1. 计算时间差
         double time_elapsed = time_diff_seconds(&round_end_time, (const In_CurrTime *)&test_state->roundStartTime);
-        if (time_elapsed <= 0)
-        {                                      // 防止无效时间差
-            test_state->currentPulseCount = 0; // 重启本轮计数
+
+        printf("CPU1: [DEBUG] Channel %c: Round %lu finished.\n", test_state->testMode, (test_state->currentTestNum + 1));
+        printf("CPU1: [DEBUG]   - Time Elapsed for %lu pulses (R-1 intervals): %.6f s\n", (total_pulses_for_one_round - 1), time_elapsed);
+
+        if (time_elapsed <= 0 || total_pulses_for_one_round <= 1)
+        {
+            test_state->currentPulseCount = 0;
             return;
         }
 
-        // 2. 计算测量能量 (E_meas)
-        double e_meas_kwh = measured_power_kw * (time_elapsed / 3600.0);
+        // --- 核心修正: 时间外推 ---
+        // 中文注释: 我们测量了 R-1 个间隔的时间，现在将其外推到 R 个间隔的期望总时间
+        double extrapolated_time_for_R_intervals = time_elapsed * ((double)total_pulses_for_one_round / (double)(total_pulses_for_one_round - 1));
 
-        // 3. 计算标准能量 (E_std)
+        // 中文注释: 使用外推后的时间来计算测量能量 E_meas
+        double e_meas_kwh = measured_power_kw * (extrapolated_time_for_R_intervals / 3600.0);
+
         double e_std_kwh = (double)total_pulses_for_one_round / (double)test_state->pulseConstant;
 
-        // 4. 计算误差
+        double error = -100.0;
         if (e_std_kwh > 1e-12)
-        { // 避免除以零
-            double error = ((e_meas_kwh - e_std_kwh) / e_std_kwh) * 100.0;
+        {
+            error = ((e_meas_kwh - e_std_kwh) / e_std_kwh) * 100.0;
             if (test_state->currentTestNum < 99)
             {
                 test_state->errs[test_state->currentTestNum] = error;
             }
         }
 
+        printf("CPU1: [DEBUG]   - Extrapolated Time for R intervals: %.6f s\n", extrapolated_time_for_R_intervals);
+        printf("CPU1: [DEBUG]   - E_std (kWh): %.9f\n", e_std_kwh);
+        printf("CPU1: [DEBUG]   - Measured Power (kW) used for calc: %.9f\n", measured_power_kw);
+        printf("CPU1: [DEBUG]   - E_meas (kWh): %.9f\n", e_meas_kwh);
+        printf("CPU1: [DEBUG]   - Calculated Error: %.4f %%\n", error);
+
         test_state->currentTestNum++;
 
-        // 5. 检查测试是否全部完成
         const char *result_str;
         if (test_state->currentTestNum >= test_state->targetTimes)
         {
             result_str = "Success";
-            test_state->isActive = false; // 结束测试
+            printf("CPU1: [DEBUG] Channel %c: All test times completed.\n", test_state->testMode);
+
+            strcpy((char *)g_energy_report_data.result, result_str);
+            memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)&g_EnergyTest_P, sizeof(EnergyTest_t));
+            memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)&g_EnergyTest_Q, sizeof(EnergyTest_t));
+            g_energy_report_data.report_pending = true;
+
+            test_state->isActive = false;
         }
         else
         {
             result_str = "Doing";
+            strcpy((char *)g_energy_report_data.result, result_str);
+            memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)&g_EnergyTest_P, sizeof(EnergyTest_t));
+            memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)&g_EnergyTest_Q, sizeof(EnergyTest_t));
+            g_energy_report_data.report_pending = true;
         }
 
-        // 6. 上报 TaskEvent
-        extern void report_energy_test_event(const volatile EnergyTest_t *test_state, const char *result);
-        report_energy_test_event(test_state, result_str);
-
-        // 7. 重置脉冲计数器，准备下一轮
         test_state->currentPulseCount = 0;
     }
 }
+
+/**
+ * @brief (新增) 终止所有正在进行的电能误差测试
+ * @details 该函数通过将两个测试通道的 isActive 标志位设为 false 来立即停止测试。
+ */
+void PowerPulse_TerminateTest(void)
+{
+    // 中文注释: 检查 P 通道是否正在运行，如果是，则停止
+    if (g_EnergyTest_P.isActive)
+    {
+        g_EnergyTest_P.isActive = false;
+        printf("CPU1: [INFO] SetTaskEnergyTest (P channel) has been terminated by command.\n");
+    }
+
+    // 中文注释: 检查 Q 通道是否正在运行，如果是，则停止
+    if (g_EnergyTest_Q.isActive)
+    {
+        g_EnergyTest_Q.isActive = false;
+        printf("CPU1: [INFO] SetTaskEnergyTest (Q channel) has been terminated by command.\n");
+    }
+}
+
 /**
  * @brief 新增：初始化电能误差测试状态
  */

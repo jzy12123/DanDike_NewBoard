@@ -48,6 +48,16 @@ typedef struct
 extern EnergyTest_t g_EnergyTest_P; // P通道测试状态
 extern EnergyTest_t g_EnergyTest_Q; // Q通道测试状态
 
+// --- 新增代码: 定义用于从ISR传递报告数据到主循环的 "信箱" 结构体 ---
+typedef struct
+{
+    char result[16];              // 中文注释: 存储 "Doing" 或 "Success" 结果字符串
+    volatile bool report_pending; // 中文注释: 报告标志位，true 表示有新报告需要发送
+    EnergyTest_t p_test_snapshot; // 中文注释: P通道测试数据的快照，供主循环安全读取
+    EnergyTest_t q_test_snapshot; // 中文注释: Q通道测试数据的快照
+} EnergyTestReportData_t;
+extern EnergyTestReportData_t g_energy_report_data;
+
 // 函数声明
 void PowerPulse_Init(void);
 void PowerPulse_UpdateOutput(double total_p_watts, double total_q_var);
@@ -56,5 +66,6 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef);
 void PowerPulse_PollInput(void); // 新增轮询函数声明
 
 void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_power_kw);
-void init_EnergyTest(void); // 新增初始化函数
+void init_EnergyTest(void);          // 电能初始化函数
+void PowerPulse_TerminateTest(void); // 终止电能测试函数
 #endif

@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250707.1958";
-const char ARM_Ver_Full[] = "[Ver]=V1.250831.1953";
+const char ARM_Ver_Full[] = "[Ver]=V1.250904.2035";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -20,8 +20,8 @@ static float paused_Wave_Amplitude[8];
 uint8_t paused_bClosedLoop_state;
 uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 
-uint32_t g_do_output_state = 0; // <--- 新增: 存储开出硬件状态
-int g_harm_number_thd = 31;     // 新增: THD谐波次数全局变量定义与初始化
+uint32_t g_do_output_state = 0; // 存储开出硬件状态
+int g_harm_number_thd = 31;     //  THD谐波次数全局变量定义与初始化
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -88,6 +88,7 @@ int Parse_JsonCommand(char *buffer)
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
         {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode},
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
+        {"TerminateRunningTask", handle_TerminateRunningTask},
         {"SetPulseOut", handle_SetPulseOut}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
@@ -188,7 +189,7 @@ void handle_GetFunCodeList(cJSON *data)
 
     cJSON *taskEventList = cJSON_CreateStringArray(TaskEventList, sizeof(TaskEventList) / sizeof(TaskEventList[0]));
     cJSON_AddItemToObject(dataObj, "TaskEventList", taskEventList);
-    
+
     // --- 新增代码: 将StructList添加到JSON对象 ---
     // 中文注释: 使用 cJSON_CreateIntArray 函数创建一个整数数组
     cJSON *structListJson = cJSON_CreateIntArray(StructList, sizeof(StructList) / sizeof(StructList[0]));
@@ -2670,127 +2671,304 @@ send_reply:;
 }
 
 /**
- * @brief 上报电能误差测试的TaskEvent
- * @param test_state 指向测试状态结构体的指针
- * @param result "Doing" 或 "Success"
+ * @brief (已重构) 检查并上报挂起的电能误差测试状态
+ * @details 此函数应在主循环中被周期性调用。
+ * 它检查全局报告标志位 (report_pending)，如果为true，则根据 "信箱" 中的数据快照
+ * 打包并发送JSON报告，然后清除标志位。
  */
-void report_energy_test_event(const volatile EnergyTest_t *test_state, const char *result)
+void check_and_report_energy_test_status(void)
 {
+    // 中文注释: 检查是否有挂起的报告任务。这是一个非阻塞的快速检查。
+    if (!g_energy_report_data.report_pending)
+    {
+        return;
+    }
+
+    // 中文注释: 打印调试信息，表明主循环已捕获到报告请求
+    // printf("CPU1: [DEBUG] Main loop is processing a pending energy test report.\n");
+
+    // --- 开始构建上报的JSON对象 ---
     cJSON *report = cJSON_CreateObject();
     cJSON_AddStringToObject(report, "FunType", "TaskEvent");
-    // FunCode 在协议中是 SetTaskClockTest，这里遵循协议
-    cJSON_AddStringToObject(report, "FunCode", "SetTaskClockTest");
-    cJSON_AddStringToObject(report, "Result", result);
+    cJSON_AddStringToObject(report, "FunCode", "SetTaskEnergyTest");
+    cJSON_AddStringToObject(report, "Result", g_energy_report_data.result);
 
     cJSON *data_array = cJSON_CreateArray();
-    cJSON *chn_obj = cJSON_CreateObject();
 
-    // 根据测试模式确定通道号
-    int chn_num = (test_state->testMode == 'P') ? 1 : 2;
-    cJSON_AddNumberToObject(chn_obj, "Chn", chn_num);
-    cJSON_AddNumberToObject(chn_obj, "Round", test_state->targetRounds);
-    cJSON_AddNumberToObject(chn_obj, "TestedTimes", test_state->currentTestNum);
+    // 中文注释: 检查是否是最终的成功报告，这会影响我们如何判断一个通道是否应该被包含
+    bool is_final_report = (strcmp(g_energy_report_data.result, "Success") == 0);
+    printf("CPU1: [DEBUG] Energy test result is %s\n", g_energy_report_data.result);
 
-    // 创建误差数组
-    cJSON *errs_array = cJSON_CreateArray();
-    for (int i = 0; i < test_state->currentTestNum; i++)
+    // --- 动态构建Data数组 ---
+
+    // 中文注释: 检查P通道的快照数据
+    // 上报条件: 1. 测试仍在进行中(isActive)
+    //         或者 2. 这是最终的成功报告 且 该通道确实参与了测试 (currentTestNum > 0)
+    if (g_energy_report_data.p_test_snapshot.isActive || (is_final_report && g_energy_report_data.p_test_snapshot.currentTestNum > 0))
     {
-        cJSON_AddItemToArray(errs_array, cJSON_CreateNumber(test_state->errs[i]));
-    }
-    cJSON_AddItemToObject(chn_obj, "Errs", errs_array);
+        cJSON *chn_p_obj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(chn_p_obj, "Chn", 1); // P通道是通道1
+        cJSON_AddNumberToObject(chn_p_obj, "Round", g_energy_report_data.p_test_snapshot.targetRounds);
+        cJSON_AddNumberToObject(chn_p_obj, "TestedTimes", g_energy_report_data.p_test_snapshot.currentTestNum);
 
-    cJSON_AddItemToArray(data_array, chn_obj);
+        cJSON *errs_p_array = cJSON_CreateArray();
+        for (int i = 0; i < g_energy_report_data.p_test_snapshot.currentTestNum; i++)
+        {
+            cJSON_AddItemToArray(errs_p_array, cJSON_CreateNumber(g_energy_report_data.p_test_snapshot.errs[i]));
+        }
+        cJSON_AddItemToObject(chn_p_obj, "Errs", errs_p_array);
+        cJSON_AddItemToArray(data_array, chn_p_obj);
+    }
+
+    // 中文注释: 检查Q通道的快照数据，逻辑同上
+    if (g_energy_report_data.q_test_snapshot.isActive || (is_final_report && g_energy_report_data.q_test_snapshot.currentTestNum > 0))
+    {
+        cJSON *chn_q_obj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(chn_q_obj, "Chn", 2); // Q通道是通道2
+        cJSON_AddNumberToObject(chn_q_obj, "Round", g_energy_report_data.q_test_snapshot.targetRounds);
+        cJSON_AddNumberToObject(chn_q_obj, "TestedTimes", g_energy_report_data.q_test_snapshot.currentTestNum);
+
+        cJSON *errs_q_array = cJSON_CreateArray();
+        for (int i = 0; i < g_energy_report_data.q_test_snapshot.currentTestNum; i++)
+        {
+            cJSON_AddItemToArray(errs_q_array, cJSON_CreateNumber(g_energy_report_data.q_test_snapshot.errs[i]));
+        }
+        cJSON_AddItemToObject(chn_q_obj, "Errs", errs_q_array);
+        cJSON_AddItemToArray(data_array, chn_q_obj);
+    }
+
     cJSON_AddItemToObject(report, "Data", data_array);
 
-    char *string = cJSON_PrintUnformatted(report);
-    if (string)
+    // --- JSON字符串转换与发送 ---
+    char *string_to_send = cJSON_PrintUnformatted(report);
+    if (string_to_send)
     {
-        size_t stringLength = strlen(string);
+        // 中文注释: 打印将要发送的JSON内容，用于调试
+        // printf("CPU1: report energy_test : |%s|\n", string_to_send);
+
+        size_t stringLength = strlen(string_to_send);
         char *finalString = (char *)malloc(stringLength + 3);
         if (finalString)
         {
-            snprintf(finalString, stringLength + 3, "|%s|", string);
+            snprintf(finalString, stringLength + 3, "|%s|", string_to_send);
             MsgQue_write(finalString, strlen(finalString));
             free(finalString);
         }
-        free(string);
+        free(string_to_send);
     }
+    else
+    {
+        printf("CPU1: Error: Failed to print energy test report JSON.\n");
+    }
+
     cJSON_Delete(report);
+
+    // --- 关键步骤: 清除标志位，防止重复发送 ---
+    g_energy_report_data.report_pending = false;
 }
 
 /**
- * @brief 处理 "SetTaskEnergyTest" JSON指令
+ * @brief 启动单个通道的电能误差测试
+ * @param chn 要启动的通道号 (1=P, 2=Q)
+ * @param pulse_constant 从JSON指令中解析的电表常数
+ * @param freq_div_factor 从JSON指令中解析的分频系数
+ * @param target_rounds 从JSON指令中解析的测试圈数
+ * @param target_times 从JSON指令中解析的测试次数
+ * @return 如果成功启动，返回 true；否则返回 false
+ * @details 这是一个辅助函数，用于配置并激活 g_EnergyTest_P 或 g_EnergyTest_Q 结构体。
+ */
+static bool start_energy_test_for_channel(int chn, uint32_t pulse_constant, uint32_t freq_div_factor, uint32_t target_rounds, uint32_t target_times)
+{
+    volatile EnergyTest_t *p_test_state = NULL;
+    char channel_char = ' ';
+
+    if (chn == 1)
+    { // 通道 1 对应有功 P
+        p_test_state = &g_EnergyTest_P;
+        channel_char = 'P';
+    }
+    else if (chn == 2)
+    { // 通道 2 对应无功 Q
+        p_test_state = &g_EnergyTest_Q;
+        channel_char = 'Q';
+    }
+    else
+    {
+        printf("CPU1: SetTaskEnergyTest Error: Invalid channel number %d provided to helper function.\n", chn);
+        return false; // 无效通道
+    }
+
+    if (p_test_state->isActive)
+    {
+        printf("CPU1: SetTaskEnergyTest Warning: A test is already active on channel %c. It will be restarted.\n", channel_char);
+    }
+
+    // 中文注释: 重置并填充测试参数
+    memset((void *)p_test_state, 0, sizeof(EnergyTest_t));
+    p_test_state->testMode = channel_char;
+    p_test_state->pulseConstant = pulse_constant;
+    p_test_state->freqDivFactor = freq_div_factor;
+    p_test_state->targetRounds = target_rounds;
+    p_test_state->targetTimes = target_times;
+    p_test_state->isActive = true; // 激活测试
+
+    printf("CPU1: SetTaskEnergyTest: Channel %c test configured to start.\n", channel_char);
+    return true; // 标记任务成功启动
+}
+
+/**
+ * @brief 处理 "SetTaskEnergyTest" JSON指令 (已重构)
  * @param data 指向JSON中"Data"字段的cJSON对象
  */
 void handle_SetTaskEnergyTest(cJSON *data)
 {
-    char *result = "Failure";
-    volatile EnergyTest_t *p_test_state = NULL; // 指向 P 或 Q 测试状态的指针
+    char *result = "Failure"; // 中文注释: 默认回复为失败
+    bool is_any_task_started = false;
 
     if (!data)
     {
-        goto send_reply;
+        printf("CPU1: SetTaskEnergyTest Error: Missing 'Data' object.\n");
+        goto send_reply_energy_test;
     }
 
-    cJSON *test_mode_item = cJSON_GetObjectItem(data, "TestMode");
+    // --- 1. 解析通用测试参数 ---
     cJSON *pulse_const_item = cJSON_GetObjectItem(data, "PulseConstant");
     cJSON *freq_div_item = cJSON_GetObjectItem(data, "FreqDivFactor");
     cJSON *round_item = cJSON_GetObjectItem(data, "Round");
     cJSON *test_times_item = cJSON_GetObjectItem(data, "TestTimes");
 
-    // 参数校验
-    if (!cJSON_IsString(test_mode_item) || !cJSON_IsNumber(pulse_const_item) || !cJSON_IsNumber(freq_div_item) || !cJSON_IsNumber(round_item))
+    // 中文注释: 校验核心参数是否存在且为数字
+    if (!cJSON_IsNumber(pulse_const_item) || !cJSON_IsNumber(freq_div_item) || !cJSON_IsNumber(round_item))
     {
-        printf("CPU1: SetTaskEnergyTest: Missing or invalid parameters.\n");
-        goto send_reply;
+        printf("CPU1: SetTaskEnergyTest Error: Missing or invalid core parameters (PulseConstant, FreqDivFactor, Round).\n");
+        goto send_reply_energy_test;
     }
 
-    // 确定测试模式并获取对应的状态结构体
-    if (strcmp(test_mode_item->valuestring, "P") == 0)
+    // 中文注释: 提取并校验数值
+    uint32_t pulse_constant = pulse_const_item->valueint;
+    uint32_t freq_div_factor = freq_div_item->valueint;
+    uint32_t target_rounds = round_item->valueint;
+    uint32_t target_times = cJSON_IsNumber(test_times_item) ? test_times_item->valueint : 1;
+
+    if (pulse_constant == 0 || freq_div_factor == 0 || target_rounds == 0 || target_times == 0 || target_times > 99)
     {
-        p_test_state = &g_EnergyTest_P;
-        p_test_state->testMode = 'P';
+        printf("CPU1: SetTaskEnergyTest Error: Numerical parameters cannot be zero or out of range.\n");
+        goto send_reply_energy_test;
     }
-    else if (strcmp(test_mode_item->valuestring, "Q") == 0)
+
+    // --- 2. 解析 "Chns" 节点并调用辅助函数启动相应测试 ---
+    cJSON *chns_array = cJSON_GetObjectItem(data, "Chns");
+    if (chns_array != NULL && cJSON_IsArray(chns_array))
     {
-        p_test_state = &g_EnergyTest_Q;
-        p_test_state->testMode = 'Q';
+        // 中文注释: 如果 "Chns" 数组存在，则按需启动
+        cJSON *chn_item;
+        cJSON_ArrayForEach(chn_item, chns_array)
+        {
+            if (cJSON_IsNumber(chn_item))
+            {
+                if (start_energy_test_for_channel(chn_item->valueint, pulse_constant, freq_div_factor, target_rounds, target_times))
+                {
+                    is_any_task_started = true;
+                }
+            }
+        }
     }
     else
     {
-        printf("CPU1: SetTaskEnergyTest: Invalid TestMode.\n");
-        goto send_reply;
+        // 中文注释: 如果 "Chns" 节点不存在，则默认启动所有通道
+        printf("CPU1: SetTaskEnergyTest: 'Chns' not provided, starting all channels (P and Q).\n");
+        bool p_started = start_energy_test_for_channel(1, pulse_constant, freq_div_factor, target_rounds, target_times);
+        bool q_started = start_energy_test_for_channel(2, pulse_constant, freq_div_factor, target_rounds, target_times);
+        if (p_started || q_started)
+        {
+            is_any_task_started = true;
+        }
     }
 
-    // 另一个测试正在进行中
-    if (p_test_state->isActive)
+    // --- 3. 准备并发送回复 ---
+    if (is_any_task_started)
     {
-        printf("CPU1: SetTaskEnergyTest: A test is already active on this channel.\n");
-        goto send_reply;
+        result = "Success";
     }
 
-    // 重置并填充测试参数
-    memset((void *)p_test_state, 0, sizeof(EnergyTest_t));
-    p_test_state->testMode = (strcmp(test_mode_item->valuestring, "P") == 0) ? 'P' : 'Q';
-    p_test_state->pulseConstant = pulse_const_item->valueint;
-    p_test_state->freqDivFactor = freq_div_item->valueint;
-    p_test_state->targetRounds = round_item->valueint;
-    p_test_state->targetTimes = cJSON_IsNumber(test_times_item) ? test_times_item->valueint : 1;
-
-    // 更多参数校验
-    if (p_test_state->pulseConstant == 0 || p_test_state->freqDivFactor == 0 || p_test_state->targetRounds == 0 || p_test_state->targetTimes == 0 || p_test_state->targetTimes > 99)
-    {
-        printf("CPU1: SetTaskEnergyTest: Numerical parameters cannot be zero.\n");
-        goto send_reply;
-    }
-
-    p_test_state->isActive = true; // 激活测试
-    result = "Success";
-
-send_reply:;
+send_reply_energy_test:
+    printf("CPU1: SetTaskEnergyTest Reply: %s\n", result);
     ReplyData replyData;
     strcpy(replyData.FunCode, "SetTaskEnergyTest");
     strcpy(replyData.Result, result);
+    replyData.hasClosedLoop = false;
+    write_reply_to_shared_memory(&replyData);
+}
+
+/**
+ * @brief 处理 "TerminateRunningTask" JSON 指令 (已根据新需求重构)
+ * @param data 包含要终止的任务列表的 cJSON 对象
+ * @details
+ * - 解析 "Tasks" 数组。
+ * - 如果数组存在，则根据数组成员终止指定的任务。
+ * - 如果数组不存在，则终止所有当前已知的可终止任务。
+ */
+void handle_TerminateRunningTask(cJSON *data)
+{
+    char *result_status = "Success"; // 默认指令执行成功
+    cJSON *tasks_array = NULL;
+
+    if (data != NULL)
+    {
+        tasks_array = cJSON_GetObjectItem(data, "Tasks");
+    }
+
+    // 中文注释: 检查 "Tasks" 节点是否存在且是一个数组
+    if (tasks_array != NULL && cJSON_IsArray(tasks_array))
+    {
+        // --- 逻辑分支 1: "Tasks" 节点存在，按需终止 ---
+        printf("CPU1: [INFO] Terminating specific tasks as requested.\n");
+        cJSON *task_item;
+        cJSON_ArrayForEach(task_item, tasks_array)
+        {
+            if (cJSON_IsString(task_item) && (task_item->valuestring != NULL))
+            {
+                const char *task_name = task_item->valuestring;
+                printf("CPU1: [INFO]   - Processing termination for: %s\n", task_name);
+
+                if (strcmp(task_name, "SetTaskEnergyTest") == 0)
+                {
+                    PowerPulse_TerminateTest(); // 调用电能测试模块的终止函数
+                }
+                // --- 未来扩展占位符 ---
+                // else if (strcmp(task_name, "SetTaskClockTest") == 0) {
+                //     ClockTest_Terminate(); // 假设的时钟测试终止函数
+                // }
+                // else if (strcmp(task_name, "StateSequence") == 0) {
+                //     StateSequence_Terminate(); // 假设的状态序列终止函数
+                // }
+            }
+        }
+    }
+    else
+    {
+        // --- 逻辑分支 2: "Tasks" 节点不存在，终止所有任务 ---
+        printf("CPU1: [INFO] 'Tasks' node not found. Terminating all running tasks.\n");
+
+        // 中文注释: 终止电能误差测试
+        PowerPulse_TerminateTest();
+
+        // --- 未来扩展占位符 ---
+        // 中文注释: 终止时钟误差测试
+        // ClockTest_Terminate();
+
+        // 中文注释: 终止状态序列
+        // StateSequence_Terminate();
+
+        // 中文注释: 终止波形录制与回放
+        // WaveformRecord_Terminate();
+        // WaveformReplay_Terminate();
+    }
+
+    // 中文注释: 准备并发送上行回复
+    ReplyData replyData;
+    strcpy(replyData.FunCode, "TerminateRunningTask");
+    strcpy(replyData.Result, result_status);
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
 }

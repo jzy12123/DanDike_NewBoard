@@ -207,14 +207,13 @@ int main()
 	// dac_parameters_updated_by_command = true;
 	// xil_printf("CPU1: VITIS DEBUG - Parameter update flag SET (dac_parameters_updated_by_command = true).\r\n");
 
-
 	// /************************** 初始化完成，准备进入主循环 *****************************/
 	xil_printf("CPU1: Start Main Timer...\r\n");
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
-	//开关量初始化 放到前面会死机
+	// 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 0);
 	OnOff_Start(bit_8, 1);
 
@@ -288,7 +287,7 @@ int main()
 			else
 			{
 				// ADCDMA失败
-				//  printf("ADC NotReady !\r\n");
+				printf("ADC NotReady !\r\n");
 			}
 		}
 		/*AC交流源关闭或者没有获得锁*/
@@ -296,6 +295,10 @@ int main()
 		{
 			usleep(10000); // 延时10ms
 		}
+
+		/*3 在主循环中检测上报任务 */
+		// 中文注释: 检查并上报电能误差测试的状态，这是一个非阻塞操作
+		check_and_report_energy_test_status();
 	}
 }
 
@@ -531,11 +534,14 @@ void RunADCPIDCycle(void)
 			double phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
 
 			// 计算谐波的有功和无功功率（P/Q按幅值表示）
-			if (j == 1) {
+			if (j == 1)
+			{
 				// 基波：直接用实际幅值计算功率
 				lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
 				lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(phase_diff * M_PI / 180.0);
-			} else {
+			}
+			else
+			{
 				// 谐波：需要将百分比转换回实际幅值来计算功率
 				double actual_u = (lineHarm.harm[i].u[j] / 100.0) * baseU / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
 				double actual_i = (lineHarm.harm[i].i[j] / 100.0) * baseI / AD_Correct[i + 4][idx_i] * setACS.Vals[i].IR;
@@ -561,7 +567,7 @@ void RunADCPIDCycle(void)
 		lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
 	}
 
-	//输出电能脉冲
+	// 输出电能脉冲
 	PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
 
 	// 标记UDP数据已更新
