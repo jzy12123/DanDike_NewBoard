@@ -2,8 +2,8 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Sat Jul 12 16:07:45 2025
-# Process ID: 1452
+# Start of session at: Wed Sep 24 12:03:10 2025
+# Process ID: 8536
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1
 # Command line: vivado.exe -log system_wrapper.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source system_wrapper.tcl
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.vds
@@ -14,7 +14,7 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-add_files: Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1138.895 ; gain = 0.000
+add_files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 1140.840 ; gain = 0.000
 Command: synth_design -top system_wrapper -part xc7z020clg400-2
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
@@ -22,9 +22,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020
 INFO: [Device 21-403] Loading part xc7z020clg400-2
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 25124
+INFO: [Synth 8-7075] Helper process launched with PID 18416
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:10 ; elapsed = 00:00:14 . Memory (MB): peak = 1292.125 ; gain = 153.230
+Starting RTL Elaboration : Time (s): cpu = 00:00:12 ; elapsed = 00:00:15 . Memory (MB): peak = 1292.988 ; gain = 152.148
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-2048] function gpo_bit_used does not always return a value [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1529/hdl/axi_iic_v2_0_vh_rfs.vhd:1147]
 INFO: [Synth 8-6157] synthesizing module 'system_wrapper' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v:12]
@@ -3798,6 +3798,8 @@ INFO: [Synth 8-256] done synthesizing module 'axi_iic' (211#1) [c:/Users/saber/D
 INFO: [Synth 8-256] done synthesizing module 'system_axi_iic_0_1' (212#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_1/synth/system_axi_iic_0_1.vhd:91]
 WARNING: [Synth 8-7071] port 'gpo' of module 'system_axi_iic_0_1' is unconnected for instance 'axi_iic_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1020]
 WARNING: [Synth 8-7023] instance 'axi_iic_0' of module 'system_axi_iic_0_1' has 27 connections declared, but only 26 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:1020]
+WARNING: [Synth 8-7071] port 'iic2intc_irpt' of module 'RTC_EEPROM_imp_HBPX1R' is unconnected for instance 'RTC_EEPROM' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8808]
+WARNING: [Synth 8-7023] instance 'RTC_EEPROM' of module 'RTC_EEPROM_imp_HBPX1R' has 26 connections declared, but only 25 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8808]
 INFO: [Synth 8-638] synthesizing module 'system_axi_gpio_0_1' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_gpio_0_1_1/synth/system_axi_gpio_0_1.vhd:84]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
@@ -3929,12 +3931,12 @@ INFO: [Synth 8-638] synthesizing module 'system_axi_intc_0_0' [c:/Users/saber/De
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 10 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
 	Parameter C_KIND_OF_INTR bound to: 32'b11111111111111111111111111111111 
 	Parameter C_KIND_OF_EDGE bound to: 32'b11111111111111111111111111111111 
 	Parameter C_KIND_OF_LVL bound to: 32'b11111111111111111111111111111111 
-	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111100000000000 
+	Parameter C_ASYNC_INTR bound to: 32'b11111111111111111111110000000000 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
@@ -3957,12 +3959,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 	Parameter C_INSTANCE bound to: system_axi_intc_0_0 - type: string 
 	Parameter C_S_AXI_ADDR_WIDTH bound to: 9 - type: integer 
 	Parameter C_S_AXI_DATA_WIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 10 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
 	Parameter C_KIND_OF_INTR bound to: -1 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -1024 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_IVAR_RESET_VALUE bound to: 64'b0000000000000000000000000000000000000000000000000000000000010000 
 	Parameter C_ADDR_WIDTH bound to: 32 - type: integer 
@@ -3982,12 +3984,12 @@ INFO: [Synth 8-638] synthesizing module 'axi_intc' [c:/Users/saber/Desktop/share
 INFO: [Synth 8-638] synthesizing module 'intc_core' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/47b8/hdl/axi_intc_v4_1_vh_rfs.vhd:794]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_DWIDTH bound to: 32 - type: integer 
-	Parameter C_NUM_INTR_INPUTS bound to: 11 - type: integer 
+	Parameter C_NUM_INTR_INPUTS bound to: 10 - type: integer 
 	Parameter C_NUM_SW_INTR bound to: 0 - type: integer 
 	Parameter C_KIND_OF_INTR bound to: -1 - type: integer 
 	Parameter C_KIND_OF_EDGE bound to: -1 - type: integer 
 	Parameter C_KIND_OF_LVL bound to: -1 - type: integer 
-	Parameter C_ASYNC_INTR bound to: -2048 - type: integer 
+	Parameter C_ASYNC_INTR bound to: -1024 - type: integer 
 	Parameter C_NUM_SYNC_FF bound to: 2 - type: integer 
 	Parameter C_HAS_IPR bound to: 1 - type: integer 
 	Parameter C_HAS_SIE bound to: 1 - type: integer 
@@ -6541,11 +6543,11 @@ INFO: [Synth 8-638] synthesizing module 'system_proc_sys_reset_0_0' [c:/Users/sa
 	Parameter C_NUM_PERP_ARESETN bound to: 1 - type: integer 
 INFO: [Synth 8-3491] module 'proc_sys_reset' declared at 'c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/8842/hdl/proc_sys_reset_v5_0_vh_rfs.vhd:1264' bound to instance 'U0' of component 'proc_sys_reset' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0_1/synth/system_proc_sys_reset_0_0.vhd:129]
 INFO: [Synth 8-256] done synthesizing module 'system_proc_sys_reset_0_0' (355#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_proc_sys_reset_0_0_1/synth/system_proc_sys_reset_0_0.vhd:74]
-WARNING: [Synth 8-7071] port 'mb_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9117]
-WARNING: [Synth 8-7071] port 'bus_struct_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9117]
-WARNING: [Synth 8-7071] port 'peripheral_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9117]
-WARNING: [Synth 8-7071] port 'interconnect_aresetn' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9117]
-WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_reset_0_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9117]
+WARNING: [Synth 8-7071] port 'mb_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9115]
+WARNING: [Synth 8-7071] port 'bus_struct_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9115]
+WARNING: [Synth 8-7071] port 'peripheral_reset' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9115]
+WARNING: [Synth 8-7071] port 'interconnect_aresetn' of module 'system_proc_sys_reset_0_0' is unconnected for instance 'proc_sys_reset_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9115]
+WARNING: [Synth 8-7023] instance 'proc_sys_reset_0' of module 'system_proc_sys_reset_0_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9115]
 	Parameter C_USE_DEFAULT_ACP_USER_VAL bound to: 0 - type: integer 
 	Parameter C_S_AXI_ACP_ARUSER_VAL bound to: 31 - type: integer 
 	Parameter C_S_AXI_ACP_AWUSER_VAL bound to: 31 - type: integer 
@@ -6616,29 +6618,29 @@ WARNING: [Synth 8-7071] port 'DMA1_RSTN' of module 'processing_system7_v5_5_proc
 WARNING: [Synth 8-7071] port 'DMA2_RSTN' of module 'processing_system7_v5_5_processing_system7' is unconnected for instance 'inst' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:699]
 WARNING: [Synth 8-7071] port 'DMA3_RSTN' of module 'processing_system7_v5_5_processing_system7' is unconnected for instance 'inst' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:699]
 WARNING: [Synth 8-7023] instance 'inst' of module 'processing_system7_v5_5_processing_system7' has 685 connections declared, but only 672 given [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_processing_system7_0_0_1/synth/system_processing_system7_0_0.v:699]
-WARNING: [Synth 8-7071] port 'ENET1_GMII_TX_ER' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'TTC0_WAVE0_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'TTC0_WAVE1_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'TTC0_WAVE2_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'USB0_PORT_INDCTL' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'USB0_VBUS_PWRSELECT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP0_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_AWREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BVALID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BRESP' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7071] port 'S_AXI_HP1_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
-WARNING: [Synth 8-7023] instance 'processing_system7_0' of module 'system_processing_system7_0_0' has 187 connections declared, but only 165 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9126]
+WARNING: [Synth 8-7071] port 'ENET1_GMII_TX_ER' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'TTC0_WAVE0_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'TTC0_WAVE1_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'TTC0_WAVE2_OUT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'USB0_PORT_INDCTL' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'USB0_VBUS_PWRSELECT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP0_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_AWREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BVALID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WREADY' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BRESP' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_BID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RID' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WCOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_RACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7071] port 'S_AXI_HP1_WACOUNT' of module 'system_processing_system7_0_0' is unconnected for instance 'processing_system7_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
+WARNING: [Synth 8-7023] instance 'processing_system7_0' of module 'system_processing_system7_0_0' has 187 connections declared, but only 165 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9124]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_M_AXI_PROTOCOL bound to: 2 - type: integer 
 	Parameter C_S_AXI_PROTOCOL bound to: 0 - type: integer 
@@ -7360,7 +7362,6 @@ WARNING: [Synth 8-7071] port 'm_axi_awprot' of module 'system_auto_pc_4' is unco
 WARNING: [Synth 8-7071] port 'm_axi_arprot' of module 'system_auto_pc_4' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6015]
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_4' has 60 connections declared, but only 58 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6015]
 WARNING: [Synth 8-7071] port 'm_axi_awprot' of module 'system_auto_pc_5' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6315]
-WARNING: [Synth 8-7071] port 'm_axi_arprot' of module 'system_auto_pc_5' is unconnected for instance 'auto_pc' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6315]
 INFO: [Common 17-14] Message 'Synth 8-7071' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_5' has 60 connections declared, but only 58 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6315]
 WARNING: [Synth 8-7023] instance 'auto_pc' of module 'system_auto_pc_7' has 60 connections declared, but only 58 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:6925]
@@ -8409,8 +8410,8 @@ INFO: [Synth 8-155] case statement is not full and has no default [c:/Users/sabe
 	Parameter C_RATIO bound to: 3 - type: integer 
 	Parameter C_SEL_WIDTH bound to: 2 - type: integer 
 	Parameter C_DATA_WIDTH bound to: 3 - type: integer 
-WARNING: [Synth 8-689] width (3) of port connection 'm_axi_arprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13330]
-WARNING: [Synth 8-689] width (3) of port connection 'm_axi_awprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13334]
+WARNING: [Synth 8-689] width (3) of port connection 'm_axi_arprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13327]
+WARNING: [Synth 8-689] width (3) of port connection 'm_axi_awprot' does not match port width (6) of module 'system_tier2_xbar_2_0' [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:13331]
 	Parameter C_FAMILY bound to: zynq - type: string 
 	Parameter C_NUM_SLAVE_SLOTS bound to: 1 - type: integer 
 	Parameter C_NUM_MASTER_SLOTS bound to: 3 - type: integer 
@@ -8670,8 +8671,8 @@ INFO: [Synth 8-638] synthesizing module 'system_rst_ps7_0_100M_0' [c:/Users/sabe
 	Parameter C_NUM_PERP_ARESETN bound to: 1 - type: integer 
 INFO: [Synth 8-3491] module 'proc_sys_reset' declared at 'c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/8842/hdl/proc_sys_reset_v5_0_vh_rfs.vhd:1264' bound to instance 'U0' of component 'proc_sys_reset' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:129]
 INFO: [Synth 8-256] done synthesizing module 'system_rst_ps7_0_100M_0' (430#1) [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_rst_ps7_0_100M_0_1/synth/system_rst_ps7_0_100M_0.vhd:74]
-WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_100M_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9686]
-WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9693]
+WARNING: [Synth 8-7023] instance 'rst_ps7_0_100M' of module 'system_rst_ps7_0_100M_0' has 10 connections declared, but only 6 given [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9684]
+WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9691]
 WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/synth/system_system_ila_0_0.v:228]
 WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/synth/bd_d5b8.v:25]
 WARNING: [Synth 8-7023] instance 'inst' of module 'ila_v6_2_11_ila' has 1033 connections declared, but only 1027 given [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/synth/bd_d5b8_ila_lib_0.v:3211]
@@ -8934,24 +8935,24 @@ INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance '
 	Parameter IN125_WIDTH bound to: 1 - type: integer 
 	Parameter IN126_WIDTH bound to: 1 - type: integer 
 	Parameter IN127_WIDTH bound to: 1 - type: integer 
-	Parameter dout_width bound to: 11 - type: integer 
-	Parameter NUM_PORTS bound to: 11 - type: integer 
-INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'AC_8_channel_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8630]
-INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'xlconcat_BareMetal'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9705]
-INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'system_ila_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9693]
+	Parameter dout_width bound to: 10 - type: integer 
+	Parameter NUM_PORTS bound to: 10 - type: integer 
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'AC_8_channel_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:8629]
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'xlconcat_BareMetal'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9703]
+INFO: [Synth 8-6071] Mark debug on the nets applies keep_hierarchy on instance 'system_ila_0'. This will prevent further optimization [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v:9691]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:58 ; elapsed = 00:01:08 . Memory (MB): peak = 2336.469 ; gain = 1197.574
+Finished RTL Elaboration : Time (s): cpu = 00:01:10 ; elapsed = 00:01:17 . Memory (MB): peak = 2335.562 ; gain = 1194.723
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:01:03 ; elapsed = 00:01:13 . Memory (MB): peak = 2336.469 ; gain = 1197.574
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:14 ; elapsed = 00:01:23 . Memory (MB): peak = 2335.562 ; gain = 1194.723
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:01:03 ; elapsed = 00:01:13 . Memory (MB): peak = 2336.469 ; gain = 1197.574
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:01:14 ; elapsed = 00:01:23 . Memory (MB): peak = 2335.562 ; gain = 1194.723
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2341.008 ; gain = 4.539
+Netlist sorting complete. Time (s): cpu = 00:00:05 ; elapsed = 00:00:04 . Memory (MB): peak = 2337.770 ; gain = 2.207
 INFO: [Netlist 29-17] Analyzing 649 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
@@ -9013,6 +9014,7 @@ Finished Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike
 Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila.xdc] for cell 'system_i/system_ila_0/inst/ila_lib/inst'
 Finished Parsing XDC File [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_system_ila_0_0/bd_0/ip/ip_0/ila_v6_2/constraints/ila.xdc] for cell 'system_i/system_ila_0/inst/ila_lib/inst'
 INFO: [Timing 38-2] Deriving generated clocks
+write_xdc: Time (s): cpu = 00:00:07 ; elapsed = 00:00:05 . Memory (MB): peak = 3018.121 ; gain = 161.316
 Parsing XDC File [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc]
 WARNING: [Vivado 12-507] No nets matched 'clk_10MHz_0_IBUF'. [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc:288]
 Finished Parsing XDC File [C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/constrs_1/new/navigator.xdc]
@@ -9072,7 +9074,7 @@ Resolution: To avoid this warning, move constraints listed in [.Xil/system_wrapp
 INFO: [Project 1-1715] 8 XPM XDC files have been applied to the design.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.054 . Memory (MB): peak = 3015.152 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.056 . Memory (MB): peak = 3018.121 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 511 instances were transformed.
   CFGLUT5 => CFGLUT5 (SRL16E, SRLC32E): 36 instances
@@ -9083,16 +9085,16 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   MUXCY_L => MUXCY: 28 instances
   SRL16 => SRL16E: 4 instances
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 3015.152 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 3018.121 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:02:02 ; elapsed = 00:02:18 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Constraint Validation : Time (s): cpu = 00:02:22 ; elapsed = 00:02:28 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7z020clg400-2
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:02:02 ; elapsed = 00:02:18 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Loading Part and Timing Information : Time (s): cpu = 00:02:22 ; elapsed = 00:02:28 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
@@ -9232,7 +9234,7 @@ Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_b_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 Applied set_property KEEP_HIERARCHY = SOFT for system_i/AC_8_channel_0/adda/axi_smc/inst/s01_nodes/s01_w_node/inst/inst_mi_handler/\gen_normal_area.inst_fifo_node_payld /\gen_xpm_memory_fifo.inst_fifo /\gen_mem_rep[0].inst_xpm_memory . (constraint file  auto generated constraint).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:02:04 ; elapsed = 00:02:19 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:02:23 ; elapsed = 00:02:29 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'ad7606_ser2par128bit'
 INFO: [Synth 8-802] inferred FSM for state register 'mst_exec_state_reg' in module 'ad7606_axis'
@@ -9831,7 +9833,7 @@ INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in m
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3898] No Re-encoding of one hot register 'current_state_reg' in module 'ltlib_v1_0_0_generic_memrd'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:32 ; elapsed = 00:02:53 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:02:56 ; elapsed = 00:03:05 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -10366,7 +10368,7 @@ INFO: [Synth 8-4471] merging register 'reg_86/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[
 INFO: [Synth 8-4471] merging register 'reg_88c/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' into 'N_DDR_MODE_MU1.MU_STATUS[0].mu_tpid_reg/I_EN_STAT_EQ1.U_STAT/xsdb_reg_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/122e/hdl/xsdbs_v1_0_vl_rfs.v:47]
 INFO: [Synth 8-4471] merging register 'u_ila_cap_ctrl/u_cap_addrgen/u_cap_window_counter/u_wcnt_hcmp/allx_typeA_match_detection.ltlib_v1_0_0_allx_typeA_inst/probeDelay1_reg[15:0]' into 'u_ila_cap_ctrl/u_cap_addrgen/u_cap_window_counter/u_wcnt_lcmp/allx_typeA_match_detection.ltlib_v1_0_0_allx_typeA_inst/probeDelay1_reg[15:0]' [c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ipshared/1b7e/hdl/ltlib_v1_0_vl_rfs.v:711]
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:30 ; elapsed = 00:03:59 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:04:03 ; elapsed = 00:04:14 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
@@ -10377,7 +10379,7 @@ Start Applying XDC Timing Constraints
 INFO: [Synth 8-5578] Moved timing constraint from pin 'system_i/lcd/clk_wiz_0/inst/clk_in1' to pin 'processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O'
 INFO: [Synth 8-5819] Moved 1 constraints on hierarchical pins to their respective driving/loading pins
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:03:46 ; elapsed = 00:04:17 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:04:21 ; elapsed = 00:04:34 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
@@ -10386,13 +10388,13 @@ INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 INFO: [Synth 8-5775] Found 'rw_addr_collision' attribute set to 'no' on SDP RAM gen_wr_a.gen_word_narrow.mem_reg. Setting write mode to NO_CHANGE 
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:03:59 ; elapsed = 00:04:33 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Timing Optimization : Time (s): cpu = 00:04:37 ; elapsed = 00:04:50 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:04:25 ; elapsed = 00:05:03 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Technology Mapping : Time (s): cpu = 00:05:12 ; elapsed = 00:05:30 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -10453,37 +10455,37 @@ WARNING: [Synth 8-3295] tying undriven pin inst:sl_iport0[0] to constant 0
 WARNING: [Synth 8-3295] tying undriven pin inst:trig_in to constant 0
 WARNING: [Synth 8-3295] tying undriven pin inst:trig_out_ack to constant 0
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:04:35 ; elapsed = 00:05:14 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished IO Insertion : Time (s): cpu = 00:05:27 ; elapsed = 00:05:47 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:04:35 ; elapsed = 00:05:14 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Renaming Generated Instances : Time (s): cpu = 00:05:27 ; elapsed = 00:05:47 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:41 ; elapsed = 00:05:21 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:05:35 ; elapsed = 00:05:55 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:04:41 ; elapsed = 00:05:21 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Renaming Generated Ports : Time (s): cpu = 00:05:35 ; elapsed = 00:05:56 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:04:42 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Handling Custom Attributes : Time (s): cpu = 00:05:37 ; elapsed = 00:05:57 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:04:42 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Renaming Generated Nets : Time (s): cpu = 00:05:37 ; elapsed = 00:05:58 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -10509,12 +10511,12 @@ Report Cell Usage:
 |8     |IDDR       |     5|
 |9     |IDELAYCTRL |     1|
 |10    |IDELAYE2   |     5|
-|11    |LUT1       |   982|
-|12    |LUT2       |  1731|
-|13    |LUT3       |  5819|
-|14    |LUT4       |  2770|
-|15    |LUT5       |  2751|
-|16    |LUT6       |  5837|
+|11    |LUT1       |   983|
+|12    |LUT2       |  1727|
+|13    |LUT3       |  5822|
+|14    |LUT4       |  2772|
+|15    |LUT5       |  2748|
+|16    |LUT6       |  5834|
 |17    |MMCME2_ADV |     1|
 |18    |MUXCY_L    |    21|
 |19    |MUXF7      |   410|
@@ -10533,28 +10535,28 @@ Report Cell Usage:
 |40    |FDCE       |   648|
 |41    |FDPE       |    20|
 |42    |FDR        |   196|
-|43    |FDRE       | 24682|
+|43    |FDRE       | 24673|
 |44    |FDSE       |   852|
 |45    |IBUF       |    22|
 |46    |IOBUF      |    29|
 |47    |OBUF       |    42|
 +------+-----------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:04:43 ; elapsed = 00:05:22 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Finished Writing Synthesis Report : Time (s): cpu = 00:05:37 ; elapsed = 00:05:58 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 244 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:02:47 ; elapsed = 00:04:27 . Memory (MB): peak = 3015.152 ; gain = 1197.574
-Synthesis Optimization Complete : Time (s): cpu = 00:04:43 ; elapsed = 00:05:24 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+Synthesis Optimization Runtime : Time (s): cpu = 00:03:23 ; elapsed = 00:05:01 . Memory (MB): peak = 3018.121 ; gain = 1194.723
+Synthesis Optimization Complete : Time (s): cpu = 00:05:38 ; elapsed = 00:06:00 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 3015.152 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 3018.121 ; gain = 0.000
 INFO: [Netlist 29-17] Analyzing 1725 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 WARNING: [Opt 31-32] Removing redundant IBUF since it is not being driven by a top-level port. system_i/lcd/clk_wiz_0/inst/CLK_CORE_DRP_I/clk_inst/clkin1_ibufg 
 Resolution: The tool has removed redundant IBUF. To resolve this warning, check for redundant IBUF in the input design.
 INFO: [Chipscope 16-324] Core: system_i/system_ila_0/inst/ila_lib UUID: 45d3035b-fe74-5890-a869-ed7d93cda129 
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.016 . Memory (MB): peak = 3015.152 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.023 . Memory (MB): peak = 3018.121 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
   A total of 444 instances were transformed.
   (MUXCY,XORCY) => CARRY4: 7 instances
@@ -10567,10 +10569,10 @@ INFO: [Project 1-111] Unisim Transformation Summary:
   SRL16 => SRL16E: 4 instances
 
 INFO: [Common 17-83] Releasing license: Synthesis
-1580 Infos, 318 Warnings, 0 Critical Warnings and 0 Errors encountered.
+1580 Infos, 319 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:05:00 ; elapsed = 00:05:45 . Memory (MB): peak = 3015.152 ; gain = 1876.258
+synth_design: Time (s): cpu = 00:06:03 ; elapsed = 00:06:28 . Memory (MB): peak = 3018.121 ; gain = 1877.281
 INFO: [Common 17-1381] The checkpoint 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/system_wrapper.dcp' has been generated.
-write_checkpoint: Time (s): cpu = 00:00:10 ; elapsed = 00:00:07 . Memory (MB): peak = 3015.152 ; gain = 0.000
+write_checkpoint: Time (s): cpu = 00:00:15 ; elapsed = 00:00:10 . Memory (MB): peak = 3018.121 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file system_wrapper_utilization_synth.rpt -pb system_wrapper_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Sat Jul 12 16:13:51 2025...
+INFO: [Common 17-206] Exiting Vivado at Wed Sep 24 12:10:02 2025...

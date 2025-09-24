@@ -2,14 +2,17 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Sat Jul  5 10:25:08 2025
-# Process ID: 21064
+# Start of session at: Sun Sep 14 11:09:19 2025
+# Process ID: 21888
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
-# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent25144 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent3124 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
 # Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
 #-----------------------------------------------------------
 start_gui
 open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
 update_compile_order -fileset sources_1
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+delete_bd_objs [get_bd_intf_nets RTC_EEPROM_IIC_0]
+set_property location {3301 2300} [get_bd_intf_ports KeyBoard_IIC]
+connect_bd_intf_net [get_bd_intf_ports RTCEEPROM_IIC] -boundary_type upper [get_bd_intf_pins RTC_EEPROM/IIC_0]

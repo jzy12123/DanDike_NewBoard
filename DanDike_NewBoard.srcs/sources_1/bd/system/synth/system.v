@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Sat Jul 12 16:07:31 2025
+//Date        : Wed Sep 24 12:02:52 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -8035,7 +8035,6 @@ module system
   wire RTC_EEPROM_IIC_0_SDA_I;
   wire RTC_EEPROM_IIC_0_SDA_O;
   wire RTC_EEPROM_IIC_0_SDA_T;
-  wire RTC_EEPROM_iic2intc_irpt;
   wire a_in_0_1;
   wire adc_whole_0_AD_ad_ck;
   wire adc_whole_0_AD_ad_cs;
@@ -8548,7 +8547,7 @@ module system
   wire v_axi4s_vid_out_0_vid_active_video;
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
-  wire [10:0]xlconcat_0_dout;
+  wire [9:0]xlconcat_0_dout;
   wire [5:0]xlconcat_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
@@ -8830,7 +8829,6 @@ module system
         .S_AXI_wready(ps7_0_axi_periph_M14_AXI_WREADY),
         .S_AXI_wstrb(ps7_0_axi_periph_M14_AXI_WSTRB),
         .S_AXI_wvalid(ps7_0_axi_periph_M14_AXI_WVALID),
-        .iic2intc_irpt(RTC_EEPROM_iic2intc_irpt),
         .s_axi_aclk(processing_system7_0_FCLK_CLK0),
         .s_axi_aresetn(rst_ps7_0_100M_peripheral_aresetn));
   system_axi_gpio_0_1 axi_gpio_0
@@ -9705,7 +9703,6 @@ module system
   system_xlconcat_0_2 xlconcat_BareMetal
        (.In0(AC_8_channel_0_s2mm_introut),
         .In1(AC_8_channel_0_mm2s_introut),
-        .In10(RTC_EEPROM_iic2intc_irpt),
         .In2(AC_8_channel_0_prog_empty),
         .In3(AC_8_channel_0_onoff_done),
         .In4(power_pulse_v1_AXI_0_intrpt_p),

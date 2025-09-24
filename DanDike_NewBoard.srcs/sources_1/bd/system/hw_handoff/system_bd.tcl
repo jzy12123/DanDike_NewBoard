@@ -1663,7 +1663,7 @@ proc create_root_design { parentCell } {
   # Create instance: xlconcat_BareMetal, and set properties
   set xlconcat_BareMetal [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_BareMetal ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {11} \
+   CONFIG.NUM_PORTS {10} \
  ] $xlconcat_BareMetal
 
   # Create interface connections
@@ -1720,7 +1720,6 @@ proc create_root_design { parentCell } {
   connect_bd_net -net Op1_0_0_1 [get_bd_ports key_BoardINT0] [get_bd_pins key_board/Op1_0]
   connect_bd_net -net Op1_0_2 [get_bd_ports Coder_Int] [get_bd_pins coder/Op1_0]
   connect_bd_net -net PWM_0_pwm [get_bd_ports lcd_bl] [get_bd_pins lcd/lcd_bl]
-  connect_bd_net -net RTC_EEPROM_iic2intc_irpt [get_bd_pins RTC_EEPROM/iic2intc_irpt] [get_bd_pins xlconcat_BareMetal/In10]
   connect_bd_net -net a_in_0_1 [get_bd_ports Coder_A] [get_bd_pins coder/a_in_0]
   connect_bd_net -net axi_intc_BareMetal_irq [get_bd_pins axi_intc_BareMetal/irq] [get_bd_pins processing_system7_0/Core1_nIRQ] [get_bd_pins system_ila_0/probe1]
   connect_bd_net -net axi_uartlite_0_interrupt [get_bd_pins axi_uartlite_0/interrupt] [get_bd_pins xlconcat_BareMetal/In6]
