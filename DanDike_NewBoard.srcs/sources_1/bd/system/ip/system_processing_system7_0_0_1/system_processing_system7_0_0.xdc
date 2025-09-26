@@ -17,17 +17,17 @@
 ############################################################################
 # Clock constraints                                                        #
 ############################################################################
-create_clock -name clk_fpga_1 -period "40" [get_pins "PS7_i/FCLKCLK[1]"]
-set_input_jitter clk_fpga_1 1.2
-#The clocks are asynchronous, user should constrain them appropriately.#
-create_clock -name clk_fpga_2 -period "7" [get_pins "PS7_i/FCLKCLK[2]"]
-set_input_jitter clk_fpga_2 0.21
-#The clocks are asynchronous, user should constrain them appropriately.#
 create_clock -name clk_fpga_3 -period "5" [get_pins "PS7_i/FCLKCLK[3]"]
 set_input_jitter clk_fpga_3 0.15
 #The clocks are asynchronous, user should constrain them appropriately.#
+create_clock -name clk_fpga_1 -period "40" [get_pins "PS7_i/FCLKCLK[1]"]
+set_input_jitter clk_fpga_1 1.2
+#The clocks are asynchronous, user should constrain them appropriately.#
 create_clock -name clk_fpga_0 -period "10" [get_pins "PS7_i/FCLKCLK[0]"]
 set_input_jitter clk_fpga_0 0.3
+#The clocks are asynchronous, user should constrain them appropriately.#
+create_clock -name clk_fpga_2 -period "7" [get_pins "PS7_i/FCLKCLK[2]"]
+set_input_jitter clk_fpga_2 0.21
 #The clocks are asynchronous, user should constrain them appropriately.#
 
 
@@ -329,14 +329,14 @@ set_property slew "slow" [get_ports "MIO[12]"]
 set_property drive "8" [get_ports "MIO[12]"]
 set_property pullup "TRUE" [get_ports "MIO[12]"]
 set_property PIO_DIRECTION "OUTPUT" [get_ports "MIO[12]"]
-#  I2C 0 / sda / MIO[11]
+#  GPIO / gpio[11] / MIO[11]
 set_property iostandard "LVCMOS33" [get_ports "MIO[11]"]
 set_property PACKAGE_PIN "C6" [get_ports "MIO[11]"]
 set_property slew "slow" [get_ports "MIO[11]"]
 set_property drive "8" [get_ports "MIO[11]"]
 set_property pullup "TRUE" [get_ports "MIO[11]"]
 set_property PIO_DIRECTION "BIDIR" [get_ports "MIO[11]"]
-#  I2C 0 / scl / MIO[10]
+#  GPIO / gpio[10] / MIO[10]
 set_property iostandard "LVCMOS33" [get_ports "MIO[10]"]
 set_property PACKAGE_PIN "E9" [get_ports "MIO[10]"]
 set_property slew "slow" [get_ports "MIO[10]"]

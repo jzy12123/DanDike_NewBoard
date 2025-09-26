@@ -440,7 +440,6 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // Pin 7: bm_sync_end
     // Pin 8: date_update (日期更新)
     // Pin 9: PPS_IN
-    // Pin 10: RTCEEPROM -- 注意：IIC中断不用于裸机注释掉
 
     //  连接AXI INTC的输出到GIC
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40, 0x1);             // 高电平触发

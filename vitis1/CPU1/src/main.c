@@ -31,10 +31,68 @@ int main()
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
 	int status;
+
+	/************************** GPS初始化 *****************************/
+	xil_printf("CPU1: Initializing GPS UART...\r\n");
+	status = UartLiteGpsInit(GPS_UARTLITE_DEVICE_ID);
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: GPS UART Init Failed.\r\n");
+		return XST_FAILURE;
+	}
+	xil_printf("CPU1: GPS UART Initialized.\r\n");
+
+	xil_printf("CPU1: Initializing GPS Timer...\r\n");
+	status = GpsTtcTimerInit(GPS_TTC_DEVICE_ID); // GPS超时定时器初始化
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: GPS Timer Initial Failed\r\n");
+		return XST_FAILURE;
+	}
+
+	/************************** DMA初始化 *****************************/
+	xil_printf("CPU1: Initializing DMA...\r\n");
+	XAxiDma_Config *config;
+	config = XAxiDma_LookupConfig(DMA_DEV_ID);
+	if (!config)
+	{
+		xil_printf("No config found for %d\r\n", DMA_DEV_ID);
+	}
+	// 初始化DMA引擎
+	status = XAxiDma_CfgInitialize(&axidma, config);
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("Initialization failed %d\r\n", status);
+	}
+
+	/************************** 定时器初始化 *****************************/
+	xil_printf("CPU1: Initializing Timer...\r\n");
+	status = timer_init(&Timer); // 定时器初始化
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("Timer Initial Failed\r\n");
+	}
+
+	xil_printf("CPU1: Initializing Debounce Timer...\r\n");
+	status = debounce_timer_init();
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: Debounce Timer Initial Failed\r\n");
+	}
+
+	/************************** 建立中断系统 *****************************/
+	xil_printf("CPU1: Initializing Interrupt System...\r\n");
+	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst);
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: Failed intr setup\r\n");
+	}
+
+	sleep(2);
+	/************************** IIC初始化 *****************************/
 	RTC_Time_t rtc_time_read;
 	Out_RealTime time_from_rtc_to_soft;
 	xil_printf("CPU1: Initializing RTC | RC64 IIC Controller...\r\n");
-	// IIC初始化
 	status = IIC_Master_Init();
 	if (status != XST_SUCCESS)
 	{
@@ -96,59 +154,6 @@ int main()
 		xil_printf("CPU1: SoftTimer initialized by RTC8025.\r\n");
 	}
 
-	xil_printf("CPU1: Initializing GPS UART...\r\n");
-	status = UartLiteGpsInit(GPS_UARTLITE_DEVICE_ID);
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("CPU1: GPS UART Init Failed.\r\n");
-		return XST_FAILURE;
-	}
-	xil_printf("CPU1: GPS UART Initialized.\r\n");
-
-	xil_printf("CPU1: Initializing GPS Timer...\r\n");
-	status = GpsTtcTimerInit(GPS_TTC_DEVICE_ID); // GPS超时定时器初始化
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("CPU1: GPS Timer Initial Failed\r\n");
-		return XST_FAILURE;
-	}
-	/************************** DMA初始化 *****************************/
-	xil_printf("CPU1: Initializing DMA...\r\n");
-	XAxiDma_Config *config;
-	config = XAxiDma_LookupConfig(DMA_DEV_ID);
-	if (!config)
-	{
-		xil_printf("No config found for %d\r\n", DMA_DEV_ID);
-	}
-	// 初始化DMA引擎
-	status = XAxiDma_CfgInitialize(&axidma, config);
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("Initialization failed %d\r\n", status);
-	}
-
-	/************************** 定时器初始化 *****************************/
-	xil_printf("CPU1: Initializing Timer...\r\n");
-	status = timer_init(&Timer); // 定时器初始化
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("Timer Initial Failed\r\n");
-	}
-
-	xil_printf("CPU1: Initializing Debounce Timer...\r\n");
-	status = debounce_timer_init();
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("CPU1: Debounce Timer Initial Failed\r\n");
-	}
-	/************************** 建立中断系统 *****************************/
-	xil_printf("CPU1: Initializing Interrupt System...\r\n");
-	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst);
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("CPU1: Failed intr setup\r\n");
-	}
-
 	/************************** 禁用Cache*****************************/
 	Xil_SetTlbAttributes(JSON_ADDR, 0x14de2); // 禁用Cache属性	//S=b1 TEX=b100 AP=b11, Domain=b1111, C=b0, B=b0
 	Xil_SetTlbAttributes(UDP_ADDRESS, 0x14de2);
@@ -156,7 +161,7 @@ int main()
 	Xil_SetTlbAttributes(0x40400000, 0xC02); // DMA控制器寄存器区域
 	Xil_SetTlbAttributes(0x43C30000, 0xC02); // ADC控制器寄存器区域
 
-	/************************** 其余模块初始化 *****************************/
+	/************************** 其余模块初始化*****************************/
 	xil_printf("CPU1: Initializing other modules...\r\n");
 	InitializeQueues();
 	init_JsonUdp();

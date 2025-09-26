@@ -145,7 +145,7 @@ double PID_adjust_phase(double setpoint_value, double actual_value, PID *phase_p
         phase_pid->integral += phase_diff;
 
         // 积分限幅，防止积分饱和
-        const double MAX_INTEGRAL = 50.0;
+        const double MAX_INTEGRAL = 100.0;
         if (phase_pid->integral > MAX_INTEGRAL)
             phase_pid->integral = MAX_INTEGRAL;
         else if (phase_pid->integral < -MAX_INTEGRAL)
