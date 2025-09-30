@@ -126,26 +126,38 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000002);
 		usleep(100);
-		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
-		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送 00000000为高电平
-		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送 ff00为低电平
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din0_ADDR, (u32)(Wave_Range[1] << 24) | (Wave_Range[0] << 8)); // ub + ua din0发送
+		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din1_ADDR, (u32)(Wave_Range[3] << 24) | (Wave_Range[2] << 8)); // ux + uc din1发送
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din2_ADDR, (u32)(Wave_Range[5] << 24) | (Wave_Range[4] << 8)); // ib + ia din2发送
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Din3_ADDR, (u32)(Wave_Range[7] << 24) | (Wave_Range[6] << 8)); // ix + ic din3发送
 
 		// 595置1 1595置0;  功放start置1
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000102);
 		usleep(100);
-		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 
-		/*2 PID调整幅值(修改1595)*/
+		/*******************************************************************************************/
+		/* VITIS 代码修改 - 修正PID调节逻辑                                                         */
+		/*******************************************************************************************/
 		double Amplifier_PID_Increment[8] = {0};
 		if (pid_state == PID_ON)
 		{
 			for (int i = 0; i < 4; i++)
 			{
-				Amplifier_PID_Increment[i] = PID_adjust_amplitude((lineAC.ur[i] * Wave_Amplitude[i]) / 100, lineAC.u[i], &amplitude_pid[i]);
-				Amplifier_PID_Increment[i + 4] = PID_adjust_amplitude((lineAC.ir[i] * Wave_Amplitude[i + 4]) / 100, lineAC.i[i], &amplitude_pid[i + 4]);
+				// --- 电压通道PID ---
+				// 中文注释: 设定点就是期望输出的总有效值
+				double total_voltage_target = (setACS.Vals[i].UR * Wave_Amplitude[i]) / 100.0;
+
+				// 中文注释: PID直接比较 "目标总有效值" 和 "测量总有效值(lineAC.u[i])"
+				Amplifier_PID_Increment[i] = PID_adjust_amplitude(total_voltage_target, lineAC.u[i], &amplitude_pid[i]);
+
+				// --- 电流通道PID (逻辑相同) ---
+				int current_channel_index = i + 4;
+				// 中文注释: 设定点就是期望输出的总有效值
+				double total_current_target = (setACS.Vals[i].IR * Wave_Amplitude[current_channel_index]) / 100.0;
+
+				// 中文注释: PID直接比较 "目标总有效值" 和 "测量总有效值(lineAC.i[i])"
+				Amplifier_PID_Increment[current_channel_index] = PID_adjust_amplitude(total_current_target, lineAC.i[i], &amplitude_pid[current_channel_index]);
 			}
 		}
 		else
@@ -156,13 +168,13 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 				amplitude_pid[i].prev_error = 0;
 			}
 		}
+		/*******************************************************************************************/
 
 		/*3 配置1595*/
 		// 595置0 1595置1;  功放start清0
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000001);
 		usleep(100);
-		//  xil_printf("CPU1:1595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
 		// 获取每个通道的量程索引
 		int idx_ua = get_voltage_index_by_value(setACS.Vals[0].UR);
@@ -211,7 +223,6 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		// 595置0 1595置1;  功放start置1
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000101);
 		usleep(100);
-		//  xil_printf("CPU1:1595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 	}
 	else
 	{
@@ -220,7 +231,6 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000000);
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000002);
 		usleep(100);
-		//  xil_printf("CPU1:595 config clear = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回0，则配置完成
 
 		// 修改Wave_Range,把第7位清0，为了清空二级功放的硬件保护：
 		for (int i = 0; i < CHANNL_MAX; i++)
@@ -236,7 +246,6 @@ void power_amplifier_control(float Wave_Amplitude[], u32 Wave_Range[], uint8_t p
 		// 595置1 1595置0 功放start置1
 		Xil_Out32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR, (u32)0x00000102);
 		usleep(100);
-		//  xil_printf("CPU1:595 config done = %d\r\n",  (Xil_In32(Amplifier_OnOff_BASEADDR + Amplifier_Status_ADDR) & 0x8000) >> 15);  //返回1，则配置完成
 		print("CPU1: POWAMP Closed!\r\n");
 
 		/*2 清空PID累计值*/
@@ -314,7 +323,6 @@ int debounce_timer_init()
 	}
 	TimerConfig->InputClockHz = 111111115; // TTC时钟频率设置为 111.111115 MHz
 	xil_printf("CPU1: TTC0 clock frequency set to %u Hz based on hardware design.\r\n", (unsigned int)TimerConfig->InputClockHz);
-
 
 	// 使用修正后的配置初始化TTC设备驱动
 	Status = XTtcPs_CfgInitialize(&DebounceTimer, TimerConfig, TimerConfig->BaseAddress);
@@ -508,7 +516,7 @@ void onoff_handler(void)
  */
 void debounce_timer_handler(void *CallBackRef)
 {
-	
+
 	// 1. 停止定时器并清除中断状态
 	XTtcPs_Stop(&DebounceTimer);
 	XTtcPs_ClearInterruptStatus(&DebounceTimer, XTTCPS_IXR_INTERVAL_MASK);
@@ -603,7 +611,7 @@ void OnOff_Start(Read_Bit bit_width, uint8_t start)
 		g_do_output_state = 0;					   // 软件状态清零
 		OnOff_Write_Continuous(g_do_output_state); // 硬件状态清零
 		printf("CPU1: Initial DO state set to OFF (0x00).\r\n");
-		
+
 		// 6. 使能中断，准备接收硬件变化通知
 		usleep(1000); // 短暂延时，确保硬件状态稳定
 		XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR);

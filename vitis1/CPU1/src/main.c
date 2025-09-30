@@ -338,47 +338,56 @@ void RunADCPIDCycle(void)
 		int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
 		int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
 
-		lineAC.f[i] = harmonic_info_U[0][0]; // 频率
-		lineAC.ur[i] = setACS.Vals[0].UR;	 // 电压档位
+		lineAC.f[i] = harmonic_info_U[0][0]; // 频率 (基波)
+		lineAC.ur[i] = setACS.Vals[i].UR;	 // 电压档位
+		lineAC.ir[i] = setACS.Vals[i].IR;	 // 电流档位
 
-		if (AD_Correct[i][idx_u] == 0)
+		/*******************************************************************************************/
+		/* VITIS 代码修改 - 计算总有效值                                                              */
+		/*******************************************************************************************/
+		// 中文注释: 计算电压总有效值 (Total RMS)
+		double sum_of_squares_u_rms = 0.0;
+		for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
 		{
-			lineAC.u[i] = 0;
-			// 防止除数为0
-			printf("CPU1:Warning: Division by zero in lineAC.u[%d] calculation.\n", i);
+			double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+			sum_of_squares_u_rms += corrected_u_amp * corrected_u_amp;
 		}
-		else
-		{
-			// 电压幅值 V
-			lineAC.u[i] = harmonic_info_U[0][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
-		}
+		lineAC.u[i] = sqrt(sum_of_squares_u_rms); // U[ChnsAC] //总有效值
 
-		lineAC.ir[i] = setACS.Vals[0].IR;													  // 电流档位
-		lineAC.i[i] = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR; // 电流 A
-		lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference;							  // 电压相位 角度制（UA为参考）
+		// 中文注释: 计算电流总有效值 (Total RMS)
+		double sum_of_squares_i_rms = 0.0;
+		for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
+		{
+			double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+			sum_of_squares_i_rms += corrected_i_amp * corrected_i_amp;
+		}
+		lineAC.i[i] = sqrt(sum_of_squares_i_rms); // I[ChnsAC] //总有效值
+		/*******************************************************************************************/
+
+		lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference; // 电压相位 角度制（UA为参考, 依然是基波相位）
 		if (lineAC.phu[i] < 0)
 		{
 			lineAC.phu[i] += 360;
 		}
-		lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考）
+		lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考, 依然是基波相位）
 		if (lineAC.phi[i] < 0)
 		{
 			lineAC.phi[i] += 360;
 		}
 
-		// 计算电压与电流之间的相位差
+		// 计算电压与电流之间的相位差 (基于基波)
 		double phase_diff = lineAC.phu[i] - lineAC.phi[i];
 		// 确保相位差在-180到180度之间
 		if (phase_diff > 180.0)
 		{
 			phase_diff -= 360.0;
 		}
-
 		else if (phase_diff < -180.0)
 		{
 			phase_diff += 360.0;
 		}
 
+		// 中文注释: 总功率和总功率因数通常使用总有效值和基波相位差来计算，这是一种常见的工程近似
 		lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(phase_diff * M_PI / 180.0f)); // 有功功率
 		lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f)); // 无功功率
 		lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);								 // 功率因数
@@ -393,44 +402,39 @@ void RunADCPIDCycle(void)
 		// 初始化总谐波畸变率变量
 		double thdu = 0.0;
 		double thdi = 0.0;
+		double baseU_for_thd = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+		double baseI_for_thd = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+
 		// 计算电压总谐波畸变率 (THDU)
-		if (harmonic_info_U[0][1] >= 0.0001)
+		if (baseU_for_thd >= 0.0001)
 		{ // 避免除以零
-			double sum_of_squares_u = 0.0;
-			// 遍历从2次谐波到32次谐波
+			double sum_of_squares_u_thd = 0.0;
+			// 遍历从2次谐波到指定次数谐波
 			for (int h = 1; h < g_harm_number_thd; h++)
 			{
-				// 计算第i次谐波的比值
-				double harmonic_ratio_u = harmonic_info_U[h][1] / harmonic_info_U[0][1];
-				// 累加平方
-				sum_of_squares_u += harmonic_ratio_u * harmonic_ratio_u;
+				double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+				sum_of_squares_u_thd += corrected_u_amp * corrected_u_amp;
 			}
-			// 计算平方和的平方根，得到THD
-			thdu = sqrt(sum_of_squares_u);
+			thdu = sqrt(sum_of_squares_u_thd) / baseU_for_thd;
 		}
 		else
 		{
-			// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
 			thdu = 0.0;
 		}
 		// 计算电流总谐波畸变率 (THDI)
-		if (harmonic_info_I[0][1] >= 0.0001)
+		if (baseI_for_thd >= 0.0001)
 		{ // 避免除以零
-			double sum_of_squares_i = 0.0;
-			// 遍历从2次谐波到32次谐波
+			double sum_of_squares_i_thd = 0.0;
+			// 遍历从2次谐波到指定次数谐波
 			for (int h = 1; h < g_harm_number_thd; h++)
 			{
-				// 计算第i次谐波的比值
-				double harmonic_ratio_i = harmonic_info_I[h][1] / harmonic_info_I[0][1];
-				// 累加平方
-				sum_of_squares_i += harmonic_ratio_i * harmonic_ratio_i;
+				double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+				sum_of_squares_i_thd += corrected_i_amp * corrected_i_amp;
 			}
-			// 计算平方和的平方根，得到THD
-			thdi = sqrt(sum_of_squares_i);
+			thdi = sqrt(sum_of_squares_i_thd) / baseI_for_thd;
 		}
 		else
 		{
-			// 基波幅值为零，无法计算THD，可能需要处理这种特殊情况
 			thdi = 0.0;
 		}
 		// 保存结果
@@ -442,13 +446,9 @@ void RunADCPIDCycle(void)
 		lineHarm.harm[i].totalP = 0.0;
 		lineHarm.harm[i].totalQ = 0.0;
 
-		// 获取电压和电流量程索引
-		idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
-		idx_i = get_current_index_by_value(setACS.Vals[i].IR);
-
 		// 存储基波幅值和相位，用于计算百分比和相对相位
-		double baseU = harmonic_info_U[0][1];
-		double baseI = harmonic_info_I[0][1];
+		double baseU_raw = harmonic_info_U[0][1];
+		double baseI_raw = harmonic_info_I[0][1];
 
 		// 填充直流分量（索引0）
 		lineHarm.harm[i].u[0] = 0.0;   // 直流电压（暂设为0）
@@ -458,8 +458,6 @@ void RunADCPIDCycle(void)
 		lineHarm.harm[i].p[0] = 0.0;   // 直流有功功率
 		lineHarm.harm[i].q[0] = 0.0;   // 直流无功功率（直流无无功）
 
-		// 中文注释: 循环遍历所有谐波分量，从基波(j=1)到31次谐波(j=31)。
-		// HarmNumberMax为32，因此循环条件为 j < HarmNumberMax，以避免访问越界。
 		for (int j = 1; j < HarmNumberMax; j++)
 		{
 			// 电压和电流幅值处理
@@ -476,18 +474,18 @@ void RunADCPIDCycle(void)
 			else
 			{
 				// 谐波(索引2及以上)：u/i计算为基波的百分比
-				if (baseU > 0.0001)
-				{ // 避免除以接近零的值
-					lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU) * 100.0;
+				if (baseU_raw > 0.0001)
+				{
+					lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU_raw) * 100.0;
 				}
 				else
 				{
 					lineHarm.harm[i].u[j] = 0.0;
 				}
 
-				if (baseI > 0.0001)
-				{ // 避免除以接近零的值
-					lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI) * 100.0;
+				if (baseI_raw > 0.0001)
+				{
+					lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI_raw) * 100.0;
 				}
 				else
 				{
@@ -495,34 +493,31 @@ void RunADCPIDCycle(void)
 				}
 
 				// 谐波相位计算
-				double n = j; // 谐波次数
-				// 计算相对相位
+				double n = j;
 				double u_relative_phase = harmonic_info_U[j - 1][2] - n * Phase_reference;
 				double i_relative_phase = harmonic_info_I[j - 1][2] - n * Phase_reference;
-				// 确保相位在0到360度之间
 				lineHarm.harm[i].phu[j] = fmod(u_relative_phase + 360.0, 360.0);
 				lineHarm.harm[i].phi[j] = fmod(i_relative_phase + 360.0, 360.0);
 
 				switch ((j - 1) % 4)
 				{
-				case 0: // 1, 5, 7, 11, 13, 17, 19, 23, 25, 29, 31次
+				case 0:
 					lineHarm.harm[i].phu[j] -= 0.0;
 					lineHarm.harm[i].phi[j] -= 0.0;
 					break;
-				case 1: // 2, 6, 8, 12, 14, 18, 20, 24, 26, 30次
+				case 1:
 					lineHarm.harm[i].phu[j] -= 270.0;
 					lineHarm.harm[i].phi[j] -= 270.0;
 					break;
-				case 2: // 3, 7, 9, 13, 15, 19, 21, 25, 27, 31次
+				case 2:
 					lineHarm.harm[i].phu[j] -= 180.0;
 					lineHarm.harm[i].phi[j] -= 180.0;
 					break;
-				case 3: // 4, 8, 10, 14, 16, 20, 22, 26, 28, 32次
+				case 3:
 					lineHarm.harm[i].phu[j] -= 90.0;
 					lineHarm.harm[i].phi[j] -= 90.0;
 					break;
 				}
-				// 确保在0-360度
 				lineHarm.harm[i].phu[j] = fmod(lineHarm.harm[i].phu[j], 360.0);
 				if (lineHarm.harm[i].phu[j] < 0)
 				{
@@ -536,30 +531,28 @@ void RunADCPIDCycle(void)
 			}
 
 			// 计算谐波的相位差（角度）
-			double phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
+			double h_phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
 
 			// 计算谐波的有功和无功功率（P/Q按幅值表示）
 			if (j == 1)
 			{
 				// 基波：直接用实际幅值计算功率
-				lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(phase_diff * M_PI / 180.0);
-				lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(phase_diff * M_PI / 180.0);
+				lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(h_phase_diff * M_PI / 180.0);
+				lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(h_phase_diff * M_PI / 180.0);
 			}
 			else
 			{
 				// 谐波：需要将百分比转换回实际幅值来计算功率
-				double actual_u = (lineHarm.harm[i].u[j] / 100.0) * baseU / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
-				double actual_i = (lineHarm.harm[i].i[j] / 100.0) * baseI / AD_Correct[i + 4][idx_i] * setACS.Vals[i].IR;
-				lineHarm.harm[i].p[j] = actual_u * actual_i * cos(phase_diff * M_PI / 180.0);
-				lineHarm.harm[i].q[j] = actual_u * actual_i * sin(phase_diff * M_PI / 180.0);
+				double actual_u_h = (lineHarm.harm[i].u[j] / 100.0) * ((baseU_raw / AD_Correct[i][idx_u]) * setACS.Vals[i].UR);
+				double actual_i_h = (lineHarm.harm[i].i[j] / 100.0) * ((baseI_raw / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR);
+				lineHarm.harm[i].p[j] = actual_u_h * actual_i_h * cos(h_phase_diff * M_PI / 180.0);
+				lineHarm.harm[i].q[j] = actual_u_h * actual_i_h * sin(h_phase_diff * M_PI / 180.0);
 			}
 
 			// 累加到总功率
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
-		// 调试信息：打印最终计算出的电压和电流值
-		// printf("CPU1_Debug: Channel=%d, Final U=%.4f, Final I=%.4f\r\n", i, lineAC.u[i], lineAC.i[i]);
 	}
 	// 总功率因数
 	double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);

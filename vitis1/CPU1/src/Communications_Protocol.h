@@ -13,11 +13,9 @@
 #include "Rc64.h"
 #include <math.h>
 #include "Amplifier_Switch.h"
-#include "Timer_sync.h" 
+#include "Timer_sync.h"
 #include "power_pulse.h"
-#include "soft_timer.h"		  
-
-
+#include "soft_timer.h"
 
 #define JSON_ADDR 0x3AC00000
 
@@ -73,7 +71,7 @@ typedef struct
 {
 	uint8_t bACMeterMode; // 1字节 // 0=交流源状态;1=交流表状态
 	uint8_t bClosedLoop;  // 1字节 // 0=开环状态;1=闭环状态
-	uint8_t bACRunning;   // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
+	uint8_t bACRunning;	  // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
 	uint8_t bHarmRunning; // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
 	uint8_t Reserved4;
 	uint8_t Reserved5;
@@ -98,16 +96,16 @@ typedef struct
 	double ur[ChnsAC]; // U档位[ChnsAC]
 	double ir[ChnsAC]; // I档位[ChnsAC]
 
-	volatile double u[ChnsAC];	  // U[ChnsAC]
-	volatile double i[ChnsAC];	  // I[ChnsAC]
-	volatile double phu[ChnsAC];  // phu[ChnsAC]
-	volatile double phi[ChnsAC];  // phi[ChnsAC]
-	volatile double p[ChnsAC];	  // p[ChnsAC]
-	volatile double q[ChnsAC];	  // q[ChnsAC]
-	volatile double pf[ChnsAC];	  // pf[ChnsAC]
-	volatile double f[ChnsAC];	  // f[ChnsAC]
-	volatile double thdu[ChnsAC]; // thdu[ChnsAC]
-	volatile double thdi[ChnsAC]; // thdi[ChnsAC]
+	volatile double u[ChnsAC];	  // U[ChnsAC]	//总有效值
+	volatile double i[ChnsAC];	  // I[ChnsAC]	//总有效值
+	volatile double phu[ChnsAC];  // phu[ChnsAC]	//基波有效值
+	volatile double phi[ChnsAC];  // phi[ChnsAC]	//基波有效值
+	volatile double p[ChnsAC];	  // p[ChnsAC]	//总有效值
+	volatile double q[ChnsAC];	  // q[ChnsAC]	//总有效值
+	volatile double pf[ChnsAC];	  // pf[ChnsAC]	//总有效值
+	volatile double f[ChnsAC];	  // f[ChnsAC]	//基波有效值
+	volatile double thdu[ChnsAC]; // thdu[ChnsAC]	//总有效值
+	volatile double thdi[ChnsAC]; // thdi[ChnsAC]	//总有效值
 
 	volatile double totalP; // 当前线路的总有功
 	volatile double totalQ;
@@ -327,8 +325,8 @@ void handle_SetHarm(cJSON *data);
 void handle_SetDI(cJSON *data);
 void handle_SetDO(cJSON *data);
 void handle_StopDCS(cJSON *data);
-void handle_SetHarmStatus(cJSON *data); 
-void handle_SetACStatus(cJSON *data);	
+void handle_SetHarmStatus(cJSON *data);
+void handle_SetACStatus(cJSON *data);
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);
