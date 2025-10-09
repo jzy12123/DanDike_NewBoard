@@ -22,6 +22,9 @@ uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 
 uint32_t g_do_output_state = 0; // 存储开出硬件状态
 int g_harm_number_thd = 31;     //  THD谐波次数全局变量定义与初始化
+
+// 中文注释: 定义全局变量以存储恒定模式的状态，默认为"Total"
+static const char *g_constant_mode = "Total";
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -460,6 +463,9 @@ void handle_GetDevState(cJSON *data)
     cJSON_AddNumberToObject(dataObj, "Longitude", (double)gpsx.longitude / 100000.0);
     cJSON_AddNumberToObject(dataObj, "Latitude", (double)gpsx.latitude / 100000.0);
     cJSON_AddNumberToObject(dataObj, "DI_Resolution", di_resolution); // 示例开入分辨率
+
+    // 中文注释: 在回复中增加 ConstantMode(基波恒定还是有效值恒定)节点
+    cJSON_AddStringToObject(dataObj, "ConstantMode", g_constant_mode);
 
     // todo 任务型还没有记录开始时间
     cJSON *task = cJSON_CreateObject();
@@ -1223,6 +1229,18 @@ void handle_SetHarm(cJSON *data)
         memset(&lineHarm, 0, sizeof(LineHarm));
     }
 
+    // 中文注释: 解析 "ConstantMode" 字段
+    cJSON *constant_mode_item = cJSON_GetObjectItem(data, "ConstantMode");
+    if (constant_mode_item != NULL && cJSON_IsString(constant_mode_item))
+    {
+        const char *mode_str = constant_mode_item->valuestring;
+        if (strcmp(mode_str, "Total") == 0 || strcmp(mode_str, "Fund") == 0)
+        {
+            g_constant_mode = mode_str; // 更新全局变量
+            printf("CPU1: ConstantMode set to %s.\n", g_constant_mode);
+        }
+    }
+
     // 中文注释: 解析 "vals" 数组
     cJSON *vals_array = cJSON_GetObjectItem(data, "vals");
     if (vals_array == NULL || !cJSON_IsArray(vals_array))
@@ -1387,10 +1405,13 @@ void handle_SetDO(cJSON *data)
 {
     cJSON *val_item = NULL;
 
-    // 检查输入数据是否为数组
-    if (!cJSON_IsArray(data))
+    // 中文注释: 从Data对象中获取Chns数组，而不是直接将data视为数组
+    cJSON *chns_array = cJSON_GetObjectItem(data, "Chns");
+
+    // 检查Chns数组是否存在且有效
+    if (!cJSON_IsArray(chns_array))
     {
-        xil_printf("CPU1: SetDO Error: Data is not an array.\r\n");
+        xil_printf("CPU1: SetDO Error: Data.Chns is not an array.\r\n");
         return;
     }
 
@@ -1414,7 +1435,7 @@ void handle_SetDO(cJSON *data)
     }
 
     // 遍历JSON数组中的每一个设置项
-    cJSON_ArrayForEach(val_item, data)
+    cJSON_ArrayForEach(val_item, chns_array)
     {
         cJSON *chn_item = cJSON_GetObjectItem(val_item, "Chn");
         cJSON *val_num_item = cJSON_GetObjectItem(val_item, "val");
@@ -1550,9 +1571,17 @@ void handle_SetHarmStatus(cJSON *data)
     const char *status_str = NULL;
     char *reply_status_str = "Failure";
 
-    if (data != NULL && cJSON_IsString(data))
+    cJSON *status_item = NULL;
+
+    // 中文注释: 从Data对象中获取Status节点
+    if (data != NULL)
     {
-        status_str = data->valuestring;
+        status_item = cJSON_GetObjectItem(data, "Status");
+    }
+
+    if (status_item != NULL && cJSON_IsString(status_item))
+    {
+        status_str = status_item->valuestring;
     }
     else
     {
@@ -1621,7 +1650,10 @@ send_reply_harm_status:;
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "SetHarmStatus");
     cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
-    cJSON_AddStringToObject(reply, "Data", reply_status_str);
+    // 中文注释: 创建Data对象并添加Status节点以符合新协议
+    cJSON *reply_data = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply_data, "Status", reply_status_str);
+    cJSON_AddItemToObject(reply, "Data", reply_data);
 
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
@@ -1646,9 +1678,17 @@ void handle_SetACStatus(cJSON *data)
     const char *status_str = NULL;
     char *reply_status_str = "Failure";
 
-    if (data != NULL && cJSON_IsString(data))
+    cJSON *status_item = NULL;
+
+    // 中文注释: 从Data对象中获取Status节点
+    if (data != NULL)
     {
-        status_str = data->valuestring;
+        status_item = cJSON_GetObjectItem(data, "Status");
+    }
+
+    if (status_item != NULL && cJSON_IsString(status_item))
+    {
+        status_str = status_item->valuestring;
     }
     else
     {
@@ -1748,7 +1788,10 @@ send_reply_ac_status:;
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "SetACStatus");
     cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
-    cJSON_AddStringToObject(reply, "Data", reply_status_str);
+    // 中文注释: 创建Data对象并添加Status节点以符合新协议
+    cJSON *reply_data = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply_data, "Status", reply_status_str);
+    cJSON_AddItemToObject(reply, "Data", reply_data);
 
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
@@ -2693,7 +2736,9 @@ void check_and_report_energy_test_status(void)
     cJSON_AddStringToObject(report, "FunCode", "SetTaskEnergyTest");
     cJSON_AddStringToObject(report, "Result", g_energy_report_data.result);
 
-    cJSON *data_array = cJSON_CreateArray();
+    // 中文注释: 创建Data对象，它将包含Chns数组
+    cJSON *data_obj = cJSON_CreateObject();
+    cJSON *chns_array = cJSON_CreateArray();
 
     // 中文注释: 检查是否是最终的成功报告，这会影响我们如何判断一个通道是否应该被包含
     bool is_final_report = (strcmp(g_energy_report_data.result, "Success") == 0);
@@ -2717,7 +2762,7 @@ void check_and_report_energy_test_status(void)
             cJSON_AddItemToArray(errs_p_array, cJSON_CreateNumber(g_energy_report_data.p_test_snapshot.errs[i]));
         }
         cJSON_AddItemToObject(chn_p_obj, "Errs", errs_p_array);
-        cJSON_AddItemToArray(data_array, chn_p_obj);
+        cJSON_AddItemToArray(chns_array, chn_p_obj); // 中文注释: 将通道对象添加到Chns数组
     }
 
     // 中文注释: 检查Q通道的快照数据，逻辑同上
@@ -2734,10 +2779,11 @@ void check_and_report_energy_test_status(void)
             cJSON_AddItemToArray(errs_q_array, cJSON_CreateNumber(g_energy_report_data.q_test_snapshot.errs[i]));
         }
         cJSON_AddItemToObject(chn_q_obj, "Errs", errs_q_array);
-        cJSON_AddItemToArray(data_array, chn_q_obj);
+        cJSON_AddItemToArray(chns_array, chn_q_obj); // 中文注释: 将通道对象添加到Chns数组
     }
 
-    cJSON_AddItemToObject(report, "Data", data_array);
+    cJSON_AddItemToObject(data_obj, "Chns", chns_array); // 中文注释: 将Chns数组添加到Data对象
+    cJSON_AddItemToObject(report, "Data", data_obj);     // 中文注释: 将Data对象添加到主报告
 
     // --- JSON字符串转换与发送 ---
     char *string_to_send = cJSON_PrintUnformatted(report);
