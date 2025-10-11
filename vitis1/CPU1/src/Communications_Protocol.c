@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250924.1348";
-const char ARM_Ver_Full[] = "[Ver]=V1.250924.1420";
+const char ARM_Ver_Full[] = "[Ver]=V1.251011.1035";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -149,23 +149,18 @@ int Parse_JsonCommand(char *buffer)
  */
 void handle_GetFunCodeList(cJSON *data)
 {
-    // 处理 GetFunCodeList 的逻辑
-    //    xil_printf("Handling handle_GetFunCodeList...\r\n");
+    const char *normalCmds[] = {
+        "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetServerReportEnable",
+        "SetACS", "SetACStatus", "SetHarm", "SetHarmStatus", "SetInterHarm",
+        "SetInterHarmStatus", "SetDCS", "StopDCS", "SetDCM", "SetACM",
+        "SetDO", "SetDI", "SetPulseOut"};
+    const char *taskCmds[] = {
+        "SetSysTimeSyncMode", "SetProgress", "SetTaskClockTest", "SetTaskEnergyTest",
+        "SetTaskGradualChange", "WaveRecord", "WaveReplay", "StateSequence"};
+    const char *reportListItems[] = {
+        "ProtectEvent", "DISOE", "WaveRecordStart", "WaveRecordComplete"};
 
-    // 定义 FunCode 列表
-    const char *CmdList[] = {
-        "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetReportEnable",
-        "SetDCS", "SetDCM", "SetACS", "SetACM", "SetHarm", "SetDO", "SetDI",
-        "StopDCS", "SetHarmStatus", "SetACStatus", "SetCalibrateAC",
-        "WriteCalibrateAC", "RestoreCalibrateDefault"};
-
-    const char *ReportList[] = {
-        "ProtectEvent", "DISOE", "BaseDataAC", "BaseDataDC", "BaseDataIO", "HarmData", "InterHarmData"};
-
-    const char *TaskEventList[] = {
-        "SetSyncMode", "SetProgress"};
-
-    const int StructList[] = {
+    const int structListItems[] = {
         DeviceState,
         BaseDataAC,
         HarmData,
@@ -176,27 +171,21 @@ void handle_GetFunCodeList(cJSON *data)
         DO,
         InnerBattery,
         VMData};
-    // 创建上行指令的 JSON 对象
+
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "GetFunCodeList");
     cJSON_AddStringToObject(reply, "Result", "Success");
 
     cJSON *dataObj = cJSON_CreateObject();
+    cJSON *cmdListObj = cJSON_CreateObject();
 
-    cJSON *cmdList = cJSON_CreateStringArray(CmdList, sizeof(CmdList) / sizeof(CmdList[0]));
-    cJSON_AddItemToObject(dataObj, "CmdList", cmdList);
+    cJSON_AddItemToObject(cmdListObj, "Normal", cJSON_CreateStringArray(normalCmds, sizeof(normalCmds) / sizeof(char *)));
+    cJSON_AddItemToObject(cmdListObj, "Task", cJSON_CreateStringArray(taskCmds, sizeof(taskCmds) / sizeof(char *)));
+    cJSON_AddItemToObject(dataObj, "CmdList", cmdListObj);
 
-    cJSON *reportList = cJSON_CreateStringArray(ReportList, sizeof(ReportList) / sizeof(ReportList[0]));
-    cJSON_AddItemToObject(dataObj, "ReportList", reportList);
-
-    cJSON *taskEventList = cJSON_CreateStringArray(TaskEventList, sizeof(TaskEventList) / sizeof(TaskEventList[0]));
-    cJSON_AddItemToObject(dataObj, "TaskEventList", taskEventList);
-
-    // --- 新增代码: 将StructList添加到JSON对象 ---
-    // 中文注释: 使用 cJSON_CreateIntArray 函数创建一个整数数组
-    cJSON *structListJson = cJSON_CreateIntArray(StructList, sizeof(StructList) / sizeof(StructList[0]));
-    cJSON_AddItemToObject(dataObj, "StructList", structListJson);
+    cJSON_AddItemToObject(dataObj, "ReportList", cJSON_CreateStringArray(reportListItems, sizeof(reportListItems) / sizeof(char *)));
+    cJSON_AddItemToObject(dataObj, "StructList", cJSON_CreateIntArray(structListItems, sizeof(structListItems) / sizeof(int)));
 
     cJSON_AddItemToObject(reply, "Data", dataObj);
 
@@ -492,6 +481,8 @@ void handle_GetDevState(cJSON *data)
         }
     }
     cJSON_AddItemToObject(ac, "Chns", acChns);
+    // 中文注释: 在GetDevState回复的AC节点中增加HarmNumberTHD字段
+    cJSON_AddNumberToObject(ac, "HarmNumberTHD", g_harm_number_thd);
     cJSON_AddItemToObject(dataObj, "AC", ac);
 
     // DCS 信息
