@@ -201,6 +201,21 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
 
     printf("CPU1: [DEBUG] Channel %c: Pulse count incremented to %lu.\n", test_state->testMode, test_state->currentPulseCount);
 
+    // --- 逻辑修改：每收到一个脉冲就准备一次 "Doing" 状态上报 ---
+    // 中文注释: 无论是否完成一轮测试，都先准备好当前状态的快照用于上报
+    strcpy((char *)g_energy_report_data.result, "Doing");
+    // 中文注释: 使用 memcpy 原子地复制整个结构体快照
+    if (test_state->testMode == 'P')
+    {
+        memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+    }
+    else
+    { // 'Q'
+        memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+    }
+    g_energy_report_data.report_pending = true; // 中文注释: 设置报告挂起标志，主循环将负责发送
+
+    // --- 仅在一轮测试的第一个脉冲时记录开始时间 ---
     if (test_state->currentPulseCount == 1)
     {
         read_current_time((In_CurrTime *)&test_state->roundStartTime);
@@ -210,6 +225,7 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
 
     uint32_t total_pulses_for_one_round = test_state->targetRounds * test_state->freqDivFactor;
 
+    // --- 仅在一轮测试完成后才进行误差计算 ---
     if (test_state->currentPulseCount >= total_pulses_for_one_round)
     {
         In_CurrTime round_end_time;
@@ -220,61 +236,47 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
         printf("CPU1: [DEBUG] Channel %c: Round %lu finished.\n", test_state->testMode, (test_state->currentTestNum + 1));
         printf("CPU1: [DEBUG]   - Time Elapsed for %lu pulses (R-1 intervals): %.6f s\n", (total_pulses_for_one_round - 1), time_elapsed);
 
-        if (time_elapsed <= 0 || total_pulses_for_one_round <= 1)
+        if (time_elapsed > 0 && total_pulses_for_one_round > 1)
         {
-            test_state->currentPulseCount = 0;
-            return;
-        }
+            // --- 核心修正: 时间外推 ---
+            double extrapolated_time_for_R_intervals = time_elapsed * ((double)total_pulses_for_one_round / (double)(total_pulses_for_one_round - 1));
+            double e_meas_kwh = measured_power_kw * (extrapolated_time_for_R_intervals / 3600.0);
+            double e_std_kwh = (double)total_pulses_for_one_round / (double)test_state->pulseConstant;
+            double error = -100.0;
 
-        // --- 核心修正: 时间外推 ---
-        // 中文注释: 我们测量了 R-1 个间隔的时间，现在将其外推到 R 个间隔的期望总时间
-        double extrapolated_time_for_R_intervals = time_elapsed * ((double)total_pulses_for_one_round / (double)(total_pulses_for_one_round - 1));
-
-        // 中文注释: 使用外推后的时间来计算测量能量 E_meas
-        double e_meas_kwh = measured_power_kw * (extrapolated_time_for_R_intervals / 3600.0);
-
-        double e_std_kwh = (double)total_pulses_for_one_round / (double)test_state->pulseConstant;
-
-        double error = -100.0;
-        if (e_std_kwh > 1e-12)
-        {
-            error = ((e_meas_kwh - e_std_kwh) / e_std_kwh) * 100.0;
-            if (test_state->currentTestNum < 99)
+            if (e_std_kwh > 1e-12)
             {
-                test_state->errs[test_state->currentTestNum] = error;
+                error = ((e_meas_kwh - e_std_kwh) / e_std_kwh) * 100.0;
+                if (test_state->currentTestNum < 99)
+                {
+                    test_state->errs[test_state->currentTestNum] = error;
+                }
+            }
+            printf("CPU1: [DEBUG]   - Calculated Error: %.4f %%\n", error);
+
+            test_state->currentTestNum++;
+
+            // --- 检查整个测试是否完成 ---
+            if (test_state->currentTestNum >= test_state->targetTimes)
+            {
+                printf("CPU1: [DEBUG] Channel %c: All test times completed.\n", test_state->testMode);
+                test_state->isActive = false; // 标记测试已结束
+
+                // 中文注释: 准备最终的 "Success" 报告
+                strcpy((char *)g_energy_report_data.result, "Success");
+                if (test_state->testMode == 'P')
+                {
+                    memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+                }
+                else
+                { // 'Q'
+                    memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+                }
+                g_energy_report_data.report_pending = true; // 再次设置标志，以发送最终的成功报告
             }
         }
 
-        printf("CPU1: [DEBUG]   - Extrapolated Time for R intervals: %.6f s\n", extrapolated_time_for_R_intervals);
-        printf("CPU1: [DEBUG]   - E_std (kWh): %.9f\n", e_std_kwh);
-        printf("CPU1: [DEBUG]   - Measured Power (kW) used for calc: %.9f\n", measured_power_kw);
-        printf("CPU1: [DEBUG]   - E_meas (kWh): %.9f\n", e_meas_kwh);
-        printf("CPU1: [DEBUG]   - Calculated Error: %.4f %%\n", error);
-
-        test_state->currentTestNum++;
-
-        const char *result_str;
-        if (test_state->currentTestNum >= test_state->targetTimes)
-        {
-            result_str = "Success";
-            printf("CPU1: [DEBUG] Channel %c: All test times completed.\n", test_state->testMode);
-
-            strcpy((char *)g_energy_report_data.result, result_str);
-            memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)&g_EnergyTest_P, sizeof(EnergyTest_t));
-            memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)&g_EnergyTest_Q, sizeof(EnergyTest_t));
-            g_energy_report_data.report_pending = true;
-
-            test_state->isActive = false;
-        }
-        else
-        {
-            result_str = "Doing";
-            strcpy((char *)g_energy_report_data.result, result_str);
-            memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)&g_EnergyTest_P, sizeof(EnergyTest_t));
-            memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)&g_EnergyTest_Q, sizeof(EnergyTest_t));
-            g_energy_report_data.report_pending = true;
-        }
-
+        // --- 重置脉冲计数器，为下一轮做准备 ---
         test_state->currentPulseCount = 0;
     }
 }

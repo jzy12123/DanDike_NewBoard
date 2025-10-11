@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250924.1348";
-const char ARM_Ver_Full[] = "[Ver]=V1.251011.1035";
+const char ARM_Ver_Full[] = "[Ver]=V1.251011.2003";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -2738,13 +2738,11 @@ void check_and_report_energy_test_status(void)
     // --- 动态构建Data数组 ---
 
     // 中文注释: 检查P通道的快照数据
-    // 上报条件: 1. 测试仍在进行中(isActive)
-    //         或者 2. 这是最终的成功报告 且 该通道确实参与了测试 (currentTestNum > 0)
     if (g_energy_report_data.p_test_snapshot.isActive || (is_final_report && g_energy_report_data.p_test_snapshot.currentTestNum > 0))
     {
         cJSON *chn_p_obj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chn_p_obj, "Chn", 1); // P通道是通道1
-        cJSON_AddNumberToObject(chn_p_obj, "Round", g_energy_report_data.p_test_snapshot.targetRounds);
+        cJSON_AddNumberToObject(chn_p_obj, "Round", g_energy_report_data.p_test_snapshot.currentPulseCount);
         cJSON_AddNumberToObject(chn_p_obj, "TestedTimes", g_energy_report_data.p_test_snapshot.currentTestNum);
 
         cJSON *errs_p_array = cJSON_CreateArray();
@@ -2761,7 +2759,7 @@ void check_and_report_energy_test_status(void)
     {
         cJSON *chn_q_obj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chn_q_obj, "Chn", 2); // Q通道是通道2
-        cJSON_AddNumberToObject(chn_q_obj, "Round", g_energy_report_data.q_test_snapshot.targetRounds);
+        cJSON_AddNumberToObject(chn_q_obj, "Round", g_energy_report_data.q_test_snapshot.currentPulseCount);
         cJSON_AddNumberToObject(chn_q_obj, "TestedTimes", g_energy_report_data.q_test_snapshot.currentTestNum);
 
         cJSON *errs_q_array = cJSON_CreateArray();
