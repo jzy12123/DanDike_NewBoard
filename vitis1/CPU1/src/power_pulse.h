@@ -10,6 +10,10 @@
 #include "soft_timer.h"
 #include "Communications_Protocol.h" // 为了使用 cJSON
 #include <string.h>
+
+// 定义电能测试通道的数量
+#define NUM_ENERGY_CHANNELS 2
+
 // IP核基地址
 #define POWER_PULSE_BASE XPAR_POWER_PULSE_V1_AXI_0_BASEADDR
 
@@ -45,16 +49,14 @@ typedef struct
 
     volatile In_CurrTime roundStartTime; // 当前一轮测试的起始时间戳
 } EnergyTest_t;
-extern EnergyTest_t g_EnergyTest_P; // P通道测试状态
-extern EnergyTest_t g_EnergyTest_Q; // Q通道测试状态
+extern EnergyTest_t g_EnergyTest[NUM_ENERGY_CHANNELS]; // 索引0对应通道1, 索引1对应通道2
 
 // --- 新增代码: 定义用于从ISR传递报告数据到主循环的 "信箱" 结构体 ---
 typedef struct
 {
     char result[16];              // 中文注释: 存储 "Doing" 或 "Success" 结果字符串
     volatile bool report_pending; // 中文注释: 报告标志位，true 表示有新报告需要发送
-    EnergyTest_t p_test_snapshot; // 中文注释: P通道测试数据的快照，供主循环安全读取
-    EnergyTest_t q_test_snapshot; // 中文注释: Q通道测试数据的快照
+    EnergyTest_t test_snapshot[NUM_ENERGY_CHANNELS];
 } EnergyTestReportData_t;
 extern EnergyTestReportData_t g_energy_report_data;
 
@@ -65,7 +67,9 @@ void PowerPulse_P_IntrHandler(void *CallbackRef);
 void PowerPulse_Q_IntrHandler(void *CallbackRef);
 void PowerPulse_PollInput(void); // 新增轮询函数声明
 
-void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_power_kw);
+void process_energy_pulse(volatile EnergyTest_t *test_state);
 void init_EnergyTest(void);          // 电能初始化函数
 void PowerPulse_TerminateTest(void); // 终止电能测试函数
+
+bool start_energy_test_for_channel(int chn, char test_mode, uint32_t pulse_constant, uint32_t freq_div_factor, uint32_t target_rounds, uint32_t target_times);
 #endif

@@ -3,17 +3,15 @@
 #include "power_pulse.h"
 #include "xscugic.h" // 用于中断清除
 #include "xil_io.h"
-
-EnergyTest_t g_EnergyTest_P; // P通道测试状态
-EnergyTest_t g_EnergyTest_Q; // Q通道测试状态
-
+// 中文注释: 定义全局电能测试数组和报告数据结构体
+EnergyTest_t g_EnergyTest[NUM_ENERGY_CHANNELS];
+EnergyTestReportData_t g_energy_report_data = {{0}, false, {{0}, {0}}};
 // 全局变量，用于存储电能脉冲的配置和状态
 volatile PowerPulse_t g_PowerPulse = {
     .pulseConstantP = 7200, // 默认值
     .pulseConstantQ = 7200, // 默认值
     .measuredPowerP = 0.0,
     .measuredPowerQ = 0.0};
-EnergyTestReportData_t g_energy_report_data = {{0}, false, {0}, {0}};
 
 /**
  * @brief 初始化电能脉冲IP核
@@ -156,9 +154,9 @@ void PowerPulse_P_IntrHandler(void *CallbackRef)
     // printf("CPU1: P pulse received. Measured Power: %.4f kW\r\n", g_PowerPulse.measuredPowerP);
 
     // 电能误差测试逻辑
-    if (g_EnergyTest_P.isActive && g_EnergyTest_P.testMode == 'P')
+    if (g_EnergyTest[0].isActive)
     {
-        process_energy_pulse(&g_EnergyTest_P, lineAC.totalP / 1000.0);
+        process_energy_pulse(&g_EnergyTest[0]);
     }
 }
 
@@ -182,11 +180,10 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
     }
 
     // printf("CPU1: Q pulse received. Measured Power: %.4f kvar\r\n", g_PowerPulse.measuredPowerQ);
-
-    // 电能误差测试逻辑 ---
-    if (g_EnergyTest_Q.isActive && g_EnergyTest_Q.testMode == 'Q')
+    // 中文注释: Q通道中断固定处理 g_EnergyTest[1] (通道2)
+    if (g_EnergyTest[1].isActive)
     {
-        process_energy_pulse(&g_EnergyTest_Q, lineAC.totalQ / 1000.0);
+        process_energy_pulse(&g_EnergyTest[1]);
     }
 }
 
@@ -195,8 +192,19 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
  * @param test_state 指向当前测试（P或Q）的状态结构体
  * @param measured_power_kw Zynq系统当前测量的功率（kW或kvar）
  */
-void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_power_kw)
+void process_energy_pulse(volatile EnergyTest_t *test_state)
 {
+    // 中文注释: 根据 test_state->testMode 决定使用哪个功率值
+    double measured_power_kw = 0.0;
+    if (test_state->testMode == 'P')
+    {
+        measured_power_kw = lineAC.totalP / 1000.0;
+    }
+    else if (test_state->testMode == 'Q')
+    {
+        measured_power_kw = lineAC.totalQ / 1000.0;
+    }
+
     test_state->currentPulseCount++;
 
     printf("CPU1: [DEBUG] Channel %c: Pulse count incremented to %lu.\n", test_state->testMode, test_state->currentPulseCount);
@@ -205,13 +213,13 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
     // 中文注释: 无论是否完成一轮测试，都先准备好当前状态的快照用于上报
     strcpy((char *)g_energy_report_data.result, "Doing");
     // 中文注释: 使用 memcpy 原子地复制整个结构体快照
-    if (test_state->testMode == 'P')
+    if (test_state == &g_EnergyTest[0])
     {
-        memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+        memcpy((void *)&g_energy_report_data.test_snapshot[0], (void *)test_state, sizeof(EnergyTest_t));
     }
     else
-    { // 'Q'
-        memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+    {
+        memcpy((void *)&g_energy_report_data.test_snapshot[1], (void *)test_state, sizeof(EnergyTest_t));
     }
     g_energy_report_data.report_pending = true; // 中文注释: 设置报告挂起标志，主循环将负责发送
 
@@ -264,13 +272,13 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
 
                 // 中文注释: 准备最终的 "Success" 报告
                 strcpy((char *)g_energy_report_data.result, "Success");
-                if (test_state->testMode == 'P')
+                if (test_state == &g_EnergyTest[0])
                 {
-                    memcpy((void *)&g_energy_report_data.p_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+                    memcpy((void *)&g_energy_report_data.test_snapshot[0], (void *)test_state, sizeof(EnergyTest_t));
                 }
                 else
-                { // 'Q'
-                    memcpy((void *)&g_energy_report_data.q_test_snapshot, (void *)test_state, sizeof(EnergyTest_t));
+                {
+                    memcpy((void *)&g_energy_report_data.test_snapshot[1], (void *)test_state, sizeof(EnergyTest_t));
                 }
                 g_energy_report_data.report_pending = true; // 再次设置标志，以发送最终的成功报告
             }
@@ -287,18 +295,14 @@ void process_energy_pulse(volatile EnergyTest_t *test_state, double measured_pow
  */
 void PowerPulse_TerminateTest(void)
 {
-    // 中文注释: 检查 P 通道是否正在运行，如果是，则停止
-    if (g_EnergyTest_P.isActive)
+    // 中文注释: 遍历所有电能测试通道并停止它们
+    for (int i = 0; i < NUM_ENERGY_CHANNELS; i++)
     {
-        g_EnergyTest_P.isActive = false;
-        printf("CPU1: [INFO] SetTaskEnergyTest (P channel) has been terminated by command.\n");
-    }
-
-    // 中文注释: 检查 Q 通道是否正在运行，如果是，则停止
-    if (g_EnergyTest_Q.isActive)
-    {
-        g_EnergyTest_Q.isActive = false;
-        printf("CPU1: [INFO] SetTaskEnergyTest (Q channel) has been terminated by command.\n");
+        if (g_EnergyTest[i].isActive)
+        {
+            g_EnergyTest[i].isActive = false;
+            printf("CPU1: [INFO] SetTaskEnergyTest (Channel %d) has been terminated by command.\n", i + 1);
+        }
     }
 }
 
@@ -307,8 +311,40 @@ void PowerPulse_TerminateTest(void)
  */
 void init_EnergyTest(void)
 {
-    memset((void *)&g_EnergyTest_P, 0, sizeof(EnergyTest_t));
-    memset((void *)&g_EnergyTest_Q, 0, sizeof(EnergyTest_t));
-    g_EnergyTest_P.isActive = false;
-    g_EnergyTest_Q.isActive = false;
+    // 中文注释: 初始化 g_EnergyTest 数组
+    memset((void *)g_EnergyTest, 0, sizeof(g_EnergyTest));
+    for (int i = 0; i < NUM_ENERGY_CHANNELS; i++)
+    {
+        g_EnergyTest[i].isActive = false;
+    }
+}
+
+// 中文注释: 实现新的启动测试辅助函数
+bool start_energy_test_for_channel(int chn, char test_mode, uint32_t pulse_constant, uint32_t freq_div_factor, uint32_t target_rounds, uint32_t target_times)
+{
+    // chn 是 1-based, 数组索引是 0-based
+    if (chn < 1 || chn > NUM_ENERGY_CHANNELS)
+    {
+        printf("CPU1: SetTaskEnergyTest Error: Invalid channel number %d.\n", chn);
+        return false;
+    }
+
+    volatile EnergyTest_t *p_test_state = &g_EnergyTest[chn - 1];
+
+    if (p_test_state->isActive)
+    {
+        printf("CPU1: SetTaskEnergyTest Warning: A test is already active on channel %d. It will be restarted.\n", chn);
+    }
+
+    // 中文注释: 重置并填充测试参数
+    memset((void *)p_test_state, 0, sizeof(EnergyTest_t));
+    p_test_state->testMode = test_mode;
+    p_test_state->pulseConstant = pulse_constant;
+    p_test_state->freqDivFactor = freq_div_factor;
+    p_test_state->targetRounds = target_rounds;
+    p_test_state->targetTimes = target_times;
+    p_test_state->isActive = true; // 激活测试
+
+    printf("CPU1: SetTaskEnergyTest: Channel %d configured for test mode '%c'.\n", chn, test_mode);
+    return true;
 }

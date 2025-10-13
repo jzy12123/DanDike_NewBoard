@@ -2815,3 +2815,75 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64
 
 !ENTRY com.xilinx.sdk.utils 0 0 2025-10-11 20:03:37.973
 !MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-10: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.300
+!MESSAGE XSCT Command: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.317
+!MESSAGE XSCT command with result: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Result: [null, ]. Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.318
+!MESSAGE XSCT Command: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.324
+!MESSAGE XSCT command with result: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, {"procname": "ps7_cortexa9_1",
+"osname": "standalone",
+"osver": "7.3",
+}]. Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 1 0 2025-10-13 10:28:13.324
+!MESSAGE Generating MD5 hash for file: C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\system_wrapper\export\system_wrapper\sw\system_wrapper\standalone_ps7_cortexa9_1\system.mss ...
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.327
+!MESSAGE XSCT Command: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:28:13.331
+!MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-52: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.342
+!MESSAGE XSCT Command: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.352
+!MESSAGE XSCT command with result: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Result: [null, ]. Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.353
+!MESSAGE XSCT Command: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.358
+!MESSAGE XSCT command with result: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, {"procname": "ps7_cortexa9_1",
+"osname": "standalone",
+"osver": "7.3",
+}]. Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 1 0 2025-10-13 10:29:01.360
+!MESSAGE Generating MD5 hash for file: C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\system_wrapper\export\system_wrapper\sw\system_wrapper\standalone_ps7_cortexa9_1\system.mss ...
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.361
+!MESSAGE XSCT Command: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:29:01.365
+!MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-44: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.280
+!MESSAGE XSCT Command: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Thread: Worker-56: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.286
+!MESSAGE XSCT command with result: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Result: [null, ]. Thread: Worker-56: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.288
+!MESSAGE XSCT Command: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-56: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.296
+!MESSAGE XSCT command with result: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, {"procname": "ps7_cortexa9_1",
+"osname": "standalone",
+"osver": "7.3",
+}]. Thread: Worker-56: Build Project
+
+!ENTRY com.xilinx.sdk.utils 1 0 2025-10-13 10:30:31.296
+!MESSAGE Generating MD5 hash for file: C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\system_wrapper\export\system_wrapper\sw\system_wrapper\standalone_ps7_cortexa9_1\system.mss ...
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.298
+!MESSAGE XSCT Command: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-56: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2025-10-13 10:30:31.300
+!MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-56: Build Project

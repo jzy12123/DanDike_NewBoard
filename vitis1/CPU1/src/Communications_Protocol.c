@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250924.1348";
-const char ARM_Ver_Full[] = "[Ver]=V1.251011.2003";
+const char ARM_Ver_Full[] = "[Ver]=V1.251013.1030";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -2736,39 +2736,25 @@ void check_and_report_energy_test_status(void)
     printf("CPU1: [DEBUG] Energy test result is %s\n", g_energy_report_data.result);
 
     // --- 动态构建Data数组 ---
-
-    // 中文注释: 检查P通道的快照数据
-    if (g_energy_report_data.p_test_snapshot.isActive || (is_final_report && g_energy_report_data.p_test_snapshot.currentTestNum > 0))
+    // 中文注释: 遍历所有测试通道的快照
+    for (int i = 0; i < NUM_ENERGY_CHANNELS; i++)
     {
-        cJSON *chn_p_obj = cJSON_CreateObject();
-        cJSON_AddNumberToObject(chn_p_obj, "Chn", 1); // P通道是通道1
-        cJSON_AddNumberToObject(chn_p_obj, "Round", g_energy_report_data.p_test_snapshot.currentPulseCount);
-        cJSON_AddNumberToObject(chn_p_obj, "TestedTimes", g_energy_report_data.p_test_snapshot.currentTestNum);
-
-        cJSON *errs_p_array = cJSON_CreateArray();
-        for (int i = 0; i < g_energy_report_data.p_test_snapshot.currentTestNum; i++)
+        // 中文注释: 上报条件: 测试仍在进行中或这是最终报告且该通道参与了测试
+        if (g_energy_report_data.test_snapshot[i].isActive || (is_final_report && g_energy_report_data.test_snapshot[i].currentTestNum > 0))
         {
-            cJSON_AddItemToArray(errs_p_array, cJSON_CreateNumber(g_energy_report_data.p_test_snapshot.errs[i]));
-        }
-        cJSON_AddItemToObject(chn_p_obj, "Errs", errs_p_array);
-        cJSON_AddItemToArray(chns_array, chn_p_obj); // 中文注释: 将通道对象添加到Chns数组
-    }
+            cJSON *chn_obj = cJSON_CreateObject();
+            cJSON_AddNumberToObject(chn_obj, "Chn", i + 1); // 通道号是 1-based
+            cJSON_AddNumberToObject(chn_obj, "Round", g_energy_report_data.test_snapshot[i].currentPulseCount);
+            cJSON_AddNumberToObject(chn_obj, "TestedTimes", g_energy_report_data.test_snapshot[i].currentTestNum);
 
-    // 中文注释: 检查Q通道的快照数据，逻辑同上
-    if (g_energy_report_data.q_test_snapshot.isActive || (is_final_report && g_energy_report_data.q_test_snapshot.currentTestNum > 0))
-    {
-        cJSON *chn_q_obj = cJSON_CreateObject();
-        cJSON_AddNumberToObject(chn_q_obj, "Chn", 2); // Q通道是通道2
-        cJSON_AddNumberToObject(chn_q_obj, "Round", g_energy_report_data.q_test_snapshot.currentPulseCount);
-        cJSON_AddNumberToObject(chn_q_obj, "TestedTimes", g_energy_report_data.q_test_snapshot.currentTestNum);
-
-        cJSON *errs_q_array = cJSON_CreateArray();
-        for (int i = 0; i < g_energy_report_data.q_test_snapshot.currentTestNum; i++)
-        {
-            cJSON_AddItemToArray(errs_q_array, cJSON_CreateNumber(g_energy_report_data.q_test_snapshot.errs[i]));
+            cJSON *errs_array = cJSON_CreateArray();
+            for (int j = 0; j < g_energy_report_data.test_snapshot[i].currentTestNum; j++)
+            {
+                cJSON_AddItemToArray(errs_array, cJSON_CreateNumber(g_energy_report_data.test_snapshot[i].errs[j]));
+            }
+            cJSON_AddItemToObject(chn_obj, "Errs", errs_array);
+            cJSON_AddItemToArray(chns_array, chn_obj);
         }
-        cJSON_AddItemToObject(chn_q_obj, "Errs", errs_q_array);
-        cJSON_AddItemToArray(chns_array, chn_q_obj); // 中文注释: 将通道对象添加到Chns数组
     }
 
     cJSON_AddItemToObject(data_obj, "Chns", chns_array); // 中文注释: 将Chns数组添加到Data对象
@@ -2802,54 +2788,6 @@ void check_and_report_energy_test_status(void)
     g_energy_report_data.report_pending = false;
 }
 
-/**
- * @brief 启动单个通道的电能误差测试
- * @param chn 要启动的通道号 (1=P, 2=Q)
- * @param pulse_constant 从JSON指令中解析的电表常数
- * @param freq_div_factor 从JSON指令中解析的分频系数
- * @param target_rounds 从JSON指令中解析的测试圈数
- * @param target_times 从JSON指令中解析的测试次数
- * @return 如果成功启动，返回 true；否则返回 false
- * @details 这是一个辅助函数，用于配置并激活 g_EnergyTest_P 或 g_EnergyTest_Q 结构体。
- */
-static bool start_energy_test_for_channel(int chn, uint32_t pulse_constant, uint32_t freq_div_factor, uint32_t target_rounds, uint32_t target_times)
-{
-    volatile EnergyTest_t *p_test_state = NULL;
-    char channel_char = ' ';
-
-    if (chn == 1)
-    { // 通道 1 对应有功 P
-        p_test_state = &g_EnergyTest_P;
-        channel_char = 'P';
-    }
-    else if (chn == 2)
-    { // 通道 2 对应无功 Q
-        p_test_state = &g_EnergyTest_Q;
-        channel_char = 'Q';
-    }
-    else
-    {
-        printf("CPU1: SetTaskEnergyTest Error: Invalid channel number %d provided to helper function.\n", chn);
-        return false; // 无效通道
-    }
-
-    if (p_test_state->isActive)
-    {
-        printf("CPU1: SetTaskEnergyTest Warning: A test is already active on channel %c. It will be restarted.\n", channel_char);
-    }
-
-    // 中文注释: 重置并填充测试参数
-    memset((void *)p_test_state, 0, sizeof(EnergyTest_t));
-    p_test_state->testMode = channel_char;
-    p_test_state->pulseConstant = pulse_constant;
-    p_test_state->freqDivFactor = freq_div_factor;
-    p_test_state->targetRounds = target_rounds;
-    p_test_state->targetTimes = target_times;
-    p_test_state->isActive = true; // 激活测试
-
-    printf("CPU1: SetTaskEnergyTest: Channel %c test configured to start.\n", channel_char);
-    return true; // 标记任务成功启动
-}
 
 /**
  * @brief 处理 "SetTaskEnergyTest" JSON指令 (已重构)
@@ -2866,7 +2804,21 @@ void handle_SetTaskEnergyTest(cJSON *data)
         goto send_reply_energy_test;
     }
 
-    // --- 1. 解析通用测试参数 ---
+    // 中文注释: 1. 解析 TestMode
+    cJSON *test_mode_item = cJSON_GetObjectItem(data, "TestMode");
+    if (!cJSON_IsString(test_mode_item) || (test_mode_item->valuestring == NULL) || (strlen(test_mode_item->valuestring) != 1))
+    {
+        printf("CPU1: SetTaskEnergyTest Error: Missing or invalid 'TestMode' parameter.\n");
+        goto send_reply_energy_test;
+    }
+    char test_mode = test_mode_item->valuestring[0];
+    if (test_mode != 'P' && test_mode != 'Q')
+    {
+        printf("CPU1: SetTaskEnergyTest Error: 'TestMode' must be 'P' or 'Q'.\n");
+        goto send_reply_energy_test;
+    }
+
+    // --- 2. 解析通用测试参数 ---
     cJSON *pulse_const_item = cJSON_GetObjectItem(data, "PulseConstant");
     cJSON *freq_div_item = cJSON_GetObjectItem(data, "FreqDivFactor");
     cJSON *round_item = cJSON_GetObjectItem(data, "Round");
@@ -2891,7 +2843,7 @@ void handle_SetTaskEnergyTest(cJSON *data)
         goto send_reply_energy_test;
     }
 
-    // --- 2. 解析 "Chns" 节点并调用辅助函数启动相应测试 ---
+    // --- 3. 解析 "Chns" 节点并调用辅助函数启动相应测试 ---
     cJSON *chns_array = cJSON_GetObjectItem(data, "Chns");
     if (chns_array != NULL && cJSON_IsArray(chns_array))
     {
@@ -2901,7 +2853,7 @@ void handle_SetTaskEnergyTest(cJSON *data)
         {
             if (cJSON_IsNumber(chn_item))
             {
-                if (start_energy_test_for_channel(chn_item->valueint, pulse_constant, freq_div_factor, target_rounds, target_times))
+                if (start_energy_test_for_channel(chn_item->valueint, test_mode, pulse_constant, freq_div_factor, target_rounds, target_times))
                 {
                     is_any_task_started = true;
                 }
@@ -2912,15 +2864,21 @@ void handle_SetTaskEnergyTest(cJSON *data)
     {
         // 中文注释: 如果 "Chns" 节点不存在，则默认启动所有通道
         printf("CPU1: SetTaskEnergyTest: 'Chns' not provided, starting all channels (P and Q).\n");
-        bool p_started = start_energy_test_for_channel(1, pulse_constant, freq_div_factor, target_rounds, target_times);
-        bool q_started = start_energy_test_for_channel(2, pulse_constant, freq_div_factor, target_rounds, target_times);
-        if (p_started || q_started)
+        bool started = false;
+        for (int i = 1; i <= NUM_ENERGY_CHANNELS; i++)
+        {
+            if (start_energy_test_for_channel(i, test_mode, pulse_constant, freq_div_factor, target_rounds, target_times))
+            {
+                started = true;
+            }
+        }
+        if (started)
         {
             is_any_task_started = true;
         }
     }
 
-    // --- 3. 准备并发送回复 ---
+    // --- 4. 准备并发送回复 ---
     if (is_any_task_started)
     {
         result = "Success";
