@@ -296,6 +296,11 @@ extern uint8_t target_powamp_enable_state_after_pause;
 
 extern uint32_t g_do_output_state;
 extern int g_harm_number_thd; // 新增: 用于计算THD的谐波次数
+// 中文注释: 定义专用于中断服务程序（ISR）安全读取的“影子”变量。
+// volatile关键字确保每次访问都直接读写内存，防止编译器优化。
+extern volatile double g_safe_total_p_for_isr;
+extern volatile double g_safe_total_q_for_isr;
+
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/

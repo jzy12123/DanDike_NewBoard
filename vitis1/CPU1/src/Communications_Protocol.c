@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.250924.1348";
-const char ARM_Ver_Full[] = "[Ver]=V1.251013.1030";
+const char ARM_Ver_Full[] = "[Ver]=V1.251015.1500";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -22,6 +22,10 @@ uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 
 uint32_t g_do_output_state = 0; // 存储开出硬件状态
 int g_harm_number_thd = 31;     //  THD谐波次数全局变量定义与初始化
+
+//为中断安全读取的“影子”变量提供定义和初始值。
+volatile double g_safe_total_p_for_isr = 0.0;
+volatile double g_safe_total_q_for_isr = 0.0;
 
 // 中文注释: 定义全局变量以存储恒定模式的状态，默认为"Total"
 static const char *g_constant_mode = "Total";

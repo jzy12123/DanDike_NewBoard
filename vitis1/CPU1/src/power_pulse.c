@@ -3,6 +3,10 @@
 #include "power_pulse.h"
 #include "xscugic.h" // 用于中断清除
 #include "xil_io.h"
+
+// 中文注释: 定义一个宏来控制详细调试日志的开关
+#define ENERGY_TEST_DEBUG
+
 // 中文注释: 定义全局电能测试数组和报告数据结构体
 EnergyTest_t g_EnergyTest[NUM_ENERGY_CHANNELS];
 EnergyTestReportData_t g_energy_report_data = {{0}, false, {{0}, {0}}};
@@ -194,20 +198,22 @@ void PowerPulse_Q_IntrHandler(void *CallbackRef)
  */
 void process_energy_pulse(volatile EnergyTest_t *test_state)
 {
-    // 中文注释: 根据 test_state->testMode 决定使用哪个功率值
+    // 从专用于中断的、安全的“影子”全局变量中读取功率值。
     double measured_power_kw = 0.0;
     if (test_state->testMode == 'P')
     {
-        measured_power_kw = lineAC.totalP / 1000.0;
+        measured_power_kw = g_safe_total_p_for_isr / 1000.0;
     }
     else if (test_state->testMode == 'Q')
     {
-        measured_power_kw = lineAC.totalQ / 1000.0;
+        measured_power_kw = g_safe_total_q_for_isr / 1000.0;
     }
 
     test_state->currentPulseCount++;
 
+#ifdef ENERGY_TEST_DEBUG
     printf("CPU1: [DEBUG] Channel %c: Pulse count incremented to %lu.\n", test_state->testMode, test_state->currentPulseCount);
+#endif
 
     // --- 逻辑修改：每收到一个脉冲就准备一次 "Doing" 状态上报 ---
     // 中文注释: 无论是否完成一轮测试，都先准备好当前状态的快照用于上报
@@ -227,8 +233,10 @@ void process_energy_pulse(volatile EnergyTest_t *test_state)
     if (test_state->currentPulseCount == 1)
     {
         read_current_time((In_CurrTime *)&test_state->roundStartTime);
+#ifdef ENERGY_TEST_DEBUG
         printf("CPU1: [DEBUG] Channel %c: Round %lu started at Daysec: %lu, Subsec: %lu\n",
                test_state->testMode, (test_state->currentTestNum + 1), test_state->roundStartTime.curr_daysec, test_state->roundStartTime.curr_subsec);
+#endif
     }
 
     uint32_t total_pulses_for_one_round = test_state->targetRounds * test_state->freqDivFactor;
@@ -241,8 +249,10 @@ void process_energy_pulse(volatile EnergyTest_t *test_state)
 
         double time_elapsed = time_diff_seconds(&round_end_time, (const In_CurrTime *)&test_state->roundStartTime);
 
+#ifdef ENERGY_TEST_DEBUG
         printf("CPU1: [DEBUG] Channel %c: Round %lu finished.\n", test_state->testMode, (test_state->currentTestNum + 1));
-        printf("CPU1: [DEBUG]   - Time Elapsed for %lu pulses (R-1 intervals): %.6f s\n", (total_pulses_for_one_round - 1), time_elapsed);
+        printf("CPU1: [DEBUG]   - Time Elapsed for %lu pulses (R-1 intervals): %.9f s\n", (total_pulses_for_one_round - 1), time_elapsed);
+#endif
 
         if (time_elapsed > 0 && total_pulses_for_one_round > 1)
         {
@@ -260,14 +270,40 @@ void process_energy_pulse(volatile EnergyTest_t *test_state)
                     test_state->errs[test_state->currentTestNum] = error;
                 }
             }
+            // // 中文注释: 当误差绝对值超过1%时，打印详细的诊断信息
+            // if (fabs(error) > 1.0)
+            // {
+            //     printf("\n==================== ANOMALY DETECTED ====================\n");
+            //     printf("Channel                : %c\n", test_state->testMode);
+            //     printf("Test Number            : %lu\n", test_state->currentTestNum + 1);
+            //     printf("--- Timestamps ---\n");
+            //     printf("Start Time (Daysec)    : %lu\n", test_state->roundStartTime.curr_daysec);
+            //     printf("Start Time (Subsec)    : %lu\n", test_state->roundStartTime.curr_subsec);
+            //     printf("End Time (Daysec)      : %lu\n", round_end_time.curr_daysec);
+            //     printf("End Time (Subsec)      : %lu\n", round_end_time.curr_subsec);
+            //     printf("--- Calculation Path ---\n");
+            //     printf("Time Elapsed           : %.9f s\n", time_elapsed);
+            //     printf("Total Pulses           : %lu\n", total_pulses_for_one_round);
+            //     printf("Extrapolated Time      : %.9f s\n", extrapolated_time_for_R_intervals);
+            //     printf("Measured Power         : %.9f kW/kvar\n", measured_power_kw);
+            //     printf("Pulse Constant         : %lu imp/kWh\n", test_state->pulseConstant);
+            //     printf("Standard Energy (E_std): %.12f kWh\n", e_std_kwh);
+            //     printf("Measured Energy (E_meas): %.12f kWh\n", e_meas_kwh);
+            //     printf("--> Calculated Error   : %.9f %%\n", error);
+            //     printf("========================================================\n\n");
+            // }
+#ifdef ENERGY_TEST_DEBUG
             printf("CPU1: [DEBUG]   - Calculated Error: %.4f %%\n", error);
+#endif
 
             test_state->currentTestNum++;
 
             // --- 检查整个测试是否完成 ---
             if (test_state->currentTestNum >= test_state->targetTimes)
             {
+#ifdef ENERGY_TEST_DEBUG
                 printf("CPU1: [DEBUG] Channel %c: All test times completed.\n", test_state->testMode);
+#endif
                 test_state->isActive = false; // 标记测试已结束
 
                 // 中文注释: 准备最终的 "Success" 报告

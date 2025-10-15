@@ -217,11 +217,10 @@ int main()
 	XScuTimer_Start(&Timer);											  // 启动主循环定时器
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
-	xil_printf("-----------------------------------------------------------------------------\r\n");
 	// 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 0);
 	OnOff_Start(bit_8, 1);
-
+	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
 	while (1)
 	{
@@ -311,11 +310,12 @@ void RunADCPIDCycle(void)
 {
 	// 刷新共享内存的缓存，保证数据的一致性
 	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
+
 	// 重置计算值
 	double Phase_reference = 0; // 定义相位基准
-	lineAC.totalP = 0.0;
-	lineAC.totalQ = 0.0;
-	lineAC.totalPF = 0.0;
+	double calculated_total_p = 0.0;
+	double calculated_total_q = 0.0;
+	double calculated_total_pf = 0.0;
 
 	// 循环处理4个通道（A, B, C, X），但只累加前3个通道的总功率
 	for (int i = 0; i < 4; i++)
@@ -395,8 +395,9 @@ void RunADCPIDCycle(void)
 		// *************** 只累加前三个通道(A, B, C)的功率 ***************
 		if (i < 3)
 		{
-			lineAC.totalP += lineAC.p[i];
-			lineAC.totalQ += lineAC.q[i];
+			//  将每个通道的功率累加到局部变量中。
+			calculated_total_p += lineAC.p[i];
+			calculated_total_q += lineAC.q[i];
 		}
 
 		// 初始化总谐波畸变率变量
@@ -554,16 +555,26 @@ void RunADCPIDCycle(void)
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
 	}
-	// 总功率因数
-	double totalApparentPower = sqrt(lineAC.totalP * lineAC.totalP + lineAC.totalQ * lineAC.totalQ);
-	if (totalApparentPower > 0.0001) // 增加一个小的阈值防止除以极小值
+
+	// 总功率因数，使用局部变量完成所有相关计算
+	double totalApparentPower = sqrt(calculated_total_p * calculated_total_p + calculated_total_q * calculated_total_q);
+	if (totalApparentPower > 0.0001)
 	{
-		lineAC.totalPF = lineAC.totalP / totalApparentPower;
+		calculated_total_pf = calculated_total_p / totalApparentPower;
 	}
 	else
 	{
-		lineAC.totalPF = 0.0; // 避免除以零错误，设置功率因数为0
+		calculated_total_pf = 0.0;
 	}
+	
+	// 在所有计算完成后，将最终结果“发布”到全局变量和中断安全的“影子”变量。
+	lineAC.totalP = calculated_total_p;
+	lineAC.totalQ = calculated_total_q;
+	lineAC.totalPF = calculated_total_pf;
+
+	g_safe_total_p_for_isr = calculated_total_p;
+	g_safe_total_q_for_isr = calculated_total_q;
+	
 
 	// 输出电能脉冲
 	PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
