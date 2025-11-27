@@ -32,6 +32,12 @@
 #define ChnsDI 32
 #define ChnsDO 32
 #define DisoeMsgNum 10
+
+// 状态序列相关结构体定义
+#define MAX_SEQ_STEPS 50
+#define MAX_SEQ_HARMS 32
+
+
 /******************************************************************************************************
  * UDP结构体
  ******************************************************************************************************/
@@ -97,7 +103,7 @@ typedef struct
 	double ir[ChnsAC]; // I档位[ChnsAC]
 
 	volatile double u[ChnsAC];	  // U[ChnsAC]	//总有效值
-	volatile double i[ChnsAC];	  // I[ChnsAC]	//总有效值
+	volatile double i[ChnsAC];	  // I_[ChnsAC]	//总有效值
 	volatile double phu[ChnsAC];  // phu[ChnsAC]	//基波有效值
 	volatile double phi[ChnsAC];  // phi[ChnsAC]	//基波有效值
 	volatile double p[ChnsAC];	  // p[ChnsAC]	//总有效值
@@ -301,6 +307,61 @@ extern int g_harm_number_thd; // 新增: 用于计算THD的谐波次数
 extern volatile double g_safe_total_p_for_isr;
 extern volatile double g_safe_total_q_for_isr;
 
+
+typedef struct {
+    int HN;
+    float U;
+    float PhU;
+    float I_;
+    float PhI;
+} Struct_Seq_Harm;
+
+typedef struct {
+    int Line;
+    int Chn;
+    float U;
+    float PhU;
+    float I_;
+    float PhI;
+    float F;
+    float UR; // 档位
+    float IR; // 档位
+    int HarmCount;
+    Struct_Seq_Harm Harms[MAX_SEQ_HARMS];
+} Struct_Seq_AC;
+
+typedef struct {
+    int Chn;
+    int Val;
+} Struct_Seq_DO;
+
+typedef struct {
+    int Chn;
+    int Val;
+} Struct_Seq_TrigDI;
+
+typedef struct {
+    int MaxDuration;
+    int JumpTo;
+    int TrigLogic;
+    int TrigDICount;
+    Struct_Seq_TrigDI TrigDIs[8]; // 最大8个触发条件
+    int ACCount;
+    Struct_Seq_AC ACs[8]; //最大8个通道
+    int DOCount;
+    Struct_Seq_DO DOs[8]; // 最大8个开出
+} Struct_Seq_Step;
+
+typedef struct {
+    int StartMode;
+    char StartTime[32];
+    int RepeatCount;
+    int RecStartState;
+    int RecMS;
+    int RecSamp;
+    int StepCount;
+    Struct_Seq_Step Steps[MAX_SEQ_STEPS];
+} Struct_StateSequence;
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/
@@ -316,7 +377,6 @@ void initLineDO(LineDO *lineDO);
 void init_JsonUdp(void);
 
 int Parse_JsonCommand(char *buffer);
-void write_command_to_shared_memory();
 void write_reply_to_shared_memory(ReplyData *replyData);
 void handle_GetFunCodeList(cJSON *data);
 void handle_GetDevBaseInfo(cJSON *data);
@@ -339,8 +399,13 @@ void handle_SetSysTimeSyncMode(cJSON *data);
 void handle_SetPulseOut(cJSON *data);
 void handle_SetTaskEnergyTest(cJSON *data);
 void handle_TerminateRunningTask(cJSON *data);
+void handle_StateSequence(cJSON *data);
 
 // 主动上报
 void report_protection_event(u8 ProectFault);
 void check_and_report_energy_test_status(void);
+
+
+
+
 #endif

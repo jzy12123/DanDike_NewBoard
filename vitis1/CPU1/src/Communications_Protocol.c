@@ -96,7 +96,8 @@ int Parse_JsonCommand(char *buffer)
         {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode},
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"TerminateRunningTask", handle_TerminateRunningTask},
-        {"SetPulseOut", handle_SetPulseOut}};
+        {"SetPulseOut", handle_SetPulseOut},
+        {"StateSequence", handle_StateSequence}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
@@ -3199,165 +3200,201 @@ void report_protection_event(u8 ProectFault)
     udp_data_changed_flag = true;             // 更新UDP标志
     dac_parameters_updated_by_command = true; // 更新硬件操作标志
 }
+// 全局变量定义
+Struct_StateSequence g_StateSequenceTask;
 
-void write_command_to_shared_memory()
+void handle_StateSequence(cJSON *data)
 {
-    // 1.1
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"GetFunCodeList\""
-    //			"}";
+    cJSON *dataObj = cJSON_GetObjectItem(data, "Data");
+    if (!dataObj) return;
 
-    // 1.2
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"GetDevBaseInfo\""
-    //			"}";
+    // 1. 解析基本参数
+    cJSON *item = cJSON_GetObjectItem(dataObj, "StartMode");
+    if (item) g_StateSequenceTask.StartMode = item->valueint;
 
-    // 1.3
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"GetDevState\""
-    //			"}";
+    item = cJSON_GetObjectItem(dataObj, "StartTime");
+    if (item && item->valuestring) strncpy(g_StateSequenceTask.StartTime, item->valuestring, 31);
 
-    // 1.5
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"SetReportEnable\","
-    //			"\"Data\": {"
-    //			"\"BaseDataAC\": true,"
-    //			"\"HarmData\": true,"
-    //			"\"InterHarmData\": false,"
-    //			"\"BaseDataDC\": false,"
-    //			"\"BaseDataIO\": false,"
-    //			"\"DISOE\": false,"
-    //			"\"VMData\": false"
-    //			"}"
-    //			"}";
+    item = cJSON_GetObjectItem(dataObj, "RepeatCount");
+    if (item) g_StateSequenceTask.RepeatCount = item->valueint;
 
-    // 3.1.1
-    //     const char* command = "{"
-    //         "\"FunType\": \"Cmd\","
-    //         "\"FunCode\": \"SetDCS\","
-    //         "\"Data\": {"
-    //             "\"ClosedLoop\": true,"
-    //             "\"Chns\": ["
-    //                 "{\"Chn\": 1, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.01, \"IR\": 1.1, \"I\": 1.1, \"IRipple\": 0.01},"
-    //                 "{\"Chn\": 2, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.02, \"IR\": 2.2, \"I\": 2.2, \"IRipple\": 0.01},"
-    //                 "{\"Chn\": 3, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.03, \"IR\": 3.3, \"I\": 3.3, \"IRipple\": 0.01},"
-    //                 "{\"Chn\": 4, \"UR\": 57.7, \"U\": 57.7, \"URipple\": 0.04, \"IR\": 4.4, \"I\": 4.4, \"IRipple\": 0.01}"
-    //             "]"
-    //         "}"
-    //     "}";
+    item = cJSON_GetObjectItem(dataObj, "RecStartState");
+    if (item) g_StateSequenceTask.RecStartState = item->valueint;
 
-    // 3.1.2
-    //     const char* command = "{"
-    //         "\"FunType\": \"Cmd\","
-    //         "\"FunCode\": \"StopDCS\""
-    //     "}";
+    item = cJSON_GetObjectItem(dataObj, "RecMS");
+    if (item) g_StateSequenceTask.RecMS = item->valueint;
 
-    // 3.2.1
-    //	    const char* command = "{"
-    //	        "\"FunType\": \"Cmd\","
-    //	        "\"FunCode\": \"SetDCM\","
-    //	        "\"Data\": ["
-    //	    		"{\"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
-    //	    		"{\"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
-    //	    		"{\"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
-    //	    		"{\"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4}"
-    //	        "]"
-    //	    "}";
+    item = cJSON_GetObjectItem(dataObj, "RecSamp");
+    if (item) g_StateSequenceTask.RecSamp = item->valueint;
 
-    // 3.3.1
-    //     const char* command = "{"
-    //         "\"FunType\": \"Cmd\","
-    //         "\"FunCode\": \"SetACS\","
-    //         "\"Data\": {"
-    //             "\"ClosedLoop\": true,"
-    //             "\"vals\": ["
-    //                 "{\"Line\": 1, \"Chn\": 1, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 0, \"IR\": 5.1, \"I\": 1.1, \"PhI\": 30.4},"
-    //                 "{\"Line\": 1, \"Chn\": 2, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 120, \"IR\": 5, \"I\": 2, \"PhI\": 120},"
-    //                 "{\"Line\": 1, \"Chn\": 3, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 240, \"IR\": 5, \"I\": 3, \"PhI\": 240},"
-    //                 "{\"Line\": 1, \"Chn\": 4, \"F\": 60.0, \"UR\": 57.7, \"U\": 10, \"PhU\": 0, \"IR\": 5, \"I\": 4, \"PhI\": 0},"
-    //                 "{\"Line\": 2, \"Chn\": 1, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 0, \"IR\": 5, \"I\": 4, \"PhI\": 0},"
-    //                 "{\"Line\": 2, \"Chn\": 2, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 120, \"IR\": 5, \"I\": 3, \"PhI\": 120},"
-    //                 "{\"Line\": 2, \"Chn\": 3, \"F\": 60.0, \"UR\": 57.7, \"U\": 57.7, \"PhU\": 240, \"IR\": 5, \"I\": 2, \"PhI\": 240},"
-    //                 "{\"Line\": 2, \"Chn\": 4, \"F\": 60.0, \"UR\": 57.7, \"U\": 20, \"PhU\": 0, \"IR\": 5, \"I\": 1, \"PhI\": 0}"
-    //             "]"
-    //         "}"
-    //     "}";
+    // 2. 解析 States 数组
+    cJSON *states = cJSON_GetObjectItem(dataObj, "States");
+    if (states && cJSON_IsArray(states)) {
+        int stepCount = cJSON_GetArraySize(states);
+        if (stepCount > MAX_SEQ_STEPS) stepCount = MAX_SEQ_STEPS;
+        g_StateSequenceTask.StepCount = stepCount;
 
-    // 3.3.2
-    //     const char* command = "{"
-    //         "\"FunType\": \"Cmd\","
-    //         "\"FunCode\": \"SetACM\","
-    //         "\"Data\": ["
-    //     		"{\"Line\": 1, \"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
-    //     		"{\"Line\": 1, \"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
-    //     		"{\"Line\": 1, \"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
-    //     		"{\"Line\": 1, \"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4},"
-    //     		"{\"Line\": 2, \"Chn\": 1, \"UR\": 100.0, \"IR\": 1.1},"
-    //     		"{\"Line\": 2, \"Chn\": 2, \"UR\": 57.7,  \"IR\": 2.2},"
-    //     		"{\"Line\": 2, \"Chn\": 3, \"UR\": 57.7,  \"IR\": 3.3},"
-    //     		"{\"Line\": 2, \"Chn\": 4, \"UR\": 57.7,  \"IR\": 4.4}"
-    //         "]"
-    //     "}";
+        for (int i = 0; i < stepCount; i++) {
+            cJSON *state = cJSON_GetArrayItem(states, i);
+            Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
 
-    // 3.3.3
-    //	const char* command = "{"
-    //	    "\"FunType\": \"Cmd\","
-    //	    "\"FunCode\": \"SetHarm\","
-    //	    "\"Data\": ["
-    //	        "{\"Line\": 1, \"Chn\": 1, \"HN\": 2, \"U\": 0.0, \"PhU\": 0.0, \"I\": 0.1, \"PhI\": 0},"
-    //	        "{\"Line\": 1, \"Chn\": 1, \"HN\": 3, \"U\": 0.0, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 1, \"HN\": 4, \"U\": 0.0, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 1, \"HN\": 5, \"U\": 0.0, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 2, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.1, \"PhI\": 0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.1, \"PhI\": 60.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.1, \"PhI\": 120.0},"
-    //			"{\"Line\": 1, \"Chn\": 3, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.1, \"PhI\": 180.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 2, \"U\": 0.1, \"PhU\": 0, \"I\": 0.0, \"PhI\": 0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 3, \"U\": 0.1, \"PhU\": 60.0, \"I\": 0.0, \"PhI\": 0.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 4, \"U\": 0.1, \"PhU\": 120.0, \"I\": 0.0, \"PhI\": 0.0},"
-    //	        "{\"Line\": 1, \"Chn\": 4, \"HN\": 5, \"U\": 0.1, \"PhU\": 180.0, \"I\": 0.3, \"PhI\": 0.0}"
-    //	    "]"
-    //	"}";
+            item = cJSON_GetObjectItem(state, "MaxDuration");
+            if (item) pStep->MaxDuration = item->valueint;
 
-    // 3.3.4
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"ClearHarm\""
-    //			"}";
+            item = cJSON_GetObjectItem(state, "JumpTo");
+            if (item) pStep->JumpTo = item->valueint;
 
-    // 3.3.7
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"StopAC\""
-    //			"}";
+            item = cJSON_GetObjectItem(state, "TrigLogic");
+            if (item) pStep->TrigLogic = item->valueint;
 
-    // 3.4
-    //	const char* command = "{"
-    //			"\"FunType\": \"Cmd\","
-    //			"\"FunCode\": \"SetDO\","
-    //			"\"Data\": ["
-    //			"{\"Chn\": 1, \"val\": 0},"
-    //			"{\"Chn\": 2, \"val\": 0},"
-    //			"{\"Chn\": 3, \"val\": 0},"
-    //			"{\"Chn\": 4, \"val\": 0},"
-    //			"{\"Chn\": 5, \"val\": 1},"
-    //			"{\"Chn\": 6, \"val\": 1},"
-    //			"{\"Chn\": 7, \"val\": 1},"
-    //			"{\"Chn\": 8, \"val\": 1}"
-    //			"]"
-    //			"}";
+            // 解析 TrigDI
+            cJSON *trigDIs = cJSON_GetObjectItem(state, "TrigDI");
+            if (trigDIs && cJSON_IsArray(trigDIs)) {
+                int count = cJSON_GetArraySize(trigDIs);
+                if (count > 8) count = 8;
+                pStep->TrigDICount = count;
+                for (int j = 0; j < count; j++) {
+                    cJSON *tdi = cJSON_GetArrayItem(trigDIs, j);
+                    cJSON *chn = cJSON_GetObjectItem(tdi, "Chn");
+                    cJSON *val = cJSON_GetObjectItem(tdi, "val");
+                    if (chn) pStep->TrigDIs[j].Chn = chn->valueint;
+                    if (val) pStep->TrigDIs[j].Val = val->valueint;
+                }
+            } else {
+                pStep->TrigDICount = 0;
+            }
 
-    // 将字符串写入共享内存
+            // 解析 AC
+            cJSON *acs = cJSON_GetObjectItem(state, "AC");
+            if (acs && cJSON_IsArray(acs)) {
+                int count = cJSON_GetArraySize(acs);
+                if (count > 8) count = 8;
+                pStep->ACCount = count;
+                for (int j = 0; j < count; j++) {
+                    cJSON *ac = cJSON_GetArrayItem(acs, j);
+                    Struct_Seq_AC *pAC = &pStep->ACs[j];
+                    
+                    item = cJSON_GetObjectItem(ac, "Line"); if(item) pAC->Line = item->valueint;
+                    item = cJSON_GetObjectItem(ac, "Chn"); if(item) pAC->Chn = item->valueint;
+                    item = cJSON_GetObjectItem(ac, "U"); if(item) pAC->U = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "PhU"); if(item) pAC->PhU = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "I"); if(item) pAC->I_ = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "PhI"); if(item) pAC->PhI = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "F"); if(item) pAC->F = (float)item->valuedouble;
 
-    xil_printf("Command written to shared memory.\r\n");
+                    // 解析 Harm
+                    cJSON *harms = cJSON_GetObjectItem(ac, "Harm");
+                    if (harms && cJSON_IsArray(harms)) {
+                        int hCount = cJSON_GetArraySize(harms);
+                        if (hCount > MAX_SEQ_HARMS) hCount = MAX_SEQ_HARMS;
+                        pAC->HarmCount = hCount;
+                        for (int k = 0; k < hCount; k++) {
+                            cJSON *harm = cJSON_GetArrayItem(harms, k);
+                            Struct_Seq_Harm *pHarm = &pAC->Harms[k];
+                            item = cJSON_GetObjectItem(harm, "HN"); if(item) pHarm->HN = item->valueint;
+                            item = cJSON_GetObjectItem(harm, "U"); if(item) pHarm->U = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "PhU"); if(item) pHarm->PhU = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "I"); if(item) pHarm->I_ = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "PhI"); if(item) pHarm->PhI = (float)item->valuedouble;
+                        }
+                    } else {
+                        pAC->HarmCount = 0;
+                    }
+                }
+            } else {
+                pStep->ACCount = 0;
+            }
+
+            // 解析 DO
+            cJSON *dos = cJSON_GetObjectItem(state, "DO");
+            if (dos && cJSON_IsArray(dos)) {
+                int count = cJSON_GetArraySize(dos);
+                if (count > 8) count = 8;
+                pStep->DOCount = count;
+                for (int j = 0; j < count; j++) {
+                    cJSON *d = cJSON_GetArrayItem(dos, j);
+                    cJSON *chn = cJSON_GetObjectItem(d, "Chn");
+                    cJSON *val = cJSON_GetObjectItem(d, "val");
+                    if (chn) pStep->DOs[j].Chn = chn->valueint;
+                    if (val) pStep->DOs[j].Val = val->valueint;
+                }
+            } else {
+                pStep->DOCount = 0;
+            }
+        }
+    }
+
+    // 3. 档位计算
+    typedef struct { int Line; int Chn; float MaxU; float MaxI; } ChnMax;
+    ChnMax chnMaxs[16]; // 假设最多16个通道组合
+    int chnMaxCount = 0;
+    memset(chnMaxs, 0, sizeof(chnMaxs));
+
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++) {
+        Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
+        for (int j = 0; j < step->ACCount; j++) {
+            Struct_Seq_AC *ac = &step->ACs[j];
+            
+            int found = -1;
+            for (int k = 0; k < chnMaxCount; k++) {
+                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn) {
+                    found = k;
+                    break;
+                }
+            }
+            if (found == -1) {
+                if (chnMaxCount < 16) {
+                    chnMaxs[chnMaxCount].Line = ac->Line;
+                    chnMaxs[chnMaxCount].Chn = ac->Chn;
+                    chnMaxs[chnMaxCount].MaxU = ac->U;
+                    chnMaxs[chnMaxCount].MaxI = ac->I_;
+                    found = chnMaxCount++;
+                }
+            } else {
+                if (ac->U > chnMaxs[found].MaxU) chnMaxs[found].MaxU = ac->U;
+                if (ac->I_ > chnMaxs[found].MaxI) chnMaxs[found].MaxI = ac->I_; 
+            }
+        }
+    }
+
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++) {
+        Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
+        for (int j = 0; j < step->ACCount; j++) {
+            Struct_Seq_AC *ac = &step->ACs[j];
+            
+            float mU = 0, mI = 0;
+            for (int k = 0; k < chnMaxCount; k++) {
+                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn) {
+                    mU = chnMaxs[k].MaxU;
+                    mI = chnMaxs[k].MaxI;
+                    break;
+                }
+            }
+
+            if (mU > 3.25f) ac->UR = 6.5f;
+            else if (mU > 1.876f) ac->UR = 3.25f;
+            else ac->UR = 1.876f;
+
+            if (mI > 1.0f) ac->IR = 5.0f;
+            else if (mI > 0.2f) ac->IR = 1.0f;
+            else ac->IR = 0.2f;
+        }
+    }
+
+    // 4. 回复
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+    cJSON_AddStringToObject(reply, "Result", "Success");
+    cJSON *replyData = cJSON_CreateObject();
+    cJSON_AddItemToObject(reply, "Data", replyData);
+    
+    char *jsonStr = cJSON_PrintUnformatted(reply);
+    if (jsonStr) {
+        printf("Reply: %s\n", jsonStr);
+        free(jsonStr);
+    }
+    cJSON_Delete(reply);
 }
 
 size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
@@ -3424,6 +3461,9 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
     //    printf("Total dynamic payload size: %zu\r\n", payload_size);
     return payload_size;
 }
+
+
+
 
 /*
  * 回报UDP结构体顶层函数
@@ -3571,6 +3611,8 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // printf("UDP_PACKET_SIZE: %d bytes\r\n", sizeof(udpPacket));
     // printf("CPU1: UDP written to memory at: 0x%X\r\n", UDP_ADDRESS);
 }
+
+
 
 // Function to initialize DevState
 void initDevState(DevState *devState)
@@ -3724,3 +3766,4 @@ void init_JsonUdp(void)
     initLineDO(&lineDO);
     udp_data_changed_flag = true; // 更新UDP标志
 }
+
