@@ -342,9 +342,6 @@ void RunADCPIDCycle(void)
 		lineAC.ur[i] = setACS.Vals[i].UR;	 // 电压档位
 		lineAC.ir[i] = setACS.Vals[i].IR;	 // 电流档位
 
-		/*******************************************************************************************/
-		/* VITIS 代码修改 - 计算总有效值                                                              */
-		/*******************************************************************************************/
 		// 中文注释: 计算电压总有效值 (Total RMS)
 		double sum_of_squares_u_rms = 0.0;
 		for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
@@ -373,31 +370,6 @@ void RunADCPIDCycle(void)
 		if (lineAC.phi[i] < 0)
 		{
 			lineAC.phi[i] += 360;
-		}
-
-		// 计算电压与电流之间的相位差 (基于基波)
-		double phase_diff = lineAC.phu[i] - lineAC.phi[i];
-		// 确保相位差在-180到180度之间
-		if (phase_diff > 180.0)
-		{
-			phase_diff -= 360.0;
-		}
-		else if (phase_diff < -180.0)
-		{
-			phase_diff += 360.0;
-		}
-
-		// 中文注释: 总功率和总功率因数通常使用总有效值和基波相位差来计算，这是一种常见的工程近似
-		lineAC.p[i] = (lineAC.u[i] * lineAC.i[i] * cos(phase_diff * M_PI / 180.0f)); // 有功功率
-		lineAC.q[i] = (lineAC.u[i] * lineAC.i[i] * sin(phase_diff * M_PI / 180.0f)); // 无功功率
-		lineAC.pf[i] = cos(phase_diff * M_PI / 180.0f);								 // 功率因数
-
-		// *************** 只累加前三个通道(A, B, C)的功率 ***************
-		if (i < 3)
-		{
-			//  将每个通道的功率累加到局部变量中。
-			calculated_total_p += lineAC.p[i];
-			calculated_total_q += lineAC.q[i];
 		}
 
 		// 初始化总谐波畸变率变量
@@ -554,6 +526,31 @@ void RunADCPIDCycle(void)
 			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
 			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
 		}
+
+		// 中文注释: 使用 lineHarm 中已正确计算的各谐波功率之和来更新 lineAC 中的总功率
+		lineAC.p[i] = lineHarm.harm[i].totalP;
+		lineAC.q[i] = lineHarm.harm[i].totalQ;
+
+		// 中文注释: 计算该通道的总视在功率 S = sqrt(P^2 + Q^2)
+		double apparent_power_s = sqrt(lineAC.p[i] * lineAC.p[i] + lineAC.q[i] * lineAC.q[i]);
+
+		// 中文注释: 计算该通道的总功率因数 PF = P / S
+		if (apparent_power_s > 1e-6) // 避免除零
+		{
+			lineAC.pf[i] = lineAC.p[i] / apparent_power_s;
+		}
+		else
+		{
+			lineAC.pf[i] = 0.0;
+		}
+
+		// 中文注释: 累加前三个通道(A, B, C)的功率，现在使用的是正确的总谐波功率
+		if (i < 3)
+		{
+			calculated_total_p += lineAC.p[i];
+			calculated_total_q += lineAC.q[i];
+		}
+		
 	}
 
 	// 总功率因数，使用局部变量完成所有相关计算
@@ -566,7 +563,7 @@ void RunADCPIDCycle(void)
 	{
 		calculated_total_pf = 0.0;
 	}
-	
+
 	// 在所有计算完成后，将最终结果“发布”到全局变量和中断安全的“影子”变量。
 	lineAC.totalP = calculated_total_p;
 	lineAC.totalQ = calculated_total_q;
@@ -574,7 +571,6 @@ void RunADCPIDCycle(void)
 
 	g_safe_total_p_for_isr = calculated_total_p;
 	g_safe_total_q_for_isr = calculated_total_q;
-	
 
 	// 输出电能脉冲
 	PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
