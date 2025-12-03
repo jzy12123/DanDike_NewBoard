@@ -4,8 +4,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.250924.1348";
-const char ARM_Ver_Full[] = "[Ver]=V1.251016.0919";
+const char FPGA_Ver_Full[] = "[Ver]=V1.251201.1606";
+const char ARM_Ver_Full[] = "[Ver]=V1.251201.1606";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -23,7 +23,7 @@ uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 uint32_t g_do_output_state = 0; // 存储开出硬件状态
 int g_harm_number_thd = 31;     //  THD谐波次数全局变量定义与初始化
 
-//为中断安全读取的“影子”变量提供定义和初始值。
+// 为中断安全读取的“影子”变量提供定义和初始值。
 volatile double g_safe_total_p_for_isr = 0.0;
 volatile double g_safe_total_q_for_isr = 0.0;
 
@@ -2793,7 +2793,6 @@ void check_and_report_energy_test_status(void)
     g_energy_report_data.report_pending = false;
 }
 
-
 /**
  * @brief 处理 "SetTaskEnergyTest" JSON指令 (已重构)
  * @param data 指向JSON中"Data"字段的cJSON对象
@@ -2937,9 +2936,10 @@ void handle_TerminateRunningTask(cJSON *data)
                 // else if (strcmp(task_name, "SetTaskClockTest") == 0) {
                 //     ClockTest_Terminate(); // 假设的时钟测试终止函数
                 // }
-                // else if (strcmp(task_name, "StateSequence") == 0) {
-                //     StateSequence_Terminate(); // 假设的状态序列终止函数
-                // }
+                if (strcmp(task_name, "StateSequence") == 0)
+                {
+                    StateSequence_Stop();
+                }
             }
         }
     }
@@ -2948,19 +2948,10 @@ void handle_TerminateRunningTask(cJSON *data)
         // --- 逻辑分支 2: "Tasks" 节点不存在，终止所有任务 ---
         printf("CPU1: [INFO] 'Tasks' node not found. Terminating all running tasks.\n");
 
-        // 中文注释: 终止电能误差测试
+        // 终止电能误差测试
         PowerPulse_TerminateTest();
-
-        // --- 未来扩展占位符 ---
-        // 中文注释: 终止时钟误差测试
-        // ClockTest_Terminate();
-
-        // 中文注释: 终止状态序列
-        // StateSequence_Terminate();
-
-        // 中文注释: 终止波形录制与回放
-        // WaveformRecord_Terminate();
-        // WaveformReplay_Terminate();
+        // 终止状态序列
+        StateSequence_Stop();
     }
 
     // 中文注释: 准备并发送上行回复
@@ -3206,178 +3197,265 @@ Struct_StateSequence g_StateSequenceTask;
 void handle_StateSequence(cJSON *data)
 {
     cJSON *dataObj = cJSON_GetObjectItem(data, "Data");
-    if (!dataObj) return;
+    if (!dataObj)
+        return;
 
     // 1. 解析基本参数
     cJSON *item = cJSON_GetObjectItem(dataObj, "StartMode");
-    if (item) g_StateSequenceTask.StartMode = item->valueint;
+    if (item)
+        g_StateSequenceTask.StartMode = item->valueint;
 
     item = cJSON_GetObjectItem(dataObj, "StartTime");
-    if (item && item->valuestring) strncpy(g_StateSequenceTask.StartTime, item->valuestring, 31);
+    if (item && item->valuestring)
+        strncpy(g_StateSequenceTask.StartTime, item->valuestring, 31);
 
     item = cJSON_GetObjectItem(dataObj, "RepeatCount");
-    if (item) g_StateSequenceTask.RepeatCount = item->valueint;
+    if (item)
+        g_StateSequenceTask.RepeatCount = item->valueint;
 
     item = cJSON_GetObjectItem(dataObj, "RecStartState");
-    if (item) g_StateSequenceTask.RecStartState = item->valueint;
+    if (item)
+        g_StateSequenceTask.RecStartState = item->valueint;
 
     item = cJSON_GetObjectItem(dataObj, "RecMS");
-    if (item) g_StateSequenceTask.RecMS = item->valueint;
+    if (item)
+        g_StateSequenceTask.RecMS = item->valueint;
 
     item = cJSON_GetObjectItem(dataObj, "RecSamp");
-    if (item) g_StateSequenceTask.RecSamp = item->valueint;
+    if (item)
+        g_StateSequenceTask.RecSamp = item->valueint;
 
     // 2. 解析 States 数组
     cJSON *states = cJSON_GetObjectItem(dataObj, "States");
-    if (states && cJSON_IsArray(states)) {
+    if (states && cJSON_IsArray(states))
+    {
         int stepCount = cJSON_GetArraySize(states);
-        if (stepCount > MAX_SEQ_STEPS) stepCount = MAX_SEQ_STEPS;
+        if (stepCount > MAX_SEQ_STEPS)
+            stepCount = MAX_SEQ_STEPS;
         g_StateSequenceTask.StepCount = stepCount;
 
-        for (int i = 0; i < stepCount; i++) {
+        for (int i = 0; i < stepCount; i++)
+        {
             cJSON *state = cJSON_GetArrayItem(states, i);
             Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
 
             item = cJSON_GetObjectItem(state, "MaxDuration");
-            if (item) pStep->MaxDuration = item->valueint;
+            if (item)
+                pStep->MaxDuration = item->valueint;
 
             item = cJSON_GetObjectItem(state, "JumpTo");
-            if (item) pStep->JumpTo = item->valueint;
+            if (item)
+                pStep->JumpTo = item->valueint;
 
             item = cJSON_GetObjectItem(state, "TrigLogic");
-            if (item) pStep->TrigLogic = item->valueint;
+            if (item)
+                pStep->TrigLogic = item->valueint;
 
             // 解析 TrigDI
             cJSON *trigDIs = cJSON_GetObjectItem(state, "TrigDI");
-            if (trigDIs && cJSON_IsArray(trigDIs)) {
+            if (trigDIs && cJSON_IsArray(trigDIs))
+            {
                 int count = cJSON_GetArraySize(trigDIs);
-                if (count > 8) count = 8;
+                if (count > 8)
+                    count = 8;
                 pStep->TrigDICount = count;
-                for (int j = 0; j < count; j++) {
+                for (int j = 0; j < count; j++)
+                {
                     cJSON *tdi = cJSON_GetArrayItem(trigDIs, j);
                     cJSON *chn = cJSON_GetObjectItem(tdi, "Chn");
                     cJSON *val = cJSON_GetObjectItem(tdi, "val");
-                    if (chn) pStep->TrigDIs[j].Chn = chn->valueint;
-                    if (val) pStep->TrigDIs[j].Val = val->valueint;
+                    if (chn)
+                        pStep->TrigDIs[j].Chn = chn->valueint;
+                    if (val)
+                        pStep->TrigDIs[j].Val = val->valueint;
                 }
-            } else {
+            }
+            else
+            {
                 pStep->TrigDICount = 0;
             }
 
             // 解析 AC
             cJSON *acs = cJSON_GetObjectItem(state, "AC");
-            if (acs && cJSON_IsArray(acs)) {
+            if (acs && cJSON_IsArray(acs))
+            {
                 int count = cJSON_GetArraySize(acs);
-                if (count > 8) count = 8;
+                if (count > 8)
+                    count = 8;
                 pStep->ACCount = count;
-                for (int j = 0; j < count; j++) {
+                for (int j = 0; j < count; j++)
+                {
                     cJSON *ac = cJSON_GetArrayItem(acs, j);
                     Struct_Seq_AC *pAC = &pStep->ACs[j];
-                    
-                    item = cJSON_GetObjectItem(ac, "Line"); if(item) pAC->Line = item->valueint;
-                    item = cJSON_GetObjectItem(ac, "Chn"); if(item) pAC->Chn = item->valueint;
-                    item = cJSON_GetObjectItem(ac, "U"); if(item) pAC->U = (float)item->valuedouble;
-                    item = cJSON_GetObjectItem(ac, "PhU"); if(item) pAC->PhU = (float)item->valuedouble;
-                    item = cJSON_GetObjectItem(ac, "I"); if(item) pAC->I_ = (float)item->valuedouble;
-                    item = cJSON_GetObjectItem(ac, "PhI"); if(item) pAC->PhI = (float)item->valuedouble;
-                    item = cJSON_GetObjectItem(ac, "F"); if(item) pAC->F = (float)item->valuedouble;
+
+                    item = cJSON_GetObjectItem(ac, "Line");
+                    if (item)
+                        pAC->Line = item->valueint;
+                    item = cJSON_GetObjectItem(ac, "Chn");
+                    if (item)
+                        pAC->Chn = item->valueint;
+                    item = cJSON_GetObjectItem(ac, "U");
+                    if (item)
+                        pAC->U = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "PhU");
+                    if (item)
+                        pAC->PhU = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "I");
+                    if (item)
+                        pAC->I_ = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "PhI");
+                    if (item)
+                        pAC->PhI = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "F");
+                    if (item)
+                        pAC->F = (float)item->valuedouble;
 
                     // 解析 Harm
                     cJSON *harms = cJSON_GetObjectItem(ac, "Harm");
-                    if (harms && cJSON_IsArray(harms)) {
+                    if (harms && cJSON_IsArray(harms))
+                    {
                         int hCount = cJSON_GetArraySize(harms);
-                        if (hCount > MAX_SEQ_HARMS) hCount = MAX_SEQ_HARMS;
+                        if (hCount > MAX_SEQ_HARMS)
+                            hCount = MAX_SEQ_HARMS;
                         pAC->HarmCount = hCount;
-                        for (int k = 0; k < hCount; k++) {
+                        for (int k = 0; k < hCount; k++)
+                        {
                             cJSON *harm = cJSON_GetArrayItem(harms, k);
                             Struct_Seq_Harm *pHarm = &pAC->Harms[k];
-                            item = cJSON_GetObjectItem(harm, "HN"); if(item) pHarm->HN = item->valueint;
-                            item = cJSON_GetObjectItem(harm, "U"); if(item) pHarm->U = (float)item->valuedouble;
-                            item = cJSON_GetObjectItem(harm, "PhU"); if(item) pHarm->PhU = (float)item->valuedouble;
-                            item = cJSON_GetObjectItem(harm, "I"); if(item) pHarm->I_ = (float)item->valuedouble;
-                            item = cJSON_GetObjectItem(harm, "PhI"); if(item) pHarm->PhI = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "HN");
+                            if (item)
+                                pHarm->HN = item->valueint;
+                            item = cJSON_GetObjectItem(harm, "U");
+                            if (item)
+                                pHarm->U = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "PhU");
+                            if (item)
+                                pHarm->PhU = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "I");
+                            if (item)
+                                pHarm->I_ = (float)item->valuedouble;
+                            item = cJSON_GetObjectItem(harm, "PhI");
+                            if (item)
+                                pHarm->PhI = (float)item->valuedouble;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         pAC->HarmCount = 0;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 pStep->ACCount = 0;
             }
 
             // 解析 DO
             cJSON *dos = cJSON_GetObjectItem(state, "DO");
-            if (dos && cJSON_IsArray(dos)) {
+            if (dos && cJSON_IsArray(dos))
+            {
                 int count = cJSON_GetArraySize(dos);
-                if (count > 8) count = 8;
+                if (count > 8)
+                    count = 8;
                 pStep->DOCount = count;
-                for (int j = 0; j < count; j++) {
+                for (int j = 0; j < count; j++)
+                {
                     cJSON *d = cJSON_GetArrayItem(dos, j);
                     cJSON *chn = cJSON_GetObjectItem(d, "Chn");
                     cJSON *val = cJSON_GetObjectItem(d, "val");
-                    if (chn) pStep->DOs[j].Chn = chn->valueint;
-                    if (val) pStep->DOs[j].Val = val->valueint;
+                    if (chn)
+                        pStep->DOs[j].Chn = chn->valueint;
+                    if (val)
+                        pStep->DOs[j].Val = val->valueint;
                 }
-            } else {
+            }
+            else
+            {
                 pStep->DOCount = 0;
             }
         }
     }
 
     // 3. 档位计算
-    typedef struct { int Line; int Chn; float MaxU; float MaxI; } ChnMax;
+    typedef struct
+    {
+        int Line;
+        int Chn;
+        float MaxU;
+        float MaxI;
+    } ChnMax;
     ChnMax chnMaxs[16]; // 假设最多16个通道组合
     int chnMaxCount = 0;
     memset(chnMaxs, 0, sizeof(chnMaxs));
 
-    for (int i = 0; i < g_StateSequenceTask.StepCount; i++) {
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+    {
         Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
-        for (int j = 0; j < step->ACCount; j++) {
+        for (int j = 0; j < step->ACCount; j++)
+        {
             Struct_Seq_AC *ac = &step->ACs[j];
-            
+
             int found = -1;
-            for (int k = 0; k < chnMaxCount; k++) {
-                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn) {
+            for (int k = 0; k < chnMaxCount; k++)
+            {
+                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn)
+                {
                     found = k;
                     break;
                 }
             }
-            if (found == -1) {
-                if (chnMaxCount < 16) {
+            if (found == -1)
+            {
+                if (chnMaxCount < 16)
+                {
                     chnMaxs[chnMaxCount].Line = ac->Line;
                     chnMaxs[chnMaxCount].Chn = ac->Chn;
                     chnMaxs[chnMaxCount].MaxU = ac->U;
                     chnMaxs[chnMaxCount].MaxI = ac->I_;
                     found = chnMaxCount++;
                 }
-            } else {
-                if (ac->U > chnMaxs[found].MaxU) chnMaxs[found].MaxU = ac->U;
-                if (ac->I_ > chnMaxs[found].MaxI) chnMaxs[found].MaxI = ac->I_; 
+            }
+            else
+            {
+                if (ac->U > chnMaxs[found].MaxU)
+                    chnMaxs[found].MaxU = ac->U;
+                if (ac->I_ > chnMaxs[found].MaxI)
+                    chnMaxs[found].MaxI = ac->I_;
             }
         }
     }
 
-    for (int i = 0; i < g_StateSequenceTask.StepCount; i++) {
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+    {
         Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
-        for (int j = 0; j < step->ACCount; j++) {
+        for (int j = 0; j < step->ACCount; j++)
+        {
             Struct_Seq_AC *ac = &step->ACs[j];
-            
+
             float mU = 0, mI = 0;
-            for (int k = 0; k < chnMaxCount; k++) {
-                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn) {
+            for (int k = 0; k < chnMaxCount; k++)
+            {
+                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn)
+                {
                     mU = chnMaxs[k].MaxU;
                     mI = chnMaxs[k].MaxI;
                     break;
                 }
             }
 
-            if (mU > 3.25f) ac->UR = 6.5f;
-            else if (mU > 1.876f) ac->UR = 3.25f;
-            else ac->UR = 1.876f;
+            if (mU > 3.25f)
+                ac->UR = 6.5f;
+            else if (mU > 1.876f)
+                ac->UR = 3.25f;
+            else
+                ac->UR = 1.876f;
 
-            if (mI > 1.0f) ac->IR = 5.0f;
-            else if (mI > 0.2f) ac->IR = 1.0f;
-            else ac->IR = 0.2f;
+            if (mI > 1.0f)
+                ac->IR = 5.0f;
+            else if (mI > 0.2f)
+                ac->IR = 1.0f;
+            else
+                ac->IR = 0.2f;
         }
     }
 
@@ -3388,13 +3466,36 @@ void handle_StateSequence(cJSON *data)
     cJSON_AddStringToObject(reply, "Result", "Success");
     cJSON *replyData = cJSON_CreateObject();
     cJSON_AddItemToObject(reply, "Data", replyData);
-    
+
     char *jsonStr = cJSON_PrintUnformatted(reply);
-    if (jsonStr) {
+    if (jsonStr)
+    {
         printf("Reply: %s\n", jsonStr);
         free(jsonStr);
     }
     cJSON_Delete(reply);
+
+    // 5. 根据 StartMode 启动状态序列
+    if (g_StateSequenceTask.StartMode == 0)
+    {
+        // 模式 0: 立即启动
+        xil_printf("CPU1: Cmd StateSequence -> Start Immediately.\r\n");
+        StateSequence_PrepareAndStart();
+    }
+    else if (g_StateSequenceTask.StartMode == 1)
+    {
+        // 模式 1: 定时启动
+        xil_printf("CPU1: Cmd StateSequence -> Schedule Start at %s.\r\n", g_StateSequenceTask.StartTime);
+
+        // 解析时间字符串并写入软时钟的 Alarm 寄存器
+        // 假设 soft_timer.c 中有类似 SetAlarm 的函数 (如果没有需要实现)
+        // 伪代码示例：
+        // SoftTimer_SetAlarmStr(g_StateSequenceTask.StartTime);
+        // SoftTimer_EnableAlarm(true);
+
+        // 临时策略：如果没有实现Alarm，可以先打印不支持
+        xil_printf("CPU1: Warning: Timed start hardware support pending.\r\n");
+    }
 }
 
 size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
@@ -3461,9 +3562,6 @@ size_t calculate_dynamic_payload_size(ReportEnableStatus ReportStatus)
     //    printf("Total dynamic payload size: %zu\r\n", payload_size);
     return payload_size;
 }
-
-
-
 
 /*
  * 回报UDP结构体顶层函数
@@ -3611,8 +3709,6 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
     // printf("UDP_PACKET_SIZE: %d bytes\r\n", sizeof(udpPacket));
     // printf("CPU1: UDP written to memory at: 0x%X\r\n", UDP_ADDRESS);
 }
-
-
 
 // Function to initialize DevState
 void initDevState(DevState *devState)
@@ -3766,4 +3862,3 @@ void init_JsonUdp(void)
     initLineDO(&lineDO);
     udp_data_changed_flag = true; // 更新UDP标志
 }
-

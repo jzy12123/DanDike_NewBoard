@@ -28,6 +28,7 @@
 #include "8025IIC.h"
 #include "Timer_sync.h"
 #include "power_pulse.h"
+#include "StateSequence.h"
 /*
  * ∂®“Â
  */
@@ -146,7 +147,8 @@ int setup_intr_system(XScuGic *int_ins_ptr,
                       XScuTimer *timer_ptr,
                       XTtcPs *debounce_timer_ptr,
                       XUartLite *gps_uart_ptr,
-                      XTtcPs *gps_ttc_ptr);
+                      XTtcPs *gps_ttc_ptr,
+                      XTtcPs *seq_ttc_ptr);
 
 void start_dma_dac();
 // dds_dac

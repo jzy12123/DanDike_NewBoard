@@ -360,3 +360,58 @@ catch {bsp regenerate}
 platform generate
 platform generate -domains zynq_fsbl 
 platform generate -domains standalone_ps7_cortexa9_1 
+platform active {system_wrapper}
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+domain active {standalone_ps7_cortexa9_1}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform active {system_wrapper}
+platform clean
+platform generate
+bsp reload
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+platform clean
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+platform clean
+bsp reload
+catch {bsp regenerate}
+platform generate
+platform active {system_wrapper}
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate

@@ -16,6 +16,7 @@
 #include "Timer_sync.h"
 #include "power_pulse.h"
 #include "soft_timer.h"
+#include "StateSequence.h"
 
 #define JSON_ADDR 0x3AC00000
 
@@ -32,11 +33,6 @@
 #define ChnsDI 32
 #define ChnsDO 32
 #define DisoeMsgNum 10
-
-// 状态序列相关结构体定义
-#define MAX_SEQ_STEPS 50
-#define MAX_SEQ_HARMS 32
-
 
 /******************************************************************************************************
  * UDP结构体
@@ -307,61 +303,69 @@ extern int g_harm_number_thd; // 新增: 用于计算THD的谐波次数
 extern volatile double g_safe_total_p_for_isr;
 extern volatile double g_safe_total_q_for_isr;
 
-
-typedef struct {
-    int HN;
-    float U;
-    float PhU;
-    float I_;
-    float PhI;
+typedef struct
+{
+	int HN;
+	float U;
+	float PhU;
+	float I_;
+	float PhI;
 } Struct_Seq_Harm;
 
-typedef struct {
-    int Line;
-    int Chn;
-    float U;
-    float PhU;
-    float I_;
-    float PhI;
-    float F;
-    float UR; // 档位
-    float IR; // 档位
-    int HarmCount;
-    Struct_Seq_Harm Harms[MAX_SEQ_HARMS];
+#define MAX_SEQ_HARMS 32
+typedef struct
+{
+	int Line;
+	int Chn;
+	float U;
+	float PhU;
+	float I_;
+	float PhI;
+	float F;
+	float UR; // 档位
+	float IR; // 档位
+	int HarmCount;
+	Struct_Seq_Harm Harms[MAX_SEQ_HARMS];
 } Struct_Seq_AC;
 
-typedef struct {
-    int Chn;
-    int Val;
+typedef struct
+{
+	int Chn;
+	int Val;
 } Struct_Seq_DO;
 
-typedef struct {
-    int Chn;
-    int Val;
+typedef struct
+{
+	int Chn;
+	int Val;
 } Struct_Seq_TrigDI;
 
-typedef struct {
-    int MaxDuration;
-    int JumpTo;
-    int TrigLogic;
-    int TrigDICount;
-    Struct_Seq_TrigDI TrigDIs[8]; // 最大8个触发条件
-    int ACCount;
-    Struct_Seq_AC ACs[8]; //最大8个通道
-    int DOCount;
-    Struct_Seq_DO DOs[8]; // 最大8个开出
+typedef struct
+{
+	int MaxDuration;
+	int JumpTo;
+	int TrigLogic;
+	int TrigDICount;
+	Struct_Seq_TrigDI TrigDIs[8]; // 最大8个触发条件
+	int ACCount;
+	Struct_Seq_AC ACs[8]; // 最大8个通道
+	int DOCount;
+	Struct_Seq_DO DOs[8]; // 最大8个开出
 } Struct_Seq_Step;
 
-typedef struct {
-    int StartMode;
-    char StartTime[32];
-    int RepeatCount;
-    int RecStartState;
-    int RecMS;
-    int RecSamp;
-    int StepCount;
-    Struct_Seq_Step Steps[MAX_SEQ_STEPS];
+#define MAX_SEQ_STEPS 50
+typedef struct
+{
+	int StartMode;
+	char StartTime[32];
+	int RepeatCount;
+	int RecStartState;
+	int RecMS;
+	int RecSamp;
+	int StepCount;
+	Struct_Seq_Step Steps[MAX_SEQ_STEPS];
 } Struct_StateSequence;
+extern Struct_StateSequence g_StateSequenceTask; // 状态序列全局变量
 /******************************************************************************************************
  * 函数申明
  ******************************************************************************************************/
@@ -404,8 +408,5 @@ void handle_StateSequence(cJSON *data);
 // 主动上报
 void report_protection_event(u8 ProectFault);
 void check_and_report_energy_test_status(void);
-
-
-
 
 #endif

@@ -20,13 +20,13 @@
 #include "8025IIC.h"
 #include "IIC_Master.h"
 #include "power_pulse.h"
-
+#include "StateSequence.h"
 // ================= 功能函数声明 =================
 static void RunADCPIDCycle(void);
 
 int main()
 {
-	sleep(30); // 必须要有等待linux启动
+	//	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -65,6 +65,15 @@ int main()
 		xil_printf("Initialization failed %d\r\n", status);
 	}
 
+	/************************** 状态序列初始化 *****************************/
+	xil_printf("CPU1: Initializing State Sequence Module...\r\n");
+	status = StateSequence_Init();
+	if (status != XST_SUCCESS)
+	{
+		xil_printf("CPU1: State Sequence Init Failed (CDMA or TTC error).\r\n");
+	}
+	sleep(1);
+
 	/************************** 定时器初始化 *****************************/
 	xil_printf("CPU1: Initializing Timer...\r\n");
 	status = timer_init(&Timer); // 定时器初始化
@@ -73,6 +82,7 @@ int main()
 		xil_printf("Timer Initial Failed\r\n");
 	}
 
+	// 消抖定时器初始化
 	xil_printf("CPU1: Initializing Debounce Timer...\r\n");
 	status = debounce_timer_init();
 	if (status != XST_SUCCESS)
@@ -82,13 +92,13 @@ int main()
 
 	/************************** 建立中断系统 *****************************/
 	xil_printf("CPU1: Initializing Interrupt System...\r\n");
-	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst);
+	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst, &SeqTtcInstance);
 	if (status != XST_SUCCESS)
 	{
 		xil_printf("CPU1: Failed intr setup\r\n");
 	}
-
 	sleep(2);
+
 	/************************** IIC初始化 *****************************/
 	RTC_Time_t rtc_time_read;
 	Out_RealTime time_from_rtc_to_soft;
@@ -222,6 +232,10 @@ int main()
 	OnOff_Start(bit_8, 1);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
+
+	sleep(1);
+	Test_StateSequence_Scenario();
+	
 	while (1)
 	{
 		/* 1. 应用硬件参数的逻辑（如果被JSON指令修改） */
@@ -550,7 +564,6 @@ void RunADCPIDCycle(void)
 			calculated_total_p += lineAC.p[i];
 			calculated_total_q += lineAC.q[i];
 		}
-		
 	}
 
 	// 总功率因数，使用局部变量完成所有相关计算

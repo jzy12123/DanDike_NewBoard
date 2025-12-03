@@ -15,11 +15,11 @@ LSCRIPT := -Tlscript.ld
 
 CURRENT_DIR = $(shell pwd)
 DEPFILES := $(patsubst %.o, %.d, $(OBJS))
-LIBS := zynq_fsbl_bsp/ps7_cortexa9_0/lib/libxil.a
+LIBS := zynq_fsbl_bsp/ps7_cortexa9_1/lib/libxil.a
 EXEC := fsbl.elf
 
-INCLUDEPATH := -Izynq_fsbl_bsp/ps7_cortexa9_0/include -I.
-LIBPATH := -Lzynq_fsbl_bsp/ps7_cortexa9_0/lib -L./
+INCLUDEPATH := -Izynq_fsbl_bsp/ps7_cortexa9_1/include -I.
+LIBPATH := -Lzynq_fsbl_bsp/ps7_cortexa9_1/lib -L./
 
 all: $(EXEC)
 

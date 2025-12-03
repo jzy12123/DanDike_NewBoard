@@ -162,6 +162,8 @@ proc create_hier_cell_adda { parentCell nameHier } {
 
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M00_AXI
 
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M01_AXI
+
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI
 
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI1
@@ -169,6 +171,8 @@ proc create_hier_cell_adda { parentCell nameHier } {
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI2
 
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE
+
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE1
 
 
   # Create pins
@@ -189,6 +193,38 @@ proc create_hier_cell_adda { parentCell nameHier } {
   set_property -dict [ list \
    CONFIG.SINGLE_PORT_BRAM {1} \
  ] $axi_bram_ctrl_0
+
+  # Create instance: axi_bram_ctrl_1, and set properties
+  set axi_bram_ctrl_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 axi_bram_ctrl_1 ]
+  set_property -dict [ list \
+   CONFIG.DATA_WIDTH {32} \
+   CONFIG.ECC_TYPE {0} \
+   CONFIG.SINGLE_PORT_BRAM {1} \
+ ] $axi_bram_ctrl_1
+
+  # Create instance: axi_bram_ctrl_1_bram, and set properties
+  set axi_bram_ctrl_1_bram [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 axi_bram_ctrl_1_bram ]
+  set_property -dict [ list \
+   CONFIG.EN_SAFETY_CKT {false} \
+   CONFIG.Enable_B {Use_ENB_Pin} \
+   CONFIG.Memory_Type {True_Dual_Port_RAM} \
+   CONFIG.Port_A_Write_Rate {50} \
+   CONFIG.Port_B_Clock {100} \
+   CONFIG.Port_B_Enable_Rate {100} \
+   CONFIG.Port_B_Write_Rate {50} \
+   CONFIG.Use_Byte_Write_Enable {true} \
+   CONFIG.Use_RSTB_Pin {true} \
+ ] $axi_bram_ctrl_1_bram
+
+  # Create instance: axi_cdma_0, and set properties
+  set axi_cdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_cdma:4.1 axi_cdma_0 ]
+  set_property -dict [ list \
+   CONFIG.C_INCLUDE_DRE {1} \
+   CONFIG.C_INCLUDE_SG {0} \
+   CONFIG.C_M_AXI_DATA_WIDTH {32} \
+   CONFIG.C_M_AXI_MAX_BURST_LEN {32} \
+   CONFIG.C_USE_DATAMOVER_LITE {0} \
+ ] $axi_cdma_0
 
   # Create instance: axi_dma_0, and set properties
   set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
@@ -233,21 +269,33 @@ proc create_hier_cell_adda { parentCell nameHier } {
   # Create instance: dac_whole_0, and set properties
   set dac_whole_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:dac_whole:1.0 dac_whole_0 ]
 
+  # Create instance: smartconnect_0, and set properties
+  set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_MI {2} \
+   CONFIG.NUM_SI {1} \
+ ] $smartconnect_0
+
   # Create interface connections
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins M00_AXI] [get_bd_intf_pins axi_smc/M00_AXI]
+  connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins S_AXI_LITE1] [get_bd_intf_pins axi_cdma_0/S_AXI_LITE]
+  connect_bd_intf_net -intf_net Conn3 [get_bd_intf_pins M01_AXI] [get_bd_intf_pins smartconnect_0/M01_AXI]
   connect_bd_intf_net -intf_net adc_whole_0_AD [get_bd_intf_pins AD_0] [get_bd_intf_pins adc_whole_0/AD]
   connect_bd_intf_net -intf_net adc_whole_0_M_AXIS [get_bd_intf_pins adc_whole_0/M_AXIS] [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM]
   connect_bd_intf_net -intf_net axi_bram_ctrl_0_BRAM_PORTA [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA] [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTA]
+  connect_bd_intf_net -intf_net axi_bram_ctrl_1_BRAM_PORTA [get_bd_intf_pins axi_bram_ctrl_1/BRAM_PORTA] [get_bd_intf_pins axi_bram_ctrl_1_bram/BRAM_PORTA]
+  connect_bd_intf_net -intf_net axi_cdma_0_M_AXI [get_bd_intf_pins axi_cdma_0/M_AXI] [get_bd_intf_pins smartconnect_0/S00_AXI]
   connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S] [get_bd_intf_pins axis_data_fifo_1/S_AXIS]
   connect_bd_intf_net -intf_net axi_dma_0_M_AXI_MM2S [get_bd_intf_pins axi_dma_0/M_AXI_MM2S] [get_bd_intf_pins axi_smc/S00_AXI]
   connect_bd_intf_net -intf_net axi_dma_0_M_AXI_S2MM [get_bd_intf_pins axi_dma_0/M_AXI_S2MM] [get_bd_intf_pins axi_smc/S01_AXI]
   connect_bd_intf_net -intf_net axis_data_fifo_1_M_AXIS [get_bd_intf_pins axis_data_fifo_1/M_AXIS] [get_bd_intf_pins dac_whole_0/S_AXIS]
-  connect_bd_intf_net -intf_net dac_whole_0_BRAM [get_bd_intf_pins blk_mem_gen_0/BRAM_PORTB] [get_bd_intf_pins dac_whole_0/BRAM]
+  connect_bd_intf_net -intf_net dac_whole_0_BRAM [get_bd_intf_pins axi_bram_ctrl_1_bram/BRAM_PORTB] [get_bd_intf_pins dac_whole_0/BRAM]
   connect_bd_intf_net -intf_net dac_whole_0_DA [get_bd_intf_pins DA_0] [get_bd_intf_pins dac_whole_0/DA]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M05_AXI [get_bd_intf_pins S_AXI_LITE] [get_bd_intf_pins axi_dma_0/S_AXI_LITE]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M06_AXI [get_bd_intf_pins S_AXI2] [get_bd_intf_pins adc_whole_0/S_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M07_AXI [get_bd_intf_pins S_AXI1] [get_bd_intf_pins dac_whole_0/S_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M08_AXI [get_bd_intf_pins S_AXI] [get_bd_intf_pins axi_bram_ctrl_0/S_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins axi_bram_ctrl_1/S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
 
   # Create port connections
   connect_bd_net -net adc_whole_0_yad_os [get_bd_pins yad_os_0] [get_bd_pins adc_whole_0/yad_os]
@@ -255,9 +303,9 @@ proc create_hier_cell_adda { parentCell nameHier } {
   connect_bd_net -net axi_dma_0_s2mm_introut [get_bd_pins s2mm_introut] [get_bd_pins axi_dma_0/s2mm_introut]
   connect_bd_net -net axis_data_fifo_1_prog_empty [get_bd_pins prog_empty] [get_bd_pins axis_data_fifo_1/prog_empty]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins CLK25MHz_ARESETN] [get_bd_pins dac_whole_0/CLK25MHz_ARESETN]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins s_axi_lite_aclk] [get_bd_pins adc_whole_0/M_AXIS_ACLK] [get_bd_pins adc_whole_0/S_AXI_ACLK] [get_bd_pins axi_bram_ctrl_0/s_axi_aclk] [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_smc/aclk] [get_bd_pins axis_data_fifo_1/s_axis_aclk] [get_bd_pins dac_whole_0/S_AXIS_ACLK] [get_bd_pins dac_whole_0/S_AXI_ACLK]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins s_axi_lite_aclk] [get_bd_pins adc_whole_0/M_AXIS_ACLK] [get_bd_pins adc_whole_0/S_AXI_ACLK] [get_bd_pins axi_bram_ctrl_0/s_axi_aclk] [get_bd_pins axi_bram_ctrl_1/s_axi_aclk] [get_bd_pins axi_cdma_0/m_axi_aclk] [get_bd_pins axi_cdma_0/s_axi_lite_aclk] [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_smc/aclk] [get_bd_pins axis_data_fifo_1/s_axis_aclk] [get_bd_pins dac_whole_0/S_AXIS_ACLK] [get_bd_pins dac_whole_0/S_AXI_ACLK] [get_bd_pins smartconnect_0/aclk]
   connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins CLK25MHz] [get_bd_pins dac_whole_0/CLK25MHz]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins S_AXI_ARESETN] [get_bd_pins adc_whole_0/M_AXIS_ARESETN] [get_bd_pins adc_whole_0/S_AXI_ARESETN] [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_smc/aresetn] [get_bd_pins axis_data_fifo_1/s_axis_aresetn] [get_bd_pins dac_whole_0/S_AXIS_ARESETN] [get_bd_pins dac_whole_0/S_AXI_ARESETN]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins S_AXI_ARESETN] [get_bd_pins adc_whole_0/M_AXIS_ARESETN] [get_bd_pins adc_whole_0/S_AXI_ARESETN] [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] [get_bd_pins axi_bram_ctrl_1/s_axi_aresetn] [get_bd_pins axi_cdma_0/s_axi_lite_aresetn] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_smc/aresetn] [get_bd_pins axis_data_fifo_1/s_axis_aresetn] [get_bd_pins dac_whole_0/S_AXIS_ARESETN] [get_bd_pins dac_whole_0/S_AXI_ARESETN] [get_bd_pins smartconnect_0/aresetn]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -665,6 +713,8 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
 
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M00_AXI
 
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M01_AXI
+
   create_bd_intf_pin -mode Master -vlnv xilinx.com:user:OnOff_rtl:1.0 OnOff_0
 
   create_bd_intf_pin -mode Master -vlnv xilinx.com:user:RdSerial_rtl:1.0 RdSerial_0
@@ -678,6 +728,8 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI3
 
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE
+
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE1
 
   create_bd_intf_pin -mode Master -vlnv xilinx.com:user:WrSerial_rtl:1.0 WrSerial_0
 
@@ -709,6 +761,8 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   set stimer_onoff_pa_rw_A_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:stimer_onoff_pa_rw:1.0 stimer_onoff_pa_rw_A_0 ]
 
   # Create interface connections
+  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins S_AXI_LITE1] [get_bd_intf_pins adda/S_AXI_LITE1]
+  connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins M01_AXI] [get_bd_intf_pins adda/M01_AXI]
   connect_bd_intf_net -intf_net S_AXI_1 [get_bd_intf_pins S_AXI] [get_bd_intf_pins stimer_onoff_pa_rw_A_0/S_AXI]
   connect_bd_intf_net -intf_net adc_whole_0_AD [get_bd_intf_pins AD_0] [get_bd_intf_pins adda/AD_0]
   connect_bd_intf_net -intf_net adda_M00_AXI [get_bd_intf_pins M00_AXI] [get_bd_intf_pins adda/M00_AXI]
@@ -1624,7 +1678,7 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_USE_S_AXI_GP1 {0} \
    CONFIG.PCW_USE_S_AXI_HP0 {1} \
    CONFIG.PCW_USE_S_AXI_HP1 {1} \
-   CONFIG.PCW_USE_S_AXI_HP2 {0} \
+   CONFIG.PCW_USE_S_AXI_HP2 {1} \
    CONFIG.PCW_USE_S_AXI_HP3 {0} \
    CONFIG.PCW_USE_TRACE {0} \
    CONFIG.PCW_VALUE_SILVERSION {3} \
@@ -1637,22 +1691,11 @@ proc create_root_design { parentCell } {
   # Create instance: ps7_0_axi_periph, and set properties
   set ps7_0_axi_periph [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 ps7_0_axi_periph ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {17} \
+   CONFIG.NUM_MI {18} \
  ] $ps7_0_axi_periph
 
   # Create instance: rst_ps7_0_100M, and set properties
   set rst_ps7_0_100M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_100M ]
-
-  # Create instance: system_ila_0, and set properties
-  set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
-  set_property -dict [ list \
-   CONFIG.C_BRAM_CNT {4} \
-   CONFIG.C_DATA_DEPTH {65536} \
-   CONFIG.C_MON_TYPE {NATIVE} \
-   CONFIG.C_NUM_OF_PROBES {2} \
-   CONFIG.C_PROBE0_TYPE {0} \
-   CONFIG.C_PROBE1_TYPE {0} \
- ] $system_ila_0
 
   # Create instance: xlconcat, and set properties
   set xlconcat [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat ]
@@ -1667,6 +1710,7 @@ proc create_root_design { parentCell } {
  ] $xlconcat_BareMetal
 
   # Create interface connections
+  connect_bd_intf_net -intf_net AC_8_channel_0_M01_AXI [get_bd_intf_pins AC_8_channel_0/M01_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP2]
   connect_bd_intf_net -intf_net RTC_EEPROM_IIC_0 [get_bd_intf_ports RTCEEPROM_IIC] [get_bd_intf_pins RTC_EEPROM/IIC_0]
   connect_bd_intf_net -intf_net adc_whole_0_AD [get_bd_intf_ports AD_0] [get_bd_intf_pins AC_8_channel_0/AD_0]
   connect_bd_intf_net -intf_net adda_M00_AXI [get_bd_intf_pins AC_8_channel_0/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
@@ -1703,6 +1747,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M14_AXI [get_bd_intf_pins RTC_EEPROM/S_AXI] [get_bd_intf_pins ps7_0_axi_periph/M14_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M15_AXI [get_bd_intf_pins power_pulse_v1_AXI_0/S_AXI] [get_bd_intf_pins ps7_0_axi_periph/M15_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M16_AXI [get_bd_intf_pins axi_intc_BareMetal/s_axi] [get_bd_intf_pins ps7_0_axi_periph/M16_AXI]
+  connect_bd_intf_net -intf_net ps7_0_axi_periph_M17_AXI [get_bd_intf_pins AC_8_channel_0/S_AXI_LITE1] [get_bd_intf_pins ps7_0_axi_periph/M17_AXI]
   connect_bd_intf_net -intf_net rgb2lcd_0_rgb_data [get_bd_intf_ports rgb_data] [get_bd_intf_pins lcd/rgb_data]
 
   # Create port connections
@@ -1710,8 +1755,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net AC_8_channel_0_date_update [get_bd_pins AC_8_channel_0/date_update] [get_bd_pins xlconcat_BareMetal/In8]
   connect_bd_net -net AC_8_channel_0_irig_b_out_0 [get_bd_ports irig_b_out_0] [get_bd_pins AC_8_channel_0/irig_b_out_0]
   connect_bd_net -net AC_8_channel_0_mm2s_introut [get_bd_pins AC_8_channel_0/mm2s_introut] [get_bd_pins xlconcat_BareMetal/In1]
-  connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins system_ila_0/probe0] [get_bd_pins xlconcat_BareMetal/In3]
-  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets AC_8_channel_0_onoff_done]
+  connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins xlconcat_BareMetal/In3]
   connect_bd_net -net AC_8_channel_0_pps_50_0 [get_bd_ports pps_50_0] [get_bd_pins AC_8_channel_0/pps_50_0]
   connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_BareMetal/In9]
   connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_BareMetal/In2]
@@ -1721,7 +1765,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net Op1_0_2 [get_bd_ports Coder_Int] [get_bd_pins coder/Op1_0]
   connect_bd_net -net PWM_0_pwm [get_bd_ports lcd_bl] [get_bd_pins lcd/lcd_bl]
   connect_bd_net -net a_in_0_1 [get_bd_ports Coder_A] [get_bd_pins coder/a_in_0]
-  connect_bd_net -net axi_intc_BareMetal_irq [get_bd_pins axi_intc_BareMetal/irq] [get_bd_pins processing_system7_0/Core1_nIRQ] [get_bd_pins system_ila_0/probe1]
+  connect_bd_net -net axi_intc_BareMetal_irq [get_bd_pins axi_intc_BareMetal/irq] [get_bd_pins processing_system7_0/Core1_nIRQ]
   connect_bd_net -net axi_uartlite_0_interrupt [get_bd_pins axi_uartlite_0/interrupt] [get_bd_pins xlconcat_BareMetal/In6]
   connect_bd_net -net b_in_0_1 [get_bd_ports Coder_B] [get_bd_pins coder/b_in_0]
   connect_bd_net -net clk_10MHz_0_1 [get_bd_ports clk_10MHz_0] [get_bd_pins AC_8_channel_0/clk_10MHz_0]
@@ -1740,14 +1784,14 @@ proc create_root_design { parentCell } {
   connect_bd_net -net pps_gps_0_1 [get_bd_ports pps_gps_0] [get_bd_pins AC_8_channel_0/pps_gps_0]
   connect_bd_net -net pps_in_0_1 [get_bd_ports pps_in_0] [get_bd_pins AC_8_channel_0/pps_in_0]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins AC_8_channel_0/CLK25MHz_ARESETN] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins AC_8_channel_0/s_axi_lite_aclk] [get_bd_pins RTC_EEPROM/s_axi_aclk] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins axi_intc_BareMetal/s_axi_aclk] [get_bd_pins axi_uartlite_0/s_axi_aclk] [get_bd_pins coder/s00_axi_aclk] [get_bd_pins key_board/s_axi_aclk] [get_bd_pins lcd/s_axi_aclk] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/M03_ACLK] [get_bd_pins ps7_0_axi_periph/M04_ACLK] [get_bd_pins ps7_0_axi_periph/M05_ACLK] [get_bd_pins ps7_0_axi_periph/M06_ACLK] [get_bd_pins ps7_0_axi_periph/M07_ACLK] [get_bd_pins ps7_0_axi_periph/M08_ACLK] [get_bd_pins ps7_0_axi_periph/M09_ACLK] [get_bd_pins ps7_0_axi_periph/M10_ACLK] [get_bd_pins ps7_0_axi_periph/M11_ACLK] [get_bd_pins ps7_0_axi_periph/M12_ACLK] [get_bd_pins ps7_0_axi_periph/M13_ACLK] [get_bd_pins ps7_0_axi_periph/M14_ACLK] [get_bd_pins ps7_0_axi_periph/M15_ACLK] [get_bd_pins ps7_0_axi_periph/M16_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk] [get_bd_pins system_ila_0/clk]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins AC_8_channel_0/s_axi_lite_aclk] [get_bd_pins RTC_EEPROM/s_axi_aclk] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins axi_intc_BareMetal/s_axi_aclk] [get_bd_pins axi_uartlite_0/s_axi_aclk] [get_bd_pins coder/s00_axi_aclk] [get_bd_pins key_board/s_axi_aclk] [get_bd_pins lcd/s_axi_aclk] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP2_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/M03_ACLK] [get_bd_pins ps7_0_axi_periph/M04_ACLK] [get_bd_pins ps7_0_axi_periph/M05_ACLK] [get_bd_pins ps7_0_axi_periph/M06_ACLK] [get_bd_pins ps7_0_axi_periph/M07_ACLK] [get_bd_pins ps7_0_axi_periph/M08_ACLK] [get_bd_pins ps7_0_axi_periph/M09_ACLK] [get_bd_pins ps7_0_axi_periph/M10_ACLK] [get_bd_pins ps7_0_axi_periph/M11_ACLK] [get_bd_pins ps7_0_axi_periph/M12_ACLK] [get_bd_pins ps7_0_axi_periph/M13_ACLK] [get_bd_pins ps7_0_axi_periph/M14_ACLK] [get_bd_pins ps7_0_axi_periph/M15_ACLK] [get_bd_pins ps7_0_axi_periph/M16_ACLK] [get_bd_pins ps7_0_axi_periph/M17_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
   connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins AC_8_channel_0/CLK25MHz] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK1]
   connect_bd_net -net processing_system7_0_FCLK_CLK2 [get_bd_pins lcd/ACLK] [get_bd_pins processing_system7_0/FCLK_CLK2] [get_bd_pins processing_system7_0/S_AXI_HP1_ACLK]
   connect_bd_net -net processing_system7_0_FCLK_CLK3 [get_bd_pins gmii2rgmii_0/idelay_clk] [get_bd_pins processing_system7_0/FCLK_CLK3]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins lcd/ext_reset_in] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
   connect_bd_net -net pulse_p_in_0_1 [get_bd_ports pulse_p_in_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_p_in]
   connect_bd_net -net pulse_q_in_0_1 [get_bd_ports pulse_q_in_0] [get_bd_pins power_pulse_v1_AXI_0/pulse_q_in]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins AC_8_channel_0/S_AXI_ARESETN] [get_bd_pins RTC_EEPROM/s_axi_aresetn] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins axi_intc_BareMetal/s_axi_aresetn] [get_bd_pins axi_uartlite_0/s_axi_aresetn] [get_bd_pins coder/s00_axi_aresetn] [get_bd_pins key_board/s_axi_aresetn] [get_bd_pins lcd/s_axi_aresetn] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/M03_ARESETN] [get_bd_pins ps7_0_axi_periph/M04_ARESETN] [get_bd_pins ps7_0_axi_periph/M05_ARESETN] [get_bd_pins ps7_0_axi_periph/M06_ARESETN] [get_bd_pins ps7_0_axi_periph/M07_ARESETN] [get_bd_pins ps7_0_axi_periph/M08_ARESETN] [get_bd_pins ps7_0_axi_periph/M09_ARESETN] [get_bd_pins ps7_0_axi_periph/M10_ARESETN] [get_bd_pins ps7_0_axi_periph/M11_ARESETN] [get_bd_pins ps7_0_axi_periph/M12_ARESETN] [get_bd_pins ps7_0_axi_periph/M13_ARESETN] [get_bd_pins ps7_0_axi_periph/M14_ARESETN] [get_bd_pins ps7_0_axi_periph/M15_ARESETN] [get_bd_pins ps7_0_axi_periph/M16_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins AC_8_channel_0/S_AXI_ARESETN] [get_bd_pins RTC_EEPROM/s_axi_aresetn] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins axi_intc_BareMetal/s_axi_aresetn] [get_bd_pins axi_uartlite_0/s_axi_aresetn] [get_bd_pins coder/s00_axi_aresetn] [get_bd_pins key_board/s_axi_aresetn] [get_bd_pins lcd/s_axi_aresetn] [get_bd_pins power_pulse_v1_AXI_0/S_AXI_ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/M03_ARESETN] [get_bd_pins ps7_0_axi_periph/M04_ARESETN] [get_bd_pins ps7_0_axi_periph/M05_ARESETN] [get_bd_pins ps7_0_axi_periph/M06_ARESETN] [get_bd_pins ps7_0_axi_periph/M07_ARESETN] [get_bd_pins ps7_0_axi_periph/M08_ARESETN] [get_bd_pins ps7_0_axi_periph/M09_ARESETN] [get_bd_pins ps7_0_axi_periph/M10_ARESETN] [get_bd_pins ps7_0_axi_periph/M11_ARESETN] [get_bd_pins ps7_0_axi_periph/M12_ARESETN] [get_bd_pins ps7_0_axi_periph/M13_ARESETN] [get_bd_pins ps7_0_axi_periph/M14_ARESETN] [get_bd_pins ps7_0_axi_periph/M15_ARESETN] [get_bd_pins ps7_0_axi_periph/M16_ARESETN] [get_bd_pins ps7_0_axi_periph/M17_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
   connect_bd_net -net v_axi4s_vid_out_0_vid_active_video [get_bd_ports lcd_de] [get_bd_pins lcd/lcd_de]
   connect_bd_net -net v_axi4s_vid_out_0_vid_hsync [get_bd_ports lcd_hsync] [get_bd_pins lcd/lcd_hsync]
   connect_bd_net -net v_axi4s_vid_out_0_vid_vsync [get_bd_ports lcd_vsync] [get_bd_pins lcd/lcd_vsync]
@@ -1758,6 +1802,7 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x43C40000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs lcd/PWM_0/PWM_AXI/PWM_AXI_reg] -force
   assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/adda/adc_whole_0/S_AXI/reg0] -force
   assign_bd_address -offset 0x40000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/adda/axi_bram_ctrl_0/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x7E200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/adda/axi_cdma_0/S_AXI_LITE/Reg] -force
   assign_bd_address -offset 0x40400000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/adda/axi_dma_0/S_AXI_LITE/Reg] -force
   assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
   assign_bd_address -offset 0x41210000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs lcd/axi_gpio_0/S_AXI/Reg] -force
@@ -1773,6 +1818,8 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x43C20000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs AC_8_channel_0/stimer_onoff_pa_rw_A_0/S_AXI/reg0] -force
   assign_bd_address -offset 0x43C60000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs lcd/v_tc_0/ctrl/Reg] -force
   assign_bd_address -offset 0x00000000 -range 0x10000000 -target_address_space [get_bd_addr_spaces lcd/axi_vdma_0/Data_MM2S] [get_bd_addr_segs processing_system7_0/S_AXI_HP1/HP1_DDR_LOWOCM] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00004000 -target_address_space [get_bd_addr_spaces AC_8_channel_0/adda/axi_cdma_0/Data] [get_bd_addr_segs AC_8_channel_0/adda/axi_bram_ctrl_1/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces AC_8_channel_0/adda/axi_cdma_0/Data] [get_bd_addr_segs processing_system7_0/S_AXI_HP2/HP2_DDR_LOWOCM] -force
   assign_bd_address -offset 0x2E800000 -range 0x00800000 -target_address_space [get_bd_addr_spaces AC_8_channel_0/adda/axi_dma_0/Data_MM2S] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
   assign_bd_address -offset 0x2E800000 -range 0x00800000 -target_address_space [get_bd_addr_spaces AC_8_channel_0/adda/axi_dma_0/Data_S2MM] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
 

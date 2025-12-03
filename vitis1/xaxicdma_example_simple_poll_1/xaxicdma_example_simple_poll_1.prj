@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="xaxicdma_example_simple_poll_1" location="C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/xaxicdma_example_simple_poll_1" platform="C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm" platformUID="xilinx:::0.0(custom)" systemProject="xaxicdma_example_simple_poll_1_system" sysConfig="system_wrapper" runtime="C/C++" cpu="standalone_ps7_cortexa9_1" cpuInstance="ps7_cortexa9_1" os="standalone" mssSignature="dd3831990327889be9c604a0e90da896">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.1961110438" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.1303022358" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="empty_application"/>
+</sdkproject:SdkProject>

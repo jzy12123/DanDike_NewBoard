@@ -23,6 +23,7 @@
 #include "cJSON.h"		// <--- 新增: 用于创建JSON
 #include "Msg_Que.h"	// <--- 新增: 用于发送消息
 #include "soft_timer.h" // <--- 新增: 用于获取年月日
+#include "StateSequence.h"
 // Zynq-7000 SLCR (System Level Control Registers) 的基地址
 #define SLCR_BASE_ADDR 0xF8000000
 

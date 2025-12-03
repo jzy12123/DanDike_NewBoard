@@ -29,7 +29,7 @@ void PowerPulse_Init(void)
     // 中文注释: 打开写有功(P)和无功(Q)脉冲的使能
     Xil_Out32(POWER_PULSE_BASE + PP_REG_WRITE_ENABLE, 0x3);
 
-    printf("Power pulse module initialized.\n");
+    printf("CPU1: Power pulse module initialized.\n");
 }
 
 /**

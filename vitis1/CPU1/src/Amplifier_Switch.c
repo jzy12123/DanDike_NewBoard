@@ -533,7 +533,12 @@ void debounce_timer_handler(void *CallBackRef)
 
 		if (changed_bits != 0)
 		{
-			// 调用新的辅助函数上报JSON
+
+			// 将当前的稳定DI值传入状态序列状态机，状态机内部会判断当前Step是否配置了DI触发逻辑
+			// 优先处理状态序列跳转
+			StateSequence_DI_Check(changed_bits, stable_input_data);
+
+			// 调用辅助函数上报JSON
 			report_di_soe_event(stable_input_data, changed_bits, &last_captured_time);
 
 			// 更新上一次的稳定状态

@@ -2,8 +2,6 @@
 #include "xil_printf.h"
 #include "sleep.h" // 包含 usleep (如果是裸机环境) 或 <unistd.h> (如果是Linux用户空间)
 
-// 如果是 PetaLinux 用户空间应用, 使用 #include <unistd.h> for usleep
-// 如果是裸机 (standalone BSP), Xilinx SDK/Vitis 提供的 sleep.h 包含 usleep (通常是忙等待)
 
 /**
  * @brief 将一个0-99的整数转换为BCD码 (存储在一个字节中)

@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/src",
-      "program": "c:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/src/build/Debug/outDebug",
+      "cwd": "c:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1",
+      "program": "c:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/CPU1/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

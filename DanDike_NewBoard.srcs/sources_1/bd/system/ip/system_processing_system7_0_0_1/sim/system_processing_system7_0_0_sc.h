@@ -82,6 +82,8 @@ public:
   xtlm::xtlm_aximm_target_socket* S_AXI_HP0_wr_socket;
   xtlm::xtlm_aximm_target_socket* S_AXI_HP1_rd_socket;
   xtlm::xtlm_aximm_target_socket* S_AXI_HP1_wr_socket;
+  xtlm::xtlm_aximm_target_socket* S_AXI_HP2_rd_socket;
+  xtlm::xtlm_aximm_target_socket* S_AXI_HP2_wr_socket;
 
   // module socket-to-socket TLM interfaces
 

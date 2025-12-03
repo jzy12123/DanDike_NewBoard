@@ -11,7 +11,7 @@ int IIC_Master_Init(void)
     u32 Divider;
     volatile u32 Timeout;
 
-    xil_printf("IIC_Master_Init: Initializing Shared AXI IIC at 0x%08X\r\n", (unsigned int)BaseAddr);
+    // xil_printf("IIC_Master_Init: Initializing Shared AXI IIC at 0x%08X\r\n", (unsigned int)BaseAddr);
 
     // 步骤 1: 在配置前确保控制器是失能的
     XIic_WriteReg(BaseAddr, XIIC_CR_REG_OFFSET, 0);
@@ -24,8 +24,8 @@ int IIC_Master_Init(void)
         return XST_FAILURE;
     }
     Divider = (S_AXI_ACLK_FREQ_HZ / (4 * I2C_SCL_TARGET_FREQ_HZ)) - 1;
-    xil_printf("IIC_Master_Init: AXI CLK=%uHz, Target SCL=%uHz, Divider=0x%X\r\n",
-               (unsigned int)S_AXI_ACLK_FREQ_HZ, (unsigned int)I2C_SCL_TARGET_FREQ_HZ, (unsigned int)Divider);
+    // xil_printf("IIC_Master_Init: AXI CLK=%uHz, Target SCL=%uHz, Divider=0x%X\r\n",
+    //            (unsigned int)S_AXI_ACLK_FREQ_HZ, (unsigned int)I2C_SCL_TARGET_FREQ_HZ, (unsigned int)Divider);
     XIic_WriteReg(BaseAddr, AXI_IIC_TX_CLK_REG_OFFSET, Divider & 0x3FF);
 
     // 步骤 3: 使能控制器，并设为主模式
@@ -45,6 +45,6 @@ int IIC_Master_Init(void)
         usleep(10);
     }
 
-    xil_printf("IIC_Master_Init: Shared AXI IIC Initialized Successfully.\r\n");
+    // xil_printf("IIC_Master_Init: Shared AXI IIC Initialized Successfully.\r\n");
     return XST_SUCCESS;
 }

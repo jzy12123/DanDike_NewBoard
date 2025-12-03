@@ -1,0 +1,53 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Wed Sep 24 11:42:15 2025
+# Process ID: 21196
+# Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent17536 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+# Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+update_compile_order -fileset sources_1
+delete_bd_objs [get_bd_nets RTC_EEPROM_iic2intc_irpt]
+save_bd_design
+startgroup
+set_property -dict [list CONFIG.NUM_PORTS {10}] [get_bd_cells xlconcat_BareMetal]
+endgroup
+save_bd_design
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+startgroup
+set_property -dict [list CONFIG.PCW_QSPI_GRP_SINGLE_SS_ENABLE {1} CONFIG.PCW_I2C0_PERIPHERAL_ENABLE {0}] [get_bd_cells processing_system7_0]
+endgroup
+save_bd_design
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+disconnect_bd_net /axi_intc_BareMetal_irq [get_bd_pins system_ila_0/probe1]
+disconnect_bd_net /AC_8_channel_0_onoff_done [get_bd_pins system_ila_0/probe0]
+disconnect_bd_net /processing_system7_0_FCLK_CLK0 [get_bd_pins system_ila_0/clk]
+delete_bd_objs [get_bd_cells system_ila_0]
+regenerate_bd_layout
+apply_bd_automation -rule xilinx.com:bd_rule:debug -dict [list \
+                                                          [get_bd_nets AC_8_channel_0_onoff_done] {PROBE_TYPE "Data and Trigger" CLK_SRC "/processing_system7_0/FCLK_CLK0" SYSTEM_ILA "Auto" } \
+                                                         ]
+startgroup
+set_property HDL_ATTRIBUTE.DEBUG false [get_bd_nets { AC_8_channel_0_onoff_done } ]
+disconnect_bd_net [get_bd_net AC_8_channel_0_onoff_done] [get_bd_pins system_ila_0/probe0]
+apply_bd_automation -rule xilinx.com:bd_rule:resize [get_bd_cells system_ila_0]
+endgroup
+set_property location {2 498 1382} [get_bd_cells axi_intc_BareMetal]
+set_property location {1.5 236 1383} [get_bd_cells xlconcat_BareMetal]
+regenerate_bd_layout
+set_property location {1 78 2240} [get_bd_cells axi_intc_BareMetal]
+set_property location {1 127 2030} [get_bd_cells xlconcat]
+set_property location {0.5 -134 2269} [get_bd_cells xlconcat_BareMetal]
+save_bd_design
