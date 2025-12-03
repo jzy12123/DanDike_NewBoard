@@ -1000,3 +1000,6 @@ timestamp=[2025-12-02 18:18:59], mode=BUILD, duration=0:00:00.565, duration_ms=5
 timestamp=[2025-12-02 19:07:29], mode=BUILD, duration=0:00:01.646, duration_ms=1646, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-12-02 19:16:58], mode=BUILD, duration=0:00:00.507, duration_ms=507, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-12-02 19:20:29], mode=BUILD, duration=0:00:01.350, duration_ms=1350, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 09:33:46], mode=WORKBENCH_START, duration=0:00:17.251, duration_ms=17251, data={}
+timestamp=[2025-12-03 09:33:47], mode=WORKBENCH_UI_INIT, duration=0:00:00.854, duration_ms=854, data={editors_count=3, platform_editors_count=1, projects_count=6, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper,xaxicdma_example_simple_poll_1,xaxicdma_example_simple_poll_1_system}
+timestamp=[2025-12-03 09:33:47], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.135, duration_ms=135, data={}
