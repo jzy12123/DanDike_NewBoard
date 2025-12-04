@@ -681,6 +681,8 @@ void str_wr_bram(PID_STATE pid_state)
         printf("CPU1: str_wr_bram could not acquire lock.\n");
         return; // 获取锁失败，不执行后续操作
     }
+    u32 data_2channl; // 32位数据，存放2个通道16位的波形
+    u16 channel_cnt = 0;
 
     u16 frequency_divisor; // 分频系数 默认为1953
 

@@ -7,7 +7,7 @@
 
 // 全局变量
 StateSeq_Runtime_t g_StateSeqRuntime;
-static XAxiCdma CdmaInstance;
+XAxiCdma CdmaInstance;
 
 // 全局定义 TTC 实例
 XTtcPs SeqTtcInstance;
@@ -662,99 +662,4 @@ void Test_StateSequence_Scenario(void)
     xil_printf("CPU1: [TEST] 8-Channel Sequence Configured.\r\n");
 
     StateSequence_PrepareAndStart();
-}
-
-/**
- * @brief CDMA DDR->DDR 回环测试
- * @return XST_SUCCESS 或 XST_FAILURE
- */
-int StateSequence_Test_CDMA_Loopback(void)
-{
-    xil_printf("\r\n--- Starting CDMA DDR Loopback Test ---\r\n");
-
-    u32 *SrcPtr = (u32 *)STATE_SEQ_DDR_BUFFER_BASE;
-    u32 *DestPtr = (u32 *)STATE_SEQ_DDR_TEST_DEST;
-    u32 Length = 1024 * 4; // 测试 4KB 数据 (1024个 words)
-    int Status;
-
-    // 1. 初始化源数据 (写入已知模式，如 0, 1, 2...)
-    // 同时将目的地址清零，防止误判
-    for (int i = 0; i < 1024; i++)
-    {
-        SrcPtr[i] = i;
-        DestPtr[i] = 0;
-    }
-
-    // 2. 关键：刷新 Cache
-    // CPU 刚写完数据在 Cache 里，还没到 DDR。CDMA 是从 DDR 读的。
-    // 所以必须把 Src 刷入 DDR，并把 Dest 从 Cache 中失效（防止CPU读到旧的0）。
-    Xil_DCacheFlushRange((UINTPTR)SrcPtr, Length);
-    Xil_DCacheInvalidateRange((UINTPTR)DestPtr, Length);
-
-    // 3. 检查 CDMA 是否空闲
-    int timeout = 10000;
-    while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
-    {
-        timeout--;
-    }
-    if (timeout == 0)
-    {
-        xil_printf("CPU1: [TEST FAIL] CDMA is Busy before start. Resetting...\r\n");
-        XAxiCdma_Reset(&CdmaInstance);
-        return XST_FAILURE;
-    }
-
-    // 4. 启动传输 (DDR -> DDR)
-    xil_printf("CPU1: Transferring %d bytes from 0x%X to 0x%X...\r\n",
-               Length, (unsigned int)SrcPtr, (unsigned int)DestPtr);
-
-    Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)SrcPtr, (UINTPTR)DestPtr,
-                                     Length, NULL, NULL);
-    if (Status != XST_SUCCESS)
-    {
-        xil_printf("CPU1: [TEST FAIL] CDMA Submit Failed (Status %d)\r\n", Status);
-        return XST_FAILURE;
-    }
-
-    // 5. 等待完成
-    timeout = 1000000;
-    while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
-    {
-        timeout--;
-    }
-    if (timeout == 0)
-    {
-        xil_printf("CPU1: [TEST FAIL] CDMA Timeout! Hardware hung.\r\n");
-        XAxiCdma_Reset(&CdmaInstance);
-        return XST_FAILURE;
-    }
-
-    // 6. 再次失效 Cache (保险起见)
-    // 确保 CPU 读取 DestPtr 时是从 DDR 拿最新的 CDMA 搬运过来的数据
-    Xil_DCacheInvalidateRange((UINTPTR)DestPtr, Length);
-
-    // 7. 数据校验
-    int err_cnt = 0;
-    for (int i = 0; i < 1024; i++)
-    {
-        if (DestPtr[i] != i)
-        {
-            err_cnt++;
-            if (err_cnt < 5)
-            { // 只打印前几个错误
-                xil_printf("Error at index %d: Read 0x%X, Expected 0x%X\r\n", i, DestPtr[i], i);
-            }
-        }
-    }
-
-    if (err_cnt == 0)
-    {
-        xil_printf("CPU1: [TEST PASS] CDMA Loopback Successful!\r\n");
-        return XST_SUCCESS;
-    }
-    else
-    {
-        xil_printf("CPU1: [TEST FAIL] Data Mismatch count: %d\r\n", err_cnt);
-        return XST_FAILURE;
-    }
 }

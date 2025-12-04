@@ -1,13 +1,13 @@
-10:15:14 **** Incremental Build of configuration Debug for project CPU1 ****
+11:11:44 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
-'Building file: ../src/StateSequence.c'
+'Building file: ../src/ADDA.c'
 'Invoking: ARM v7 gcc compiler'
-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/StateSequence.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/StateSequence.d" -MT"src/StateSequence.o" -o "src/StateSequence.o" "../src/StateSequence.c"
-'Finished building: ../src/StateSequence.c'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/ADDA.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/ADDA.d" -MT"src/ADDA.o" -o "src/ADDA.o" "../src/ADDA.c"
+'Finished building: ../src/ADDA.c'
 ' '
 'Building target: CPU1.elf'
 'Invoking: ARM v7 gcc linker'
@@ -17,9 +17,9 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 287352	   4632	21325360	21617344	149dac0	CPU1.elf
+ 286856	   4632	21325360	21616848	149d8d0	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-10:15:15 Build Finished (took 1s.278ms)
+11:11:45 Build Finished (took 1s.356ms)
 

@@ -15,8 +15,7 @@
 #define WAVE_STEP_SIZE_BYTES (DATA_LEN * 4 * 4) // 16KB (1024点 * 4字节 * 4组)
 
 // 定义 BRAM 的物理地址
-#define STATE_SEQ_BRAM_BASEADDR 0xc0000000
-#define STATE_SEQ_DDR_TEST_DEST 0x30100000
+#define STATE_SEQ_BRAM_BASEADDR 0xC0000000
 
 // 硬件设备ID
 #define CDMA_DEVICE_ID XPAR_AXICDMA_0_DEVICE_ID
@@ -51,6 +50,7 @@ typedef struct
 
 extern StateSeq_Runtime_t g_StateSeqRuntime;
 extern XTtcPs SeqTtcInstance;
+extern XAxiCdma CdmaInstance;
 // ================= 函数声明 =================
 int StateSequence_Init(void);
 void StateSequence_PrepareAndStart(void);
@@ -62,5 +62,4 @@ void StateSequence_TTC_Handler(void *CallBackRef);
 void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val);
 
 void Test_StateSequence_Scenario(void);
-int StateSequence_Test_CDMA_Loopback(void);
 #endif // STATE_SEQUENCE_H
