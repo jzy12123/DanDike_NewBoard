@@ -451,21 +451,133 @@ void StateSequence_PrepareAndStart(void)
     Execute_Step(0);
 }
 
+// [新增] 将指定Step的参数同步到全局变量 (setACS, Wave_Amplitude等)
+// 确保序列结束后，主循环接管时能保持最后的输出状态
+static void Sync_Step_To_Global(int stepIndex)
+{
+    if (stepIndex < 0 || stepIndex >= g_StateSequenceTask.StepCount)
+        return;
+
+    Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
+    xil_printf("CPU1: Syncing Step %d parameters to Global State...\r\n", stepIndex);
+
+    // 1. 清空全局谐波数据 (假设Step中未定义的通道无谐波)
+    memset(numHarmonics, 0, sizeof(numHarmonics));
+    memset(harmonics, 0, sizeof(harmonics));
+    memset(harmonics_phases, 0, sizeof(harmonics_phases));
+
+    // 2. 遍历步骤中的 AC 配置
+    for (int i = 0; i < pStep->ACCount; i++)
+    {
+        Struct_Seq_AC *pAC = &pStep->ACs[i];
+
+        // 映射 Line/Chn 到全局索引 (0-7)
+        // 逻辑通道 0-3 (对应 A, B, C, X)
+        int chn_log = pAC->Chn - 1;
+        if (chn_log < 0 || chn_log > 3)
+            continue;
+
+        int idx_u = chn_log;     // 0,1,2,3
+        int idx_i = chn_log + 4; // 4,5,6,7
+
+        // --- 同步参数到 setACS ---
+        setACS.Vals[idx_u].U = pAC->U;
+        setACS.Vals[idx_u].PhU = pAC->PhU;
+        setACS.Vals[idx_u].UR = pAC->UR;
+        setACS.Vals[idx_u].F = pAC->F; // 频率
+
+        setACS.Vals[idx_u].I_ = pAC->I_;
+        setACS.Vals[idx_u].PhI = pAC->PhI;
+        setACS.Vals[idx_u].IR = pAC->IR;
+
+        // 更新全局控制变量
+        Wave_Frequency = pAC->F; // 假设所有通道频率一致
+
+        // 更新波形幅值 Wave_Amplitude (百分比)
+        if (pAC->UR > 0.001f)
+            Wave_Amplitude[idx_u] = (pAC->U / pAC->UR) * 100.0f;
+        else
+            Wave_Amplitude[idx_u] = 0.0f;
+
+        if (pAC->IR > 0.001f)
+            Wave_Amplitude[idx_i] = (pAC->I_ / pAC->IR) * 100.0f;
+        else
+            Wave_Amplitude[idx_i] = 0.0f;
+
+        // 更新量程 Wave_Range
+        Wave_Range[idx_u] = voltage_to_output(pAC->UR);
+        Wave_Range[idx_i] = current_to_output(pAC->IR);
+
+        // 更新相位 Phase_shift
+        Phase_shift[idx_u] = pAC->PhU;
+        Phase_shift[idx_i] = pAC->PhI;
+
+        // --- 同步谐波参数 ---
+        for (int h = 0; h < pAC->HarmCount; h++)
+        {
+            int hn = pAC->Harms[h].HN;
+            int h_idx = hn - 2; // 2次谐波对应索引0
+            if (h_idx >= 0 && h_idx < MAX_HARMONICS)
+            {
+                // 电压谐波
+                if (hn > numHarmonics[idx_u])
+                    numHarmonics[idx_u] = hn;
+                harmonics[idx_u][h_idx] = pAC->Harms[h].U / 100.0f; // 协议是%, 全局是小数
+                harmonics_phases[idx_u][h_idx] = pAC->Harms[h].PhU;
+
+                // 电流谐波
+                if (hn > numHarmonics[idx_i])
+                    numHarmonics[idx_i] = hn;
+                harmonics[idx_i][h_idx] = pAC->Harms[h].I_ / 100.0f;
+                harmonics_phases[idx_i][h_idx] = pAC->Harms[h].PhI;
+            }
+        }
+    }
+
+    // 更新 DO 状态 (lineDO 和 g_do_output_state)
+    // 这样 GetDevState 回读时也是正确的
+    for (int k = 0; k < pStep->DOCount; k++)
+    {
+        int chn = pStep->DOs[k].Chn; // 1-based
+        int val = pStep->DOs[k].Val;
+        if (chn >= 1 && chn <= ChnsDO)
+        {
+            lineDO.DO[chn - 1].v = val;
+            // 同时更新硬件状态变量
+            if (val)
+                g_do_output_state |= (1 << (chn + 23));
+            else
+                g_do_output_state &= ~(1 << (chn + 23));
+        }
+    }
+}
+
 void StateSequence_Stop(void)
 {
     if (!g_StateSeqRuntime.IsRunning)
         return;
 
+    // 1. 停止定时器 (不再产生新的步骤切换)
     XTtcPs_Stop(&SeqTtcInstance);
 
-    // 关闭输出 (使用 Value Update 序列写入 0)
-    Seq_Hw_SetValue(0, 0, 0, 0);
+    // 2. [关键] 不要清空硬件输出！
+    // 原先的 Seq_Hw_SetValue(0...) 和 Xil_Out32(...0x00) 被移除
+    // 硬件将保持在最后一次 Execute_Step 设置的状态
 
-    // 关闭 DA IP
-    Xil_Out32(dac_whole_base_addr + 8, 0x00);
+    // 3. 将当前（最后执行的）Step 参数同步到全局变量
+    // 这样当 IsRunning 变为 false 后，主循环恢复工作时，
+    // str_wr_bram 会读取这些全局变量，生成与当前硬件输出一致的波形，实现无缝衔接。
+    Sync_Step_To_Global(g_StateSeqRuntime.CurrentStepIndex);
 
+    // 4. 标记系统状态为运行
+    // 这告诉主循环：现在是“运行”状态，不要执行关断逻辑
+    devState.bACMeterMode = 0; // 源模式
+    devState.nStatusFund = 1;  // 运行状态
+
+    // 5. 结束状态序列任务
     g_StateSeqRuntime.IsRunning = false;
-    xil_printf("CPU1: StateSeq - Stopped.\r\n");
+
+    xil_printf("CPU1: StateSeq - Finished. Output HELD and SYNCED to global state.\r\n");
 }
 
 // ================= 中断处理 =================
