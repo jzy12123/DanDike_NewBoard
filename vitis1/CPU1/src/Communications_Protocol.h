@@ -68,15 +68,15 @@ typedef struct
 extern ReportEnableStatus reportStatus;
 
 // 100=DevState, 装置状态（16字节）
-// 字节顺序：bACMeterMode, bClosedLoop, bACRunning, bHarmRunning, Reserved4..Reserved15
+// 字节顺序：bACMeterMode, bClosedLoop, nStatusFund, bHarmRunning, Reserved4..Reserved15
 typedef struct
 {
-	uint8_t bACMeterMode; // 1字节 // 0=交流源状态;1=交流表状态
-	uint8_t bClosedLoop;  // 1字节 // 0=开环状态;1=闭环状态
-	uint8_t bACRunning;	  // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
-	uint8_t bHarmRunning; // 1字节 // 0=停止状态;1=运行状态;2=暂停状态
-	uint8_t Reserved4;
-	uint8_t Reserved5;
+	uint8_t bACMeterMode;  // 1字节 // 0=交流源状态;1=交流表状态
+	uint8_t bClosedLoop;   // 1字节 // 0=开环状态;1=闭环状态
+	uint8_t nStatusFund;   // 1字节 // (原bACRunning) 基波: 0=停止;1=运行;2=暂停
+	uint8_t nStatusHarm;   // 1字节 // (原bHarmRunning) 谐波: 0=停止;1=运行;2=暂停
+	uint8_t nStatusInharm; // 1字节 // 间谐波: 0=停止;1=运行;2=暂停
+	uint8_t bAutoRange;	   // 1字节 // 0=手动档;1=自动档
 	uint8_t Reserved6;
 	uint8_t Reserved7;
 	uint8_t Reserved8;
@@ -87,7 +87,6 @@ typedef struct
 	uint8_t Reserved13;
 	uint8_t Reserved14;
 	uint8_t Reserved15;
-
 } DevState;
 extern DevState devState;
 
@@ -391,20 +390,17 @@ void handle_SetDCM(cJSON *data);
 void handle_SetACS(cJSON *data);
 void handle_SetACM(cJSON *data);
 void handle_SetHarm(cJSON *data);
-void handle_SetDI(cJSON *data);
 void handle_SetDO(cJSON *data);
 void handle_StopDCS(cJSON *data);
-void handle_SetHarmStatus(cJSON *data);
 void handle_SetACStatus(cJSON *data);
 void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);
 void handle_SetSysTimeSyncMode(cJSON *data);
-void handle_SetPulseOut(cJSON *data);
 void handle_SetTaskEnergyTest(cJSON *data);
 void handle_TerminateRunningTask(cJSON *data);
 void handle_StateSequence(cJSON *data);
-
+void handle_SetDevState(cJSON *data);  
 // 主动上报
 void report_protection_event(u8 ProectFault);
 void check_and_report_energy_test_status(void);

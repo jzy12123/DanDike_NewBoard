@@ -113,7 +113,7 @@ static void Precalculate_Waveforms()
                 }
             }
             // 生成电压波形 (满量程，不缩放)
-            addHarmonics(TempWaveData[u_hw_idx], DATA_LEN, pAC->PhU, MAX_HARMONICS, u_harm_amps, u_harm_phases);
+            addHarmonics(TempWaveData[u_hw_idx], DATA_LEN, pAC->PhU, MAX_HARMONICS, u_harm_amps, u_harm_phases, true, true);
 
             // ----------------------------------------------------
             // 2.2 电流通道 (物理通道 4-7)
@@ -133,7 +133,7 @@ static void Precalculate_Waveforms()
                 }
             }
             // 生成电流波形 (满量程，不缩放)
-            addHarmonics(TempWaveData[i_hw_idx], DATA_LEN, pAC->PhI, MAX_HARMONICS, i_harm_amps, i_harm_phases);
+            addHarmonics(TempWaveData[i_hw_idx], DATA_LEN, pAC->PhI, MAX_HARMONICS, i_harm_amps, i_harm_phases, true, true);
         }
 
         // 3. 打包数据写入 DDR (32位 = 高16位[Ch+1] | 低16位[Ch])
@@ -416,78 +416,6 @@ int StateSequence_Init(void)
     return XST_SUCCESS;
 }
 
-// [新增] 调试函数：利用 CDMA 把 BRAM 数据读回 DDR 进行校验
-static void Debug_Verify_BRAM_Content(int stepIndex)
-{
-    xil_printf("CPU1: [DEBUG] Verifying BRAM Content via CDMA Readback...\r\n");
-
-    // 1. 准备接收回读数据的 DDR 缓冲区
-    // 使用之前的测试地址 0x30100000，长度 64字节 (检查前16个点)
-    u32 *DdrReadbackBuf = (u32 *)STATE_SEQ_DDR_TEST_DEST;
-    u32 Length = 64;
-
-    // 2. 清空接收缓冲区 & 刷新 Cache
-    memset(DdrReadbackBuf, 0, Length);
-    Xil_DCacheFlushRange((UINTPTR)DdrReadbackBuf, Length);
-    Xil_DCacheInvalidateRange((UINTPTR)DdrReadbackBuf, Length); // 确保CPU下次读是从DDR读
-
-    // 3. 启动 CDMA： 源=BRAM, 目=DDR
-    // 也就是把刚才写入 BRAM 的数据读回来
-    u32 BramAddr = STATE_SEQ_BRAM_BASEADDR;
-
-    // 确保 CDMA 空闲
-    while (XAxiCdma_IsBusy(&CdmaInstance))
-        ;
-
-    int Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)BramAddr, (UINTPTR)DdrReadbackBuf,
-                                         Length, NULL, NULL);
-    if (Status != XST_SUCCESS)
-    {
-        xil_printf("CPU1: [DEBUG] Readback CDMA Submit Failed!\r\n");
-        return;
-    }
-
-    // 等待完成
-    int timeout = 1000000;
-    while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
-        timeout--;
-    if (timeout == 0)
-    {
-        xil_printf("CPU1: [DEBUG] Readback CDMA Timeout!\r\n");
-        XAxiCdma_Reset(&CdmaInstance);
-        return;
-    }
-
-    // 4. CPU 读取回读的数据 (先失效 Cache)
-    Xil_DCacheInvalidateRange((UINTPTR)DdrReadbackBuf, Length);
-
-    // 5. 获取原始的正确数据 (DDR中的源数据)
-    u32 *OriginalData = (u32 *)(UINTPTR)(STATE_SEQ_DDR_BUFFER_BASE + stepIndex * WAVE_STEP_SIZE_BYTES);
-
-    // 6. 比较并打印
-    int err_cnt = 0;
-    xil_printf("  idx | Expected (DDR) | Actual (BRAM Readback)\r\n");
-    xil_printf("  ----|----------------|-----------------------\r\n");
-    for (int i = 0; i < 8; i++)
-    { // 只打印前8个字 (16个通道点)
-        xil_printf("   %02d | 0x%08X     | 0x%08X %s\r\n",
-                   i, OriginalData[i], DdrReadbackBuf[i],
-                   (OriginalData[i] == DdrReadbackBuf[i]) ? "" : "<-- ERR");
-        if (OriginalData[i] != DdrReadbackBuf[i])
-            err_cnt++;
-    }
-
-    if (err_cnt == 0)
-    {
-        xil_printf("CPU1: [DEBUG] BRAM Write Verified OK! Data matches.\r\n");
-    }
-    else
-    {
-        xil_printf("CPU1: [DEBUG] BRAM Verification FAILED! Data mismatch.\r\n");
-        xil_printf("CPU1: Possible causes: BRAM Write failed, Address wrong, or BRAM Clock/Reset issue.\r\n");
-    }
-}
-
 void StateSequence_PrepareAndStart(void)
 {
     g_StateSeqRuntime.CurrentStepIndex = 0;
@@ -521,9 +449,6 @@ void StateSequence_PrepareAndStart(void)
 
     // 3. 执行第一步 (Values, Waveform, Timer)
     Execute_Step(0);
-
-    // 4. (可选) 调试校验
-    // Debug_Verify_BRAM_Content(0);
 }
 
 void StateSequence_Stop(void)
@@ -548,8 +473,7 @@ void StateSequence_Stop(void)
 void StateSequence_TTC_Handler(void *CallBackRef)
 {
     XTtcPs *Timer = (XTtcPs *)CallBackRef;
-    u32 StatusEvent = XTtcPs_GetInterruptStatus(Timer);
-    XTtcPs_ClearInterruptStatus(Timer, StatusEvent);
+    XTtcPs_ClearInterruptStatus(Timer, XTtcPs_GetInterruptStatus(Timer));
 
     if (!g_StateSeqRuntime.IsRunning)
         return;

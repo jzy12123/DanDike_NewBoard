@@ -5,18 +5,12 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251201.1606";
-const char ARM_Ver_Full[] = "[Ver]=V1.251201.1606";
+const char ARM_Ver_Full[] = "[Ver]=V1.251204.1006";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
 
 // --- Static global variables for Pause/Run state ---
-static int paused_numHarmonics[CHANNL_MAX];
-static float paused_harmonics[CHANNL_MAX][MAX_HARMONICS];
-static float paused_harmonics_phases[CHANNL_MAX][MAX_HARMONICS];
-static bool harmonics_are_paused = false;
-
-static float paused_Wave_Amplitude[8];
 uint8_t paused_bClosedLoop_state;
 uint8_t target_powamp_enable_state_after_pause = POWAMP_OFF;
 
@@ -27,8 +21,9 @@ int g_harm_number_thd = 31;     //  THD谐波次数全局变量定义与初始化
 volatile double g_safe_total_p_for_isr = 0.0;
 volatile double g_safe_total_q_for_isr = 0.0;
 
-// 中文注释: 定义全局变量以存储恒定模式的状态，默认为"Total"
-static const char *g_constant_mode = "Total";
+// 定义全局变量以存储恒定模式的状态，默认为"Total"，总有效值恒定还是基波恒定
+char g_constant_mode[16] = "Total";
+
 void extractContentBetweenPipes(char *buffer)
 {
     int len = strlen(buffer);
@@ -75,28 +70,42 @@ void extractContentBetweenPipes(char *buffer)
  */
 int Parse_JsonCommand(char *buffer)
 {
+    // 更新指令映射表
     FunCodeMap funCodeMap[] = {
         {"GetFunCodeList", handle_GetFunCodeList},
         {"GetDevBaseInfo", handle_GetDevBaseInfo},
         {"GetDevState", handle_GetDevState},
         {"SetReportEnable", handle_SetReportEnable},
+
+        // 源/表 设置
         {"SetDCS", handle_SetDCS},
         {"SetDCM", handle_SetDCM},
         {"SetACS", handle_SetACS},
         {"SetACM", handle_SetACM},
+
+        // 谐波/间谐波
         {"SetHarm", handle_SetHarm},
-        {"SetDI", handle_SetDI},
+
+        // 状态控制 (合并后)
+        {"SetACStatus", handle_SetACStatus},
+        // {"SetHarmStatus", handle_SetHarmStatus}, // 已合并到 SetACStatus
+        // {"SetInharmStatus", handle_SetACStatus}, // 已合并到 SetACStatus
+
+        // 统一参数设置 (替代 SetDI, SetPulseOut 等)
+        {"SetDevState", handle_SetDevState},
+        // {"SetDI", handle_SetDI},             // 已移除
+        // {"SetPulseOut", handle_SetPulseOut}, // 已移除
+
         {"SetDO", handle_SetDO},
         {"StopDCS", handle_StopDCS},
-        {"SetHarmStatus", handle_SetHarmStatus},
-        {"SetACStatus", handle_SetACStatus},
+
+        // 校准与事务
         {"SetCalibrateAC", handle_SetCalibrateAC},
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
         {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode},
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"TerminateRunningTask", handle_TerminateRunningTask},
-        {"SetPulseOut", handle_SetPulseOut},
         {"StateSequence", handle_StateSequence}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
@@ -158,7 +167,7 @@ void handle_GetFunCodeList(cJSON *data)
         "GetFunCodeList", "GetDevBaseInfo", "GetDevState", "SetServerReportEnable",
         "SetACS", "SetACStatus", "SetHarm", "SetHarmStatus", "SetInterHarm",
         "SetInterHarmStatus", "SetDCS", "StopDCS", "SetDCM", "SetACM",
-        "SetDO", "SetDI", "SetPulseOut"};
+        "SetDO"};
     const char *taskCmds[] = {
         "SetSysTimeSyncMode", "SetProgress", "SetTaskClockTest", "SetTaskEnergyTest",
         "SetTaskGradualChange", "WaveRecord", "WaveReplay", "StateSequence"};
@@ -286,8 +295,14 @@ void handle_GetDevBaseInfo(cJSON *data)
     // AC 信息
     cJSON *ac = cJSON_CreateObject();
     const char *acModes[] = {"S", "M"};
-    cJSON *acMode = cJSON_CreateStringArray(acModes, 2);
-    cJSON_AddItemToObject(ac, "Mode", acMode);
+    cJSON_AddItemToObject(ac, "Mode", cJSON_CreateStringArray(acModes, 2));
+
+    const char *calcMethods[] = {"Subgroup", "Group"};
+    cJSON_AddItemToObject(ac, "HarmCalcMethod", cJSON_CreateStringArray(calcMethods, 2));
+    const char *phaseRefs[] = {"FundUa", "FundChn"};
+    cJSON_AddItemToObject(ac, "HarmPhaseRef", cJSON_CreateStringArray(phaseRefs, 2));
+    cJSON_AddBoolToObject(ac, "InharmEnable", false); // 暂时不支持间谐波，填false
+
     cJSON_AddNumberToObject(ac, "HarmNumberMax", HarmNumberMax);
     cJSON_AddNumberToObject(ac, "LineCount", LinesAC);
     cJSON_AddNumberToObject(ac, "ChnCount", ChnsAC);
@@ -314,7 +329,6 @@ void handle_GetDevBaseInfo(cJSON *data)
     }
     cJSON_AddItemToObject(ac, "Chns", acChns);
     cJSON_AddItemToObject(dataObj, "AC", ac);
-    // --- 新增代码: 添加 HarmNumberTHD 到回复中 ---
     cJSON_AddNumberToObject(ac, "HarmNumberTHD", g_harm_number_thd);
 
     // DCS 信息
@@ -327,11 +341,11 @@ void handle_GetDevBaseInfo(cJSON *data)
         cJSON *chnObj = cJSON_CreateObject();
         cJSON_AddNumberToObject(chnObj, "Chn", chn);
 
-        double urValues[] = {6.5, 3.25, 1.876}; // 示例量程
+        double urValues[] = {6.5, 3.25, 1.876};
         cJSON *urArray = cJSON_CreateDoubleArray(urValues, 3);
         cJSON_AddItemToObject(chnObj, "URs", urArray);
 
-        double irValues[] = {5, 1, 0.2}; // 示例量程
+        double irValues[] = {5, 1, 0.2};
         cJSON *irArray = cJSON_CreateDoubleArray(irValues, 3);
         cJSON_AddItemToObject(chnObj, "IRs", irArray);
 
@@ -467,10 +481,18 @@ void handle_GetDevState(cJSON *data)
     cJSON_AddStringToObject(task, "StartTime", "2024-01-31 00:00:00.123");
     cJSON_AddItemToObject(dataObj, "Task", task);
 
+    // [更新] 添加 HarmCalcMethod, HarmPhaseRef 属性 目前装置不支持，返回默认值
+    cJSON_AddStringToObject(dataObj, "ConstantMode", g_constant_mode);
+
     // AC 信息
     cJSON *ac = cJSON_CreateObject();
     cJSON_AddStringToObject(ac, "Mode", "S");
     cJSON_AddBoolToObject(ac, "ClosedLoop", devState.bClosedLoop == 1 ? true : false);
+
+    // [更新] AC节点下增加属性
+    cJSON_AddStringToObject(ac, "HarmCalcMethod", "Subgroup"); // 默认
+    cJSON_AddStringToObject(ac, "HarmPhaseRef", "FundUa");     // 默认
+    cJSON_AddNumberToObject(ac, "HarmNumberTHD", g_harm_number_thd);
 
     cJSON *acChns = cJSON_CreateArray();
     for (int line = 1; line <= LinesAC; line++)
@@ -592,6 +614,150 @@ void handle_GetDevState(cJSON *data)
     free(finalString);
     cJSON_Delete(reply);
     free(string);
+}
+
+/**
+ * @brief 处理 SetDevState 指令 (新增 20251115)
+ * @details 替代了 SetDI, SetPulseOut，并包含了 HarmNumberTHD 和 ConstantMode
+ */
+void handle_SetDevState(cJSON *data)
+{
+    if (data == NULL)
+        return;
+
+    // 1. 解析 AC 部分
+    cJSON *ac_item = cJSON_GetObjectItem(data, "AC");
+    if (ac_item)
+    {
+        // ConstantMode
+        cJSON *const_mode = cJSON_GetObjectItem(ac_item, "ConstantMode");
+        if (const_mode && cJSON_IsString(const_mode))
+        {
+            if (strcmp(const_mode->valuestring, "Total") == 0 || strcmp(const_mode->valuestring, "Fund") == 0)
+            {
+                strncpy(g_constant_mode, const_mode->valuestring, sizeof(g_constant_mode) - 1);
+                printf("CPU1: SetDevState -> ConstantMode: %s\r\n", g_constant_mode);
+            }
+        }
+
+        // HarmNumberTHD
+        cJSON *thd_item = cJSON_GetObjectItem(ac_item, "HarmNumberTHD");
+        if (thd_item && cJSON_IsNumber(thd_item))
+        {
+            int val = thd_item->valueint;
+            if (val >= 2 && val < HarmNumberMax)
+            {
+                g_harm_number_thd = val;
+                printf("CPU1: SetDevState -> HarmNumberTHD: %d\r\n", g_harm_number_thd);
+            }
+        }
+
+        // HarmCalcMethod 和 HarmPhaseRef (仅解析，暂不处理逻辑)
+        cJSON *method = cJSON_GetObjectItem(ac_item, "HarmCalcMethod");
+        if (method && cJSON_IsString(method))
+        {
+            printf("CPU1: SetDevState -> HarmCalcMethod: %s (Ignored)\r\n", method->valuestring);
+        }
+        cJSON *ref = cJSON_GetObjectItem(ac_item, "HarmPhaseRef");
+        if (ref && cJSON_IsString(ref))
+        {
+            printf("CPU1: SetDevState -> HarmPhaseRef: %s (Ignored)\r\n", ref->valuestring);
+        }
+    }
+
+    // 2. 解析 DI 部分 (原 SetDI)
+    cJSON *di_item = cJSON_GetObjectItem(data, "DI");
+    if (di_item)
+    {
+        cJSON *res_item = cJSON_GetObjectItem(di_item, "Resolution");
+        if (res_item && cJSON_IsNumber(res_item))
+        {
+            double val = res_item->valuedouble;
+            if (val >= 0.09 && val <= 100.01)
+            {
+                g_debounce_time_ms = val;
+                printf("CPU1: SetDevState -> DI Resolution: %.1f ms\r\n", g_debounce_time_ms);
+            }
+        }
+    }
+
+    // 3. 解析 EnergyOut 部分 (原 SetPulseOut 部分)
+    cJSON *energy_item = cJSON_GetObjectItem(data, "EnergyOut");
+    if (energy_item)
+    {
+        cJSON *p_const = cJSON_GetObjectItem(energy_item, "PulseConstantP");
+        if (p_const && cJSON_IsNumber(p_const))
+        {
+            g_PowerPulse.pulseConstantP = p_const->valueint;
+            printf("CPU1: SetDevState -> PulseConstantP: %lu\r\n", g_PowerPulse.pulseConstantP);
+        }
+        cJSON *q_const = cJSON_GetObjectItem(energy_item, "PulseConstantQ");
+        if (q_const && cJSON_IsNumber(q_const))
+        {
+            g_PowerPulse.pulseConstantQ = q_const->valueint;
+            printf("CPU1: SetDevState -> PulseConstantQ: %lu\r\n", g_PowerPulse.pulseConstantQ);
+        }
+    }
+
+    // 4. 解析 ClockOut 部分 (暂不支持，仅日志)
+    cJSON *clock_item = cJSON_GetObjectItem(data, "ClockOut");
+    if (clock_item)
+    {
+        cJSON *mode = cJSON_GetObjectItem(clock_item, "PulseMode");
+        if (mode && cJSON_IsString(mode))
+        {
+            printf("CPU1: SetDevState -> ClockOut PulseMode: %s (Ignored)\r\n", mode->valuestring);
+        }
+    }
+
+    // 回复 (回填当前状态)
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetDevState");
+    cJSON_AddStringToObject(reply, "Result", "Success");
+
+    cJSON *dataObj = cJSON_CreateObject();
+    // 构造 AC 回复
+    cJSON *acObj = cJSON_CreateObject();
+    cJSON_AddStringToObject(acObj, "ConstantMode", g_constant_mode);
+    cJSON_AddStringToObject(acObj, "HarmCalcMethod", "Subgroup"); // 默认
+    cJSON_AddStringToObject(acObj, "HarmPhaseRef", "FundUa");     // 默认
+    cJSON_AddNumberToObject(acObj, "HarmNumberTHD", g_harm_number_thd);
+    cJSON_AddItemToObject(dataObj, "AC", acObj);
+
+    // 构造 DI 回复
+    cJSON *diObj = cJSON_CreateObject();
+    cJSON_AddNumberToObject(diObj, "Resolution", g_debounce_time_ms);
+    cJSON_AddItemToObject(dataObj, "DI", diObj);
+
+    // 构造 EnergyOut 回复
+    cJSON *eoObj = cJSON_CreateObject();
+    cJSON_AddNumberToObject(eoObj, "PulseConstantP", g_PowerPulse.pulseConstantP);
+    cJSON_AddNumberToObject(eoObj, "PulseConstantQ", g_PowerPulse.pulseConstantQ);
+    cJSON_AddItemToObject(dataObj, "EnergyOut", eoObj);
+
+    // 构造 ClockOut 回复
+    cJSON *coObj = cJSON_CreateObject();
+    cJSON_AddStringToObject(coObj, "PulseMode", "Seconds");
+    cJSON_AddItemToObject(dataObj, "ClockOut", coObj);
+
+    cJSON_AddItemToObject(reply, "Data", dataObj);
+
+    // 发送
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
+    {
+        size_t len = strlen(string);
+        char *finalStr = malloc(len + 3);
+        if (finalStr)
+        {
+            snprintf(finalStr, len + 3, "|%s|", string);
+            MsgQue_write(finalStr, strlen(finalStr));
+            free(finalStr);
+        }
+        free(string);
+    }
+    cJSON_Delete(reply);
 }
 
 ReportEnableStatus reportStatus = {true, true, true, true, true, true, true, true, true, true};
@@ -1072,7 +1238,7 @@ void handle_SetACS(cJSON *data)
 
         // 更新设备状态 (UDP 结构体)
         devState.bACMeterMode = 0;                // 量程切换通常意味着处于源模式
-        devState.bACRunning = 0;                  // 切换量程时停止运行状态
+        devState.nStatusFund = 0;                 // 切换量程时停止运行状态
         devState.bClosedLoop = setACS.ClosedLoop; // 保持 JSON 中指定的 (或之前的) 闭环状态
 
         // 清空UDP结构体
@@ -1110,7 +1276,7 @@ void handle_SetACS(cJSON *data)
 
             // 更新设备状态 (UDP 结构体)
             devState.bACMeterMode = 0; // 正常设置通常是源模式
-            devState.bACRunning = 1;   // 运行状态
+            devState.nStatusFund = 1;  // 运行状态
             devState.bClosedLoop = setACS.ClosedLoop;
         }
         else
@@ -1123,7 +1289,7 @@ void handle_SetACS(cJSON *data)
 
             // 更新设备状态 (UDP 结构体)
             devState.bACMeterMode = 0;
-            devState.bACRunning = 0; // 停止运行状态
+            devState.nStatusFund = 0; // 停止运行状态
             devState.bClosedLoop = setACS.ClosedLoop;
 
             // 清空UDP结构体
@@ -1177,7 +1343,7 @@ void handle_SetACM(cJSON *data)
     // 映射到硬件
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 1;
-    devState.bACRunning = 1;
+    devState.nStatusFund = 1;
 
     udp_data_changed_flag = true;             // 更新UDP标志
     dac_parameters_updated_by_command = true; // 更新硬件操作标志
@@ -1185,26 +1351,17 @@ void handle_SetACM(cJSON *data)
 
 SetHarm setHarm;
 /**
- * @brief 处理 SetHarm (谐波输出设置) 请求 (修改后支持Reset功能并精确记录)
- * @param data 包含谐波设置数据的 cJSON 对象
- * @details
- * 该函数解析传入的JSON数据以设置谐波参数。
- * JSON的Data对象应包含一个可选的"Reset"布尔值和一个"vals"数组。
- * - "Reset": (可选) 如果为true，则在应用新设置前清除所有通道的现有谐波。默认为false。
- * - "vals": (必需) 一个JSON对象数组，每个对象定义一个谐波分量。
- * 该函数会精确更新 setHarm 全局结构体，以确保上报给UI的数据是完整的。
+ * @brief 处理 SetHarm 请求
  */
 void handle_SetHarm(cJSON *data)
 {
-    // 中文注释: 首先检查传入的Data对象是否有效
     if (data == NULL)
     {
         printf("CPU1: SetHarm Error: Missing Data object.\r\n");
-        // 可以选择发送一个失败的回复
         return;
     }
 
-    // 中文注释: 解析 "Reset" 字段
+    // 1. 处理 Reset
     cJSON *reset_item = cJSON_GetObjectItem(data, "Reset");
     bool reset_harmonics = false;
     if (reset_item != NULL && cJSON_IsTrue(reset_item))
@@ -1212,184 +1369,105 @@ void handle_SetHarm(cJSON *data)
         reset_harmonics = true;
     }
 
-    // 中文注释: 如果 Reset 为 true，则清空所有谐波相关数据
     if (reset_harmonics)
     {
-        printf("CPU1: Resetting all harmonic settings before applying new ones.\r\n");
-        // 中文注释: 清空存储运行时谐波参数的全局数组
+        printf("CPU1: SetHarm: Resetting all harmonic settings.\r\n");
         memset(numHarmonics, 0, sizeof(numHarmonics));
         memset(harmonics, 0, sizeof(harmonics));
         memset(harmonics_phases, 0, sizeof(harmonics_phases));
-        // 中文注释: 同时清空用于记录指令参数的全局结构体，确保状态一致
         memset(&setHarm, 0, sizeof(SetHarm));
-        memset(&lineHarm, 0, sizeof(LineHarm));
+        // 注意：不要清空 lineHarm，它是UDP回读用的，应该由主循环计算更新
     }
 
-    // 中文注释: 解析 "ConstantMode" 字段
-    cJSON *constant_mode_item = cJSON_GetObjectItem(data, "ConstantMode");
-    if (constant_mode_item != NULL && cJSON_IsString(constant_mode_item))
-    {
-        const char *mode_str = constant_mode_item->valuestring;
-        if (strcmp(mode_str, "Total") == 0 || strcmp(mode_str, "Fund") == 0)
-        {
-            g_constant_mode = mode_str; // 更新全局变量
-            printf("CPU1: ConstantMode set to %s.\n", g_constant_mode);
-        }
-    }
-
-    // 中文注释: 解析 "vals" 数组
+    // 2. 解析谐波数组 vals
     cJSON *vals_array = cJSON_GetObjectItem(data, "vals");
-    if (vals_array == NULL || !cJSON_IsArray(vals_array))
+    if (vals_array != NULL && cJSON_IsArray(vals_array))
     {
-        if (reset_harmonics)
+        // int dataCount = cJSON_GetArraySize(vals_array);
+        cJSON *item;
+
+        cJSON_ArrayForEach(item, vals_array)
         {
-            printf("CPU1: Harmonics cleared as requested, no new values provided.\r\n");
-        }
-        else
-        {
-            printf("CPU1: SetHarm Error: 'vals' array is missing or not an array.\r\n");
-        }
-        goto finalize_and_reply;
-    }
+            if (item == NULL)
+                continue;
 
-    int dataCount = cJSON_GetArraySize(vals_array);
-    printf("CPU1: %d harmonic settings received.\r\n", dataCount);
+            // 获取 Key
+            cJSON *line_item = cJSON_GetObjectItem(item, "Line");
+            cJSON *chn_item = cJSON_GetObjectItem(item, "Chn");
+            cJSON *hn_item = cJSON_GetObjectItem(item, "HN");
 
-    // 中文注释: 遍历 "vals" 数组中的每一个谐波设置项
-    cJSON *item; // 在循环外声明 item
-    cJSON_ArrayForEach(item, vals_array)
-    {
-        if (item == NULL)
-            continue;
+            if (!cJSON_IsNumber(line_item) || !cJSON_IsNumber(chn_item) || !cJSON_IsNumber(hn_item))
+                continue;
 
-        // 中文注释: 获取必要的参数：线路、通道和协波次数
-        cJSON *line_item = cJSON_GetObjectItem(item, "Line");
-        cJSON *chn_item = cJSON_GetObjectItem(item, "Chn");
-        cJSON *hn_item = cJSON_GetObjectItem(item, "HN");
+            int line = line_item->valueint;
+            int chn = chn_item->valueint;
+            int hn = hn_item->valueint;
 
-        // 中文注释: 确保 Line, Chn, HN 都存在且有效
-        if (!cJSON_IsNumber(line_item) || !cJSON_IsNumber(chn_item) || !cJSON_IsNumber(hn_item))
-        {
-            printf("CPU1: SetHarm: Skipping item due to missing or invalid Line, Chn, or HN.\r\n");
-            continue;
-        }
+            // 获取 Value
+            cJSON *u_item = cJSON_GetObjectItem(item, "U");
+            cJSON *phU_item = cJSON_GetObjectItem(item, "PhU");
+            cJSON *i_item = cJSON_GetObjectItem(item, "I");
+            cJSON *phI_item = cJSON_GetObjectItem(item, "PhI");
 
-        int line = line_item->valueint;
-        int chn = chn_item->valueint;
-        int hn = hn_item->valueint;
+            // 计算索引 (保留您原有的逻辑)
+            int channelIndex = chn - 1;
+            int harmonicIndex = hn - 2;
 
-        // 中文注释: 获取可选参数：电压/电流的幅值和相位
-        cJSON *u_item = cJSON_GetObjectItem(item, "U");
-        cJSON *phU_item = cJSON_GetObjectItem(item, "PhU");
-        cJSON *i_item = cJSON_GetObjectItem(item, "I");
-        cJSON *phI_item = cJSON_GetObjectItem(item, "PhI");
+            if (channelIndex < 0 || channelIndex >= ChnsAC || harmonicIndex < 0 || harmonicIndex >= MAX_HARMONICS)
+                continue;
 
-        // 中文注释: 计算用于硬件控制数组的索引 (channelIndex, harmonicIndex)
-        int channelIndex = chn - 1; // JSON中通道号从1开始
-        int harmonicIndex = hn - 2; // 2次谐波(HN=2)对应数组索引0
-
-        // 中文注释: 边界检查，防止硬件控制数组越界
-        if (channelIndex < 0 || channelIndex >= ChnsAC ||
-            harmonicIndex < 0 || harmonicIndex >= MAX_HARMONICS)
-        {
-            printf("CPU1: Invalid hardware index from Chn: %d, HN: %d.\r\n", chn, hn);
-            continue;
-        }
-
-        // 计算 setHarm.Vals[] 的精确索引
-        int line_idx = line - 1;
-        int chn_idx = chn - 1;
-        int hn_idx = hn - 1; // HN从1开始计数(基波为1), 所以数组索引为HN-1
-
-        // 中文注释: 计算公式：setHarmIndex = line_offset + channel_offset + harmonic_offset
-        int setHarmIndex = (line_idx * ChnsAC * HarmNumberMax) + (chn_idx * HarmNumberMax) + hn_idx;
-
-        // 中文注释: 边界检查，防止记录数组越界
-        if (setHarmIndex < 0 || setHarmIndex >= (LinesAC * ChnsAC * HarmNumberMax))
-        {
-            printf("CPU1: Invalid setHarm record index from Line:%d, Chn:%d, HN:%d.\r\n", line, chn, hn);
-            continue;
-        }
-
-        // 中文注释: 更新用于记录的 setHarm 结构体
-        setHarm.Vals[setHarmIndex].Line = line;
-        setHarm.Vals[setHarmIndex].Chn = chn;
-        setHarm.Vals[setHarmIndex].HN = hn;
-        // 中文注释: 只有当JSON中提供了相应字段时才更新记录值
-        if (u_item)
-            setHarm.Vals[setHarmIndex].U = (float)u_item->valuedouble;
-        if (phU_item)
-            setHarm.Vals[setHarmIndex].PhU = (float)phU_item->valuedouble;
-        if (i_item)
-            setHarm.Vals[setHarmIndex].I_ = (float)i_item->valuedouble;
-        if (phI_item)
-            setHarm.Vals[setHarmIndex].PhI = (float)phI_item->valuedouble;
-
-        // 中文注释: 更新用于硬件输出的电压(U)谐波参数
-        if (u_item != NULL)
-        {
-            float uValue = (float)u_item->valuedouble;
-            if (hn > numHarmonics[channelIndex])
+            // 记录到 setHarm 结构体 (用于回读)
+            int setHarmIndex = ((line - 1) * ChnsAC * HarmNumberMax) + ((chn - 1) * HarmNumberMax) + (hn - 1);
+            if (setHarmIndex >= 0 && setHarmIndex < (LinesAC * ChnsAC * HarmNumberMax))
             {
-                numHarmonics[channelIndex] = hn;
+                setHarm.Vals[setHarmIndex].Line = line;
+                setHarm.Vals[setHarmIndex].Chn = chn;
+                setHarm.Vals[setHarmIndex].HN = hn;
+                if (u_item)
+                    setHarm.Vals[setHarmIndex].U = (float)u_item->valuedouble;
+                if (phU_item)
+                    setHarm.Vals[setHarmIndex].PhU = (float)phU_item->valuedouble;
+                if (i_item)
+                    setHarm.Vals[setHarmIndex].I_ = (float)i_item->valuedouble;
+                if (phI_item)
+                    setHarm.Vals[setHarmIndex].PhI = (float)phI_item->valuedouble;
             }
-            harmonics[channelIndex][harmonicIndex] = uValue / 100.0f;
-            if (phU_item != NULL)
+
+            // 更新硬件数组
+            if (u_item != NULL)
             {
-                harmonics_phases[channelIndex][harmonicIndex] = (float)phU_item->valuedouble;
+                if (hn > numHarmonics[channelIndex])
+                    numHarmonics[channelIndex] = hn;
+                harmonics[channelIndex][harmonicIndex] = (float)u_item->valuedouble / 100.0f;
+                if (phU_item)
+                    harmonics_phases[channelIndex][harmonicIndex] = (float)phU_item->valuedouble;
             }
-        }
 
-        // 中文注释: 更新用于硬件输出的电流(I)谐波参数 (通道索引+4)
-        if (i_item != NULL)
-        {
-            float iValue = (float)i_item->valuedouble;
-            int currentChannelIndex = channelIndex + 4; // 电流通道的硬件索引
-            if (currentChannelIndex < CHANNL_MAX)
-            { // 再次检查边界
-                if (hn > numHarmonics[currentChannelIndex])
-                {
-                    numHarmonics[currentChannelIndex] = hn;
-                }
-                harmonics[currentChannelIndex][harmonicIndex] = iValue / 100.0f;
-                if (phI_item != NULL)
-                {
-                    harmonics_phases[currentChannelIndex][harmonicIndex] = (float)phI_item->valuedouble;
-                }
+            int currChIdx = channelIndex + 4;
+            if (i_item != NULL && currChIdx < CHANNL_MAX)
+            {
+                if (hn > numHarmonics[currChIdx])
+                    numHarmonics[currChIdx] = hn;
+                harmonics[currChIdx][harmonicIndex] = (float)i_item->valuedouble / 100.0f;
+                if (phI_item)
+                    harmonics_phases[currChIdx][harmonicIndex] = (float)phI_item->valuedouble;
             }
         }
     }
 
-    // --- 新增代码: 解析 HarmNumberTHD ---
-    cJSON *harm_thd_item = cJSON_GetObjectItem(data, "HarmNumberTHD");
-    if (harm_thd_item != NULL && cJSON_IsNumber(harm_thd_item))
-    {
-        int thd_num = harm_thd_item->valueint;
-        // 中文注释: 验证数值范围是否有效 [2, HarmNumberMax - 1]
-        if (thd_num >= 2 && thd_num < HarmNumberMax)
-        {
-            g_harm_number_thd = thd_num;
-            printf("CPU1: HarmNumberTHD has been set to %d.\n", g_harm_number_thd);
-        }
-        else
-        {
-            printf("CPU1: Warning: HarmNumberTHD value %d is out of range [2, %d]. Ignoring change.\n", thd_num, HarmNumberMax - 1);
-        }
-    }
+    // 3. 状态更新：设置完谐波参数后，自动将谐波状态置为运行
+    devState.nStatusHarm = 1; // 【关键修改】使用 nStatusHarm
 
-finalize_and_reply:
-    printf("CPU1: Generating waveform with updated harmonics.\r\n");
+    // 4. 触发更新
+    dac_parameters_updated_by_command = true;
+    udp_data_changed_flag = true;
+
+    // 5. 回复
     ReplyData replyData;
     strcpy(replyData.FunCode, "SetHarm");
     strcpy(replyData.Result, "Success");
     replyData.hasClosedLoop = false;
     write_reply_to_shared_memory(&replyData);
-
-    // 中文注释: 只要调用了SetHarm，就认为谐波进入了运行状态。
-    devState.bHarmRunning = 1; // 1 = 运行状态
-    // 中文注释: 设置标志位，通知主循环硬件参数已更新，并需要更新UDP数据
-    udp_data_changed_flag = true;
-    dac_parameters_updated_by_command = true;
 }
 
 SetDO setDO;
@@ -1486,64 +1564,6 @@ void handle_SetDO(cJSON *data)
     // 标记UDP数据需要更新
     udp_data_changed_flag = true;
 }
-/**
- * @brief 处理 SetDI (设置开入参数) 请求 (修改后)
- * @param data 包含分辨率设置的cJSON对象
- */
-void handle_SetDI(cJSON *data)
-{
-    char *result = "Failure";                     // 默认结果为失败
-    double resolution_reply = g_debounce_time_ms; // 默认回复当前值
-
-    cJSON *resolution_item = cJSON_GetObjectItem(data, "Resolution");
-    if (resolution_item && cJSON_IsNumber(resolution_item))
-    {
-        double resolution_val = resolution_item->valuedouble;
-        printf("CPU1: Received SetDI with Resolution: %.1f ms\r\n", resolution_val);
-
-        // 检查分辨率是否在有效范围内 [0.1, 100.0]
-        if (resolution_val >= 0.09f && resolution_val <= 100.01f)
-        {
-            g_debounce_time_ms = resolution_val; // 更新全局防抖时间
-            result = "Success";
-            resolution_reply = g_debounce_time_ms; // 回复中反映已成功设置的值
-            printf("CPU1: Debounce time set to: %.1f ms\r\n", g_debounce_time_ms);
-        }
-        else
-        {
-            printf("CPU1: SetDI Error: Resolution value %.1f is out of range (0.1 ~ 100.0 ms).\r\n", resolution_val);
-        }
-    }
-    else
-    {
-        printf("CPU1: SetDI Error: 'Resolution' field is missing or not a number.\r\n");
-    }
-
-    // 准备并发送回复
-    cJSON *reply = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply, "FunType", "Reply");
-    cJSON_AddStringToObject(reply, "FunCode", "SetDI");
-    cJSON_AddStringToObject(reply, "Result", result);
-
-    cJSON *reply_data = cJSON_CreateObject();
-    cJSON_AddNumberToObject(reply_data, "Resolution", resolution_reply);
-    cJSON_AddItemToObject(reply, "Data", reply_data);
-
-    char *string = cJSON_PrintUnformatted(reply);
-    if (string)
-    {
-        size_t stringLength = strlen(string);
-        char *finalString = (char *)malloc(stringLength + 3);
-        if (finalString)
-        {
-            snprintf(finalString, stringLength + 3, "|%s|", string);
-            MsgQue_write(finalString, strlen(finalString));
-            free(finalString);
-        }
-        free(string);
-    }
-    cJSON_Delete(reply);
-}
 
 void handle_StopDCS(cJSON *data)
 {
@@ -1560,245 +1580,139 @@ void handle_StopDCS(cJSON *data)
     write_reply_to_shared_memory(&replyData);
 }
 
-// 新函数：处理谐波输出的暂停/运行/停止
-void handle_SetHarmStatus(cJSON *data)
+/**
+ * @brief 辅助函数：处理状态字符串转数字
+ * @return 0=Stop, 1=Run, 2=Pause, -1=Error
+ */
+static int parse_status_string(const char *str)
 {
-    // xil_printf("CPU1: Handling SetHarmStatus...\r\n"); // 中文注释：处理设置谐波状态指令
-    const char *status_str = NULL;
-    char *reply_status_str = "Failure";
-
-    cJSON *status_item = NULL;
-
-    // 中文注释: 从Data对象中获取Status节点
-    if (data != NULL)
-    {
-        status_item = cJSON_GetObjectItem(data, "Status");
-    }
-
-    if (status_item != NULL && cJSON_IsString(status_item))
-    {
-        status_str = status_item->valuestring;
-    }
-    else
-    {
-        xil_printf("CPU1: SetHarmStatus: Invalid or missing Data.\r\n"); // 中文注释：无效或缺少数据
-        goto send_reply_harm_status;
-    }
-
-    if (strcmp(status_str, "Stop") == 0)
-    {
-        // printf("CPU1: SetHarmStatus: Stopping and clearing harmonics.\r\n"); // 中文注释：停止并清除谐波
-        memset(numHarmonics, 0, sizeof(numHarmonics));
-        memset(harmonics, 0, sizeof(harmonics));
-        memset(harmonics_phases, 0, sizeof(harmonics_phases));
-        harmonics_are_paused = false;
-
-        // 标记参数已更改，主循环将调用 str_wr_bram
-        devState.bHarmRunning = 0; // 谐波停止
-        dac_parameters_updated_by_command = true;
-        udp_data_changed_flag = true;
-        reply_status_str = "Stop";
-    }
-    else if (strcmp(status_str, "Pause") == 0)
-    {
-        if (!harmonics_are_paused)
-        {
-            // printf("CPU1: SetHarmStatus: Pausing harmonics.\r\n"); // 中文注释：暂停谐波
-            memcpy(paused_numHarmonics, numHarmonics, sizeof(numHarmonics));
-            memcpy(paused_harmonics, harmonics, sizeof(harmonics));
-            memcpy(paused_harmonics_phases, harmonics_phases, sizeof(harmonics_phases));
-            harmonics_are_paused = true;
-        }
-        // 临时将 numHarmonics 清零，以便主循环调用 str_wr_bram 时不输出谐波
-        memset(numHarmonics, 0, sizeof(numHarmonics));
-
-        devState.bHarmRunning = 2; // 谐波暂停
-        dac_parameters_updated_by_command = true;
-        udp_data_changed_flag = true;
-        reply_status_str = "Pause";
-    }
-    else if (strcmp(status_str, "Run") == 0)
-    {
-        // printf("CPU1: SetHarmStatus: Running harmonics.\r\n"); // 中文注释：运行谐波
-        if (harmonics_are_paused)
-        {
-            // printf("CPU1: SetHarmStatus: Restoring paused harmonics.\r\n"); // 中文注释：恢复暂停的谐波
-            memcpy(numHarmonics, paused_numHarmonics, sizeof(numHarmonics));
-            memcpy(harmonics, paused_harmonics, sizeof(harmonics));
-            memcpy(harmonics_phases, paused_harmonics_phases, sizeof(harmonics_phases));
-            harmonics_are_paused = false;
-        }
-        // 如果不是从暂停状态恢复，"Run"意味着使用当前（可能已通过SetHarm设置的）谐波参数
-
-        devState.bHarmRunning = 1; // 谐波运行
-        dac_parameters_updated_by_command = true;
-        udp_data_changed_flag = true;
-        reply_status_str = "Run";
-    }
-    else
-    {
-        xil_printf("CPU1: SetHarmStatus: Unknown Data value: %s\r\n", status_str); // 中文注释：未知的Data值
-        reply_status_str = "Failure";
-    }
-
-send_reply_harm_status:;
-    cJSON *reply = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply, "FunType", "Reply");
-    cJSON_AddStringToObject(reply, "FunCode", "SetHarmStatus");
-    cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
-    // 中文注释: 创建Data对象并添加Status节点以符合新协议
-    cJSON *reply_data = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply_data, "Status", reply_status_str);
-    cJSON_AddItemToObject(reply, "Data", reply_data);
-
-    char *string = cJSON_PrintUnformatted(reply);
-    if (string)
-    {
-        size_t stringLength = strlen(string);
-        char *finalString = (char *)malloc(stringLength + 3);
-        if (finalString)
-        {
-            snprintf(finalString, stringLength + 3, "|%s|", string);
-            MsgQue_write(finalString, strlen(finalString));
-            free(finalString);
-        }
-        free(string);
-    }
-    cJSON_Delete(reply);
+    if (!str)
+        return -1;
+    if (strcmp(str, "Stop") == 0)
+        return 0;
+    if (strcmp(str, "Run") == 0)
+        return 1;
+    if (strcmp(str, "Pause") == 0)
+        return 2;
+    return -1;
 }
 
-// 新函数：处理交流源的暂停/恢复/关闭
+/**
+ * @brief 辅助函数：状态数字转字符串
+ */
+static const char *get_status_string(int status)
+{
+    switch (status)
+    {
+    case 0:
+        return "Stop";
+    case 1:
+        return "Run";
+    case 2:
+        return "Pause";
+    default:
+        return "Stop";
+    }
+}
+/**
+ * @brief 处理 SetACStatus 指令 (协议20251115: 合并了SetACStatus, SetHarmStatus, SetInharmStatus)
+ * @details 独立控制 Fund(基波), Harm(谐波), Inharm(间谐波) 的状态 (0=Stop, 1=Run, 2=Pause)
+ */
 void handle_SetACStatus(cJSON *data)
 {
-    // xil_printf("CPU1: Handling SetACStatus...\r\n"); // 处理设置交流状态指令
-    const char *status_str = NULL;
-    char *reply_status_str = "Failure";
+    if (data == NULL)
+        return;
 
-    cJSON *status_item = NULL;
-
-    // 中文注释: 从Data对象中获取Status节点
-    if (data != NULL)
+    // --------------------------------------------------------
+    // 1. 处理基波 (Fund)
+    // --------------------------------------------------------
+    cJSON *fund_item = cJSON_GetObjectItem(data, "Fund");
+    if (fund_item && cJSON_IsString(fund_item))
     {
-        status_item = cJSON_GetObjectItem(data, "Status");
-    }
-
-    if (status_item != NULL && cJSON_IsString(status_item))
-    {
-        status_str = status_item->valuestring;
-    }
-    else
-    {
-        xil_printf("CPU1: SetACStatus: Invalid or missing Data.\r\n"); // 无效或缺少数据
-        goto send_reply_ac_status;
-    }
-
-    if (strcmp(status_str, "Stop") == 0)
-    {
-        // printf("CPU1: SetACStatus: Processing Stop command.\r\n"); // 处理停止指令
-        Wave_Frequency = 50.0f;
-        memset(Phase_shift, 0, sizeof(Phase_shift));
-        memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude));
-
-        memset(numHarmonics, 0, sizeof(numHarmonics));
-        memset(harmonics, 0, sizeof(harmonics));
-        memset(harmonics_phases, 0, sizeof(harmonics_phases));
-        harmonics_are_paused = false;
-
-        enable = 0x00; // 硬件操作将在主循环中根据此值执行
-
-        devState.bACRunning = 0; // 0=停止状态
-        // devState.bClosedLoop = 0; // 停止时通常恢复开环或默认状态 需要恢复开环吗
-
-        // 清空 lineAC 和 lineHarm 的测量值
-        initLineAC(&lineAC);
-        initLineHarm(&lineHarm);
-        for (int i = 0; i < 4; i++)
+        int status = parse_status_string(fund_item->valuestring); // 辅助函数: "Stop"->0, "Run"->1, "Pause"->2
+        if (status != -1)
         {
-            lineAC.ur[i] = setACS.Vals[i].UR; // 保留档位信息
-            lineAC.ir[i] = setACS.Vals[i].IR;
-        }
-        reply_status_str = "Stop";
-    }
-    else if (strcmp(status_str, "Pause") == 0)
-    {
-        // printf("CPU1: SetACStatus: Processing Pause command.\r\n"); // 处理暂停指令
-        if (devState.bACRunning != 2) // 确保是第一次进入暂停模式
-        {
-            memcpy(paused_Wave_Amplitude, Wave_Amplitude, sizeof(Wave_Amplitude)); // 保存功放输出状态
-            paused_bClosedLoop_state = devState.bClosedLoop;                       // 保存闭环状态
+            devState.nStatusFund = status; // 【修改】使用新的状态变量
 
-            target_powamp_enable_state_after_pause = POWAMP_OFF;
-            // 检查在暂停前是否有任何通道实际是使能并有输出的
-            for (int i = 0; i < 8; ++i)
+            if (status == 0) // Stop
             {
-                if ((enable & (1 << i)) && Wave_Amplitude[i] > 0.001f)
-                { // 使用原始Wave_Amplitude判断
-                    target_powamp_enable_state_after_pause = POWAMP_ON;
-                    break;
-                }
+                // 基波停止：清零幅值，复位频率和相位
+                Wave_Frequency = 50.0f;
+                memset(Phase_shift, 0, sizeof(Phase_shift));
+                memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude));
+                // 注意：这里仅清除基波参数，保留谐波参数
             }
+            printf("CPU1: SetACStatus -> Fund: %s (State=%d)\r\n", fund_item->valuestring, status);
         }
-        // 注意：不再在此处将全局 Wave_Amplitude 清零。
-        // 全局 Wave_Amplitude 保持暂停前的值，直到 Run 或 Stop。
-        // 硬件输出的幅值清零将在主循环中处理。
-
-        devState.bACRunning = 2; // 2=暂停状态
-        reply_status_str = "Pause";
     }
-    else if (strcmp(status_str, "Run") == 0)
+
+    // --------------------------------------------------------
+    // 2. 处理谐波 (Harm) - 【原 SetHarmStatus 的逻辑移到这里】
+    // --------------------------------------------------------
+    cJSON *harm_item = cJSON_GetObjectItem(data, "Harm");
+    if (harm_item && cJSON_IsString(harm_item))
     {
-        // printf("CPU1: SetACStatus: Processing Run command.\r\n"); // 中文注释：处理运行指令
-        if (devState.bACRunning == 2)
-        { // 如果是从暂停状态恢复
-            // printf("CPU1: SetACStatus: Resuming from paused state.\r\n"); // 中文注释：从暂停状态恢复
-            memcpy(Wave_Amplitude, paused_Wave_Amplitude, sizeof(Wave_Amplitude));
-            devState.bClosedLoop = paused_bClosedLoop_state; // 恢复开闭环状态
-            // target_powamp_enable_state_after_pause 将在主循环中用于决定是否开启功放
-        }
-        else if (devState.bACRunning == 0)
+        int status = parse_status_string(harm_item->valuestring);
+        if (status != -1)
         {
-            // 如果是从停止状态（0）变为运行，此时幅值等参数应已由SetACS设置或为0
-            // enable 和功放状态将由主循环根据 Wave_Amplitude 重新计算
-            printf("CPU1: SetACStatus: Transitioning from Stop to Run. Amplitudes should be set by SetACS if non-zero output is desired.\r\n");
-        }
-        else
-        {
-            // printf("CPU1: SetACStatus: Already in Run state or transitioning from non-pause state.\r\n");
-        }
+            devState.nStatusHarm = status; // 【修改】使用新的状态变量
 
-        devState.bACRunning = 1; // 1=运行状态
-        reply_status_str = "Run";
+            if (status == 0) // Stop
+            {
+                // 谐波停止：清空谐波数组
+                memset(numHarmonics, 0, sizeof(numHarmonics));
+                memset(harmonics, 0, sizeof(harmonics));
+                memset(harmonics_phases, 0, sizeof(harmonics_phases));
+            }
+            printf("CPU1: SetACStatus -> Harm: %s (State=%d)\r\n", harm_item->valuestring, status);
+        }
     }
-    else
+
+    // --------------------------------------------------------
+    // 3. 处理间谐波 (Inharm)
+    // --------------------------------------------------------
+    cJSON *inharm_item = cJSON_GetObjectItem(data, "Inharm");
+    if (inharm_item && cJSON_IsString(inharm_item))
     {
-        xil_printf("CPU1: SetACStatus: Unknown Data value: %s\r\n", status_str); // 未知的Data值
-        reply_status_str = "Failure";
+        int status = parse_status_string(inharm_item->valuestring);
+        if (status != -1)
+        {
+            devState.nStatusInharm = status; // 【修改】使用新的状态变量
+
+            if (status == 0) // Stop
+            {
+                // 间谐波停止逻辑 (预留)
+            }
+            printf("CPU1: SetACStatus -> Inharm: %s (State=%d)\r\n", inharm_item->valuestring, status);
+        }
     }
 
-    // 标记参数已更改，主循环将根据新的 devState 和参数调用硬件操作函数
+    // 触发硬件更新 (主循环会检测此标志)
     dac_parameters_updated_by_command = true;
     udp_data_changed_flag = true;
 
-send_reply_ac_status:;
+    // 构建回复
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "SetACStatus");
-    cJSON_AddStringToObject(reply, "Result", strcmp(reply_status_str, "Failure") == 0 ? "Failure" : "Success");
-    // 中文注释: 创建Data对象并添加Status节点以符合新协议
-    cJSON *reply_data = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply_data, "Status", reply_status_str);
-    cJSON_AddItemToObject(reply, "Data", reply_data);
+    cJSON_AddStringToObject(reply, "Result", "Success");
+
+    cJSON *dataObj = cJSON_CreateObject();
+    cJSON_AddStringToObject(dataObj, "Fund", get_status_string(devState.nStatusFund));
+    cJSON_AddStringToObject(dataObj, "Harm", get_status_string(devState.nStatusHarm));
+    cJSON_AddStringToObject(dataObj, "Inharm", get_status_string(devState.nStatusInharm));
+    cJSON_AddItemToObject(reply, "Data", dataObj);
 
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
     {
-        size_t stringLength = strlen(string);
-        char *finalString = (char *)malloc(stringLength + 3);
-        if (finalString)
+        size_t len = strlen(string);
+        char *finalStr = malloc(len + 3);
+        if (finalStr)
         {
-            snprintf(finalString, stringLength + 3, "|%s|", string);
-            MsgQue_write(finalString, strlen(finalString));
-            free(finalString);
+            snprintf(finalStr, len + 3, "|%s|", string);
+            MsgQue_write(finalStr, strlen(finalStr));
+            free(finalStr);
         }
         free(string);
     }
@@ -1967,7 +1881,7 @@ void handle_SetCalibrateAC(cJSON *data)
     // 应用设置
     enable = 0xff;
     devState.bACMeterMode = 0;                     // 源模式
-    devState.bACRunning = 1;                       // AC运行
+    devState.nStatusFund = 1;                      // AC运行
     devState.bClosedLoop = 0;                      // 开环
     memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
     memset(harmonics, 0, sizeof(harmonics));
@@ -2307,7 +2221,7 @@ void handle_WriteCalibrateAC(cJSON *data)
 
     // 应用设置
     devState.bACMeterMode = 0;                     // 源模式
-    devState.bACRunning = 1;                       // AC运行
+    devState.nStatusFund = 1;                      // AC运行
     devState.bClosedLoop = 0;                      // 开环
     memset(numHarmonics, 0, sizeof(numHarmonics)); // 清除谐波
     memset(harmonics, 0, sizeof(harmonics));
@@ -2602,97 +2516,6 @@ send_reply:;
     cJSON_AddStringToObject(reply_data, "SyncMode", current_mode_str);
     cJSON_AddItemToObject(reply, "Data", reply_data);
 
-    char *string = cJSON_PrintUnformatted(reply);
-    if (string)
-    {
-        size_t stringLength = strlen(string);
-        char *finalString = (char *)malloc(stringLength + 3);
-        if (finalString)
-        {
-            snprintf(finalString, stringLength + 3, "|%s|", string);
-            MsgQue_write(finalString, strlen(finalString));
-            free(finalString);
-        }
-        free(string);
-    }
-    cJSON_Delete(reply);
-}
-
-/**
- * @brief 处理 "SetPulseOut" JSON指令
- * @param data 指向JSON中"Data"字段的cJSON对象
- */
-void handle_SetPulseOut(cJSON *data)
-{
-    char *result_status = "Success";
-
-    // 中文注释: 用于构建回复的变量
-    uint32_t reply_pulse_p = g_PowerPulse.pulseConstantP;
-    uint32_t reply_pulse_q = g_PowerPulse.pulseConstantQ;
-    // ClockOut 功能暂未实现，但仍需回复
-    const char *reply_clock_mode = "Seconds"; // 默认或当前值
-
-    if (!data)
-    {
-        result_status = "Failure";
-        printf("SetPulseOut Error: Missing 'Data' object.\n");
-        goto send_reply;
-    }
-
-    cJSON *energy_out = cJSON_GetObjectItem(data, "EnergyOut");
-    if (energy_out)
-    {
-        cJSON *pulse_p = cJSON_GetObjectItem(energy_out, "PulseConstantP");
-        if (pulse_p && cJSON_IsNumber(pulse_p))
-        {
-            g_PowerPulse.pulseConstantP = pulse_p->valueint;
-            reply_pulse_p = g_PowerPulse.pulseConstantP;
-        }
-
-        cJSON *pulse_q = cJSON_GetObjectItem(energy_out, "PulseConstantQ");
-        if (pulse_q && cJSON_IsNumber(pulse_q))
-        {
-            g_PowerPulse.pulseConstantQ = pulse_q->valueint;
-            reply_pulse_q = g_PowerPulse.pulseConstantQ;
-        }
-    }
-
-    cJSON *clock_out = cJSON_GetObjectItem(data, "ClockOut");
-    if (clock_out)
-    {
-        cJSON *pulse_mode = cJSON_GetObjectItem(clock_out, "PulseMode");
-        if (pulse_mode && cJSON_IsString(pulse_mode))
-        {
-            // TODO: 实现ClockOut的逻辑
-            // 目前仅记录用于回复
-            reply_clock_mode = pulse_mode->valuestring;
-            printf("ClockOut mode set to: %s (logic not yet implemented).\n", reply_clock_mode);
-        }
-    }
-
-send_reply:;
-    // --- 创建上行回复JSON ---
-    cJSON *reply = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply, "FunType", "Reply");
-    cJSON_AddStringToObject(reply, "FunCode", "SetPulseOut");
-    cJSON_AddStringToObject(reply, "Result", result_status);
-
-    cJSON *reply_data = cJSON_CreateObject();
-
-    // EnergyOut 部分
-    cJSON *reply_energy_out = cJSON_CreateObject();
-    cJSON_AddNumberToObject(reply_energy_out, "PulseConstantP", reply_pulse_p);
-    cJSON_AddNumberToObject(reply_energy_out, "PulseConstantQ", reply_pulse_q);
-    cJSON_AddItemToObject(reply_data, "EnergyOut", reply_energy_out);
-
-    // ClockOut 部分
-    cJSON *reply_clock_out = cJSON_CreateObject();
-    cJSON_AddStringToObject(reply_clock_out, "PulseMode", reply_clock_mode);
-    cJSON_AddItemToObject(reply_data, "ClockOut", reply_clock_out);
-
-    cJSON_AddItemToObject(reply, "Data", reply_data);
-
-    // --- 发送JSON字符串 ---
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
     {
@@ -3174,7 +2997,7 @@ void report_protection_event(u8 ProectFault)
     // power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
     // 更改UDP结构体100DevState的运行状态
     devState.bACMeterMode = 0;
-    devState.bACRunning = 0;
+    devState.nStatusFund = 0;
 
     // Clean up
     free(finalString);
@@ -3193,12 +3016,16 @@ void report_protection_event(u8 ProectFault)
 }
 // 全局变量定义
 Struct_StateSequence g_StateSequenceTask;
-
 void handle_StateSequence(cJSON *data)
 {
-    cJSON *dataObj = cJSON_GetObjectItem(data, "Data");
+    // [修正] 传入的 data 本身就是 JSON 中的 "Data" 对象
+    cJSON *dataObj = data;
+
     if (!dataObj)
+    {
+        xil_printf("CPU1: no_dataObj\r\n");
         return;
+    }
 
     // 1. 解析基本参数
     cJSON *item = cJSON_GetObjectItem(dataObj, "StartMode");
@@ -3239,6 +3066,9 @@ void handle_StateSequence(cJSON *data)
             cJSON *state = cJSON_GetArrayItem(states, i);
             Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
 
+            // 默认初始化
+            memset(pStep, 0, sizeof(Struct_Seq_Step));
+
             item = cJSON_GetObjectItem(state, "MaxDuration");
             if (item)
                 pStep->MaxDuration = item->valueint;
@@ -3250,6 +3080,8 @@ void handle_StateSequence(cJSON *data)
             item = cJSON_GetObjectItem(state, "TrigLogic");
             if (item)
                 pStep->TrigLogic = item->valueint;
+            else
+                pStep->TrigLogic = -1; // 默认无触发
 
             // 解析 TrigDI
             cJSON *trigDIs = cJSON_GetObjectItem(state, "TrigDI");
@@ -3269,10 +3101,6 @@ void handle_StateSequence(cJSON *data)
                     if (val)
                         pStep->TrigDIs[j].Val = val->valueint;
                 }
-            }
-            else
-            {
-                pStep->TrigDICount = 0;
             }
 
             // 解析 AC
@@ -3339,15 +3167,7 @@ void handle_StateSequence(cJSON *data)
                                 pHarm->PhI = (float)item->valuedouble;
                         }
                     }
-                    else
-                    {
-                        pAC->HarmCount = 0;
-                    }
                 }
-            }
-            else
-            {
-                pStep->ACCount = 0;
             }
 
             // 解析 DO
@@ -3369,132 +3189,121 @@ void handle_StateSequence(cJSON *data)
                         pStep->DOs[j].Val = val->valueint;
                 }
             }
-            else
-            {
-                pStep->DOCount = 0;
-            }
         }
     }
 
-    // 3. 档位计算
-    typedef struct
-    {
-        int Line;
-        int Chn;
-        float MaxU;
-        float MaxI;
-    } ChnMax;
-    ChnMax chnMaxs[16]; // 假设最多16个通道组合
-    int chnMaxCount = 0;
-    memset(chnMaxs, 0, sizeof(chnMaxs));
+    // 3. 量程自动计算与锁定 (Auto Range Calculation)
+    // 逻辑：扫描所有步骤，找出每个通道的最大 U 和 I，确定该通道在整个序列中的固定量程
 
+    // 假设 Line 1 有 4 个通道
+    float maxU[4] = {0};
+    float maxI[4] = {0};
+
+    // 3.1 第一遍扫描：找最大值
     for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
     {
         Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
         for (int j = 0; j < step->ACCount; j++)
         {
             Struct_Seq_AC *ac = &step->ACs[j];
-
-            int found = -1;
-            for (int k = 0; k < chnMaxCount; k++)
+            // 只处理 Line 1, Chn 1-4
+            if (ac->Line == 1 && ac->Chn >= 1 && ac->Chn <= 4)
             {
-                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn)
-                {
-                    found = k;
-                    break;
-                }
-            }
-            if (found == -1)
-            {
-                if (chnMaxCount < 16)
-                {
-                    chnMaxs[chnMaxCount].Line = ac->Line;
-                    chnMaxs[chnMaxCount].Chn = ac->Chn;
-                    chnMaxs[chnMaxCount].MaxU = ac->U;
-                    chnMaxs[chnMaxCount].MaxI = ac->I_;
-                    found = chnMaxCount++;
-                }
-            }
-            else
-            {
-                if (ac->U > chnMaxs[found].MaxU)
-                    chnMaxs[found].MaxU = ac->U;
-                if (ac->I_ > chnMaxs[found].MaxI)
-                    chnMaxs[found].MaxI = ac->I_;
+                int idx = ac->Chn - 1;
+                if (ac->U > maxU[idx])
+                    maxU[idx] = ac->U;
+                if (ac->I_ > maxI[idx])
+                    maxI[idx] = ac->I_;
             }
         }
     }
 
-    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+    // 3.2 准备回复 JSON 对象
+    cJSON *replyACArray = cJSON_CreateArray();
+
+    // 3.3 第二遍：确定量程，回写 Task 结构体，并填充 Reply
+    for (int chn = 1; chn <= 4; chn++)
     {
-        Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
-        for (int j = 0; j < step->ACCount; j++)
-        {
-            Struct_Seq_AC *ac = &step->ACs[j];
+        int idx = chn - 1;
+        float finalUR, finalIR;
 
-            float mU = 0, mI = 0;
-            for (int k = 0; k < chnMaxCount; k++)
+        // 计算电压量程
+        if (maxU[idx] > 3.25f)
+            finalUR = 6.5f;
+        else if (maxU[idx] > 1.876f)
+            finalUR = 3.25f;
+        else
+            finalUR = 1.876f;
+
+        // 计算电流量程
+        if (maxI[idx] > 1.0f)
+            finalIR = 5.0f;
+        else if (maxI[idx] > 0.2f)
+            finalIR = 1.0f;
+        else
+            finalIR = 0.2f;
+
+        // 添加到回复 JSON
+        cJSON *chnObj = cJSON_CreateObject();
+        cJSON_AddNumberToObject(chnObj, "Line", 1);
+        cJSON_AddNumberToObject(chnObj, "Chn", chn);
+        cJSON_AddNumberToObject(chnObj, "UR", finalUR);
+        cJSON_AddNumberToObject(chnObj, "IR", finalIR);
+        cJSON_AddItemToArray(replyACArray, chnObj);
+
+        // 回写到全局任务结构体的每一个步骤中
+        // 这样 Precalculate_HwParams 就能读到正确的 UR/IR 来计算系数
+        for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+        {
+            Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
+            for (int j = 0; j < step->ACCount; j++)
             {
-                if (chnMaxs[k].Line == ac->Line && chnMaxs[k].Chn == ac->Chn)
+                if (step->ACs[j].Line == 1 && step->ACs[j].Chn == chn)
                 {
-                    mU = chnMaxs[k].MaxU;
-                    mI = chnMaxs[k].MaxI;
-                    break;
+                    step->ACs[j].UR = finalUR;
+                    step->ACs[j].IR = finalIR;
                 }
             }
-
-            if (mU > 3.25f)
-                ac->UR = 6.5f;
-            else if (mU > 1.876f)
-                ac->UR = 3.25f;
-            else
-                ac->UR = 1.876f;
-
-            if (mI > 1.0f)
-                ac->IR = 5.0f;
-            else if (mI > 0.2f)
-                ac->IR = 1.0f;
-            else
-                ac->IR = 0.2f;
         }
     }
 
-    // 4. 回复
+    // 4. 构建并发送回复
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
     cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
     cJSON_AddStringToObject(reply, "Result", "Success");
+
     cJSON *replyData = cJSON_CreateObject();
+    cJSON_AddItemToObject(replyData, "AC", replyACArray); // 添加计算好的 AC 量程信息
     cJSON_AddItemToObject(reply, "Data", replyData);
 
-    char *jsonStr = cJSON_PrintUnformatted(reply);
-    if (jsonStr)
+    char *string = cJSON_PrintUnformatted(reply);
+    if (string)
     {
-        printf("Reply: %s\n", jsonStr);
-        free(jsonStr);
+        // // [新增] 打印生成的回复字符串，验证 Data 区是否包含 AC 量程信息
+        // printf("CPU1: StateSequence Reply: %s\n", string);
+        size_t stringLength = strlen(string);
+        char *finalString = (char *)malloc(stringLength + 3);
+        if (finalString)
+        {
+            snprintf(finalString, stringLength + 3, "|%s|", string);
+            MsgQue_write(finalString, strlen(finalString));
+            free(finalString);
+        }
+        free(string);
     }
     cJSON_Delete(reply);
 
-    // 5. 根据 StartMode 启动状态序列
+    // 5. 启动逻辑
     if (g_StateSequenceTask.StartMode == 0)
     {
-        // 模式 0: 立即启动
         xil_printf("CPU1: Cmd StateSequence -> Start Immediately.\r\n");
         StateSequence_PrepareAndStart();
     }
     else if (g_StateSequenceTask.StartMode == 1)
     {
-        // 模式 1: 定时启动
         xil_printf("CPU1: Cmd StateSequence -> Schedule Start at %s.\r\n", g_StateSequenceTask.StartTime);
-
-        // 解析时间字符串并写入软时钟的 Alarm 寄存器
-        // 假设 soft_timer.c 中有类似 SetAlarm 的函数 (如果没有需要实现)
-        // 伪代码示例：
-        // SoftTimer_SetAlarmStr(g_StateSequenceTask.StartTime);
-        // SoftTimer_EnableAlarm(true);
-
-        // 临时策略：如果没有实现Alarm，可以先打印不支持
-        xil_printf("CPU1: Warning: Timed start hardware support pending.\r\n");
+        // SoftTimer_SetAlarm(g_StateSequenceTask.StartTime); // 待实现
     }
 }
 
@@ -3713,12 +3522,12 @@ void ReportUDP_Structure(ReportEnableStatus ReportStatus)
 // Function to initialize DevState
 void initDevState(DevState *devState)
 {
-    devState->bACMeterMode = 0; // 0=交流源状态;1=交流表状态
-    devState->bClosedLoop = 1;  // 0=开环状态;1=闭环状态    //默认闭环
-    devState->bACRunning = 0;   // 0=停止状态;1=运行状态    //默认停止
-    devState->bHarmRunning = 0; // 0=停止状态;1=运行状态;2=暂停状态
-    devState->Reserved4 = 0;
-    devState->Reserved5 = 0;
+    devState->bACMeterMode = 0;  // 0=交流源状态;1=交流表状态
+    devState->bClosedLoop = 1;   // 0=开环状态;1=闭环状态    //默认闭环
+    devState->nStatusFund = 0;   // 原 nStatusFund
+    devState->nStatusHarm = 0;   // 原 bHarmRunning
+    devState->nStatusInharm = 0; // 新增
+    devState->bAutoRange = 0;    // 新增
     devState->Reserved6 = 0;
     devState->Reserved7 = 0;
     devState->Reserved8 = 0;

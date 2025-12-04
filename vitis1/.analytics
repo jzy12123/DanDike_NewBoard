@@ -1003,3 +1003,33 @@ timestamp=[2025-12-02 19:20:29], mode=BUILD, duration=0:00:01.350, duration_ms=1
 timestamp=[2025-12-03 09:33:46], mode=WORKBENCH_START, duration=0:00:17.251, duration_ms=17251, data={}
 timestamp=[2025-12-03 09:33:47], mode=WORKBENCH_UI_INIT, duration=0:00:00.854, duration_ms=854, data={editors_count=3, platform_editors_count=1, projects_count=6, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper,xaxicdma_example_simple_poll_1,xaxicdma_example_simple_poll_1_system}
 timestamp=[2025-12-03 09:33:47], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.135, duration_ms=135, data={}
+timestamp=[2025-12-03 11:17:53], mode=BUILD, duration=0:00:02.101, duration_ms=2101, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 11:19:20], mode=BUILD, duration=0:00:01.967, duration_ms=1967, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 11:23:05], mode=BUILD, duration=0:00:03.936, duration_ms=3936, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:41:06], mode=WORKBENCH_START, duration=0:00:17.076, duration_ms=17076, data={}
+timestamp=[2025-12-03 16:41:08], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.121, duration_ms=121, data={}
+timestamp=[2025-12-03 16:41:08], mode=WORKBENCH_UI_INIT, duration=0:00:01.366, duration_ms=1366, data={editors_count=5, platform_editors_count=1, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-12-03 16:41:39], mode=BUILD, duration=0:00:01.009, duration_ms=1009, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:42:16], mode=PLATFORM_GENERATION, duration=0:00:14.234, duration_ms=14234, data={name=system_wrapper}
+timestamp=[2025-12-03 16:42:17], mode=BUILD, duration=0:00:00.190, duration_ms=190, data={name=CPU1, configuration=Debug, clean_build=true}
+timestamp=[2025-12-03 16:42:48], mode=PLATFORM_GENERATION, duration=0:00:29.150, duration_ms=29150, data={name=system_wrapper}
+timestamp=[2025-12-03 16:42:59], mode=BUILD, duration=0:00:10.713, duration_ms=10713, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:43:29], mode=BUILD, duration=0:00:01.220, duration_ms=1220, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:44:09], mode=BUILD, duration=0:00:01.208, duration_ms=1208, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:56:29], mode=BUILD, duration=0:00:03.181, duration_ms=3181, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 16:58:48], mode=BUILD, duration=0:00:01.220, duration_ms=1220, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 17:12:28], mode=BUILD, duration=0:00:01.335, duration_ms=1335, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 17:12:48], mode=BUILD, duration=0:00:02.008, duration_ms=2008, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 17:13:24], mode=BUILD, duration=0:00:01.275, duration_ms=1275, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 18:53:33], mode=BUILD, duration=0:00:04.004, duration_ms=4004, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 18:55:42], mode=BUILD, duration=0:00:03.826, duration_ms=3826, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 18:59:04], mode=BUILD, duration=0:00:01.301, duration_ms=1301, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 18:59:12], mode=BUILD, duration=0:00:00.522, duration_ms=522, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 19:28:05], mode=BUILD, duration=0:00:01.517, duration_ms=1517, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-03 20:06:17], mode=BUILD, duration=0:00:01.300, duration_ms=1300, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-04 10:04:29], mode=WORKBENCH_START, duration=0:00:16.625, duration_ms=16625, data={}
+timestamp=[2025-12-04 10:04:30], mode=WORKBENCH_UI_INIT, duration=0:00:01.098, duration_ms=1098, data={editors_count=5, platform_editors_count=1, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2025-12-04 10:04:30], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.138, duration_ms=138, data={}
+timestamp=[2025-12-04 10:04:47], mode=BUILD, duration=0:00:04.333, duration_ms=4333, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-04 10:06:10], mode=BUILD, duration=0:00:01.511, duration_ms=1511, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-04 10:15:15], mode=BUILD, duration=0:00:01.294, duration_ms=1294, data={name=CPU1, configuration=Debug, clean_build=false}

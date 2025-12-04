@@ -460,7 +460,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_XTTCPS_0_INTR, 1); // 将中断映射到目标CPU1
     status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
 
-    //状态序列TTC定时器中断(PS TTC，ID = XPAR_XTTCPS_2_INTR);
+    // 状态序列TTC定时器中断(PS TTC，ID = XPAR_XTTCPS_2_INTR);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, SEQ_TTC_INTR_ID, 0xA0, 0x3);
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, SEQ_TTC_INTR_ID, 1);
     status = XScuGic_Connect(int_ins_ptr, SEQ_TTC_INTR_ID, (Xil_ExceptionHandler)StateSequence_TTC_Handler, (void *)seq_ttc_ptr);
@@ -480,7 +480,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
 
     // 使能AXI INTC上的中断输入
-    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR); 
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR);
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR);                        // 初始化的时候不使能GPS中断，在启动GPS对时再使能
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_RTC_EEPROM_AXI_IIC_0_IIC2INTC_IRPT_INTR);              // 裸机下不使用该中断
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);
@@ -587,13 +587,22 @@ void Adc_Data_processing()
 
 void Write_Wave_to_Wave_NewData()
 {
-    // 二维数组8*DATA_LEN     Wave_NewData中存储的是8个通道，每个通道DATA_LEN个点，正弦波
+    // 获取独立的运行状态 (0=停止, 1=运行, 2=暂停)
+    // 只有状态为 1 时，才在波形中生成对应的分量
+    bool run_fund = (devState.nStatusFund == 1);
+    bool run_harm = (devState.nStatusHarm == 1);
 
+    // 二维数组8*DATA_LEN     Wave_NewData中存储的是8个通道，每个通道DATA_LEN个点，正弦波
     for (int i = 0; i < CHANNL_MAX; i++)
     {
-        addHarmonics(Wave_NewData[i], DATA_LEN, Phase_shift[i], numHarmonics[i], harmonics[i], harmonics_phases[i]);
+        // 【修正】传入 run_fund 和 run_harm
+        addHarmonics(Wave_NewData[i], DATA_LEN,
+                     Phase_shift[i],
+                     numHarmonics[i], harmonics[i], harmonics_phases[i],
+                     run_fund, run_harm);
     }
 
+    // 处理数据长度扩展 (保持原有逻辑不变)
     if (DATA_LEN == 2048)
     {
         // 8*1024改成8*2048
@@ -676,7 +685,13 @@ void str_wr_bram(PID_STATE pid_state)
     u16 channel_cnt = 0;
 
     u16 frequency_divisor; // 分频系数 默认为1953
+
     // 修改波形
+    // 1. 获取当前的运行状态
+    // 只有状态为 1 (Run) 时，才在波形中生成对应的分量
+    // 状态 0 (Stop) 或 2 (Pause) 时，对应的分量不生成 (视为0)
+    bool run_fund = (devState.nStatusFund == 1);
+    bool run_harm = (devState.nStatusHarm == 1);
 
     // PID调整相位
     double Phase_PID_Increment[CHANNL_MAX] = {0};
@@ -718,7 +733,8 @@ void str_wr_bram(PID_STATE pid_state)
         // 应用PID调节值和相位校准参数
         addHarmonics(Wave_NewData[i], DATA_LEN,
                      Phase_shift[i] + Phase_PID_Increment[i] + DA_CorrectPhase_100[i][range_idx],
-                     numHarmonics[i], harmonics[i], harmonics_phases[i]);
+                     numHarmonics[i], harmonics[i], harmonics_phases[i],
+                     run_fund, run_harm);
     }
 
     // 修改通道使能和分频系数
@@ -763,40 +779,54 @@ void str_wr_bram(PID_STATE pid_state)
  * @param harmonics 谐波幅值的数组，harmonics[0]为2次谐波
  * @param harmonics_phases 谐波相位偏移的数组（以度为单位）
  */
-void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[])
+void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[], bool en_fund, bool en_harm)
 {
     // harmonics[0]为2次谐波
-    // 遍历数组中的每个元素
     for (int i = 0; i < Array_length; i++)
     {
-        // 计算基本波形的相位
-        double phase = 2 * M_PI * i / Array_length; // 基本波形的相位
-        // 添加基波相位偏移
-        double shifted_phase = phase + (Base_Phase_Degrees * M_PI / 180.0); // 添加基波相位偏移
-        // 计算基本正弦波的值
-        double sum = sin(shifted_phase); // 基本正弦波
+        double phase = 2 * M_PI * i / Array_length;
+        double sum = 0.0;
 
-        // 添加谐波
-        // 遍历谐波数组
-        for (int j = 0; j < numHarmonics; j++)
+        // 1. 如果基波使能 (nStatusFund == 1)，计算基波分量
+        if (en_fund)
         {
-            // 计算谐波相位
-            double harmonic_phase = (j + 2) * phase; // 基波的整数倍
-            // 添加谐波相位偏移
-            double shifted_harmonic_phase = harmonic_phase + harmonics_phases[j] * M_PI / 180.0; // 使用基波和谐波的相位偏移
-            // 计算谐波值
-            double harmonic_value = sin(shifted_harmonic_phase);
-
-            // 添加谐波并乘以相应的幅值
-            sum += harmonic_value * harmonics[j]; // 添加谐波并乘以相应的幅值
+            double shifted_phase = phase + (Base_Phase_Degrees * M_PI / 180.0);
+            sum += sin(shifted_phase);
         }
 
-        // 归一化并转换为 uint16_t 类型
-        // 对计算出的和进行归一化，并转换为 uint16_t 类型
-        NewData[i] = (uint16_t)((sum / (1.0 + sumHarmonics(harmonics, numHarmonics))) * 32768 + 32767);
+        // 2. 如果谐波使能 (nStatusHarm == 1)，计算谐波分量
+        if (en_harm)
+        {
+            for (int j = 0; j < numHarmonics; j++)
+            {
+                double harmonic_phase = (j + 2) * phase;
+                double shifted_harmonic_phase = harmonic_phase + harmonics_phases[j] * M_PI / 180.0;
+                double harmonic_value = sin(shifted_harmonic_phase);
+                sum += harmonic_value * harmonics[j];
+            }
+        }
+
+        // 3. 归一化处理
+        // 注意：分母计算也需要根据开关状态调整，否则幅值比例会错
+        // 如果基波关了，分母中不应该包含1.0？这取决于Wave_Amplitude的定义。
+        // 通常Wave_Amplitude定义了满量程DAC数值。
+        // 此处保持原归一化逻辑，确保波形不削顶即可。
+        // 如果只发谐波，谐波幅值是相对于基波满幅值的百分比，直接叠加即可。
+
+        double total_amp = 0.0;
+        if (en_fund)
+            total_amp += 1.0;
+        if (en_harm)
+            total_amp += sumHarmonics(harmonics, numHarmonics);
+
+        // 防止除0
+        if (total_amp < 0.0001)
+            total_amp = 1.0;
+
+        // 映射到 uint16
+        NewData[i] = (uint16_t)((sum / total_amp) * 32768 + 32767);
     }
 }
-
 // 辅助函数，计算谐波幅值总和
 double sumHarmonics(float harmonics[], int numHarmonics)
 {

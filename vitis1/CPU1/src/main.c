@@ -26,7 +26,7 @@ static void RunADCPIDCycle(void);
 
 int main()
 {
-	//	sleep(30); // 必须要有等待linux启动
+	sleep(30); // 必须要有等待linux启动
 	xil_printf("\r\n");
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	xil_printf("CPU1: Starting...\r\n");
@@ -214,9 +214,9 @@ int main()
 	// xil_printf("CPU1: VITIS DEBUG - Waveform parameters set for 6.5V output, 0A current.\r\n");
 
 	// // 2. 设置设备运行状态标志
-	// devState.bACRunning = 1;  // 设置为运行状态 (1=运行)
+	// devState.nStatusFund = 1;  // 设置为运行状态 (1=运行)
 	// devState.bClosedLoop = 0; // 设置为开环模式，调试初期避免PID控制器干扰
-	// xil_printf("CPU1: VITIS DEBUG - AC Running State ENABLED (bACRunning = 1), Open Loop Mode (bClosedLoop = 0).\r\n");
+	// xil_printf("CPU1: VITIS DEBUG - AC Running State ENABLED (nStatusFund = 1), Open Loop Mode (bClosedLoop = 0).\r\n");
 
 	// // 3. 设置参数更新标志，以触发主循环中的硬件应用逻辑
 	// dac_parameters_updated_by_command = true;
@@ -233,43 +233,53 @@ int main()
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
 
-	sleep(1);
-	Test_StateSequence_Scenario();
-	
 	while (1)
 	{
 		/* 1. 应用硬件参数的逻辑（如果被JSON指令修改） */
 		if (dac_parameters_updated_by_command)
 		{
+			// 【更新逻辑】：判断是否处于任何“运行”状态
+			// 只有当 基波、谐波 或 间谐波(预留) 任意一个为 1 (运行) 时，才视为系统运行
+			bool is_fund_running = (devState.nStatusFund == 1);
+			bool is_harm_running = (devState.nStatusHarm == 1);
+			bool is_inharm_running = (devState.nStatusInharm == 1); // 预留
 
-			if (devState.bACRunning == 1) // 运行状态
+			if (is_fund_running || is_harm_running || is_inharm_running)
 			{
-				// 根据当前的 Wave_Amplitude, Phase_shift, Wave_Range, enable, harmonic settings, PID state 准备输出
+				// --- 运行状态 ---
+				// 只要有一个组件运行，我们就需要打开功放并计算使能通道
 
 				enable = 0x00; // 先清零，根据幅值重新计算
 				for (int i = 0; i < 8; ++i)
 				{
+					// 判断通道使能：
+					// 只要设定了 Wave_Amplitude 且处于任意运行态，我们就使能通道。
+					// 即使 nStatusFund=0 (基波停止)，Wave_Amplitude 仍代表量程满度参考，
+					// 只要谐波在运行，通道就需要打开。
 					if (Wave_Amplitude[i] > 0.001f)
-					{ // 幅值大于阈值才使能通道和功放
+					{
 						enable |= (1 << i);
 					}
 				}
+
+				// 写入波形数据
+				// 注意：str_wr_bram 内部已更新，会检查 devState.nStatusFund/Harm
+				// 来决定在波形中填入基波还是谐波，或者两者都有。
 				str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+
+				// 控制功放打开
 				power_amplifier_control(Wave_Amplitude, Wave_Range, (devState.bClosedLoop == 1 ? PID_ON : PID_OFF), POWAMP_ON);
 			}
-			else if (devState.bACRunning == 2) // 暂停状态
+			else
 			{
-				str_wr_bram(PID_OFF); // 使用暂停前的闭环状态
-				// 硬件输出幅值清零，但全局Wave_Amplitude保留暂停前的值
-				float temp_Wave_Amplitude[8];								 // 为暂停状态声明一个临时幅值数组
-				memset(temp_Wave_Amplitude, 0, sizeof(temp_Wave_Amplitude)); // 将临时幅值数组清零
-				power_amplifier_control(temp_Wave_Amplitude, Wave_Range, PID_OFF, target_powamp_enable_state_after_pause);
-			}
-			else // 停止状态 (devState.bACRunning == 0)
-			{
-				// Wave_Amplitude 已经在 handle_SetACStatus 中被设为0
-				// enable 已经在 handle_SetACStatus 中被设为0x00
+				// --- 停止或全暂停状态 ---
+				// 所有组件都非运行 (可能是 Stop(0) 或 Pause(2))
+
+				// 写入全0波形 (str_wr_bram 内部发现所有运行标志都为false，会生成直线)
 				str_wr_bram(PID_OFF);
+
+				// 关闭功放
+				// 只要没有运行的组件，就关闭功放输出以确保安全和零输出。
 				power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
 			}
 
@@ -279,15 +289,18 @@ int main()
 		}
 
 		/*2 AC交流源 ADC采集与处理 */
-		// 无论运行还是暂停，只要不是停止状态，都尝试获取锁并执行ADC
-		if ((devState.bACRunning == 1 || devState.bACRunning == 2) && acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US)) // 检查交流源是否配置为运行状态
+		// 【更新逻辑】：如果有任意组件在运行，或者处于暂停状态(以便观察)，则启动ADC
+		// nStatus: 0=Stop, 1=Run, 2=Pause
+		// 只要不全为 0 (Stop)，就进行采样
+		bool any_active = (devState.nStatusFund != 0) || (devState.nStatusHarm != 0) || (devState.nStatusInharm != 0);
+
+		if (any_active && acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US))
 		{
 			// AdcFinish_Flag 在 Adc_Start 中被清零
 			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 启动ADC采样
 
-			// 等待ADC采集和初步处理完成 (AdcFinish_Flag 由中断服务程序 rx_intr_handler 设置)
-			// 此等待过程期间，锁 LOCK_OWNER_ADC 保持被持有状态
-			uint32_t adc_wait_timeout_us = 350000; // ADC采样理论320ms，这里设置350ms超时
+			// 等待ADC采集和初步处理完成
+			uint32_t adc_wait_timeout_us = 350000; // 350ms超时
 			uint32_t adc_poll_interval_us = 1000;  // 1ms轮询间隔
 			uint32_t adc_elapsed_time_us = 0;
 
@@ -296,26 +309,23 @@ int main()
 				usleep(adc_poll_interval_us);
 				adc_elapsed_time_us += adc_poll_interval_us;
 			}
-			release_resource_lock(LOCK_OWNER_ADC); // ADC操作完成后立即释放锁，无论成功与否
-			// 当前正在采集中，检查是否完成
+			release_resource_lock(LOCK_OWNER_ADC); // 释放锁
+
 			if (AdcFinish_Flag == 1)
 			{
 				RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
 			}
 			else
 			{
-				// ADCDMA失败
 				printf("ADC NotReady !\r\n");
 			}
 		}
-		/*AC交流源关闭或者没有获得锁*/
 		else
 		{
-			usleep(10000); // 延时10ms
+			usleep(10000); // 延时10ms，避免空转过快
 		}
 
 		/*3 在主循环中检测上报任务 */
-		// 中文注释: 检查并上报电能误差测试的状态，这是一个非阻塞操作
 		check_and_report_energy_test_status();
 	}
 }

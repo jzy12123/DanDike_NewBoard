@@ -157,7 +157,8 @@ void Write_Wave_to_Wave_NewData();
 void Copy_Wave_to_tx_buffer_ptr();
 
 double sumHarmonics(float harmonics[], int numHarmonics);
-void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[]);
+// 增加 en_fund 和 en_harm 参数，用于独立控制基波和谐波的生成
+void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[], bool en_fund, bool en_harm);
 
 // 功放
 // 获取DA输出参数
