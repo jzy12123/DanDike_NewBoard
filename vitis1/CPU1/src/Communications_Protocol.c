@@ -4,8 +4,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.251201.1606";
-const char ARM_Ver_Full[] = "[Ver]=V1.251204.1006";
+const char FPGA_Ver_Full[] = "[Ver]=V1.251205.1504";
+const char ARM_Ver_Full[] = "[Ver]=V1.251205.1504";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3192,6 +3192,86 @@ void handle_StateSequence(cJSON *data)
         }
     }
 
+    // ============================================================
+    // 2.5 [新增] 安全校验：检查所有步骤的幅值是否超过装置极限
+    //     Max Voltage = 6.5 V
+    //     Max Current = 5.0 A
+    // ============================================================
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+    {
+        Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
+        for (int j = 0; j < step->ACCount; j++)
+        {
+            Struct_Seq_AC *ac = &step->ACs[j];
+
+            // 检查电压 (U > 6.5)
+            if (ac->U > 6.5f + 0.001f)
+            { // 加一点容差防止浮点精度误判
+                cJSON *reply = cJSON_CreateObject();
+                cJSON_AddStringToObject(reply, "FunType", "Reply");
+                cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+                cJSON_AddStringToObject(reply, "Result", "Failure");
+
+                cJSON *replyData = cJSON_CreateObject();
+                char errInfo[64];
+                // 构造错误信息，告知具体的超限值
+                snprintf(errInfo, sizeof(errInfo), "Step %d Chn %d U=%.2f exceeds limit 6.5V", i + 1, ac->Chn, ac->U);
+                cJSON_AddStringToObject(replyData, "ErrInfo", errInfo);
+                // 发生错误时 AC 列表为空或不回
+                cJSON_AddItemToObject(reply, "Data", replyData);
+
+                char *string = cJSON_PrintUnformatted(reply);
+                if (string)
+                {
+                    printf("CPU1: [DEBUG] Validation Failed: %s\r\n", string);
+                    size_t len = strlen(string);
+                    char *finalStr = malloc(len + 3);
+                    if (finalStr)
+                    {
+                        snprintf(finalStr, len + 3, "|%s|", string);
+                        MsgQue_write(finalStr, strlen(finalStr));
+                        free(finalStr);
+                    }
+                    free(string);
+                }
+                cJSON_Delete(reply);
+                return; // 直接退出，不执行后续逻辑
+            }
+
+            // 检查电流 (I > 5.0)
+            if (ac->I_ > 5.0f + 0.001f)
+            {
+                cJSON *reply = cJSON_CreateObject();
+                cJSON_AddStringToObject(reply, "FunType", "Reply");
+                cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+                cJSON_AddStringToObject(reply, "Result", "Failure");
+
+                cJSON *replyData = cJSON_CreateObject();
+                char errInfo[64];
+                snprintf(errInfo, sizeof(errInfo), "Step %d Chn %d I=%.2f exceeds limit 5.0A", i + 1, ac->Chn, ac->I_);
+                cJSON_AddStringToObject(replyData, "ErrInfo", errInfo);
+                cJSON_AddItemToObject(reply, "Data", replyData);
+
+                char *string = cJSON_PrintUnformatted(reply);
+                if (string)
+                {
+                    printf("CPU1: [DEBUG] Validation Failed: %s\r\n", string);
+                    size_t len = strlen(string);
+                    char *finalStr = malloc(len + 3);
+                    if (finalStr)
+                    {
+                        snprintf(finalStr, len + 3, "|%s|", string);
+                        MsgQue_write(finalStr, strlen(finalStr));
+                        free(finalStr);
+                    }
+                    free(string);
+                }
+                cJSON_Delete(reply);
+                return; // 直接退出
+            }
+        }
+    }
+    // ============================================================
     // 3. 量程自动计算与锁定 (Auto Range Calculation)
     // 逻辑：扫描所有步骤，找出每个通道的最大 U 和 I，确定该通道在整个序列中的固定量程
 
@@ -3280,7 +3360,6 @@ void handle_StateSequence(cJSON *data)
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
     {
-        // // [新增] 打印生成的回复字符串，验证 Data 区是否包含 AC 量程信息
         // printf("CPU1: StateSequence Reply: %s\n", string);
         size_t stringLength = strlen(string);
         char *finalString = (char *)malloc(stringLength + 3);
