@@ -1,6 +1,6 @@
 Nothing to build in platform 'system_wrapper'
 
-20:03:07 **** Incremental Build of configuration Debug for project CPU1 ****
+11:02:50 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
@@ -19,6 +19,6 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 290656	   4632	21334208	21629496	14a0a38	CPU1.elf
+ 287608	   4632	21334208	21626448	149fe50	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '

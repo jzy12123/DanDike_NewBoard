@@ -44,9 +44,10 @@ static void Seq_Hw_SetRange(u32 r0, u32 r1, u32 r2, u32 r3)
     u32 BaseAddr = Amplifier_OnOff_BASEADDR;
 
     // 1. 复位/配置 595 (Range Enable?)
+    // 595置1 1595置0
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000000);
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000002); // Bit 1 = 1
-
+    usleep(10);                                              // 必须有！要不档位设置会失败
     // 2. 写入量程数据
     Xil_Out32(BaseAddr + Amplifier_Din0_ADDR, r0);
     Xil_Out32(BaseAddr + Amplifier_Din1_ADDR, r1);
@@ -55,6 +56,7 @@ static void Seq_Hw_SetRange(u32 r0, u32 r1, u32 r2, u32 r3)
 
     // 3. 触发更新 (Start=1)
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000102); // Bit 8=1, Bit 1=1
+    usleep(10);
 }
 
 /**
@@ -66,6 +68,7 @@ static void Seq_Hw_SetValue(u32 v0, u32 v1, u32 v2, u32 v3)
     u32 BaseAddr = Amplifier_OnOff_BASEADDR;
 
     // 1. 复位/配置 1595 (Value Enable?)
+    // 595置0 1595置1
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000000);
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000001); // Bit 0 = 1
 
@@ -82,67 +85,81 @@ static void Seq_Hw_SetValue(u32 v0, u32 v1, u32 v2, u32 v3)
 // ================= 内部辅助函数 =================
 
 /**
- * @brief 预计算波形数据 (存入DDR)
- * @details
- * DDR数据布局 (对应 BRAM 128位宽):
- * [31:0]   Ch1|Ch0 (U_B|U_A)
- * [63:32]  Ch3|Ch2 (U_X|U_C)
- * [95:64]  Ch5|Ch4 (I_B|I_A)
- * [127:96] Ch7|Ch6 (I_X|I_C)
+ * @brief 预计算波形数据 (存入DDR) 直接对波形数据进行数字缩放
  */
 static void Precalculate_Waveforms()
 {
-    xil_printf("CPU1: StateSequence - Pre-calculating waveforms ...\r\n");
-    // xil_printf("CPU1: [DEBUG] Generating STATIC DC waveform for testing...\r\n");
+    xil_printf("CPU1: StateSeq - Pre-calculating waveforms (Digital Scaling Mode)...\r\n");
+
     for (int step = 0; step < g_StateSequenceTask.StepCount; step++)
     {
         Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[step];
-
-        // 1. 清空临时缓冲区
         memset(TempWaveData, 0, sizeof(TempWaveData));
 
-        // 2. 遍历AC配置，生成波形形状
         for (int i = 0; i < pStep->ACCount; i++)
         {
             Struct_Seq_AC *pAC = &pStep->ACs[i];
-
-            // 仅处理 Line 1
             if (pAC->Line != 1)
                 continue;
 
-            // 逻辑通道 0-3 (对应 A, B, C, X)
             int chn_logical = pAC->Chn - 1;
             if (chn_logical < 0 || chn_logical > 3)
                 continue;
 
-            // ----------------------------------------------------
-            // 2.1 电压通道 (物理通道 0-3)
-            // ----------------------------------------------------
+            // =================== 电压通道 (Ch 0~3) ===================
             int u_hw_idx = chn_logical;
+
+            // 1. 生成归一化波形 (满幅值 +/- 32767)
             float u_harm_amps[MAX_HARMONICS] = {0};
             float u_harm_phases[MAX_HARMONICS] = {0};
-
-            // 提取电压谐波 (Harmonics[0]是2次)
             for (int h = 0; h < pAC->HarmCount; h++)
             {
                 int order = pAC->Harms[h].HN;
                 if (order >= 2 && order < (MAX_HARMONICS + 2))
                 {
-                    u_harm_amps[order - 2] = pAC->Harms[h].U / 100.0f; // 百分比转小数
+                    u_harm_amps[order - 2] = pAC->Harms[h].U / 100.0f;
                     u_harm_phases[order - 2] = pAC->Harms[h].PhU;
                 }
             }
-            // 生成电压波形 (满量程，不缩放)
             addHarmonics(TempWaveData[u_hw_idx], DATA_LEN, pAC->PhU, MAX_HARMONICS, u_harm_amps, u_harm_phases, true, true);
 
-            // ----------------------------------------------------
-            // 2.2 电流通道 (物理通道 4-7)
-            // ----------------------------------------------------
+            // 2. 计算数字缩放因子
+            // 目标：Digital_Out * Max_Gain = Target_Output
+            // 所以：Digital_Out = Full_Scale * (Target_Gain / Max_Gain)
+            int idx_u = get_voltage_index_by_value(pAC->UR);
+
+            // 计算 100% 幅值对应的校准系数 (Max_Gain)
+            double corr_u_100 = calculate_correction(chn_logical, idx_u, 100.0f);
+            // 100% 时的 Din 值 = 1.0 * corr
+            double din_u_100 = 1.0 * corr_u_100;
+
+            // 计算 目标 幅值对应的校准系数 (Target_Gain)
+            float amp_pct_u = (pAC->UR > 0.001f) ? (pAC->U / pAC->UR * 100.0f) : 0.0f;
+            double corr_u_tgt = calculate_correction(chn_logical, idx_u, amp_pct_u);
+            // 目标 Din 值 = (pct/100) * corr
+            double din_u_tgt = (amp_pct_u / 100.0f) * corr_u_tgt;
+
+            // 缩放因子
+            float scale_u = 0.0f;
+            if (din_u_100 > 0.1)
+            {
+                scale_u = (float)(din_u_tgt / din_u_100);
+            }
+
+            // 3. 应用数字缩放 (针对 32768 中点)
+            for (int k = 0; k < DATA_LEN; k++)
+            {
+                int32_t val = (int32_t)TempWaveData[u_hw_idx][k] - 32768; // 转为有符号
+                val = (int32_t)(val * scale_u);                           // 缩放
+                TempWaveData[u_hw_idx][k] = (uint16_t)(val + 32768);      // 转回无符号
+            }
+
+            // =================== 电流通道 (Ch 4~7) ===================
             int i_hw_idx = chn_logical + 4;
+
+            // 1. 生成波形
             float i_harm_amps[MAX_HARMONICS] = {0};
             float i_harm_phases[MAX_HARMONICS] = {0};
-
-            // 提取电流谐波
             for (int h = 0; h < pAC->HarmCount; h++)
             {
                 int order = pAC->Harms[h].HN;
@@ -152,100 +169,83 @@ static void Precalculate_Waveforms()
                     i_harm_phases[order - 2] = pAC->Harms[h].PhI;
                 }
             }
-            // 生成电流波形 (满量程，不缩放)
             addHarmonics(TempWaveData[i_hw_idx], DATA_LEN, pAC->PhI, MAX_HARMONICS, i_harm_amps, i_harm_phases, true, true);
+
+            // 2. 计算缩放
+            int idx_i = get_current_index_by_value(pAC->IR);
+
+            double corr_i_100 = calculate_correction(chn_logical + 4, idx_i, 100.0f);
+            double din_i_100 = 1.0 * corr_i_100;
+
+            float amp_pct_i = (pAC->IR > 0.001f) ? (pAC->I_ / pAC->IR * 100.0f) : 0.0f;
+            double corr_i_tgt = calculate_correction(chn_logical + 4, idx_i, amp_pct_i);
+            double din_i_tgt = (amp_pct_i / 100.0f) * corr_i_tgt;
+
+            float scale_i = 0.0f;
+            if (din_i_100 > 0.1)
+            {
+                scale_i = (float)(din_i_tgt / din_i_100);
+            }
+
+            // 3. 应用缩放
+            for (int k = 0; k < DATA_LEN; k++)
+            {
+                int32_t val = (int32_t)TempWaveData[i_hw_idx][k] - 32768;
+                val = (int32_t)(val * scale_i);
+                TempWaveData[i_hw_idx][k] = (uint16_t)(val + 32768);
+            }
         }
 
-        // 3. 打包数据写入 DDR (32位 = 高16位[Ch+1] | 低16位[Ch])
+        // 4. 打包写入 DDR
         u32 *pDdrStepBase = (u32 *)(UINTPTR)(STATE_SEQ_DDR_BUFFER_BASE + step * WAVE_STEP_SIZE_BYTES);
-
         for (int j = 0; j < DATA_LEN; j++)
         {
-            pDdrStepBase[j * 4 + 0] = (TempWaveData[1][j] << 16) | TempWaveData[0][j]; // UB|UA
-            pDdrStepBase[j * 4 + 1] = (TempWaveData[3][j] << 16) | TempWaveData[2][j]; // UX|UC
-            pDdrStepBase[j * 4 + 2] = (TempWaveData[5][j] << 16) | TempWaveData[4][j]; // IB|IA
-            pDdrStepBase[j * 4 + 3] = (TempWaveData[7][j] << 16) | TempWaveData[6][j]; // IX|IC
+            pDdrStepBase[j * 4 + 0] = (TempWaveData[1][j] << 16) | TempWaveData[0][j];
+            pDdrStepBase[j * 4 + 1] = (TempWaveData[3][j] << 16) | TempWaveData[2][j];
+            pDdrStepBase[j * 4 + 2] = (TempWaveData[5][j] << 16) | TempWaveData[4][j];
+            pDdrStepBase[j * 4 + 3] = (TempWaveData[7][j] << 16) | TempWaveData[6][j];
         }
-
         Xil_DCacheFlushRange((UINTPTR)pDdrStepBase, WAVE_STEP_SIZE_BYTES);
-        // [调试] 打印每步的第一个数据点，确认DDR中有数据
-        // xil_printf("  [DEBUG] Step %d DDR Sample[0]: 0x%08X (Ch1|Ch0)\r\n", step, pDdrStepBase[0]);
     }
 }
 
 /**
- * @brief 预计算硬件寄存器参数 (二级功放系数 & 定时器)
- * @details 这里执行幅值缩放和校准计算，生成 Din0-Din3 的最终值。
+ * @brief 预计算硬件参数 (优化版)
+ * @details
+ * 1. 计算频率分频系数。
+ * 2. 计算 DO 状态。
+ * 3. 不再计算 Din (幅值系数)，因为在“数字缩放”模式下，
+ * 硬件增益固定为满量程，波形幅度由 BRAM 数据直接决定。
  */
 static void Precalculate_HwParams()
 {
-    xil_printf("CPU1: StateSequence - Pre-calculating HW Params (Amplifier Coefficients)...\r\n");
+    xil_printf("CPU1: StateSeq - Pre-calculating HW Params (Freq, DO)...\r\n");
 
     for (int step = 0; step < g_StateSequenceTask.StepCount; step++)
     {
         Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[step];
         Step_Hw_Params_t *pHw = &g_StateSeqRuntime.StepParams[step];
 
-        u32 Din_Regs[8] = {0};    // 0-3: U, 4-7: I
-        pHw->Freq_Divisor = 1953; // 默认初始化频率为 50Hz (1953)，防止未指定
+        // 1. 频率分频系数 (默认 50Hz: 100MHz / 50 / 1024 = 1953)
+        pHw->Freq_Divisor = 1953;
 
+        // 遍历寻找有效的频率设置
         for (int i = 0; i < pStep->ACCount; i++)
         {
-            Struct_Seq_AC *pAC = &pStep->ACs[i];
-            if (pAC->Line != 1)
-                continue;
-
-            // --- 获取频率并计算分频系数 ---
-            // 假设所有通道频率一致，取第一个有效的即可
-            if (pAC->F > 0.1f)
+            if (pStep->ACs[i].Line == 1 && pStep->ACs[i].F > 0.1f)
             {
-                // 公式：SystemClock / Freq / Points
-                // 100,000,000 / F / 1024
-                pHw->Freq_Divisor = (u32)(100000000.0f / pAC->F / (float)DATA_LEN);
+                pHw->Freq_Divisor = (u32)(100000000.0f / pStep->ACs[i].F / (float)DATA_LEN);
+                break; // 取第一个有效频率
             }
-
-            int chn_logical = pAC->Chn - 1; // 0-3
-            if (chn_logical < 0 || chn_logical > 3)
-                continue;
-
-            // --- 电压系数计算 ---
-            // 1. 获取档位索引
-            int idx_u = get_voltage_index_by_value(pAC->UR);
-            // 2. 计算幅值百分比
-            float amp_pct_u = 0.0f;
-            if (pAC->UR > 0.001f)
-                amp_pct_u = (pAC->U / pAC->UR) * 100.0f;
-            // 3. 获取校准系数 (线性拟合)
-            double correction_u = calculate_correction(chn_logical, idx_u, amp_pct_u);
-            // 4. 计算最终寄存器值: (百分比/100) * 校准系数
-            // 注意：这里没有PID，假设为开环
-            Din_Regs[chn_logical] = (u32)((amp_pct_u / 100.0f) * correction_u);
-
-            // --- 电流系数计算 ---
-            int idx_i = get_current_index_by_value(pAC->IR);
-            float amp_pct_i = 0.0f;
-            if (pAC->IR > 0.001f)
-                amp_pct_i = (pAC->I_ / pAC->IR) * 100.0f;
-            double correction_i = calculate_correction(chn_logical + 4, idx_i, amp_pct_i);
-            Din_Regs[chn_logical + 4] = (u32)((amp_pct_i / 100.0f) * correction_i);
         }
 
-        // 组合寄存器值
-        pHw->Din0_Value = (Din_Regs[1] << 16) | (Din_Regs[0] & 0xFFFF); // UB | UA
-        pHw->Din1_Value = (Din_Regs[3] << 16) | (Din_Regs[2] & 0xFFFF); // UX | UC
-        pHw->Din2_Value = (Din_Regs[5] << 16) | (Din_Regs[4] & 0xFFFF); // IB | IA
-        pHw->Din3_Value = (Din_Regs[7] << 16) | (Din_Regs[6] & 0xFFFF); // IX | IC
-
-        // 预计算 DO 状态
-        pHw->DO_State = 0; // 需要结合全局状态或当前步状态，这里简化为只由该步决定
+        // 2. DO 状态预计算
+        pHw->DO_State = 0;
         for (int k = 0; k < pStep->DOCount; k++)
         {
             if (pStep->DOs[k].Val)
                 pHw->DO_State |= (1 << (pStep->DOs[k].Chn + 23));
         }
-
-        // [调试] 打印计算出的系数，确认不是0
-        // xil_printf("  [DEBUG] Step %d Din0: 0x%08X (Should be non-zero)\r\n", step, pHw->Din0_Value);
     }
 }
 
@@ -292,7 +292,6 @@ static void Load_Step_To_BRAM(int stepIndex)
     if (timeout == 0)
     {
         xil_printf("CPU1: Error - CDMA Timeout! (Check Address 0x%X)\r\n", DestAddr);
-        // 超时后必须复位，否则下次还是死
         XAxiCdma_Reset(&CdmaInstance);
         while (!XAxiCdma_ResetIsDone(&CdmaInstance))
             ;
@@ -301,7 +300,6 @@ static void Load_Step_To_BRAM(int stepIndex)
 
 /**
  * @brief 设置并启动步进定时器 (TTC)
- * @comment [核心修正] 直接计算 Interval，不再依赖不准确的 Freq 计算
  */
 static void Start_Step_Timer(int duration_ms)
 {
@@ -354,7 +352,7 @@ static void Start_Step_Timer(int duration_ms)
 
 /**
  * @brief 执行单步切换
- * @details 1. CDMA搬运波形; 2. 写入功放系数; 3. 启动定时器
+ * @details 1. CDMA搬运波形; 2. 写入DO; 3. 启动定时器
  */
 static void Execute_Step(int stepIndex)
 {
@@ -377,15 +375,12 @@ static void Execute_Step(int stepIndex)
     Step_Hw_Params_t *pHw = &g_StateSeqRuntime.StepParams[stepIndex];
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
 
-    // 1. 启动 CDMA 搬运波形 (DDR -> BRAM)
+    // 1. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
     Load_Step_To_BRAM(stepIndex);
 
     // 2. 写入硬件参数
     // 写入频率分频系数 (Offset 0x04)
     Xil_Out32(dac_whole_base_addr + 4, pHw->Freq_Divisor);
-
-    // 写入功放幅值
-    Seq_Hw_SetValue(pHw->Din0_Value, pHw->Din1_Value, pHw->Din2_Value, pHw->Din3_Value);
 
     // 3. 更新 DO
     if (pStep->DOCount > 0)
@@ -444,12 +439,10 @@ void StateSequence_PrepareAndStart(void)
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
     g_StateSeqRuntime.IsRunning = true;
     g_StateSeqRuntime.IsFinished = false;
-
     // [新增] 初始化上报计数器
     g_StateSeqRuntime.ExecutedCount = 0;
     g_StateSeqRuntime.ReportedCount = 0;
     memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
-
     // [新增] 记录启动时间
     In_CurrTime curr;
     read_current_time(&curr);
@@ -457,32 +450,54 @@ void StateSequence_PrepareAndStart(void)
             curr.curr_year, curr.curr_month, curr.curr_day,
             curr.curr_hour, curr.curr_minute, curr.curr_second,
             (unsigned int)(curr.curr_subsec / 100000)); // ms
-
+            
+    // 预计算波形（带幅值）
     Precalculate_Waveforms();
+    // 预计算硬件参数(频率 DO)
     Precalculate_HwParams();
 
     // 2. 档位配置 (Phase 1: Range Config)
-    // [核心修改] 使用严格的时序写入量程 (Range Config)
     Struct_Seq_AC *pAC0 = &g_StateSequenceTask.Steps[0].ACs[0];
     u32 range_u = voltage_to_output(pAC0->UR);
     u32 range_i = current_to_output(pAC0->IR);
-
     // 组合成4个32位字: High16=Ch_Odd, Low16=Ch_Even
     // Din0: UB|UA, Din1: UX|UC ...
     u32 r_din0 = (range_u << 24) | (range_u << 8); // U
     u32 r_din1 = (range_u << 24) | (range_u << 8); // U
     u32 r_din2 = (range_i << 24) | (range_i << 8); // I
     u32 r_din3 = (range_i << 24) | (range_i << 8); // I
-
-    // 执行量程写入序列
+    // [修正] 调用 Seq_Hw_SetRange 写入档位
     Seq_Hw_SetRange(r_din0, r_din1, r_din2, r_din3);
 
-    // 3. 开启 DA IP
+    // 3. [核心新增] 将功放幅值增益固定为满量程 (100%)
+    // 计算 100% 对应的 Din 值
+    int idx_u = get_voltage_index_by_value(pAC0->UR);
+    int idx_i = get_current_index_by_value(pAC0->IR);
+    // 获取通道 0(UA) 和 4(IA) 在 100% 时的校准系数
+    u32 din_vals[8];
+    for (int i = 0; i < 4; i++)
+    {
+        double corr = calculate_correction(i, idx_u, 100.0f); // U
+        din_vals[i] = (u32)(1.0 * corr);
+    }
+    for (int i = 4; i < 8; i++)
+    {
+        double corr = calculate_correction(i, idx_i, 100.0f); // I
+        din_vals[i] = (u32)(1.0 * corr);
+    }
+    u32 v_din0 = (din_vals[1] << 16) | (din_vals[0] & 0xFFFF);
+    u32 v_din1 = (din_vals[3] << 16) | (din_vals[2] & 0xFFFF);
+    u32 v_din2 = (din_vals[5] << 16) | (din_vals[4] & 0xFFFF);
+    u32 v_din3 = (din_vals[7] << 16) | (din_vals[6] & 0xFFFF);
+    // 写入并锁定硬件增益
+    Seq_Hw_SetValue(v_din0, v_din1, v_din2, v_din3);
+
+    // 4. 开启 DA IP
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.StepParams[0].Freq_Divisor);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 4. 执行第一步 (Values, Waveform, Timer)
+    // 5. 执行第一步 (Values, Waveform, Timer)
     Execute_Step(0);
 }
 
@@ -727,112 +742,6 @@ void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val)
     }
 }
 
-// ================= 测试函数：状态序列自测 (8通道满配版) =================
-void Test_StateSequence_Scenario(void)
-{
-    xil_printf("\r\n=======================================================\r\n");
-    xil_printf("CPU1: [TEST] Starting State Sequence (All 8 Channels)\r\n");
-    xil_printf("Step0 3V 1A 2s\r\n");
-    xil_printf("Step1 5V 2A 3s || DO1 ON\r\n");
-    xil_printf("Step2 6V 5A 10s || Trig:{Chn:1, val:1} Jump To Stop || DO2 ON\r\n");
-    xil_printf("Step3 1V 0A 2s\r\n");
-    xil_printf("=======================================================\r\n");
-
-    // 1. 清空全局任务结构体
-    memset(&g_StateSequenceTask, 0, sizeof(g_StateSequenceTask));
-
-    g_StateSequenceTask.StartMode = 0;
-    g_StateSequenceTask.StepCount = 4;
-    g_StateSequenceTask.RepeatCount = 0;
-
-// --- 辅助宏：快速填充一个通道 ---
-// Line固定为1
-#define SET_AC_CHN(step_ptr, idx, ch_num, u_val, ph_u, i_val, ph_i) \
-    (step_ptr)->ACs[idx].Line = 1;                                  \
-    (step_ptr)->ACs[idx].Chn = ch_num;                              \
-    (step_ptr)->ACs[idx].F = 50.0f;                                 \
-    (step_ptr)->ACs[idx].UR = 6.5f; /* 锁定最大量程 */              \
-    (step_ptr)->ACs[idx].IR = 5.0f;                                 \
-    (step_ptr)->ACs[idx].U = u_val;                                 \
-    (step_ptr)->ACs[idx].PhU = ph_u;                                \
-    (step_ptr)->ACs[idx].I_ = i_val;                                \
-    (step_ptr)->ACs[idx].PhI = ph_i;                                \
-    (step_ptr)->ACs[idx].HarmCount = 0; // 无谐波
-
-    // --- Step 0: 初始状态 (2秒) ---
-    // 三相 3.0V, 1A (正序: A=0, B=240, C=120)
-    Struct_Seq_Step *s0 = &g_StateSequenceTask.Steps[0];
-    s0->MaxDuration = 2000;
-    s0->JumpTo = 0;
-    s0->TrigLogic = -1;
-    s0->ACCount = 4; // !!! 关键：开启4个逻辑通道，对应8个物理通道
-
-    SET_AC_CHN(s0, 0, 1, 3.0f, 0.0f, 1.0f, 0.0f);     // Ch1: UA, IA
-    SET_AC_CHN(s0, 1, 2, 3.0f, 240.0f, 1.0f, 240.0f); // Ch2: UB, IB (-120度)
-    SET_AC_CHN(s0, 2, 3, 3.0f, 120.0f, 1.0f, 120.0f); // Ch3: UC, IC (+120度)
-    SET_AC_CHN(s0, 3, 4, 3.0f, 0.0f, 1.0f, 180.0f);   // Ch4: UX, IX (零序/反相)
-
-    // --- Step 1: 升压 (3秒) ---
-    // 三相 5.0V, 2A
-    Struct_Seq_Step *s1 = &g_StateSequenceTask.Steps[1];
-    s1->MaxDuration = 3000;
-    s1->JumpTo = 0;
-    s1->TrigLogic = -1;
-    s1->ACCount = 4;
-
-    SET_AC_CHN(s1, 0, 1, 5.0f, 0.0f, 2.0f, 0.0f);
-    SET_AC_CHN(s1, 1, 2, 5.0f, 240.0f, 2.0f, 240.0f);
-    SET_AC_CHN(s1, 2, 3, 5.0f, 120.0f, 2.0f, 120.0f);
-    SET_AC_CHN(s1, 3, 4, 5.0f, 0.0f, 2.0f, 180.0f);
-
-    s1->DOCount = 1;
-    s1->DOs[0].Chn = 1;
-    s1->DOs[0].Val = 1; // DO1 ON
-
-    // --- Step 2: 满幅值 & 等待触发 (10秒) ---
-    // 三相 6.0V, 5A
-    Struct_Seq_Step *s2 = &g_StateSequenceTask.Steps[2];
-    s2->MaxDuration = 10000;
-    s2->JumpTo = -1;
-    s2->ACCount = 4;
-
-    SET_AC_CHN(s2, 0, 1, 6.0f, 0.0f, 5.0f, 0.0f);
-    SET_AC_CHN(s2, 1, 2, 6.0f, 240.0f, 5.0f, 240.0f);
-    SET_AC_CHN(s2, 2, 3, 6.0f, 120.0f, 5.0f, 120.0f);
-    SET_AC_CHN(s2, 3, 4, 6.0f, 0.0f, 5.0f, 180.0f);
-
-    s2->DOCount = 1;
-    s2->DOs[0].Chn = 2;
-    s2->DOs[0].Val = 1; // DO2 ON
-
-    s2->TrigLogic = 0;
-    s2->TrigDICount = 1;
-    s2->TrigDIs[0].Chn = 1;
-    s2->TrigDIs[0].Val = 1;
-
-    // --- Step 3: 结束态 (2秒) ---
-    // 三相 1.0V, 0A
-    Struct_Seq_Step *s3 = &g_StateSequenceTask.Steps[3];
-    s3->MaxDuration = 2000;
-    s3->JumpTo = -2;
-    s3->ACCount = 4;
-
-    SET_AC_CHN(s3, 0, 1, 1.0f, 0.0f, 0.0f, 0.0f);
-    SET_AC_CHN(s3, 1, 2, 1.0f, 240.0f, 0.0f, 240.0f);
-    SET_AC_CHN(s3, 2, 3, 1.0f, 120.0f, 0.0f, 120.0f);
-    SET_AC_CHN(s3, 3, 4, 1.0f, 0.0f, 0.0f, 180.0f);
-
-    s3->DOCount = 2;
-    s3->DOs[0].Chn = 1;
-    s3->DOs[0].Val = 1;
-    s3->DOs[1].Chn = 2;
-    s3->DOs[1].Val = 1;
-
-    xil_printf("CPU1: [TEST] 8-Channel Sequence Configured.\r\n");
-
-    StateSequence_PrepareAndStart();
-}
-
 // ================= [新增] 状态上报函数 (在 Timer_intr 中调用) =================
 
 void check_and_report_state_sequence_status(void)
@@ -919,8 +828,8 @@ void check_and_report_state_sequence_status(void)
     char *string = cJSON_PrintUnformatted(report);
     if (string)
     {
-        //打印测试
-        // printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
+        // 打印测试
+        //  printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
         size_t len = strlen(string);
         char *finalStr = malloc(len + 3);
         if (finalStr)
