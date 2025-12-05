@@ -13,7 +13,6 @@
 #include "xplatform_info.h"
 #include "xaxidma.h"
 #include <math.h>
-#include "xbram_hw.h"
 #include "xaxidma_hw.h"
 #include "xttcps.h"    // TTC驱动头文件
 #include "xuartlite.h" // UartLite驱动头文件

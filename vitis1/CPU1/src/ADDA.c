@@ -310,6 +310,12 @@ void timer_intr_handler(void *CallBackRef)
 
     /* 4. 调用新的对时任务周期处理器 */
     TimeSync_TickHandler();
+
+    // =========================================================
+    // [新增] 5. 检查并上报事务性任务状态 (电能测试 & 状态序列)
+    // =========================================================
+    check_and_report_energy_test_status();
+    check_and_report_state_sequence_status(); 
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }

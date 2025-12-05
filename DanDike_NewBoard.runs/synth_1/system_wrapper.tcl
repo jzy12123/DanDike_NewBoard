@@ -70,7 +70,6 @@ proc create_report { reportName command } {
   }
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
-set_param chipscope.maxJobs 2
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7z020clg400-2
 
@@ -122,7 +121,6 @@ set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_iic_0_0_1/system_axi_iic_0_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_dma_0_0_1/system_axi_dma_0_0.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_dma_0_0_1/system_axi_dma_0_0_clocks.xdc]
-set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_blk_mem_gen_0_0_1/system_blk_mem_gen_0_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_1/bd_44e3_psr_aclk_0_board.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_1/bd_44e3_psr_aclk_0.xdc]
 set_property used_in_implementation false [get_files -all c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_2/bd_44e3_arsw_0_ooc.xdc]

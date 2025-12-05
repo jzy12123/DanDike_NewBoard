@@ -15,6 +15,26 @@ XTtcPs SeqTtcInstance;
 // 临时波形缓冲区 (8通道)
 static uint16_t TempWaveData[8][DATA_LEN];
 
+// ================= 内部辅助函数：记录执行结果 =================
+static void Record_Step_Result(bool triged, u32 duration)
+{
+    if (g_StateSeqRuntime.ExecutedCount >= MAX_SEQ_RESULTS)
+    {
+        // 缓冲区满，不再记录，防止溢出 (或者可以选择覆盖)
+        return;
+    }
+
+    int idx = g_StateSeqRuntime.ExecutedCount;
+    Seq_Step_Result_t *res = &g_StateSeqRuntime.ExecResults[idx];
+
+    res->Triged = triged;
+    res->Duration = duration;
+    // 读取当前DI状态 (不更新时间戳)
+    res->DI_State = OnOff_Read_Current_Input(g_onoff_bit_width);
+
+    g_StateSeqRuntime.ExecutedCount++;
+}
+
 /**
  * @brief 写入量程 (模仿 power_amplifier_control 的 Range 配置部分)
  * @details 对应逻辑: 595置1 1595置0; 功放start清0 -> 写数据 -> 功放start置1
@@ -418,15 +438,30 @@ int StateSequence_Init(void)
 
 void StateSequence_PrepareAndStart(void)
 {
+    // 1. 初始化运行时状态
     g_StateSeqRuntime.CurrentStepIndex = 0;
     g_StateSeqRuntime.TotalSteps = g_StateSequenceTask.StepCount;
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
     g_StateSeqRuntime.IsRunning = true;
+    g_StateSeqRuntime.IsFinished = false;
+
+    // [新增] 初始化上报计数器
+    g_StateSeqRuntime.ExecutedCount = 0;
+    g_StateSeqRuntime.ReportedCount = 0;
+    memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
+
+    // [新增] 记录启动时间
+    In_CurrTime curr;
+    read_current_time(&curr);
+    sprintf(g_StateSeqRuntime.StartTimeStr, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
+            curr.curr_year, curr.curr_month, curr.curr_day,
+            curr.curr_hour, curr.curr_minute, curr.curr_second,
+            (unsigned int)(curr.curr_subsec / 100000)); // ms
 
     Precalculate_Waveforms();
     Precalculate_HwParams();
 
-    // 1. 档位配置 (Phase 1: Range Config)
+    // 2. 档位配置 (Phase 1: Range Config)
     // [核心修改] 使用严格的时序写入量程 (Range Config)
     Struct_Seq_AC *pAC0 = &g_StateSequenceTask.Steps[0].ACs[0];
     u32 range_u = voltage_to_output(pAC0->UR);
@@ -442,12 +477,12 @@ void StateSequence_PrepareAndStart(void)
     // 执行量程写入序列
     Seq_Hw_SetRange(r_din0, r_din1, r_din2, r_din3);
 
-    // 2. 开启 DA IP
+    // 3. 开启 DA IP
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.StepParams[0].Freq_Divisor);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 3. 执行第一步 (Values, Waveform, Timer)
+    // 4. 执行第一步 (Values, Waveform, Timer)
     Execute_Step(0);
 }
 
@@ -459,20 +494,34 @@ static void Sync_Step_To_Global(int stepIndex)
         return;
 
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
-    xil_printf("CPU1: Syncing Step %d parameters to Global State...\r\n", stepIndex);
 
-    // 1. 清空全局谐波数据 (假设Step中未定义的通道无谐波)
+    // 1. 清空全局谐波数据
     memset(numHarmonics, 0, sizeof(numHarmonics));
     memset(harmonics, 0, sizeof(harmonics));
     memset(harmonics_phases, 0, sizeof(harmonics_phases));
 
-    // 2. 遍历步骤中的 AC 配置
+    // 2. [关键修正] 先清空全局基波电气参数 (U, I, Phase)
+    // 必须先清空，确保状态序列中未定义的通道或参数回归 0 状态，
+    // 防止之前的稳态设置（如 5A）残留下来，干扰后续的单参数修改指令。
+    for (int i = 0; i < LinesAC * ChnsAC; i++)
+    {
+        setACS.Vals[i].U = 0.0f;
+        setACS.Vals[i].I_ = 0.0f;
+        setACS.Vals[i].PhU = 0.0f;
+        setACS.Vals[i].PhI = 0.0f;
+        // 注意：不要清零 UR/IR/Line/Chn，否则会导致除零错误或通道映射丢失
+        // F 也可以选择重置为 50，或者保持当前值
+    }
+
+    // 同时清空全局幅值数组，确保未覆盖的通道输出为0
+    memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude));
+
+    // 3. 遍历步骤中的 AC 配置进行覆盖 (将最后一步的状态写入全局变量)
     for (int i = 0; i < pStep->ACCount; i++)
     {
         Struct_Seq_AC *pAC = &pStep->ACs[i];
 
         // 映射 Line/Chn 到全局索引 (0-7)
-        // 逻辑通道 0-3 (对应 A, B, C, X)
         int chn_log = pAC->Chn - 1;
         if (chn_log < 0 || chn_log > 3)
             continue;
@@ -484,25 +533,22 @@ static void Sync_Step_To_Global(int stepIndex)
         setACS.Vals[idx_u].U = pAC->U;
         setACS.Vals[idx_u].PhU = pAC->PhU;
         setACS.Vals[idx_u].UR = pAC->UR;
-        setACS.Vals[idx_u].F = pAC->F; // 频率
+        setACS.Vals[idx_u].F = pAC->F;
 
         setACS.Vals[idx_u].I_ = pAC->I_;
         setACS.Vals[idx_u].PhI = pAC->PhI;
         setACS.Vals[idx_u].IR = pAC->IR;
 
         // 更新全局控制变量
-        Wave_Frequency = pAC->F; // 假设所有通道频率一致
+        Wave_Frequency = pAC->F;
 
         // 更新波形幅值 Wave_Amplitude (百分比)
+        // 注意：此处必须重新计算，因为前面被 memset 清空了
         if (pAC->UR > 0.001f)
             Wave_Amplitude[idx_u] = (pAC->U / pAC->UR) * 100.0f;
-        else
-            Wave_Amplitude[idx_u] = 0.0f;
 
         if (pAC->IR > 0.001f)
             Wave_Amplitude[idx_i] = (pAC->I_ / pAC->IR) * 100.0f;
-        else
-            Wave_Amplitude[idx_i] = 0.0f;
 
         // 更新量程 Wave_Range
         Wave_Range[idx_u] = voltage_to_output(pAC->UR);
@@ -519,13 +565,11 @@ static void Sync_Step_To_Global(int stepIndex)
             int h_idx = hn - 2; // 2次谐波对应索引0
             if (h_idx >= 0 && h_idx < MAX_HARMONICS)
             {
-                // 电压谐波
                 if (hn > numHarmonics[idx_u])
                     numHarmonics[idx_u] = hn;
-                harmonics[idx_u][h_idx] = pAC->Harms[h].U / 100.0f; // 协议是%, 全局是小数
+                harmonics[idx_u][h_idx] = pAC->Harms[h].U / 100.0f;
                 harmonics_phases[idx_u][h_idx] = pAC->Harms[h].PhU;
 
-                // 电流谐波
                 if (hn > numHarmonics[idx_i])
                     numHarmonics[idx_i] = hn;
                 harmonics[idx_i][h_idx] = pAC->Harms[h].I_ / 100.0f;
@@ -534,16 +578,14 @@ static void Sync_Step_To_Global(int stepIndex)
         }
     }
 
-    // 更新 DO 状态 (lineDO 和 g_do_output_state)
-    // 这样 GetDevState 回读时也是正确的
+    // 更新 DO 状态 (保持不变)
     for (int k = 0; k < pStep->DOCount; k++)
     {
-        int chn = pStep->DOs[k].Chn; // 1-based
+        int chn = pStep->DOs[k].Chn;
         int val = pStep->DOs[k].Val;
         if (chn >= 1 && chn <= ChnsDO)
         {
             lineDO.DO[chn - 1].v = val;
-            // 同时更新硬件状态变量
             if (val)
                 g_do_output_state |= (1 << (chn + 23));
             else
@@ -551,7 +593,6 @@ static void Sync_Step_To_Global(int stepIndex)
         }
     }
 }
-
 void StateSequence_Stop(void)
 {
     if (!g_StateSeqRuntime.IsRunning)
@@ -576,8 +617,9 @@ void StateSequence_Stop(void)
 
     // 5. 结束状态序列任务
     g_StateSeqRuntime.IsRunning = false;
+    g_StateSeqRuntime.IsFinished = true; // 标记完成，通知主循环发送最后一次Success
 
-    xil_printf("CPU1: StateSeq - Finished. Output HELD and SYNCED to global state.\r\n");
+    xil_printf("CPU1: StateSeq - Finished. \r\n");
 }
 
 // ================= 中断处理 =================
@@ -592,6 +634,9 @@ void StateSequence_TTC_Handler(void *CallBackRef)
 
     int currentIdx = g_StateSeqRuntime.CurrentStepIndex;
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[currentIdx];
+    // [新增] 记录本步结果 (超时)
+    // 实际持续时间即为设定时间
+    Record_Step_Result(false, pStep->MaxDuration);
     int nextStep = -1;
 
     // 解析跳转逻辑 (0: 下一步, -1: 下一步, -2: 结束)
@@ -650,11 +695,23 @@ void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val)
 
     if (trig)
     {
-        xil_printf("CPU1: StateSeq - DI Triggered transition!\r\n");
-        int nextStep = -1;
+        // 获取 TTC 计数值用于计算实际时长
+        u32 counter_val = XTtcPs_GetCounterValue(&SeqTtcInstance);
+        // 获取 Interval 值 (目标计数值)
+        u16 interval = XTtcPs_GetInterval(&SeqTtcInstance);
+        // 计算当前已运行时间： (Count / Interval) * MaxDuration
+        // 原理：运行进度的百分比 * 总时间
+        u32 actual_duration = 0;
+        if (interval > 0)
+        {
+            // 使用 u64 避免 (counter * duration) 乘法溢出
+            actual_duration = (u32)((u64)counter_val * pStep->MaxDuration / interval);
+        }
+        // 记录本步结果 (Triged=true, 实际时长)
+        Record_Step_Result(true, actual_duration);
 
         XTtcPs_Stop(&SeqTtcInstance);
-
+        int nextStep = -1;
         // 解析 JumpTo (DI触发时的逻辑)
         // JumpTo = 0:  跳下一步
         // JumpTo = -2: 跳下一步
@@ -774,4 +831,114 @@ void Test_StateSequence_Scenario(void)
     xil_printf("CPU1: [TEST] 8-Channel Sequence Configured.\r\n");
 
     StateSequence_PrepareAndStart();
+}
+
+// ================= [新增] 状态上报函数 (在 Timer_intr 中调用) =================
+
+void check_and_report_state_sequence_status(void)
+{
+    // 判断是否有新数据或状态变化
+    // 只要 ExecutedCount > ReportedCount，说明有新步骤完成，需要上报全量列表
+    // 或者刚刚结束 (IsFinished=true)，需要发最后一次 Success
+    bool has_new_data = (g_StateSeqRuntime.ExecutedCount > g_StateSeqRuntime.ReportedCount);
+    bool just_finished = g_StateSeqRuntime.IsFinished;
+
+    if (!has_new_data && !just_finished)
+    {
+        return; // 无需上报
+    }
+
+    // 构建 JSON
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "TaskEvent");
+    cJSON_AddStringToObject(report, "FunCode", "StateSequence");
+
+    if (g_StateSeqRuntime.IsRunning)
+    {
+        cJSON_AddStringToObject(report, "Result", "Doing");
+    }
+    else if (g_StateSeqRuntime.IsFinished)
+    {
+        cJSON_AddStringToObject(report, "Result", "Success");
+    }
+    else
+    {
+        cJSON_AddStringToObject(report, "Result", "Failure"); // 异常情况
+    }
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddNumberToObject(data, "ExecutedStates", g_StateSeqRuntime.ExecutedCount);
+    cJSON_AddStringToObject(data, "StartTime", g_StateSeqRuntime.StartTimeStr);
+
+    cJSON *statesArr = cJSON_CreateArray();
+
+    // [全量上报逻辑] 遍历所有已执行的步骤 (0 到 ExecutedCount-1)
+    for (int i = 0; i < g_StateSeqRuntime.ExecutedCount; i++)
+    {
+        Seq_Step_Result_t *res = &g_StateSeqRuntime.ExecResults[i];
+        cJSON *stepObj = cJSON_CreateObject();
+
+        cJSON_AddBoolToObject(stepObj, "Triged", res->Triged);
+        cJSON_AddNumberToObject(stepObj, "Duration", res->Duration);
+
+        // --- DI 数组转换  ---
+        cJSON *diArr = cJSON_CreateArray();
+        int num_bits = 8;
+        switch (g_onoff_bit_width)
+        {
+        case bit_16:
+            num_bits = 16;
+            break;
+        case bit_24:
+            num_bits = 24;
+            break;
+        case bit_32:
+            num_bits = 32;
+            break;
+        case bit_8:
+        default:
+            num_bits = 8;
+            break;
+        }
+
+        for (int b = 0; b < num_bits; b++)
+        {
+            // 逻辑反转：硬件0=闭合(1)
+            int val = 1 - ((res->DI_State >> b) & 1);
+            cJSON_AddItemToArray(diArr, cJSON_CreateNumber(val));
+        }
+        cJSON_AddItemToObject(stepObj, "DI", diArr);
+        // ---------------------------
+
+        cJSON_AddItemToArray(statesArr, stepObj);
+    }
+    cJSON_AddItemToObject(data, "States", statesArr);
+    cJSON_AddItemToObject(report, "Data", data);
+
+    // 发送
+    char *string = cJSON_PrintUnformatted(report);
+    if (string)
+    {
+        //打印测试
+        // printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
+        size_t len = strlen(string);
+        char *finalStr = malloc(len + 3);
+        if (finalStr)
+        {
+            snprintf(finalStr, len + 3, "|%s|", string);
+            MsgQue_write(finalStr, strlen(finalStr));
+            free(finalStr);
+        }
+        free(string);
+    }
+    cJSON_Delete(report);
+
+    // 更新状态
+    g_StateSeqRuntime.ReportedCount = g_StateSeqRuntime.ExecutedCount;
+
+    // 只有当发送完 Success 之后，才清除 IsFinished 标志，停止后续发送
+    if (g_StateSeqRuntime.IsFinished)
+    {
+        g_StateSeqRuntime.IsFinished = false;
+    }
 }

@@ -244,7 +244,7 @@ int main()
 			usleep(10000); // 睡眠 10ms，释放 CPU 资源给中断处理
 			continue;	   // 直接跳过本次循环，不执行后续代码
 		}
-		
+
 		/* 1. 应用硬件参数的逻辑（如果被JSON指令修改） */
 		if (dac_parameters_updated_by_command)
 		{
@@ -334,9 +334,6 @@ int main()
 		{
 			usleep(10000); // 延时10ms，避免空转过快
 		}
-
-		/*3 在主循环中检测上报任务 */
-		check_and_report_energy_test_status();
 	}
 }
 

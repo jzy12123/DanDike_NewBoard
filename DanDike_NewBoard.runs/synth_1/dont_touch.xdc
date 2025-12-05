@@ -69,9 +69,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_code
 # IP: bd/system/ip/system_util_vector_logic_0_1_1/system_util_vector_logic_0_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_util_vector_logic_0_1 || ORIG_REF_NAME==system_util_vector_logic_0_1} -quiet] -quiet
 
-# IP: bd/system/ip/system_axi_bram_ctrl_0_0_1/system_axi_bram_ctrl_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_bram_ctrl_0_0 || ORIG_REF_NAME==system_axi_bram_ctrl_0_0} -quiet] -quiet
-
 # IP: bd/system/ip/system_dac_whole_0_0/system_dac_whole_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_dac_whole_0_0 || ORIG_REF_NAME==system_dac_whole_0_0} -quiet] -quiet
 
@@ -80,9 +77,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axis
 
 # IP: bd/system/ip/system_axi_dma_0_0_1/system_axi_dma_0_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_dma_0_0 || ORIG_REF_NAME==system_axi_dma_0_0} -quiet] -quiet
-
-# IP: bd/system/ip/system_blk_mem_gen_0_0_1/system_blk_mem_gen_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_blk_mem_gen_0_0 || ORIG_REF_NAME==system_blk_mem_gen_0_0} -quiet] -quiet
 
 # IP: bd/system/ip/system_axi_smc_0_1/system_axi_smc_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axi_smc_0 || ORIG_REF_NAME==system_axi_smc_0} -quiet] -quiet
@@ -416,8 +410,6 @@ set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filte
 
 # XDC: bd/system/ip/system_axi_dma_0_0_1/system_axi_dma_0_0_clocks.xdc
 #dup# set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_axi_dma_0_0 || ORIG_REF_NAME==system_axi_dma_0_0} -quiet] {/U0 } ]/U0 ] -quiet] -quiet
-
-# XDC: bd/system/ip/system_blk_mem_gen_0_0_1/system_blk_mem_gen_0_0_ooc.xdc
 
 # XDC: bd/system/ip/system_axi_smc_0_1/bd_0/ip/ip_1/bd_44e3_psr_aclk_0_board.xdc
 # DONT_TOUCH constraint suppressed by parent sub-design file.
