@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Thu Dec  4 19:22:01 2025
+//Date        : Mon Dec  8 16:53:04 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -1515,6 +1515,7 @@ module adda_imp_1MMLK1Q
   wire [127:0]adc_whole_0_M_AXIS_TDATA;
   wire adc_whole_0_M_AXIS_TLAST;
   wire adc_whole_0_M_AXIS_TREADY;
+  wire [15:0]adc_whole_0_M_AXIS_TSTRB;
   wire adc_whole_0_M_AXIS_TVALID;
   wire [1:0]adc_whole_0_yad_os;
   wire [13:0]axi_bram_ctrl_1_BRAM_PORTA_ADDR;
@@ -1587,6 +1588,10 @@ module adda_imp_1MMLK1Q
   wire axi_dma_0_M_AXI_S2MM_WVALID;
   wire axi_dma_0_mm2s_introut;
   wire axi_dma_0_s2mm_introut;
+  wire [127:0]axis_data_fifo_0_M_AXIS_TDATA;
+  wire axis_data_fifo_0_M_AXIS_TLAST;
+  wire axis_data_fifo_0_M_AXIS_TREADY;
+  wire axis_data_fifo_0_M_AXIS_TVALID;
   wire [127:0]axis_data_fifo_1_M_AXIS_TDATA;
   wire axis_data_fifo_1_M_AXIS_TREADY;
   wire axis_data_fifo_1_M_AXIS_TVALID;
@@ -1850,6 +1855,7 @@ module adda_imp_1MMLK1Q
         .M_AXIS_TDATA(adc_whole_0_M_AXIS_TDATA),
         .M_AXIS_TLAST(adc_whole_0_M_AXIS_TLAST),
         .M_AXIS_TREADY(adc_whole_0_M_AXIS_TREADY),
+        .M_AXIS_TSTRB(adc_whole_0_M_AXIS_TSTRB),
         .M_AXIS_TVALID(adc_whole_0_M_AXIS_TVALID),
         .S_AXI_ACLK(processing_system7_0_FCLK_CLK0),
         .S_AXI_ARADDR(ps7_0_axi_periph_M06_AXI_ARADDR[3:0]),
@@ -2039,11 +2045,11 @@ module adda_imp_1MMLK1Q
         .s_axi_lite_wdata(ps7_0_axi_periph_M05_AXI_WDATA),
         .s_axi_lite_wready(ps7_0_axi_periph_M05_AXI_WREADY),
         .s_axi_lite_wvalid(ps7_0_axi_periph_M05_AXI_WVALID),
-        .s_axis_s2mm_tdata(adc_whole_0_M_AXIS_TDATA),
+        .s_axis_s2mm_tdata(axis_data_fifo_0_M_AXIS_TDATA),
         .s_axis_s2mm_tkeep({1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1,1'b1}),
-        .s_axis_s2mm_tlast(adc_whole_0_M_AXIS_TLAST),
-        .s_axis_s2mm_tready(adc_whole_0_M_AXIS_TREADY),
-        .s_axis_s2mm_tvalid(adc_whole_0_M_AXIS_TVALID));
+        .s_axis_s2mm_tlast(axis_data_fifo_0_M_AXIS_TLAST),
+        .s_axis_s2mm_tready(axis_data_fifo_0_M_AXIS_TREADY),
+        .s_axis_s2mm_tvalid(axis_data_fifo_0_M_AXIS_TVALID));
   system_axi_smc_0 axi_smc
        (.M00_AXI_araddr(Conn1_ARADDR),
         .M00_AXI_arburst(Conn1_ARBURST),
@@ -2113,6 +2119,18 @@ module adda_imp_1MMLK1Q
         .S01_AXI_wvalid(axi_dma_0_M_AXI_S2MM_WVALID),
         .aclk(processing_system7_0_FCLK_CLK0),
         .aresetn(rst_ps7_0_100M_peripheral_aresetn));
+  system_axis_data_fifo_0_0 axis_data_fifo_0
+       (.m_axis_tdata(axis_data_fifo_0_M_AXIS_TDATA),
+        .m_axis_tlast(axis_data_fifo_0_M_AXIS_TLAST),
+        .m_axis_tready(axis_data_fifo_0_M_AXIS_TREADY),
+        .m_axis_tvalid(axis_data_fifo_0_M_AXIS_TVALID),
+        .s_axis_aclk(processing_system7_0_FCLK_CLK0),
+        .s_axis_aresetn(rst_ps7_0_100M_peripheral_aresetn),
+        .s_axis_tdata(adc_whole_0_M_AXIS_TDATA),
+        .s_axis_tlast(adc_whole_0_M_AXIS_TLAST),
+        .s_axis_tready(adc_whole_0_M_AXIS_TREADY),
+        .s_axis_tstrb(adc_whole_0_M_AXIS_TSTRB),
+        .s_axis_tvalid(adc_whole_0_M_AXIS_TVALID));
   system_axis_data_fifo_1_0 axis_data_fifo_1
        (.m_axis_tdata(axis_data_fifo_1_M_AXIS_TDATA),
         .m_axis_tready(axis_data_fifo_1_M_AXIS_TREADY),
@@ -8465,7 +8483,7 @@ module s00_couplers_imp_11SE3QO
         .s_axi_wvalid(s00_couplers_to_auto_pc_WVALID));
 endmodule
 
-(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=79,numReposBlks=48,numNonXlnxBlks=2,numHierBlks=31,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=32,da_board_cnt=8,da_bram_cntlr_cnt=4,da_clkrst_cnt=13,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
+(* CORE_GENERATION_INFO = "system,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=system,x_ipVersion=1.00.a,x_ipLanguage=VERILOG,numBlks=80,numReposBlks=49,numNonXlnxBlks=2,numHierBlks=31,maxHierDepth=0,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=0,numPkgbdBlks=0,bdsource=USER,da_aeth_cnt=1,da_axi4_cnt=32,da_board_cnt=8,da_bram_cntlr_cnt=4,da_clkrst_cnt=13,da_ps7_cnt=1,synth_mode=Global}" *) (* HW_HANDOFF = "system.hwdef" *) 
 module system
    (AD_0_ad_ck,
     AD_0_ad_cs,

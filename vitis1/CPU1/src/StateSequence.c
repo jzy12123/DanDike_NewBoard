@@ -439,11 +439,14 @@ void StateSequence_PrepareAndStart(void)
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
     g_StateSeqRuntime.IsRunning = true;
     g_StateSeqRuntime.IsFinished = false;
-    // [新增] 初始化上报计数器
+    // 初始化上报计数器
     g_StateSeqRuntime.ExecutedCount = 0;
-    g_StateSeqRuntime.ReportedCount = 0;
+    // 将 ReportedCount 初始化为 -1
+    // 目的：使得 check_and_report 函数在第一次运行时满足 (ExecutedCount(0) > ReportedCount(-1))
+    // 从而立即发送一个 ExecutedStates=0, States=[] 的初始报告，告知上位机 StartTime。
+    g_StateSeqRuntime.ReportedCount = -1;
     memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
-    // [新增] 记录启动时间
+    //  记录启动时间
     In_CurrTime curr;
     read_current_time(&curr);
     sprintf(g_StateSeqRuntime.StartTimeStr, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
@@ -778,7 +781,12 @@ void check_and_report_state_sequence_status(void)
     cJSON *data = cJSON_CreateObject();
     cJSON_AddNumberToObject(data, "ExecutedStates", g_StateSeqRuntime.ExecutedCount);
     cJSON_AddStringToObject(data, "StartTime", g_StateSeqRuntime.StartTimeStr);
-
+    int currentRepeatID = 0;
+    if (g_StateSequenceTask.RepeatCount >= (int)g_StateSeqRuntime.RepeatCountRemaining)
+    {
+        currentRepeatID = g_StateSequenceTask.RepeatCount - (int)g_StateSeqRuntime.RepeatCountRemaining;
+    }
+    cJSON_AddNumberToObject(data, "Repeated", currentRepeatID);//重复次数计数
     cJSON *statesArr = cJSON_CreateArray();
 
     // [全量上报逻辑] 遍历所有已执行的步骤 (0 到 ExecutedCount-1)

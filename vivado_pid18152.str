@@ -108,3 +108,80 @@ Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 // TclEventType: PROJECT_NEW
 // [GUI Memory]: 133 MB (+6891kb) [00:00:37]
 // WARNING: HEventQueue.dispatchEvent() is taking  3922 ms.
+// Tcl Message: open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr 
+// Tcl Message: Scanning sources... Finished scanning sources 
+// Tcl Message: INFO: [IP_Flow 19-234] Refreshing IP repositories INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'. INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'. INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'. 
+// [GUI Memory]: 143 MB (+3078kb) [00:00:37]
+// Tcl Message: open_project: Time (s): cpu = 00:00:22 ; elapsed = 00:00:27 . Memory (MB): peak = 1133.836 ; gain = 26.672 
+// Project name: DanDike_NewBoard; location: C:/Users/saber/Desktop/share/DanDike_NewBoard; part: xc7z020clg400-2
+dismissDialog("Open Project"); // bz
+// HMemoryUtils.trashcanNow. Engine heap size: 1,156 MB. GUI used memory: 100 MB. Current time: 12/8/25, 9:45:57 AM CST
+// [GUI Memory]: 158 MB (+8623kb) [00:00:40]
+// Tcl Message: update_compile_order -fileset sources_1 
+selectTree(PAResourceEtoH.FlowNavigatorTreePanel_FLOW_NAVIGATOR_TREE, "[, IP Integrator, Open Block Design]", 7, false); // u
+// Run Command: PAResourceCommand.PACommandNames_OPEN_BLOCK_DESIGN
+// bz (cr):  Open Block Design : addNotify
+// Tcl Message: open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd} 
+// TclEventType: LOAD_FEATURE
+// TclEventType: RSB_SCRIPT_TASK
+// Tcl Message: Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>... 
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: LOAD_FEATURE
+// TclEventType: RSB_PROPERTY_CHANGE
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_SCRIPT_TASK
+// TclEventType: RSB_OPEN_DIAGRAM
+// [GUI Memory]: 177 MB (+11383kb) [00:00:50]
+// [Engine Memory]: 1,197 MB (+15122kb) [00:00:50]
+// TclEventType: RSB_OPEN_DIAGRAM
+// WARNING: HEventQueue.dispatchEvent() is taking  2765 ms.
+// HMemoryUtils.trashcanNow. Engine heap size: 1,244 MB. GUI used memory: 120 MB. Current time: 12/8/25, 9:46:12 AM CST
+// [Engine Memory]: 1,297 MB (+41808kb) [00:00:55]
+// Elapsed time: 11 seconds
+closeView(PAResourceOtoP.PAViews_PROJECT_SUMMARY, "Project Summary"); // v
+// Tcl Message: open_bd_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:10 . Memory (MB): peak = 1342.047 ; gain = 157.625 
+// 'bF' command handler elapsed time: 11 seconds
+dismissDialog("Open Block Design"); // bz
+// [Engine Memory]: 1,411 MB (+51376kb) [00:00:57]
+// [GUI Memory]: 193 MB (+7692kb) [00:04:31]
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 138 MB. Current time: 12/8/25, 10:16:15 AM CST
+// Run Command: PAResourceCommand.PACommandNames_CUSTOMIZE_RSB_BLOC
+// r (cr): Re-customize IP: addNotify
+// Elapsed time: 2240 seconds
+dismissDialog("Re-customize IP"); // r
+// Elapsed time: 527 seconds
+selectView(PAResourceOtoP.PAViews_SYSTEM, "System", 1042, 563, 2499, 1113, false, false, false, true, false); // hv - Popup Trigger
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenuItem((HResource) null, "Color 1"); // ak
+// Elapsed time: 19 seconds
+selectView(PAResourceOtoP.PAViews_SYSTEM, "System", 1407, 582, 2499, 1113, false, false, false, true, false); // hv - Popup Trigger
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenuItem((HResource) null, "Color 1"); // ak
+// Elapsed time: 20 seconds
+selectView(PAResourceOtoP.PAViews_SYSTEM, "System", 552, 375, 2499, 1113, false, false, false, true, false); // hv - Popup Trigger
+selectMenu(PAResourceQtoS.SelectMenu_HIGHLIGHT, "Highlight"); // ah
+selectMenuItem((HResource) null, "Color 1"); // ak
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 132 MB. Current time: 12/8/25, 10:46:18 AM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 132 MB. Current time: 12/8/25, 11:16:21 AM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 129 MB. Current time: 12/8/25, 11:46:24 AM CST
+// WARNING: HSwingWorker (Refresh Filesets Swing Worker) is taking 1097 ms. Increasing delay to 3291 ms.
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 12:16:27 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 12:46:29 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 129 MB. Current time: 12/8/25, 1:16:32 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 129 MB. Current time: 12/8/25, 1:46:35 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 2:16:38 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 2:46:40 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 3:16:43 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 130 MB. Current time: 12/8/25, 3:46:46 PM CST
+// Run Command: PAResourceCommand.PACommandNames_CUSTOMIZE_RSB_BLOC
+// r (cr): Re-customize IP: addNotify
+// WARNING: HEventQueue.dispatchEvent() is taking  1368 ms.
+// HMemoryUtils.trashcanNow. Engine heap size: 1,427 MB. GUI used memory: 133 MB. Current time: 12/8/25, 4:16:49 PM CST

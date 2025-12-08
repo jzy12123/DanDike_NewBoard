@@ -1,11 +1,14 @@
-
-
+升级记录
+(
+	20251208:{
+		1、 TaskEvent.StateSequence 的 Data 节点中增加当前循环第几次 "RepeatID" 属性；
+		2、 TaskEvent.StateSequence 的 States 数组中，每个状态步节点增加步号 "StateID" 属性；
+	}
 	20251201:{
 		1、 删除 Report.WaveRecordStart 中的 "WaveFile" 和  "FilePath" 两个属性；
 		2、 删除 Reply.GetDevBaseInfo 中的 "WaveSrcPath" 属性，新增 "WaveReplayPathArm" 和 "WaveReplayPathSvr" 属性；
 		3、 修改 结构体 111=TWData, 行波测试仪数据结构： 增加 ir1 和 ir2 字段（电流量程）；   
 		4、 删除 Reply.GetDevState 中的 "Task" 节点（如果需要通过 Cmd.QueryRunningTask 获取）；
-单文件操作
 	}
 	
 	20251115:{
@@ -376,8 +379,8 @@
 			"Result":"Success",		
 			"Data": {										//下列项和仪器功能相关,均为可选相			 
 				"DevTime": "2024-01-31 00:00:00.123",		//系统时钟
-				"Temperature": 30,							//温度	
 				"SyncMode": "GPS/BD/IRIG-B/SNTP/Manual",	//当前的对时方式
+				"Temperature": 30,							//温度					
 				"Longitude": 12.2,							//经度
 				"Latitude": 12.2,								//纬度						
 				"DI_Resolution": 1,							//开入防抖分辨率,单位:ms，支持范围：0.1~100ms,缺省1ms
@@ -1644,10 +1647,11 @@
 	4.5.状态序列【事务】
 	(
 		//1、各通道的档位由下位机通过获取所有状态步中的最大输出值,选用涵盖该值的最小档位;指令中不单独指定档位;
-		//2、结束后自动退出暂态,但在稳态中持续最后一步的输出
-		//3、开入量防抖时间为系统中的“DI_Resolution”值;
-		//4、如果状态序列中启动了录波，录波的真正启动和结束由Report.WaveRecordStart/WaveRecordComplete上报。	
-		//5、假如想实现单纯的开出序列,可在状态步中不指定"AC"节点,或者数组为空即可。
+		//2、状态序列结束后，持续最后一次执行的状态步的AC和DO输出（直到其他可能改变AC和DO的命令下发）；
+		//3、执行过程中遇到 TerminateRunningTask 终止任务时，等效开入跳结束处理（处理方式同2）
+		//4、开入量防抖时间为系统中的“DI_Resolution”值;
+		//5、如果状态序列中启动了录波，录波的真正启动和结束由 Report.WaveRecordStart 和 Report.WaveRecordComplete 上报。	
+		//6、假如想实现单纯的开出序列,可在状态步中不指定"AC"节点,或者数组为空即可。		
 		
 		下行:
 		{
@@ -1732,17 +1736,18 @@
 							]		
 			}		 
 		}
-		上行:(过程中及结束时上报多次)
+		上行:(过程中及结束时上报多次，建议：刚启动时，后续间隔500ms以上且状态步变化时上送)
 		{
 			"FunType": "TaskEvent",	 
 			"FunCode": "StateSequence",	
 			"Result":"Doing/Success/Failure",		
 			"Data": { 
-				"ExecutedStates": 3,			//已经执行的步数;
 				"StartTime":"2024-01-01 08:00:00.123",			//状态序列的真实(第1步)启动时刻。	
+				"ExecutedStates": 3,			//已经执行的步数;
+				"RepeatID": 0,		//当前循环第几次？  
 				"States": [    		//元素个数对应 "ExecutedStates"的值；
 					{ 
-						"StateID":1,				//步号(从1开始计数)
+						"StateID": 1,						//步号（从1开始计数）
 						"Triged":true/false, 		//是否提前跳转了?
 						"Duration":2000,				//实际持续时间ms
 						"DI":[0,1,0... ]					//跳转时刻的所有开入状态      
@@ -2771,3 +2776,4 @@
 			12*3*8 + 24*3=360
 			6*3*8*31+16*3=4512
 	)
+)

@@ -333,6 +333,9 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto
 # IP: bd/system/ip/system_auto_pc_10/system_auto_pc_10.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_auto_pc_10 || ORIG_REF_NAME==system_auto_pc_10} -quiet] -quiet
 
+# IP: bd/system/ip/system_axis_data_fifo_0_0_1/system_axis_data_fifo_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==system_axis_data_fifo_0_0 || ORIG_REF_NAME==system_axis_data_fifo_0_0} -quiet] -quiet
+
 # XDC: bd/system/ip/system_processing_system7_0_0_1/system_processing_system7_0_0.xdc
 set_property KEEP_HIERARCHY SOFT [get_cells [split [join [get_cells -hier -filter {REF_NAME==system_processing_system7_0_0 || ORIG_REF_NAME==system_processing_system7_0_0} -quiet] {/inst } ]/inst ] -quiet] -quiet
 
