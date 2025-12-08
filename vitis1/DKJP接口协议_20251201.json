@@ -1,22 +1,30 @@
-升级记录
-(
+
+
+	20251201:{
+		1、 删除 Report.WaveRecordStart 中的 "WaveFile" 和  "FilePath" 两个属性；
+		2、 删除 Reply.GetDevBaseInfo 中的 "WaveSrcPath" 属性，新增 "WaveReplayPathArm" 和 "WaveReplayPathSvr" 属性；
+		3、 修改 结构体 111=TWData, 行波测试仪数据结构： 增加 ir1 和 ir2 字段（电流量程）；   
+		4、 删除 Reply.GetDevState 中的 "Task" 节点（如果需要通过 Cmd.QueryRunningTask 获取）；
+单文件操作
+	}
+	
 	20251115:{
-		1、 Reply.GetDevBaseInfo 的 Data.AC 增加 HarmCalcMethod，HarmPhaseRef 和 InharmEnable 三个属性；
-		2、 Reply.GetDevState 的 Data.AC 增加 HarmCalcMethod，HarmPhaseRef 属性；
-		3、 新增 Cmd.SetDevState 指令；删除  Cmd.SetDI 和 Cmd.SetPulseOut 指令； 并将 Cmd.SetHarm 中的 ConstantMode 和 HarmNumberTHD 属性删除；（均移入Cmd.SetDevState中）
+		1、 Reply.GetDevBaseInfo 的 Data.AC 增加 "HarmCalcMethod"，"HarmPhaseRef" 和 "InharmEnable" 三个属性；
+		2、 Reply.GetDevState 的 Data.AC 增加 "HarmCalcMethod"，"HarmPhaseRef" 属性；
+		3、 新增 Cmd.SetDevState 指令；删除  Cmd.SetDI 和 Cmd.SetPulseOut 指令； 并将 Cmd.SetHarm 中的 "ConstantMode" 和 "HarmNumberTHD" 属性删除；（均移入Cmd.SetDevState中）
 		4、 新增 Cmd.SetInharm 指令；
 		5、 将原有的 Cmd.SetACStatus, Cmd.SetHarmStatus 和 Cmd.SetInharmStatus 合并到 Cmd.SetACStatus 中，删除另外两条指令；【Stop停止对象有调整，新指令中各管各的状态，互不影响】
-		6、 结构体100中增加 nStatusInharm 状态，并交换 bAutoRange 位置； 
-		7、 所有 InterHarm 改名为 Inharm； 
+		6、 结构体100中增加 "nStatusInharm" 状态，并交换 "bAutoRange" 位置； 
+		7、 所有 "InterHarm" 改名为 "Inharm"； 
 	}
 	
 	20251110:{
 		1、 经调研，状态序列确实用不到任意跳转的场景，因此 Cmd.StateSequence 中各状态步的条件配置简化（恢复为20250618版本的描述方式）为只有：下一步 或者 结束 两种出口；
 	}
 	20251031:{
-		1、 Report.ProtectedEvent 增加 MeterRangeOver 节点类型，用于描述表模式下的超量限告警；
-		2、 Cmd.SetACM 增加 AutoRange 字段，用于描述是否切换到自动档； 同时删除 20250904 中 自动档 -1 的概念，所有档位或者档位列表中不应出现 -1；默认所有标准表均支持自动档功能；
-		3、 结构体 100 DevState 增加 bAutoRange 字段（目前主要是表需要该状态）；
+		1、 Report.ProtectedEvent 增加 "MeterRangeOver" 节点类型，用于描述表模式下的超量限告警；
+		2、 Cmd.SetACM 增加 "AutoRange" 字段，用于描述是否切换到自动档； 同时删除 20250904 中 自动档 -1 的概念，所有档位或者档位列表中不应出现 -1；默认所有标准表均支持自动档功能；
+		3、 结构体 100 DevState 增加 "bAutoRange" 字段（目前主要是表需要该状态）；
 		4、 校准章节新增 Cmd.Calibrate 进入退出指令
 	}
 	20250930:{
@@ -59,7 +67,7 @@
 	20250610: {
 		1、 修改时钟对时模式的指令名 SetSyncMode 为 SetSysTimeSyncMode；（防止和后续的定时操作的同步混淆）
 		2、 修改20章结构体的对齐方式为：8字节对齐，不足时用0xFF补齐； （考虑兼容32位和64位系统）
-		3、 新增 1.7US端修改服务端的零位处理（ARM不支持） 指令 SetServerZeroDrift，用于US端修改服务端的零位处理参数；
+		3、 新增 1.7US端修改服务端的零位处理（ARM不支持） 指令 SetServerZeroDrift，用于US端修改服务端的零位处理参数；  
 		4、 统一JSON中的IO状态值的描述为 0或者1； 【为了便于扩展，不采用 true/false 形式】
 	}
 	20250527: {
@@ -250,7 +258,7 @@
 			"FunCode": "GetFunCodeList",	
 			"Result":"Success",
 			"Data": {
-				"CmdList": {
+				"CmdList": {			//该节点下，带*的表示Svr端扩展的功能，不带*的表示Arm端原生支持功能；通信时报文中应删除*标识；
 						"Normal": 		/*常规命令（非事务型，没有对应TaskEvent上报的）*/
 								["GetFunCodeList","GetDevBaseInfo","GetDevState","SetServerReportEnable",
 								 "SetACS","SetACStatus",
@@ -268,17 +276,18 @@
 								],				
 				}								 
 				"ReportList":		["ProtectEvent","DISOE","WaveRecordStart","WaveRecordComplete"],   //独立事件或数据上报    S端扩展： "BaseDataAC","BaseDataDC","BaseDataIO","HarmData","InharmData"		
-				"StructList": [1,100,101...]   				//支持主动上送的结构体标识列表；
+				"StructList": [1,100,101...]   				//Arm端支持主动上送的结构体标识列表，PC端不用关心此属性； 
 			}							 
 		}
 	)  
+	
 
-	1.2获取装置基本信息,如所有软硬件版本,量程等,(只要装置一定则回复内容也一定)   
+	1.2获取装置基本信息,如所有软硬件版本,量程等,(只要装置一定则回复内容也一定)     
 	(
 		下行:
 		{
 			"FunType": "Cmd",	 
-			"FunCode": "GetDevBaseInfo"				 						 
+			"FunCode": "GetDevBaseInfo"				 					
 		}
 		上行:
 		{
@@ -291,7 +300,9 @@
 				"FPGA_Ver":"1.0.1",
 				"ARM_Ver":"1.0.1",
 				"SyncMode": ["GPS","BD","IRIG-B","SNTP","Manual"],		//支持的对时方式列表
-				"WaveSrcPath" : "/usr/wavesrc",      		//如果支持通过ftp上传波形文件进行回放的，此节点用于告知源波形文件需要上传到的路径。不支持该模式的不出现该节点。//【S端对C端转发时需要修改路径为S端路径】
+				
+				"WaveReplayPathArm" : "/tmp/waveReplay",    //Arm端采用ftp上传波形回放的原始文件时，此节点告知上传路径。不支持该模式的不出现该节点。 
+				"WaveReplayPathSvr" : "/usr/waveReplay",  		//(ARM端无此节点)Svr端告诉UI用户，ftp上传波形回放的原始文件的上传路径。  
 				
 				//通道配置
 				"DI":{ 
@@ -371,11 +382,6 @@
 				"Latitude": 12.2,								//纬度						
 				"DI_Resolution": 1,							//开入防抖分辨率,单位:ms，支持范围：0.1~100ms,缺省1ms
 				"ConstantMode":"Total/Fund",		//Total：总有效值恒定（缺省）；Fund：基波恒定
-				
-				"Task":{			//正在进行的事务信息,如果没有则无此节点, 单独拿出来?
-					"FunCode": "",
-					"StartTime": "2024-01-31 00:00:00.123"
-				}	
 								
 				//每通道的当前信息
 				"AC":{
@@ -430,8 +436,8 @@
 				
 				"AC": {
 					"ConstantMode":"Total/Fund",		//Total：总有效值恒定（缺省）；Fund：基波恒定
-					"HarmCalcMethod": "Subgroup"/"Group",	
-					"HarmPhaseRef":  "FundUa"/"FundChn", 
+					"HarmCalcMethod": "Subgroup"/"Group",	//谐波计算方法   子组/组
+					"HarmPhaseRef":  "FundUa"/"FundChn",   //谐波相位基准 
 					"HarmNumberTHD": 31			//设置装置计算 THD 所使用的谐波范围【2~HarmNumberTHD】次。新装置默认为HarmNumberMax。本节点不存在或者该值不在【2，HarmNumberMax】范围时忽略修改，保持原值。
 				},
 				"DI":{
@@ -635,8 +641,6 @@
 			"FunCode": "WaveRecordStart",
 			"Data": {				
 				"RecFrom": "WaveRecord"/"StateSequence"/"WaveReplay" 		//录波发起来源
-				"WaveFile": ["YYYYMMDD_HHNNSS_ZZZ.cfg", "YYYYMMDD_HHNNSS_ZZZ.dat"], 	//不含路径的录波文件名列表。 
-				"FilePath": "/userdata/waverec", 				//录波文件存放位置
 				"RecSamp": 12800,									//录波采样率;(取值上限:51200)
 				"RecDuration": 30000,							//预估录波时长，单位ms，无法确定时用-1表示？
 			}
@@ -647,10 +651,10 @@
 		上行:
 		{
 			"FunType": "Report",	
-			"FunCode": "WaveRecordComplete",	
+			"FunCode": "WaveRecordComplete",	  
 			"Data": {
 				"RecFrom": "WaveRecord"/"StateSequence"/"WaveReplay", 	
-				"RecSamp": 12800,									//录波采样率;(取值上限:51200)
+				"RecSamp": 12800,									//录波采样率;(取值上限:51200)  
 				"RecDuration": 30000,							//实际录波时长，单位ms
 				"WaveFile": ["YYYYMMDD_HHNNSS_ZZZ.cfg", "YYYYMMDD_HHNNSS_ZZZ.dat"], 
 				"FilePath": "/userdata/waverec", 			//【S端对C端转发时需要修改路径为S端路径】
@@ -1717,10 +1721,14 @@
 			"Data": {
 				"ErrInfo":"",						//错误信息描述,如:步数不匹配...。				
 				"AC":[	//按线路顺序列出各通道匹配后的量程信息 
-								{"Line":1, "Chn":1, "UR": 6.5, "IR": 5},	
-								{"Line":1, "Chn":2, "UR": 6.5, "IR": 5},	
-								{"Line":1, "Chn":3, "UR": 6.5, "IR": 5},	
-								{"Line":1, "Chn":4, "UR":6.5, "IR": 5},	
+								{"Line":1, "Chn":1, "UR": 57.7, "IR": 5},	
+								{"Line":1, "Chn":2, "UR": 57.7, "IR": 5},	
+								{"Line":1, "Chn":3, "UR": 57.7, "IR": 5},	
+								{"Line":1, "Chn":4, "UR": 57.7, "IR": 5},	
+								{"Line":2, "Chn":1, "UR": 57.7, "IR": 5},	
+								{"Line":2, "Chn":2, "UR": 57.7, "IR": 5},	
+								{"Line":2, "Chn":3, "UR": 57.7, "IR": 5},	
+								{"Line":2, "Chn":4, "UR": 57.7, "IR": 5},	
 							]		
 			}		 
 		}
@@ -1734,6 +1742,7 @@
 				"StartTime":"2024-01-01 08:00:00.123",			//状态序列的真实(第1步)启动时刻。	
 				"States": [    		//元素个数对应 "ExecutedStates"的值；
 					{ 
+						"StateID":1,				//步号(从1开始计数)
 						"Triged":true/false, 		//是否提前跳转了?
 						"Duration":2000,				//实际持续时间ms
 						"DI":[0,1,0... ]					//跳转时刻的所有开入状态      
@@ -1778,11 +1787,11 @@
 		(
 				//ARM直接生成Comtraded的cfg和dat文件，服务端通过FTP、内存共享等方式下载至本地磁盘。			 
 				//dat数据文件采用标准Comtrade的二进制格式,其中采样序号从0开始;采样时标单位us;采样序号和采样时标均为4字节无符号整数;
-				//录波的真正启动时由Report.WaveRecordStart 上报。
-				//录波结束时由TaskEvent.WaveRecord 和 Report.WaveRecordComplete 两次上报。
+				//回复 Reply.WaveRecord 表示接受录波指令，开始执行，可能立即启动，也可能在等待时刻或者开入条件中，等录波真正启动时由 Report.WaveRecordStart 再次上报。
+				//录波结束时由 TaskEvent.WaveRecord（先报） 和 Report.WaveRecordComplete（后报） 两次上报。
 		)
 		
-		4.6.2 录波【事务】
+		4.6.2 录波【事务】 
 		(
 			下行:
 			{
@@ -1790,7 +1799,7 @@
 				"FunCode": "WaveRecord",					 
 				"Data": {
 						"StartMode":0,					//启动模式:0=立即启动;1=定时启动;2=开入触发启动; 		
-						"StartTime":"2024-01-01 08:00:00.123",			//仅 StartMode=1 时有效,指明启动时刻。	
+						"StartTime":"2024-01-01 08:00:00.123",			//仅 StartMode=1 时有效,指明启动时刻。	 //推荐使用整分
 						"TrigDI":[								//仅 StartMode=2 时有效,用于描述开入触发条件
 									{"Chn":1, "val":0/1},		
 									{"Chn":2, "val":0/1},
@@ -1801,7 +1810,7 @@
 						"RecSamp": 12800									//录波采样率;(取值上限:51200)
 				}							 
 			}                 
-			上行:(仅应答回一次)       //录波的真正启动和结束由Report.WaveRecordStart/WaveRecordComplete上报。
+			上行:(仅应答回一次)       //录波的真正启动和结束由Report.WaveRecordStart/WaveRecordComplete上报。   
 			{
 				"FunType": "Reply",	 
 				"FunCode": "WaveRecord",	
@@ -2528,7 +2537,7 @@
 				
 			● 2=装置内置电池状态
 				(
-					struct InnerBattery                     40字节
+					struct InnerBattery               //40字节
 					{
 						byte     Charging;       		1字节		//0=空闲;1=充电中
 						byte     Reserved1;           1字节		//保留字节
@@ -2549,7 +2558,7 @@
 				
 			● 3=位置与时间状态
 				(
-					struct LocationTime                    80字节
+					struct LocationTime              //80字节
 					{
 						byte     Valid;       			 1字节		//0=无效;1=有效
 						byte     Reserved1;           1字节		//保留字节
@@ -2580,7 +2589,7 @@
 						byte     bClosedLoop;          1字节		//源模式：0=开环状态;1=闭环状态		 
 						byte     nStatusFund;           1字节		//0=停止状态;1=运行状态；2=暂停状态   //表模式时如果有此功能始终置1		
 						byte     nStatusHarm;       	1字节       //0=停止状态;1=运行状态；2=暂停状态。//表模式时如果有此功能始终置1	 
-						byte     nStatusInharm;	1字节       //0=停止状态;1=运行状态；2=暂停状态。//表模式时如果有此功能始终置1
+						byte     nStatusInharm;		1字节       //0=停止状态;1=运行状态；2=暂停状态。//表模式时如果有此功能始终置1
 						byte     bAutoRange;           1字节   	//0=手动档；1=自动档  （目前主要是表状态下用，源一般不考虑自动档）
 						byte     Reserved6;               1字节
 						byte     Reserved7;               1字节					
@@ -2597,15 +2606,15 @@
 		)
 		【2】交流量类型(101~299)
 		(
-			● 101=BaseDataAC,交流源/交流表基础数据			
+			● 101=BaseDataAC,交流源/交流表基础数据		
 				(
 					struct LineAC   //交流线路——基本量                     ChnsAC*12*8+24 => 3通道=312
 					{					
 						double ur[ChnsAC];    	//U档位[ChnsAC]
-						double ir[ChnsAC];    		//I档位[ChnsAC]
-						
+						double ir[ChnsAC];    		//I档位[ChnsAC]						
 						double u[ChnsAC]; 			//总有效值
 						double i[ChnsAC]; 			//总有效值
+						
 						double phu[ChnsAC]; 	//基波有效值
 						double phi[ChnsAC]; 		//基波有效值
 						double p[ChnsAC]; 		//总有效值
@@ -2615,9 +2624,9 @@
 						double thdu[ChnsAC];	//总有效值
 						double thdi[ChnsAC];		//总有效值
 
-						double totalP =0;        //当前线路的总有功
-						double totalQ =0;
-						double totalPF=0;      
+						double totalP;        //当前线路的总有功
+						double totalQ;
+						double totalPF;      
 					};  
 				)
 
@@ -2655,7 +2664,8 @@
 						Inharm   Inharm[ChnsAC];  		//Inharm[ChnsAC]
 					}
 				)
-				
+
+			
 			● 110=VMData, 电压监测仪数据               //除了整定误差用秒数据,其它试验全部用分钟数据。
 				(
 					struct VMData   //                  11*8+62*8 => 584Byte
@@ -2688,10 +2698,10 @@
 				)
 			● 111=TWData, 行波测试仪数据             
 				(
-					struct TWData   //                  8*7*2 => 112 Byte
+					struct TWData   //                  8*8*2 => 128 Byte
 					{
-						double f1, ia1, ib1, ic1, phia1, phib1, phic1;   			//第1路的频率、三相电流幅值和相位
-						double f2, ia2, ib2, ic2, phia2, phib2, phic2;   			//第2路的频率、三相电流幅值和相位 
+						double f1, ir1, ia1, ib1, ic1, phia1, phib1, phic1;   			//第1路的频率、电流档位，三相电流幅值和相位
+						double f2, ir2, ia2, ib2, ic2, phia2, phib2, phic2;   			//第2路的频率、电流档位，三相电流幅值和相位 
 					};			
 				)
 		)
@@ -2761,4 +2771,3 @@
 			12*3*8 + 24*3=360
 			6*3*8*31+16*3=4512
 	)
-)

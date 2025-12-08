@@ -16,20 +16,20 @@ XTtcPs SeqTtcInstance;
 static uint16_t TempWaveData[8][DATA_LEN];
 
 // ================= 内部辅助函数：记录执行结果 =================
-static void Record_Step_Result(bool triged, u32 duration)
+static void Record_Step_Result(int stepIndex, bool triged, u32 duration)
 {
     if (g_StateSeqRuntime.ExecutedCount >= MAX_SEQ_RESULTS)
     {
-        // 缓冲区满，不再记录，防止溢出 (或者可以选择覆盖)
-        return;
+        return; // 缓冲区满
     }
 
     int idx = g_StateSeqRuntime.ExecutedCount;
     Seq_Step_Result_t *res = &g_StateSeqRuntime.ExecResults[idx];
 
+    res->StateID = stepIndex + 1; // [新增] 步号从1开始，所以是 index + 1
     res->Triged = triged;
     res->Duration = duration;
-    // 读取当前DI状态 (不更新时间戳)
+    // 读取当前DI状态
     res->DI_State = OnOff_Read_Current_Input(g_onoff_bit_width);
 
     g_StateSeqRuntime.ExecutedCount++;
@@ -450,7 +450,7 @@ void StateSequence_PrepareAndStart(void)
             curr.curr_year, curr.curr_month, curr.curr_day,
             curr.curr_hour, curr.curr_minute, curr.curr_second,
             (unsigned int)(curr.curr_subsec / 100000)); // ms
-            
+
     // 预计算波形（带幅值）
     Precalculate_Waveforms();
     // 预计算硬件参数(频率 DO)
@@ -651,7 +651,7 @@ void StateSequence_TTC_Handler(void *CallBackRef)
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[currentIdx];
     // [新增] 记录本步结果 (超时)
     // 实际持续时间即为设定时间
-    Record_Step_Result(false, pStep->MaxDuration);
+    Record_Step_Result(currentIdx, false, pStep->MaxDuration);
     int nextStep = -1;
 
     // 解析跳转逻辑 (0: 下一步, -1: 下一步, -2: 结束)
@@ -723,7 +723,7 @@ void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val)
             actual_duration = (u32)((u64)counter_val * pStep->MaxDuration / interval);
         }
         // 记录本步结果 (Triged=true, 实际时长)
-        Record_Step_Result(true, actual_duration);
+        Record_Step_Result(currentIdx, true, actual_duration);
 
         XTtcPs_Stop(&SeqTtcInstance);
         int nextStep = -1;
@@ -787,6 +787,7 @@ void check_and_report_state_sequence_status(void)
         Seq_Step_Result_t *res = &g_StateSeqRuntime.ExecResults[i];
         cJSON *stepObj = cJSON_CreateObject();
 
+        cJSON_AddNumberToObject(stepObj, "StateID", res->StateID); // <--- [新增] 添加状态步序号
         cJSON_AddBoolToObject(stepObj, "Triged", res->Triged);
         cJSON_AddNumberToObject(stepObj, "Duration", res->Duration);
 
@@ -829,7 +830,7 @@ void check_and_report_state_sequence_status(void)
     if (string)
     {
         // 打印测试
-        //  printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
+        // printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
         size_t len = strlen(string);
         char *finalStr = malloc(len + 3);
         if (finalStr)

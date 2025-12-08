@@ -42,6 +42,7 @@ typedef struct
 // ================= 结果记录结构体 =================
 typedef struct
 {
+    int StateID;        // [新增] 步号 (从1开始计数)
     bool Triged;        // 是否提前跳转
     u32 Duration;       // 实际执行时长 (ms)
     u32 DI_State;       // 跳转时刻的DI状态 (32位位图)

@@ -1,0 +1,110 @@
+/*
+
+Xilinx Vivado v2020.2 (64-bit) [Major: 2020, Minor: 2]
+SW Build: 3064766 on Wed Nov 18 09:12:45 MST 2020
+IP Build: 3064653 on Wed Nov 18 14:17:31 MST 2020
+
+Process ID (PID): 18152
+License: Customer
+Mode: GUI Mode
+
+Current time: 	Mon Dec 08 09:45:31 CST 2025
+Time zone: 	China Standard Time (Asia/Shanghai)
+
+OS: Windows 10
+OS Version: 10.0
+OS Architecture: amd64
+Available processors (cores): 8
+
+Screen size: 3840x2160
+Screen resolution (DPI): 200
+Available screens: 2
+Default font: family=Dialog,name=Dialog,style=plain,size=24
+Scale size: 48
+
+Java version: 	11.0.2 64-bit
+Java home: 	E:/vivado/Vivado/2020.2/tps/win64/jre11.0.2
+Java executable location: 	E:/vivado/Vivado/2020.2/tps/win64/jre11.0.2/bin/java.exe
+Java initial memory (-Xms): 	128 MB
+Java maximum memory (-Xmx):	 3 GB
+
+
+User name: 	saber
+User home directory: C:/Users/saber
+User working directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+User country: 	CN
+User language: 	zh
+User locale: 	zh_CN
+
+RDI_BASEROOT: E:/vivado/Vivado
+HDI_APPROOT: E:/vivado/Vivado/2020.2
+RDI_DATADIR: E:/vivado/Vivado/2020.2/data
+RDI_BINDIR: E:/vivado/Vivado/2020.2/bin
+
+Vivado preferences file location: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/vivado.xml
+Vivado preferences directory: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/
+Vivado layouts directory: C:/Users/saber/AppData/Roaming/Xilinx/Vivado/2020.2/data/layouts
+PlanAhead jar file location: 	E:/vivado/Vivado/2020.2/lib/classes/planAhead.jar
+Vivado log file location: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+Vivado journal file location: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.jou
+Engine tmp dir: 	C:/Users/saber/Desktop/share/DanDike_NewBoard/.Xil/Vivado-18152-DESKTOP-L4NOM67
+
+Xilinx Environment Variables
+----------------------------
+XILINX: E:/vivado/Vivado/2020.2/ids_lite/ISE
+XILINX_DSP: E:/vivado/Vivado/2020.2/ids_lite/ISE
+XILINX_HLS: E:/vivado/Vitis_HLS/2020.2
+XILINX_PLANAHEAD: E:/vivado/Vivado/2020.2
+XILINX_SDK: E:/vivado/Vitis/2020.2
+XILINX_VITIS: E:/vivado/Vitis/2020.2
+XILINX_VIVADO: E:/vivado/Vivado/2020.2
+XILINX_VIVADO_HLS: E:/vivado/Vivado/2020.2
+
+
+GUI allocated memory:	144 MB
+GUI max memory:		3,072 MB
+Engine allocated memory: 1,126 MB
+
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+
+*/
+
+// TclEventType: START_GUI
+// Tcl Message: start_gui 
+// TclEventType: PROJECT_OPEN_DIALOG
+// [GUI Memory]: 121 MB (+124069kb) [00:00:10]
+// [Engine Memory]: 1,126 MB (+1029704kb) [00:00:10]
+// bz (cr):  Open Project : addNotify
+// Opening Vivado Project: C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr. Version: Vivado v2020.2 
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// Tcl Message: open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr 
+// HMemoryUtils.trashcanNow. Engine heap size: 1,126 MB. GUI used memory: 82 MB. Current time: 12/8/25, 9:45:32 AM CST
+// TclEventType: MSGMGR_MOVEMSG
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILE_SET_NEW
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: FILESET_TARGET_UCF_CHANGE
+// TclEventType: RUN_CURRENT
+// TclEventType: PROJECT_DASHBOARD_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: PROJECT_NEW
+// [GUI Memory]: 133 MB (+6891kb) [00:00:37]
+// WARNING: HEventQueue.dispatchEvent() is taking  3922 ms.
