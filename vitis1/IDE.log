@@ -9817,3 +9817,35 @@ con
 16:23:48 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
 16:29:36 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
 17:04:42 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:11:54 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+17:17:50 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+18:16:24 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+18:17:58 INFO  : Result from executing command 'getProjects': system_wrapper
+18:17:58 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+18:18:29 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+18:18:38 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+18:18:38 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+18:18:38 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+18:18:38 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+18:18:45 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+18:33:59 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+18:35:18 INFO  : Result from executing command 'getProjects': system_wrapper
+18:35:18 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+18:35:58 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+18:36:06 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+18:36:06 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+18:36:06 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+18:36:06 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+18:36:13 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+18:43:03 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+18:43:25 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+18:44:24 INFO  : Result from executing command 'getProjects': system_wrapper
+18:44:24 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+18:44:43 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+18:44:51 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+18:44:51 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+18:44:51 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+18:44:51 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+18:44:57 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+19:44:50 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+19:52:26 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
