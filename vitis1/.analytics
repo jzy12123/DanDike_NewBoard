@@ -1114,3 +1114,7 @@ timestamp=[2025-12-09 16:35:03], mode=BUILD, duration=0:00:00.523, duration_ms=5
 timestamp=[2025-12-09 16:37:08], mode=BUILD, duration=0:00:01.909, duration_ms=1909, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-12-09 17:57:35], mode=BUILD, duration=0:00:02.029, duration_ms=2029, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2025-12-09 18:35:57], mode=BUILD, duration=0:00:01.303, duration_ms=1303, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-09 19:33:34], mode=PLATFORM_GENERATION, duration=0:00:07.059, duration_ms=7059, data={name=system_wrapper}
+timestamp=[2025-12-09 19:34:05], mode=PLATFORM_GENERATION, duration=0:00:27.924, duration_ms=27924, data={name=system_wrapper}
+timestamp=[2025-12-09 19:34:16], mode=BUILD, duration=0:00:05.273, duration_ms=5273, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2025-12-09 19:34:28], mode=BUILD, duration=0:00:06.010, duration_ms=6010, data={name=DDK, configuration=Debug, clean_build=false}

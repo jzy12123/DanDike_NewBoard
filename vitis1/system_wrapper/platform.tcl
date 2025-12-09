@@ -453,3 +453,8 @@ bsp reload
 catch {bsp regenerate}
 platform clean
 platform generate
+platform config -updatehw {C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
