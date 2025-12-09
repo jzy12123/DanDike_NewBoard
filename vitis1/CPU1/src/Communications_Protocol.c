@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251205.1504";
-const char ARM_Ver_Full[] = "[Ver]=V1.251208.1717";
+const char ARM_Ver_Full[] = "[Ver]=V1.251209.1140";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -1027,6 +1027,8 @@ SetACS setACS;
 void handle_SetACS(cJSON *data)
 {
     // xil_printf("CPU1: Handling handle_SetACS...\r\n");
+    // [新增] 抢占逻辑：如果有新的 AC 源指令，强制退出状态序列模式
+    StateSequence_QuitMode();
 
     bool onlyRangeFieldsFound = true; // 标记是否只找到了量程相关字段
     bool valsPresent = false;         // 标记 vals 数组是否存在
@@ -1355,6 +1357,7 @@ SetHarm setHarm;
  */
 void handle_SetHarm(cJSON *data)
 {
+    StateSequence_QuitMode();
     if (data == NULL)
     {
         printf("CPU1: SetHarm Error: Missing Data object.\r\n");
@@ -1620,6 +1623,9 @@ static const char *get_status_string(int status)
  */
 void handle_SetACStatus(cJSON *data)
 {
+    // [新增] 抢占逻辑
+    StateSequence_QuitMode();
+
     if (data == NULL)
         return;
 
@@ -3018,7 +3024,6 @@ void report_protection_event(u8 ProectFault)
 Struct_StateSequence g_StateSequenceTask;
 void handle_StateSequence(cJSON *data)
 {
-    // [修正] 传入的 data 本身就是 JSON 中的 "Data" 对象
     cJSON *dataObj = data;
 
     if (!dataObj)

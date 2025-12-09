@@ -44,7 +44,7 @@ typedef struct
 {
     int StateID;        // [新增] 步号 (从1开始计数)
     bool Triged;        // 是否提前跳转
-    u32 Duration;       // 实际执行时长 (ms)
+    double Duration;    // 实际执行时长 (ms)
     u32 DI_State;       // 跳转时刻的DI状态 (32位位图)
     char TimeStamp[32]; // 该步结束的时刻 (可选，协议虽未明确要求每步时间，但调试有用)
 } Seq_Step_Result_t;
@@ -53,6 +53,7 @@ typedef struct
 {
     int CurrentStepIndex;     // 当前步索引
     bool IsRunning;           // 运行标志
+    bool IsHolding;           // [新增] 保持标志 (序列结束，保持最后一步输出，等待新指令)
     bool IsFinished;          // 标记是否刚刚完成（用于发送最后一次Success报告）
     u32 TotalSteps;           // 总步数
     u32 RepeatCountRemaining; // 剩余重复次数
@@ -74,11 +75,11 @@ int StateSequence_Init(void);
 void StateSequence_PrepareAndStart(void);
 void StateSequence_Stop(void);
 void StateSequence_OnAlarmTrigger(void);
+void StateSequence_QuitMode(void); // [新增] 强制退出状态序列模式 (供 SetACS 等调用)
 
 // 中断处理
 void StateSequence_TTC_Handler(void *CallBackRef);
 void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val);
 void check_and_report_state_sequence_status(void);
 
-void Test_StateSequence_Scenario(void);
 #endif // STATE_SEQUENCE_H

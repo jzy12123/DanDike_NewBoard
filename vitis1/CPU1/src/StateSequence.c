@@ -16,7 +16,7 @@ XTtcPs SeqTtcInstance;
 static uint16_t TempWaveData[8][DATA_LEN];
 
 // ================= 内部辅助函数：记录执行结果 =================
-static void Record_Step_Result(int stepIndex, bool triged, u32 duration)
+static void Record_Step_Result(int stepIndex, bool triged, double duration)
 {
     if (g_StateSeqRuntime.ExecutedCount >= MAX_SEQ_RESULTS)
     {
@@ -71,7 +71,7 @@ static void Seq_Hw_SetValue(u32 v0, u32 v1, u32 v2, u32 v3)
     // 595置0 1595置1
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000000);
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000001); // Bit 0 = 1
-
+    usleep(10);
     // 2. 写入幅值系数数据
     Xil_Out32(BaseAddr + Amplifier_Din0_ADDR, v0);
     Xil_Out32(BaseAddr + Amplifier_Din1_ADDR, v1);
@@ -80,6 +80,7 @@ static void Seq_Hw_SetValue(u32 v0, u32 v1, u32 v2, u32 v3)
 
     // 3. 触发更新 (Start=1)
     Xil_Out32(BaseAddr + Amplifier_Status_ADDR, 0x00000101); // Bit 8=1, Bit 0=1
+    usleep(10);
 }
 
 // ================= 内部辅助函数 =================
@@ -430,216 +431,191 @@ int StateSequence_Init(void)
 
     return XST_SUCCESS;
 }
-
+/**
+ * @brief 准备并启动状态序列 (修复：全局扫描最大幅值以确定量程)
+ */
 void StateSequence_PrepareAndStart(void)
 {
-    // 1. 初始化运行时状态
     g_StateSeqRuntime.CurrentStepIndex = 0;
     g_StateSeqRuntime.TotalSteps = g_StateSequenceTask.StepCount;
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
     g_StateSeqRuntime.IsRunning = true;
+    g_StateSeqRuntime.IsHolding = false;
     g_StateSeqRuntime.IsFinished = false;
-    // 初始化上报计数器
+
     g_StateSeqRuntime.ExecutedCount = 0;
-    // 将 ReportedCount 初始化为 -1
-    // 目的：使得 check_and_report 函数在第一次运行时满足 (ExecutedCount(0) > ReportedCount(-1))
-    // 从而立即发送一个 ExecutedStates=0, States=[] 的初始报告，告知上位机 StartTime。
     g_StateSeqRuntime.ReportedCount = -1;
     memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
-    //  记录启动时间
+
     In_CurrTime curr;
     read_current_time(&curr);
     sprintf(g_StateSeqRuntime.StartTimeStr, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
             curr.curr_year, curr.curr_month, curr.curr_day,
             curr.curr_hour, curr.curr_minute, curr.curr_second,
-            (unsigned int)(curr.curr_subsec / 100000)); // ms
+            (unsigned int)(curr.curr_subsec / 100000));
 
-    // 预计算波形（带幅值）
-    Precalculate_Waveforms();
-    // 预计算硬件参数(频率 DO)
-    Precalculate_HwParams();
+    // =================================================================
+    // 1. [核心修复] 全局扫描：遍历所有步骤，找出每个通道的最大幅值
+    // =================================================================
+    float max_u_vals[4] = {0}; // Chn 0~3
+    float max_i_vals[4] = {0}; // Chn 4~7 (Step配置里的Chn是1~4, I对应4~7)
 
-    // 2. 档位配置 (Phase 1: Range Config)
-    Struct_Seq_AC *pAC0 = &g_StateSequenceTask.Steps[0].ACs[0];
-    u32 range_u = voltage_to_output(pAC0->UR);
-    u32 range_i = current_to_output(pAC0->IR);
-    // 组合成4个32位字: High16=Ch_Odd, Low16=Ch_Even
-    // Din0: UB|UA, Din1: UX|UC ...
-    u32 r_din0 = (range_u << 24) | (range_u << 8); // U
-    u32 r_din1 = (range_u << 24) | (range_u << 8); // U
-    u32 r_din2 = (range_i << 24) | (range_i << 8); // I
-    u32 r_din3 = (range_i << 24) | (range_i << 8); // I
-    // [修正] 调用 Seq_Hw_SetRange 写入档位
-    Seq_Hw_SetRange(r_din0, r_din1, r_din2, r_din3);
-
-    // 3. [核心新增] 将功放幅值增益固定为满量程 (100%)
-    // 计算 100% 对应的 Din 值
-    int idx_u = get_voltage_index_by_value(pAC0->UR);
-    int idx_i = get_current_index_by_value(pAC0->IR);
-    // 获取通道 0(UA) 和 4(IA) 在 100% 时的校准系数
-    u32 din_vals[8];
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
     {
-        double corr = calculate_correction(i, idx_u, 100.0f); // U
-        din_vals[i] = (u32)(1.0 * corr);
-    }
-    for (int i = 4; i < 8; i++)
-    {
-        double corr = calculate_correction(i, idx_i, 100.0f); // I
-        din_vals[i] = (u32)(1.0 * corr);
-    }
-    u32 v_din0 = (din_vals[1] << 16) | (din_vals[0] & 0xFFFF);
-    u32 v_din1 = (din_vals[3] << 16) | (din_vals[2] & 0xFFFF);
-    u32 v_din2 = (din_vals[5] << 16) | (din_vals[4] & 0xFFFF);
-    u32 v_din3 = (din_vals[7] << 16) | (din_vals[6] & 0xFFFF);
-    // 写入并锁定硬件增益
-    Seq_Hw_SetValue(v_din0, v_din1, v_din2, v_din3);
-
-    // 4. 开启 DA IP
-    Xil_Out32(dac_whole_base_addr + 0, 1);
-    Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.StepParams[0].Freq_Divisor);
-    Xil_Out32(dac_whole_base_addr + 8, 0xFF);
-
-    // 5. 执行第一步 (Values, Waveform, Timer)
-    Execute_Step(0);
-}
-
-// [新增] 将指定Step的参数同步到全局变量 (setACS, Wave_Amplitude等)
-// 确保序列结束后，主循环接管时能保持最后的输出状态
-static void Sync_Step_To_Global(int stepIndex)
-{
-    if (stepIndex < 0 || stepIndex >= g_StateSequenceTask.StepCount)
-        return;
-
-    Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
-
-    // 1. 清空全局谐波数据
-    memset(numHarmonics, 0, sizeof(numHarmonics));
-    memset(harmonics, 0, sizeof(harmonics));
-    memset(harmonics_phases, 0, sizeof(harmonics_phases));
-
-    // 2. [关键修正] 先清空全局基波电气参数 (U, I, Phase)
-    // 必须先清空，确保状态序列中未定义的通道或参数回归 0 状态，
-    // 防止之前的稳态设置（如 5A）残留下来，干扰后续的单参数修改指令。
-    for (int i = 0; i < LinesAC * ChnsAC; i++)
-    {
-        setACS.Vals[i].U = 0.0f;
-        setACS.Vals[i].I_ = 0.0f;
-        setACS.Vals[i].PhU = 0.0f;
-        setACS.Vals[i].PhI = 0.0f;
-        // 注意：不要清零 UR/IR/Line/Chn，否则会导致除零错误或通道映射丢失
-        // F 也可以选择重置为 50，或者保持当前值
-    }
-
-    // 同时清空全局幅值数组，确保未覆盖的通道输出为0
-    memset(Wave_Amplitude, 0, sizeof(Wave_Amplitude));
-
-    // 3. 遍历步骤中的 AC 配置进行覆盖 (将最后一步的状态写入全局变量)
-    for (int i = 0; i < pStep->ACCount; i++)
-    {
-        Struct_Seq_AC *pAC = &pStep->ACs[i];
-
-        // 映射 Line/Chn 到全局索引 (0-7)
-        int chn_log = pAC->Chn - 1;
-        if (chn_log < 0 || chn_log > 3)
-            continue;
-
-        int idx_u = chn_log;     // 0,1,2,3
-        int idx_i = chn_log + 4; // 4,5,6,7
-
-        // --- 同步参数到 setACS ---
-        setACS.Vals[idx_u].U = pAC->U;
-        setACS.Vals[idx_u].PhU = pAC->PhU;
-        setACS.Vals[idx_u].UR = pAC->UR;
-        setACS.Vals[idx_u].F = pAC->F;
-
-        setACS.Vals[idx_u].I_ = pAC->I_;
-        setACS.Vals[idx_u].PhI = pAC->PhI;
-        setACS.Vals[idx_u].IR = pAC->IR;
-
-        // 更新全局控制变量
-        Wave_Frequency = pAC->F;
-
-        // 更新波形幅值 Wave_Amplitude (百分比)
-        // 注意：此处必须重新计算，因为前面被 memset 清空了
-        if (pAC->UR > 0.001f)
-            Wave_Amplitude[idx_u] = (pAC->U / pAC->UR) * 100.0f;
-
-        if (pAC->IR > 0.001f)
-            Wave_Amplitude[idx_i] = (pAC->I_ / pAC->IR) * 100.0f;
-
-        // 更新量程 Wave_Range
-        Wave_Range[idx_u] = voltage_to_output(pAC->UR);
-        Wave_Range[idx_i] = current_to_output(pAC->IR);
-
-        // 更新相位 Phase_shift
-        Phase_shift[idx_u] = pAC->PhU;
-        Phase_shift[idx_i] = pAC->PhI;
-
-        // --- 同步谐波参数 ---
-        for (int h = 0; h < pAC->HarmCount; h++)
+        Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
+        for (int j = 0; j < pStep->ACCount; j++)
         {
-            int hn = pAC->Harms[h].HN;
-            int h_idx = hn - 2; // 2次谐波对应索引0
-            if (h_idx >= 0 && h_idx < MAX_HARMONICS)
-            {
-                if (hn > numHarmonics[idx_u])
-                    numHarmonics[idx_u] = hn;
-                harmonics[idx_u][h_idx] = pAC->Harms[h].U / 100.0f;
-                harmonics_phases[idx_u][h_idx] = pAC->Harms[h].PhU;
+            Struct_Seq_AC *pAC = &pStep->ACs[j];
+            if (pAC->Line != 1)
+                continue;
 
-                if (hn > numHarmonics[idx_i])
-                    numHarmonics[idx_i] = hn;
-                harmonics[idx_i][h_idx] = pAC->Harms[h].I_ / 100.0f;
-                harmonics_phases[idx_i][h_idx] = pAC->Harms[h].PhI;
+            int chn_idx = pAC->Chn - 1; // 0~3
+            if (chn_idx >= 0 && chn_idx < 4)
+            {
+                if (pAC->U > max_u_vals[chn_idx])
+                    max_u_vals[chn_idx] = pAC->U;
+                if (pAC->I_ > max_i_vals[chn_idx])
+                    max_i_vals[chn_idx] = pAC->I_;
             }
         }
     }
 
-    // 更新 DO 状态 (保持不变)
-    for (int k = 0; k < pStep->DOCount; k++)
+    // =================================================================
+    // 2. 确定全局最佳量程，并回写到所有步骤
+    //    确保 Precalculate_Waveforms 和 硬件配置 使用完全一致的量程
+    // =================================================================
+    float final_ur[4], final_ir[4];
+    u32 range_codes[8]; // 0~3: U, 4~7: I
+
+    // 初始化默认值
+    for (int k = 0; k < 8; k++)
+        range_codes[k] = voltage_to_output(6); // 获取默认(最小或最大)档位码
+
+    for (int chn = 0; chn < 4; chn++)
     {
-        int chn = pStep->DOs[k].Chn;
-        int val = pStep->DOs[k].Val;
-        if (chn >= 1 && chn <= ChnsDO)
+        // --- 确定电压量程 ---
+        // 逻辑需与 Communications_Protocol.c 保持一致
+        if (max_u_vals[chn] > 3.25f)
+            final_ur[chn] = 6.5f;
+        else if (max_u_vals[chn] > 1.876f)
+            final_ur[chn] = 3.25f;
+        else
+            final_ur[chn] = 1.876f;
+
+        range_codes[chn] = voltage_to_output(final_ur[chn]);
+
+        // --- 确定电流量程 ---
+        if (max_i_vals[chn] > 1.0f)
+            final_ir[chn] = 5.0f;
+        else if (max_i_vals[chn] > 0.2f)
+            final_ir[chn] = 1.0f;
+        else
+            final_ir[chn] = 0.2f;
+
+        range_codes[chn + 4] = current_to_output(final_ir[chn]);
+    }
+
+    // 回写量程到所有步骤 (关键！供 Precalculate_Waveforms 使用)
+    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
+    {
+        Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
+        for (int j = 0; j < pStep->ACCount; j++)
         {
-            lineDO.DO[chn - 1].v = val;
-            if (val)
-                g_do_output_state |= (1 << (chn + 23));
-            else
-                g_do_output_state &= ~(1 << (chn + 23));
+            Struct_Seq_AC *pAC = &pStep->ACs[j];
+            if (pAC->Line == 1)
+            {
+                int chn_idx = pAC->Chn - 1;
+                if (chn_idx >= 0 && chn_idx < 4)
+                {
+                    pAC->UR = final_ur[chn_idx];
+                    pAC->IR = final_ir[chn_idx];
+                }
+            }
         }
     }
+
+    // 3. 预计算 (现在 UR/IR 已经是全局统一的了)
+    Precalculate_Waveforms();
+    Precalculate_HwParams();
+
+    // 4. 配置硬件档位 (使用计算好的 range_codes)
+    // r_din0: UB(Ch1) | UA(Ch0)
+    u32 r_din0 = (range_codes[1] << 24) | (range_codes[0] << 8);
+    u32 r_din1 = (range_codes[3] << 24) | (range_codes[2] << 8);
+    u32 r_din2 = (range_codes[5] << 24) | (range_codes[4] << 8);
+    u32 r_din3 = (range_codes[7] << 24) | (range_codes[6] << 8);
+
+    Seq_Hw_SetRange(r_din0, r_din1, r_din2, r_din3);
+
+    // 5. 配置满量程幅值 (Fixed 100% Gain)
+    // 基于 final_ur / final_ir 计算 100% 系数
+    u32 din_vals[8] = {0};
+
+    for (int chn = 0; chn < 4; chn++)
+    {
+        // 电压
+        int idx_u = get_voltage_index_by_value(final_ur[chn]);
+        double corr_u = calculate_correction(chn, idx_u, 100.0f);
+        din_vals[chn] = (u32)(1.0 * corr_u);
+
+        // 电流
+        int idx_i = get_current_index_by_value(final_ir[chn]);
+        double corr_i = calculate_correction(chn + 4, idx_i, 100.0f);
+        din_vals[chn + 4] = (u32)(1.0 * corr_i);
+    }
+
+    u32 v_din0 = (din_vals[1] << 16) | (din_vals[0] & 0xFFFF);
+    u32 v_din1 = (din_vals[3] << 16) | (din_vals[2] & 0xFFFF);
+    u32 v_din2 = (din_vals[5] << 16) | (din_vals[4] & 0xFFFF);
+    u32 v_din3 = (din_vals[7] << 16) | (din_vals[6] & 0xFFFF);
+
+    Seq_Hw_SetValue(v_din0, v_din1, v_din2, v_din3);
+
+    // 6. 开启 DA IP
+    Xil_Out32(dac_whole_base_addr + 0, 1);
+    Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.StepParams[0].Freq_Divisor);
+    Xil_Out32(dac_whole_base_addr + 8, 0xFF);
+
+    Execute_Step(0);
 }
+
 void StateSequence_Stop(void)
 {
+    // 如果不在运行，直接返回 (防止重复调用)
     if (!g_StateSeqRuntime.IsRunning)
         return;
 
-    // 1. 停止定时器 (不再产生新的步骤切换)
+    // 1. 停止定时器
     XTtcPs_Stop(&SeqTtcInstance);
 
-    // 2. [关键] 不要清空硬件输出！
-    // 原先的 Seq_Hw_SetValue(0...) 和 Xil_Out32(...0x00) 被移除
-    // 硬件将保持在最后一次 Execute_Step 设置的状态
-
-    // 3. 将当前（最后执行的）Step 参数同步到全局变量
-    // 这样当 IsRunning 变为 false 后，主循环恢复工作时，
-    // str_wr_bram 会读取这些全局变量，生成与当前硬件输出一致的波形，实现无缝衔接。
-    Sync_Step_To_Global(g_StateSeqRuntime.CurrentStepIndex);
-
-    // 4. 标记系统状态为运行
-    // 这告诉主循环：现在是“运行”状态，不要执行关断逻辑
-    devState.bACMeterMode = 0; // 源模式
-    devState.nStatusFund = 1;  // 运行状态
-
-    // 5. 结束状态序列任务
+    // 2. 切换状态标志
     g_StateSeqRuntime.IsRunning = false;
-    g_StateSeqRuntime.IsFinished = true; // 标记完成，通知主循环发送最后一次Success
+    g_StateSeqRuntime.IsHolding = true; // [新增] 进入保持模式，阻断主循环刷新
+    g_StateSeqRuntime.IsFinished = true;
 
-    xil_printf("CPU1: StateSeq - Finished. \r\n");
+    // 标记系统状态为运行 (让上位机知道还在输出)
+    devState.bACMeterMode = 0;
+    devState.nStatusFund = 1;
+
+    xil_printf("CPU1: StateSeq - Finished. Output HELD (No Sync).\r\n");
 }
 
+// [新增] 强制退出状态序列模式 (供外部指令抢占使用)
+void StateSequence_QuitMode(void)
+{
+    // 如果正在运行，先停止定时器
+    if (g_StateSeqRuntime.IsRunning)
+    {
+        XTtcPs_Stop(&SeqTtcInstance);
+    }
+
+    // 彻底清除所有标志，释放控制权给主循环
+    g_StateSeqRuntime.IsRunning = false;
+    g_StateSeqRuntime.IsHolding = false;
+
+    // 注意：此处不操作硬件，硬件状态将在接下来的 SetACS->str_wr_bram 流程中被刷新
+    // xil_printf("CPU1: StateSeq - Quit Mode. Control returned to Main Loop.\r\n");
+}
 // ================= 中断处理 =================
 
 void StateSequence_TTC_Handler(void *CallBackRef)
@@ -654,7 +630,7 @@ void StateSequence_TTC_Handler(void *CallBackRef)
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[currentIdx];
     // [新增] 记录本步结果 (超时)
     // 实际持续时间即为设定时间
-    Record_Step_Result(currentIdx, false, pStep->MaxDuration);
+    Record_Step_Result(currentIdx, false, (double)pStep->MaxDuration);
     int nextStep = -1;
 
     // 解析跳转逻辑 (0: 下一步, -1: 下一步, -2: 结束)
@@ -719,11 +695,10 @@ void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val)
         u16 interval = XTtcPs_GetInterval(&SeqTtcInstance);
         // 计算当前已运行时间： (Count / Interval) * MaxDuration
         // 原理：运行进度的百分比 * 总时间
-        u32 actual_duration = 0;
+        double actual_duration = 0;
         if (interval > 0)
         {
-            // 使用 u64 避免 (counter * duration) 乘法溢出
-            actual_duration = (u32)((u64)counter_val * pStep->MaxDuration / interval);
+            actual_duration = (double)counter_val * pStep->MaxDuration / (double)interval;
         }
         // 记录本步结果 (Triged=true, 实际时长)
         Record_Step_Result(currentIdx, true, actual_duration);
@@ -786,7 +761,7 @@ void check_and_report_state_sequence_status(void)
     {
         currentRepeatID = g_StateSequenceTask.RepeatCount - (int)g_StateSeqRuntime.RepeatCountRemaining;
     }
-    cJSON_AddNumberToObject(data, "Repeated", currentRepeatID);//重复次数计数
+    cJSON_AddNumberToObject(data, "Repeated", currentRepeatID); // 重复次数计数
     cJSON *statesArr = cJSON_CreateArray();
 
     // [全量上报逻辑] 遍历所有已执行的步骤 (0 到 ExecutedCount-1)

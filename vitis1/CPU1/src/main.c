@@ -607,5 +607,13 @@ void RunADCPIDCycle(void)
 
 	// 标记UDP数据已更新
 	udp_data_changed_flag = true;
-	dac_parameters_updated_by_command = true;
+
+	// [核心修改]
+	// 只有当状态序列 [既不运行] [也不保持] 时，才允许 ADC 中断触发稳态输出刷新。
+	// 这样在状态序列结束后(Holding状态)，主循环虽然在跑ADC，但不会去写 str_wr_bram，
+	// 从而保证了输出波形绝对静止，直到新的 SetACS 指令打破 Holding 状态。
+	if (!g_StateSeqRuntime.IsRunning && !g_StateSeqRuntime.IsHolding)
+	{
+		dac_parameters_updated_by_command = true;
+	}
 }
