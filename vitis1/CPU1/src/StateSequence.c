@@ -351,13 +351,50 @@ static void Start_Step_Timer(int duration_ms)
     XTtcPs_Start(&SeqTtcInstance);
 }
 
+//  辅助函数：检查当前 DI 状态是否已经满足了步骤的触发条件
+static bool Check_Step_Condition_Met(Struct_Seq_Step *pStep)
+{
+    if (pStep->TrigLogic == -1)
+        return false; // 该步未启用触发，不满足
+
+    u32 current_val = OnOff_Read_Current_Input(g_onoff_bit_width);
+    int match_count = 0;
+
+    for (int i = 0; i < pStep->TrigDICount; i++)
+    {
+        int chn = pStep->TrigDIs[i].Chn;
+        int target_val = pStep->TrigDIs[i].Val;
+
+        // 获取当前硬件状态 (假设 Chn 1 对应 Bit 0)
+        int raw_bit = (current_val >> (chn - 1)) & 0x01;
+        int logic_val = 1 - raw_bit; // 逻辑反转: 硬件0=闭合(1)
+
+        if (logic_val == target_val)
+        {
+            match_count++;
+        }
+    }
+
+    if (pStep->TrigLogic == 0)
+    { // OR 逻辑
+        if (match_count > 0)
+            return true;
+    }
+    else
+    { // AND 逻辑
+        if (match_count == pStep->TrigDICount && pStep->TrigDICount > 0)
+            return true;
+    }
+
+    return false;
+}
 /**
  * @brief 执行单步切换
  * @details 1. CDMA搬运波形; 2. 写入DO; 3. 启动定时器
  */
 static void Execute_Step(int stepIndex)
 {
-    // 检查是否结束和循环次数
+    // 1. 边界与循环检查
     if (stepIndex >= g_StateSeqRuntime.TotalSteps)
     {
         if (g_StateSequenceTask.RepeatCount > 0 && g_StateSeqRuntime.RepeatCountRemaining > 0)
@@ -372,25 +409,52 @@ static void Execute_Step(int stepIndex)
         return;
     }
 
+    // 2. 准入检查：如果当前 DI 状态已满足触发条件，则直接跳过该步
+    Struct_Seq_Step *pCheckStep = &g_StateSequenceTask.Steps[stepIndex];
+
+    // 如果满足触发条件 (且不是无条件执行)
+    if (Check_Step_Condition_Met(pCheckStep))
+    {
+        xil_printf("CPU1: StateSeq - Step %d Condition Pre-Met! Skipping...\r\n", stepIndex);
+
+        // 记录该步执行结果：触发成功，耗时 0ms
+        Record_Step_Result(stepIndex, true, 0.0);
+
+        // 计算下一步 (模拟 DI 触发时的跳转逻辑)
+        int nextStep = -1;
+        // JumpTo: 0=Next, -1=End(Triggered), -2=Next
+        // 注意：这里是 "Triggered" 触发的情况
+        if (pCheckStep->JumpTo == 0 || pCheckStep->JumpTo == -2)
+            nextStep = stepIndex + 1;
+        else if (pCheckStep->JumpTo == -1)
+            nextStep = g_StateSeqRuntime.TotalSteps; // Jump to End
+        else if (pCheckStep->JumpTo > 0)
+            nextStep = pCheckStep->JumpTo - 1;
+
+        // 递归调用，尝试执行下一步
+        // (如果下一步条件也满足，会继续递归跳过，直到找到一个需要等待的步或结束)
+        Execute_Step(nextStep);
+        return; // 直接返回，不执行下面的硬件加载
+    }
+
     g_StateSeqRuntime.CurrentStepIndex = stepIndex;
     Step_Hw_Params_t *pHw = &g_StateSeqRuntime.StepParams[stepIndex];
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
 
-    // 1. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
+    // 3. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
     Load_Step_To_BRAM(stepIndex);
 
-    // 2. 写入硬件参数
-    // 写入频率分频系数 (Offset 0x04)
+    // 4. 写入硬件参数 写入频率分频系数 (Offset 0x04)
     Xil_Out32(dac_whole_base_addr + 4, pHw->Freq_Divisor);
 
-    // 3. 更新 DO
+    // 5. 更新 DO
     if (pStep->DOCount > 0)
     {
         // 这里需要更复杂的逻辑合并全局DO，暂时直接写
         OnOff_Write_Continuous(pHw->DO_State);
     }
 
-    // 4. 启动定时器
+    // 6. 启动定时器
     if (pStep->MaxDuration > 0)
     {
         Start_Step_Timer(pStep->MaxDuration);
