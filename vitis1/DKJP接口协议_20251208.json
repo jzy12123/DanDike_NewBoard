@@ -1744,6 +1744,7 @@
 			"Data": { 
 				"StartTime":"2024-01-01 08:00:00.123",			//状态序列的真实(第1步)启动时刻。	
 				"ExecutedStates": 3,			//已经执行的步数;
+				"CurStateID":1,		//当前正在执行的步号(从1开始计数)
 				"RepeatID": 0,		//当前循环第几次？  
 				"States": [    		//元素个数对应 "ExecutedStates"的值；
 					{ 

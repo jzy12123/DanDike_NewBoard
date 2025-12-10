@@ -754,16 +754,25 @@ void check_and_report_state_sequence_status(void)
     }
 
     cJSON *data = cJSON_CreateObject();
-    cJSON_AddNumberToObject(data, "ExecutedStates", g_StateSeqRuntime.ExecutedCount);
+    // 1. StartTime
     cJSON_AddStringToObject(data, "StartTime", g_StateSeqRuntime.StartTimeStr);
+
+    // 2. ExecutedStates
+    cJSON_AddNumberToObject(data, "ExecutedStates", g_StateSeqRuntime.ExecutedCount);
+
+    // 3. [新增] CurStateID (当前正在执行的步号，从1开始)
+    cJSON_AddNumberToObject(data, "CurStateID", g_StateSeqRuntime.CurrentStepIndex + 1);
+
+    // 4. RepeatID
     int currentRepeatID = 0;
     if (g_StateSequenceTask.RepeatCount >= (int)g_StateSeqRuntime.RepeatCountRemaining)
     {
         currentRepeatID = g_StateSequenceTask.RepeatCount - (int)g_StateSeqRuntime.RepeatCountRemaining;
     }
-    cJSON_AddNumberToObject(data, "Repeated", currentRepeatID); // 重复次数计数
-    cJSON *statesArr = cJSON_CreateArray();
+    cJSON_AddNumberToObject(data, "RepeatID", currentRepeatID);
 
+    // 5. States 数组
+    cJSON *statesArr = cJSON_CreateArray();
     // [全量上报逻辑] 遍历所有已执行的步骤 (0 到 ExecutedCount-1)
     for (int i = 0; i < g_StateSeqRuntime.ExecutedCount; i++)
     {
