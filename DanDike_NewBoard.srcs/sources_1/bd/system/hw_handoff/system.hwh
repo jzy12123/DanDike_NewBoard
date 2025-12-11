@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Thu Dec 11 09:42:19 2025" VIVADOVERSION="2020.2">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Thu Dec 11 15:00:00 2025" VIVADOVERSION="2020.2">
 
   <SYSTEMINFO ARCH="zynq" DEVICE="7z020" NAME="system" PACKAGE="clg400" SPEEDGRADE="-2"/>
 
@@ -652,7 +652,7 @@
   </EXTERNALINTERFACES>
 
   <MODULES>
-    <MODULE COREREVISION="14" FULLNAME="/AC_8_channel_0/adda/adc_whole_0" HWVERSION="2.0" INSTANCE="AC_8_channel_0_adda_adc_whole_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="adc_whole" VLNV="xilinx.com:user:adc_whole:2.0">
+    <MODULE COREREVISION="15" FULLNAME="/AC_8_channel_0/adda/adc_whole_0" HWVERSION="2.0" INSTANCE="AC_8_channel_0_adda_adc_whole_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="adc_whole" VLNV="xilinx.com:user:adc_whole:2.0">
       <DOCUMENTS/>
       <ADDRESSBLOCKS>
         <ADDRESSBLOCK ACCESS="" INTERFACE="S_AXI" NAME="reg0" RANGE="4096" USAGE="register"/>
