@@ -361,7 +361,6 @@ static void ScuGic_SetInterruptTarget(u32 DistBaseAddress, u32 Int_Id, u8 Cpu_Id
  * @brief 初始化并配置中断控制器和中断处理函数（AMP安全最终版）
  * @details 此版本修正了初始化顺序，以防止在中断处理程序就绪前发生中断导致系统挂起。
  * @return 成功返回XST_SUCCESS，失败返回XST_FAILURE
- * 2025.7.7修改 将DMA中断加入AXI_INTC
  */
 int setup_intr_system(XScuGic *int_ins_ptr,
                       XScuTimer *timer_ptr,
@@ -447,6 +446,11 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // Pin 8: date_update (日期更新)
     // Pin 9: PPS_IN
 
+    // Pin 10: 软时钟闹钟中断
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR, (XInterruptHandler)StateSequence_AlarmHandler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
     //  连接AXI INTC的输出到GIC
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40, 0x1);             // 高电平触发
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 1); // 将中断映射到目标CPU1
@@ -494,6 +498,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR);//在onoff_start中使能中断
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR);
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR);
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR);
 
     // 使能GIC上的中断
     XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR);

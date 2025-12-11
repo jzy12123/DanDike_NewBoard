@@ -48,11 +48,11 @@
 
 
 // IP VLNV: xilinx.com:user:stimer_onoff_pa_rw:1.0
-// IP Revision: 5
+// IP Revision: 6
 
 (* X_CORE_INFO = "stimer_onoff_pa_rw_AXI,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{}" *)
-(* CORE_GENERATION_INFO = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=stimer_onoff_pa_rw,x_ipVersion=1.0,x_ipCoreRevision=5,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=6}" *)
+(* CORE_GENERATION_INFO = "system_stimer_onoff_pa_rw_A_0_0,stimer_onoff_pa_rw_AXI,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=user,x_ipName=stimer_onoff_pa_rw,x_ipVersion=1.0,x_ipCoreRevision=6,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_S_AXI_DATA_WIDTH=32,C_S_AXI_ADDR_WIDTH=6}" *)
 (* IP_DEFINITION_SOURCE = "package_project" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_stimer_onoff_pa_rw_A_0_0 (
@@ -81,6 +81,7 @@ module system_stimer_onoff_pa_rw_A_0_0 (
   pps_bm2cpu,
   bm_syn_end,
   date_update,
+  time_up,
   S_AXI_ACLK,
   S_AXI_ARESETN,
   S_AXI_AWADDR,
@@ -141,6 +142,7 @@ output wire pps_in2cpu;
 output wire pps_bm2cpu;
 output wire bm_syn_end;
 output wire date_update;
+output wire time_up;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_AXI_ACLK, ASSOCIATED_BUSIF S_AXI, ASSOCIATED_RESET S_AXI_ARESETN, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, PHASE 0.000, CLK_DOMAIN system_processing_system7_0_0_FCLK_CLK0, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 S_AXI_ACLK CLK" *)
 input wire S_AXI_ACLK;
@@ -217,6 +219,7 @@ input wire S_AXI_RREADY;
     .pps_bm2cpu(pps_bm2cpu),
     .bm_syn_end(bm_syn_end),
     .date_update(date_update),
+    .time_up(time_up),
     .S_AXI_ACLK(S_AXI_ACLK),
     .S_AXI_ARESETN(S_AXI_ARESETN),
     .S_AXI_AWADDR(S_AXI_AWADDR),

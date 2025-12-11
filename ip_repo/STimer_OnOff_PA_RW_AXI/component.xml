@@ -368,7 +368,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>2d50fbef</spirit:value>
+            <spirit:value>17c4e005</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -384,7 +384,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>2d50fbef</spirit:value>
+            <spirit:value>17c4e005</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -723,6 +723,19 @@
           <spirit:wireTypeDefs>
             <spirit:wireTypeDef>
               <spirit:typeName>wire</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>time_up</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>reg</spirit:typeName>
               <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
               <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
             </spirit:wireTypeDef>
@@ -1114,7 +1127,7 @@
       <spirit:file>
         <spirit:name>STimer_OnOff_PA_RW_AXI.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_98a0c9a1</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_a47dc0c0</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1197,11 +1210,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>stimer_onoff_pa_rw_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>5</xilinx:coreRevision>
+      <xilinx:coreRevision>6</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:stimer_onoff_pa_rw_AXI:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2025-07-10T11:40:21Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2025-12-11T01:24:57Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="nopcore"/>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@129d2aa0_ARCHIVE_LOCATION">c:/Users/saber/Desktop/Soft_Timer/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
@@ -1281,14 +1294,25 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@44783b80_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@562fe58f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@49ece669_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6a20f23d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@43a02976_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c5c46a8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f382ce6_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@21931a08_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@22d51485_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a5e6a2b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@74a9c425_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@44d5d138_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5c9cf6a4_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e04b9bc_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="7261c044"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="871a59ce"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="9bbe69ac"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="62be24bb"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="3d1aff7a"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="f9e02637"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="43b92443"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="a6e681d2"/>
     </xilinx:packagingInfo>

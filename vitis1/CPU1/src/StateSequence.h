@@ -65,6 +65,13 @@ typedef struct
     Seq_Step_Result_t ExecResults[MAX_SEQ_RESULTS]; // 结果循环/线性缓冲区
 
     Step_Hw_Params_t StepParams[MAX_SEQ_STEPS]; // 预计算的参数数组 (动态分配或静态大数组)
+    // 硬件参数缓存 (用于分离计算与执行) 在 Plan 阶段计算好，在 Run 阶段直接写入，不再耗时计算
+    struct
+    {
+        u32 Range_Regs[4]; // r_din0 ~ r_din3 (量程)
+        u32 Value_Regs[4]; // v_din0 ~ v_din3 (满幅值系数)
+        u32 Init_Freq_Div; // 初始频率分频系数
+    } Cached_Hw;
 } StateSeq_Runtime_t;
 
 extern StateSeq_Runtime_t g_StateSeqRuntime;
@@ -72,12 +79,14 @@ extern XTtcPs SeqTtcInstance;
 extern XAxiCdma CdmaInstance;
 // ================= 函数声明 =================
 int StateSequence_Init(void);
-void StateSequence_PrepareAndStart(void);
+void StateSequence_Plan(const char *startTimeStr); // 仅计算，不运行
+void StateSequence_ApplyAndRun(void);              // 仅运行，不计算
 void StateSequence_Stop(void);
-void StateSequence_OnAlarmTrigger(void);
-void StateSequence_QuitMode(void); // [新增] 强制退出状态序列模式 (供 SetACS 等调用)
+void StateSequence_QuitMode(void);                       // [新增] 强制退出状态序列模式 (供 SetACS 等调用)
+int StateSequence_EnableAlarm(const char *startTimeStr); // 解析时间并设置闹钟
 
 // 中断处理
+void StateSequence_AlarmHandler(void *CallBackRef); // 闹钟中断处理函数
 void StateSequence_TTC_Handler(void *CallBackRef);
 void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val);
 void check_and_report_state_sequence_status(void);

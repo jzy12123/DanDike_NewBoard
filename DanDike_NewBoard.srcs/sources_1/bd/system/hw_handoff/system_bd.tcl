@@ -737,6 +737,7 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   create_bd_pin -dir O prog_empty
   create_bd_pin -dir O -type intr s2mm_introut
   create_bd_pin -dir I -type clk s_axi_lite_aclk
+  create_bd_pin -dir O time_up
   create_bd_pin -dir O -from 1 -to 0 yad_os_0
 
   # Create instance: adda
@@ -778,6 +779,7 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   connect_bd_net -net stimer_onoff_pa_rw_A_0_onoff_done [get_bd_pins onoff_done] [get_bd_pins stimer_onoff_pa_rw_A_0/onoff_done]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_pps_50 [get_bd_pins pps_50_0] [get_bd_pins stimer_onoff_pa_rw_A_0/pps_50]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_pps_in2cpu [get_bd_pins pps_in2cpu] [get_bd_pins stimer_onoff_pa_rw_A_0/pps_in2cpu]
+  connect_bd_net -net stimer_onoff_pa_rw_A_0_time_up [get_bd_pins time_up] [get_bd_pins stimer_onoff_pa_rw_A_0/time_up]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -1690,7 +1692,7 @@ proc create_root_design { parentCell } {
   # Create instance: xlconcat_BareMetal, and set properties
   set xlconcat_BareMetal [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_BareMetal ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {10} \
+   CONFIG.NUM_PORTS {11} \
  ] $xlconcat_BareMetal
 
   # Create interface connections
@@ -1743,6 +1745,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_BareMetal/In9]
   connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_BareMetal/In2]
   connect_bd_net -net AC_8_channel_0_s2mm_introut [get_bd_pins AC_8_channel_0/s2mm_introut] [get_bd_pins xlconcat_BareMetal/In0]
+  connect_bd_net -net AC_8_channel_0_time_up [get_bd_pins AC_8_channel_0/time_up] [get_bd_pins xlconcat_BareMetal/In10]
   connect_bd_net -net AC_8_channel_0_yad_os_0 [get_bd_ports yad_os_0] [get_bd_pins AC_8_channel_0/yad_os_0]
   connect_bd_net -net Op1_0_0_1 [get_bd_ports key_BoardINT0] [get_bd_pins key_board/Op1_0]
   connect_bd_net -net Op1_0_2 [get_bd_ports Coder_Int] [get_bd_pins coder/Op1_0]

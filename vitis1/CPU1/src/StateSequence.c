@@ -4,7 +4,8 @@
 #include "xil_cache.h"
 #include "xil_printf.h"
 #include "sleep.h"
-
+#include "soft_timer.h"
+#include <stdlib.h>
 // 全局变量
 StateSeq_Runtime_t g_StateSeqRuntime;
 XAxiCdma CdmaInstance;
@@ -423,13 +424,23 @@ static void Execute_Step(int stepIndex)
         // 计算下一步 (模拟 DI 触发时的跳转逻辑)
         int nextStep = -1;
         // JumpTo: 0=Next, -1=End(Triggered), -2=Next
-        // 注意：这里是 "Triggered" 触发的情况
         if (pCheckStep->JumpTo == 0 || pCheckStep->JumpTo == -2)
+        {
             nextStep = stepIndex + 1;
+        }
+
         else if (pCheckStep->JumpTo == -1)
+        {
             nextStep = g_StateSeqRuntime.TotalSteps; // Jump to End
+            // [核心修改] 强制结束整个任务，清除剩余循环次数
+            // 这样 Execute_Step(TotalSteps) 时会直接进入 Stop 分支，而不会进入 Loop 分支
+            g_StateSeqRuntime.RepeatCountRemaining = 0;
+        }
+
         else if (pCheckStep->JumpTo > 0)
+        {
             nextStep = pCheckStep->JumpTo - 1;
+        }
 
         // 递归调用，尝试执行下一步
         // (如果下一步条件也满足，会继续递归跳过，直到找到一个需要等待的步或结束)
@@ -496,33 +507,44 @@ int StateSequence_Init(void)
     return XST_SUCCESS;
 }
 /**
- * @brief 准备并启动状态序列 (修复：全局扫描最大幅值以确定量程)
+ * @brief 阶段1：任务规划 (计算密集型)
+ * @details 执行所有耗时操作：解析参数、全局量程扫描、DDR波形生成、寄存器值预算。
+ * 此函数不会操作硬件输出，也不会启动定时器。
  */
-void StateSequence_PrepareAndStart(void)
+void StateSequence_Plan(const char *startTimeStr)
 {
+    // 1. 初始化基础状态
     g_StateSeqRuntime.CurrentStepIndex = 0;
     g_StateSeqRuntime.TotalSteps = g_StateSequenceTask.StepCount;
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
-    g_StateSeqRuntime.IsRunning = true;
-    g_StateSeqRuntime.IsHolding = false;
-    g_StateSeqRuntime.IsFinished = false;
 
+    // 注意：此时不设置 IsRunning，防止主循环提前挂起
+
+    // 初始化记录
     g_StateSeqRuntime.ExecutedCount = 0;
     g_StateSeqRuntime.ReportedCount = -1;
     memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
 
-    In_CurrTime curr;
-    read_current_time(&curr);
-    sprintf(g_StateSeqRuntime.StartTimeStr, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
-            curr.curr_year, curr.curr_month, curr.curr_day,
-            curr.curr_hour, curr.curr_minute, curr.curr_second,
-            (unsigned int)(curr.curr_subsec / 100000));
+    // 保存启动时间字符串
+    if (startTimeStr)
+    {
+        strncpy(g_StateSeqRuntime.StartTimeStr, startTimeStr, 31);
+    }
+    else
+    {
+        In_CurrTime curr;
+        read_current_time(&curr);
+        sprintf(g_StateSeqRuntime.StartTimeStr, "%04u-%02u-%02u %02u:%02u:%02u.%03u",
+                curr.curr_year, curr.curr_month, curr.curr_day,
+                curr.curr_hour, curr.curr_minute, curr.curr_second,
+                (unsigned int)(curr.curr_subsec / 100000));
+    }
 
-    // =================================================================
-    // 1. [核心修复] 全局扫描：遍历所有步骤，找出每个通道的最大幅值
-    // =================================================================
-    float max_u_vals[4] = {0}; // Chn 0~3
-    float max_i_vals[4] = {0}; // Chn 4~7 (Step配置里的Chn是1~4, I对应4~7)
+    xil_printf("CPU1: StateSeq - Planning task for %s...\r\n", g_StateSeqRuntime.StartTimeStr);
+
+    // 2. 全局扫描：确定最佳量程
+    float max_u_vals[4] = {0};
+    float max_i_vals[4] = {0};
 
     for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
     {
@@ -532,8 +554,7 @@ void StateSequence_PrepareAndStart(void)
             Struct_Seq_AC *pAC = &pStep->ACs[j];
             if (pAC->Line != 1)
                 continue;
-
-            int chn_idx = pAC->Chn - 1; // 0~3
+            int chn_idx = pAC->Chn - 1;
             if (chn_idx >= 0 && chn_idx < 4)
             {
                 if (pAC->U > max_u_vals[chn_idx])
@@ -544,102 +565,118 @@ void StateSequence_PrepareAndStart(void)
         }
     }
 
-    // =================================================================
-    // 2. 确定全局最佳量程，并回写到所有步骤
-    //    确保 Precalculate_Waveforms 和 硬件配置 使用完全一致的量程
-    // =================================================================
+    // 3. 计算量程并回写
     float final_ur[4], final_ir[4];
-    u32 range_codes[8]; // 0~3: U, 4~7: I
-
-    // 初始化默认值
+    u32 range_codes[8];
     for (int k = 0; k < 8; k++)
-        range_codes[k] = voltage_to_output(6); // 获取默认(最小或最大)档位码
+    {
+        // 设置默认量程
+        range_codes[k] = voltage_to_output(6);
+    }
 
     for (int chn = 0; chn < 4; chn++)
     {
-        // --- 确定电压量程 ---
-        // 逻辑需与 Communications_Protocol.c 保持一致
+        // 电压量程
         if (max_u_vals[chn] > 3.25f)
             final_ur[chn] = 6.5f;
         else if (max_u_vals[chn] > 1.876f)
             final_ur[chn] = 3.25f;
         else
             final_ur[chn] = 1.876f;
-
         range_codes[chn] = voltage_to_output(final_ur[chn]);
 
-        // --- 确定电流量程 ---
+        // 电流量程
         if (max_i_vals[chn] > 1.0f)
             final_ir[chn] = 5.0f;
         else if (max_i_vals[chn] > 0.2f)
             final_ir[chn] = 1.0f;
         else
             final_ir[chn] = 0.2f;
-
         range_codes[chn + 4] = current_to_output(final_ir[chn]);
     }
 
-    // 回写量程到所有步骤 (关键！供 Precalculate_Waveforms 使用)
+    // 回写量程到 Steps
     for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
     {
         Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
         for (int j = 0; j < pStep->ACCount; j++)
         {
-            Struct_Seq_AC *pAC = &pStep->ACs[j];
-            if (pAC->Line == 1)
+            if (pStep->ACs[j].Line == 1)
             {
-                int chn_idx = pAC->Chn - 1;
-                if (chn_idx >= 0 && chn_idx < 4)
+                int idx = pStep->ACs[j].Chn - 1;
+                if (idx >= 0 && idx < 4)
                 {
-                    pAC->UR = final_ur[chn_idx];
-                    pAC->IR = final_ir[chn_idx];
+                    pStep->ACs[j].UR = final_ur[idx];
+                    pStep->ACs[j].IR = final_ir[idx];
                 }
             }
         }
     }
 
-    // 3. 预计算 (现在 UR/IR 已经是全局统一的了)
+    // 4. 执行预计算 (写入DDR，计算TTC等)
     Precalculate_Waveforms();
     Precalculate_HwParams();
 
-    // 4. 配置硬件档位 (使用计算好的 range_codes)
-    // r_din0: UB(Ch1) | UA(Ch0)
-    u32 r_din0 = (range_codes[1] << 24) | (range_codes[0] << 8);
-    u32 r_din1 = (range_codes[3] << 24) | (range_codes[2] << 8);
-    u32 r_din2 = (range_codes[5] << 24) | (range_codes[4] << 8);
-    u32 r_din3 = (range_codes[7] << 24) | (range_codes[6] << 8);
+    // 5. [核心] 将计算好的硬件寄存器值存入缓存，此时不写硬件
+    // 缓存量程寄存器
+    g_StateSeqRuntime.Cached_Hw.Range_Regs[0] = (range_codes[1] << 24) | (range_codes[0] << 8);
+    g_StateSeqRuntime.Cached_Hw.Range_Regs[1] = (range_codes[3] << 24) | (range_codes[2] << 8);
+    g_StateSeqRuntime.Cached_Hw.Range_Regs[2] = (range_codes[5] << 24) | (range_codes[4] << 8);
+    g_StateSeqRuntime.Cached_Hw.Range_Regs[3] = (range_codes[7] << 24) | (range_codes[6] << 8);
 
-    Seq_Hw_SetRange(r_din0, r_din1, r_din2, r_din3);
-
-    // 5. 配置满量程幅值 (Fixed 100% Gain)
-    // 基于 final_ur / final_ir 计算 100% 系数
+    // 缓存幅值寄存器 (100% Gain)
     u32 din_vals[8] = {0};
-
     for (int chn = 0; chn < 4; chn++)
     {
-        // 电压
         int idx_u = get_voltage_index_by_value(final_ur[chn]);
-        double corr_u = calculate_correction(chn, idx_u, 100.0f);
-        din_vals[chn] = (u32)(1.0 * corr_u);
+        din_vals[chn] = (u32)(1.0 * calculate_correction(chn, idx_u, 100.0f));
 
-        // 电流
         int idx_i = get_current_index_by_value(final_ir[chn]);
-        double corr_i = calculate_correction(chn + 4, idx_i, 100.0f);
-        din_vals[chn + 4] = (u32)(1.0 * corr_i);
+        din_vals[chn + 4] = (u32)(1.0 * calculate_correction(chn + 4, idx_i, 100.0f));
     }
+    g_StateSeqRuntime.Cached_Hw.Value_Regs[0] = (din_vals[1] << 16) | (din_vals[0] & 0xFFFF);
+    g_StateSeqRuntime.Cached_Hw.Value_Regs[1] = (din_vals[3] << 16) | (din_vals[2] & 0xFFFF);
+    g_StateSeqRuntime.Cached_Hw.Value_Regs[2] = (din_vals[5] << 16) | (din_vals[4] & 0xFFFF);
+    g_StateSeqRuntime.Cached_Hw.Value_Regs[3] = (din_vals[7] << 16) | (din_vals[6] & 0xFFFF);
 
-    u32 v_din0 = (din_vals[1] << 16) | (din_vals[0] & 0xFFFF);
-    u32 v_din1 = (din_vals[3] << 16) | (din_vals[2] & 0xFFFF);
-    u32 v_din2 = (din_vals[5] << 16) | (din_vals[4] & 0xFFFF);
-    u32 v_din3 = (din_vals[7] << 16) | (din_vals[6] & 0xFFFF);
+    // 缓存初始频率
+    g_StateSeqRuntime.Cached_Hw.Init_Freq_Div = g_StateSeqRuntime.StepParams[0].Freq_Divisor;
 
-    Seq_Hw_SetValue(v_din0, v_din1, v_din2, v_din3);
+    xil_printf("CPU1: StateSeq - Plan Complete. Ready to trigger.\r\n");
+}
 
-    // 6. 开启 DA IP
+/**
+ * @brief 阶段2：执行任务 (IO密集型)
+ * @details 仅执行寄存器写入和启动操作，耗时极短。通常在中断或立即启动时调用。
+ */
+void StateSequence_ApplyAndRun(void)
+{
+    // xil_printf("CPU1: StateSeq - Applying HW Config and Starting...\r\n");
+
+    // 1. 设置运行标志
+    g_StateSeqRuntime.IsRunning = true;
+    g_StateSeqRuntime.IsHolding = false;
+    g_StateSeqRuntime.IsFinished = false;
+
+    // 2. 写入缓存的硬件参数
+    // 档位
+    Seq_Hw_SetRange(g_StateSeqRuntime.Cached_Hw.Range_Regs[0],
+                    g_StateSeqRuntime.Cached_Hw.Range_Regs[1],
+                    g_StateSeqRuntime.Cached_Hw.Range_Regs[2],
+                    g_StateSeqRuntime.Cached_Hw.Range_Regs[3]);
+
+    // 幅值 (100% Gain)
+    Seq_Hw_SetValue(g_StateSeqRuntime.Cached_Hw.Value_Regs[0],
+                    g_StateSeqRuntime.Cached_Hw.Value_Regs[1],
+                    g_StateSeqRuntime.Cached_Hw.Value_Regs[2],
+                    g_StateSeqRuntime.Cached_Hw.Value_Regs[3]);
+
+    // 3. 开启 DA IP
     Xil_Out32(dac_whole_base_addr + 0, 1);
-    Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.StepParams[0].Freq_Divisor);
+    Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.Cached_Hw.Init_Freq_Div);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
+    // 4. 立即执行第一步
     Execute_Step(0);
 }
 
@@ -776,7 +813,11 @@ void StateSequence_DI_Check(uint32_t changed_bits, uint32_t current_val)
         if (pStep->JumpTo == 0 || pStep->JumpTo == -2)
             nextStep = currentIdx + 1;
         else if (pStep->JumpTo == -1)
+        {
             nextStep = g_StateSeqRuntime.TotalSteps;
+            g_StateSeqRuntime.RepeatCountRemaining = 0; // 强制结束整个任务，清除剩余循环次数
+        }
+
         else if (pStep->JumpTo > 0)
             nextStep = pStep->JumpTo - 1;
 
@@ -804,17 +845,16 @@ void check_and_report_state_sequence_status(void)
     cJSON_AddStringToObject(report, "FunType", "TaskEvent");
     cJSON_AddStringToObject(report, "FunCode", "StateSequence");
 
-    if (g_StateSeqRuntime.IsRunning)
-    {
-        cJSON_AddStringToObject(report, "Result", "Doing");
-    }
-    else if (g_StateSeqRuntime.IsFinished)
+    // 状态判断逻辑
+    // 只要任务处于“活跃”状态（无论是正在跑 IsRunning，还是定时等待中），只要没 Finish，都算 Doing。
+    if (g_StateSeqRuntime.IsFinished)
     {
         cJSON_AddStringToObject(report, "Result", "Success");
     }
     else
     {
-        cJSON_AddStringToObject(report, "Result", "Failure"); // 异常情况
+        // 包括 IsRunning=true (运行中) 和 IsRunning=false (定时等待中/启动瞬间)
+        cJSON_AddStringToObject(report, "Result", "Doing");
     }
 
     cJSON *data = cJSON_CreateObject();
@@ -907,4 +947,64 @@ void check_and_report_state_sequence_status(void)
     {
         g_StateSeqRuntime.IsFinished = false;
     }
+}
+
+// ================= 定时启动功能实现 =================
+//  定义影子寄存器变量 (初始化为0，或者根据默认状态初始化)
+uint32_t g_SoftTimer_Reg15_Shadow = 0;
+/**
+ * @brief 解析时间字符串并设置软时钟闹钟
+ * @param startTimeStr 格式: "2025-01-01 12:00:00.123"
+ * @return XST_SUCCESS 或 XST_FAILURE
+ */
+int StateSequence_EnableAlarm(const char *startTimeStr)
+{
+    if (startTimeStr == NULL || strlen(startTimeStr) < 19)
+        return XST_FAILURE;
+
+    // 1. 先进行任务规划 (计算参数，写DDR)
+    // 这样当闹钟响时，数据已经准备好了
+    StateSequence_Plan(startTimeStr);
+
+    // 2. 解析时间并设置闹钟 (同之前)
+    char h_str[3] = {startTimeStr[11], startTimeStr[12], '\0'};
+    char m_str[3] = {startTimeStr[14], startTimeStr[15], '\0'};
+    char s_str[3] = {startTimeStr[17], startTimeStr[18], '\0'};
+    int hour = atoi(h_str);
+    int min = atoi(m_str);
+    int sec = atoi(s_str);
+
+    xil_printf("CPU1: Scheduling Alarm at %02d:%02d:%02d\r\n", hour, min, sec);
+
+    uint32_t bcd_h = ((hour / 10) << 4) | (hour % 10);
+    uint32_t bcd_m = ((min / 10) << 4) | (min % 10);
+    uint32_t bcd_s = ((sec / 10) << 4) | (sec % 10);
+
+    // 使用影子寄存器设置
+    g_SoftTimer_Reg15_Shadow &= STIMER_RDSERIAL_EN_MASK;
+    g_SoftTimer_Reg15_Shadow |= STIMER_ALARM_EN_MASK;
+    g_SoftTimer_Reg15_Shadow |= (bcd_h << STIMER_ALARM_HOUR_SHIFT);
+    g_SoftTimer_Reg15_Shadow |= (bcd_m << STIMER_ALARM_MIN_SHIFT);
+    g_SoftTimer_Reg15_Shadow |= (bcd_s << STIMER_ALARM_SEC_SHIFT);
+
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+
+    return XST_SUCCESS;
+}
+/**
+ * @brief 闹钟中断处理函数
+ * @details 硬件产生高电平中断 -> 进入此函数 -> 关闭使能(清除中断源) -> 启动任务
+ */
+void StateSequence_AlarmHandler(void *CallBackRef)
+{
+    // 1. 清除中断
+    g_SoftTimer_Reg15_Shadow &= ~STIMER_ALARM_EN_MASK;
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+
+    // xil_printf("\r\nCPU1: [IRQ] Alarm Triggered! Executing...\r\n");
+
+    // 2. 抢占并执行
+    // 此时无需再 Calculate，直接 Apply 即可
+    StateSequence_QuitMode();
+    StateSequence_ApplyAndRun();
 }

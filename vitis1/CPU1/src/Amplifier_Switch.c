@@ -31,9 +31,15 @@ void RdSerial()
 	static u8 lastProectFault = 0xFF;  // 保存上一次的故障状态，初始为无故障
 	static bool faultDetected = false; // 是否已经检测到一次故障
 
-	Xil_Out32(Amplifier_OnOff_BASEADDR + RdSerial_Status_ADDR, (u32)0x1); // slv_reg15 的 rdserial—enable 置 1
+	// [关键修改] 使用影子寄存器进行 "读-改-写" 操作
+	// 目的：只置位 Bit 0 (RdSerial Enable)，保护高位的闹钟设置 (Alarm Enable & Time) 不被清除
+	g_SoftTimer_Reg15_Shadow |= STIMER_RDSERIAL_EN_MASK;
+
+	// 将合并后的值写入硬件
+	Xil_Out32(Amplifier_OnOff_BASEADDR + RdSerial_Status_ADDR, g_SoftTimer_Reg15_Shadow);
+
 	// ProectFault前4位代表IXICIBIA 后四位代表UXUCUBUA,如果正常则为11111111，出现故障对应的位会变0.
-	u8 ProectFault = (u8)Xil_In32(Amplifier_OnOff_BASEADDR + RdSerial_ADDR); // 读 slv_reg2 的 rdserial——dataout
+	u8 ProectFault = (u8)Xil_In32(Amplifier_OnOff_BASEADDR + RdSerial_ADDR); // 读 slv_reg10 的 rdserial——dataout
 
 	// 如果当前检测到故障信号
 	if (ProectFault != 0xFF)
@@ -481,7 +487,7 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	}
 	else
 	{
-		printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
+		// printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
 	}
 	free(finalString);
 	free(string);

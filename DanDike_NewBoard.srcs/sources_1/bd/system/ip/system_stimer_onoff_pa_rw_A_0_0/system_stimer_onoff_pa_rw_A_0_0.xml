@@ -711,11 +711,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Jul 12 08:07:36 UTC 2025</spirit:value>
+            <spirit:value>Thu Dec 11 01:28:51 UTC 2025</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:5bb76252</spirit:value>
+            <spirit:value>9:3aeb74b9</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -726,7 +726,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:5bb76252</spirit:value>
+            <spirit:value>9:3aeb74b9</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -742,11 +742,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Jul 12 08:07:36 UTC 2025</spirit:value>
+            <spirit:value>Thu Dec 11 01:28:51 UTC 2025</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:5bb76252</spirit:value>
+            <spirit:value>9:3aeb74b9</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -761,11 +761,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Jul 12 08:07:36 UTC 2025</spirit:value>
+            <spirit:value>Thu Dec 11 01:28:51 UTC 2025</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:a2990aad</spirit:value>
+            <spirit:value>9:5425a687</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -781,11 +781,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Jul 12 08:07:36 UTC 2025</spirit:value>
+            <spirit:value>Thu Dec 11 01:28:51 UTC 2025</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>outputProductCRC</spirit:name>
-            <spirit:value>9:a2990aad</spirit:value>
+            <spirit:value>9:5425a687</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1110,6 +1110,19 @@
           <spirit:wireTypeDefs>
             <spirit:wireTypeDef>
               <spirit:typeName>wire</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>time_up</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>reg</spirit:typeName>
               <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
               <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
             </spirit:wireTypeDef>
@@ -1483,23 +1496,23 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/config2ser16bits.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/config2ser16bits.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/onoff_io.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/onoff_io.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/rd_from_serial8bit.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/rd_from_serial8bit.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/soft_timer.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/soft_timer.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/STimer_OnOff_PA_RW_AXI.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/STimer_OnOff_PA_RW_AXI.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
@@ -1514,23 +1527,23 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/config2ser16bits.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/config2ser16bits.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/onoff_io.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/onoff_io.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/rd_from_serial8bit.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/rd_from_serial8bit.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/soft_timer.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/soft_timer.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../../ipshared/2082/STimer_OnOff_PA_RW_AXI.v</spirit:name>
+        <spirit:name>../../ipshared/80f6/STimer_OnOff_PA_RW_AXI.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
@@ -1564,7 +1577,7 @@
     <xilinx:coreExtensions>
       <xilinx:displayName>stimer_onoff_pa_rw_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>5</xilinx:coreRevision>
+      <xilinx:coreRevision>6</xilinx:coreRevision>
       <xilinx:tags>
         <xilinx:tag xilinx:name="nopcore"/>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@129d2aa0_ARCHIVE_LOCATION">c:/Users/saber/Desktop/Soft_Timer/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
@@ -1644,6 +1657,17 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@44783b80_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@562fe58f_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@49ece669_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6a20f23d_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@43a02976_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c5c46a8_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f382ce6_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@21931a08_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@22d51485_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a5e6a2b_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@74a9c425_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@44d5d138_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5c9cf6a4_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e04b9bc_ARCHIVE_LOCATION">c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/STimer_OnOff_PA_RW_AXI</xilinx:tag>
       </xilinx:tags>
       <xilinx:configElementInfos>
         <xilinx:configElementInfo xilinx:referenceId="BUSIFPARAM_VALUE.CLK25MHZ_RSTN.POLARITY" xilinx:valuePermission="bd_and_user"/>
@@ -1690,8 +1714,8 @@
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="7261c044"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="871a59ce"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="9bbe69ac"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="62be24bb"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="3d1aff7a"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="f9e02637"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="43b92443"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="a6e681d2"/>
     </xilinx:packagingInfo>

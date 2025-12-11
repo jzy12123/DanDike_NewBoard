@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Tue Dec  9 19:19:06 2025
+//Date        : Thu Dec 11 09:42:07 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -201,6 +201,7 @@ module AC_8_channel_0_imp_1V5LWYH
     prog_empty,
     s2mm_introut,
     s_axi_lite_aclk,
+    time_up,
     yad_os_0);
   output AD_0_ad_ck;
   output AD_0_ad_cs;
@@ -393,6 +394,7 @@ module AC_8_channel_0_imp_1V5LWYH
   output prog_empty;
   output s2mm_introut;
   input s_axi_lite_aclk;
+  output time_up;
   output [1:0]yad_os_0;
 
   wire [31:0]Conn1_ARADDR;
@@ -587,6 +589,7 @@ module AC_8_channel_0_imp_1V5LWYH
   wire stimer_onoff_pa_rw_A_0_onoff_done;
   wire stimer_onoff_pa_rw_A_0_pps_50;
   wire stimer_onoff_pa_rw_A_0_pps_in2cpu;
+  wire stimer_onoff_pa_rw_A_0_time_up;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
   assign AD_0_ad_cs = adc_whole_0_AD_ad_cs;
@@ -779,6 +782,7 @@ module AC_8_channel_0_imp_1V5LWYH
   assign s2mm_introut = axi_dma_0_s2mm_introut;
   assign stimer_onoff_pa_rw_A_0_OnOff_onoff_sdi = OnOff_0_onoff_sdi;
   assign stimer_onoff_pa_rw_A_0_RdSerial_rd_sdi = RdSerial_0_rd_sdi;
+  assign time_up = stimer_onoff_pa_rw_A_0_time_up;
   assign yad_os_0[1:0] = adda_yad_os_0;
   adda_imp_1MMLK1Q adda
        (.AD_0_ad_ck(adc_whole_0_AD_ad_ck),
@@ -975,6 +979,7 @@ module AC_8_channel_0_imp_1V5LWYH
         .rdserial_load(stimer_onoff_pa_rw_A_0_RdSerial_rd_load),
         .rdserial_sclk(stimer_onoff_pa_rw_A_0_RdSerial_rd_sclk),
         .rdserial_sdi(stimer_onoff_pa_rw_A_0_RdSerial_rd_sdi),
+        .time_up(stimer_onoff_pa_rw_A_0_time_up),
         .wrserial_load(stimer_onoff_pa_rw_A_0_WrSerial_wr_load),
         .wrserial_sclk(stimer_onoff_pa_rw_A_0_WrSerial_wr_sclk),
         .wrserial_sdo(stimer_onoff_pa_rw_A_0_WrSerial_wr_sdo));
@@ -8722,6 +8727,7 @@ module system
   wire AC_8_channel_0_pps_in2cpu;
   wire AC_8_channel_0_prog_empty;
   wire AC_8_channel_0_s2mm_introut;
+  wire AC_8_channel_0_time_up;
   wire [1:0]AC_8_channel_0_yad_os_0;
   wire [0:0]Op1_0_0_1;
   wire [0:0]Op1_0_2;
@@ -9225,7 +9231,7 @@ module system
   wire v_axi4s_vid_out_0_vid_active_video;
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
-  wire [9:0]xlconcat_0_dout;
+  wire [10:0]xlconcat_0_dout;
   wire [5:0]xlconcat_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
@@ -9496,6 +9502,7 @@ module system
         .prog_empty(AC_8_channel_0_prog_empty),
         .s2mm_introut(AC_8_channel_0_s2mm_introut),
         .s_axi_lite_aclk(processing_system7_0_FCLK_CLK0),
+        .time_up(AC_8_channel_0_time_up),
         .yad_os_0(AC_8_channel_0_yad_os_0));
   RTC_EEPROM_imp_HBPX1R RTC_EEPROM
        (.IIC_0_scl_i(RTC_EEPROM_IIC_0_SCL_I),
@@ -10424,6 +10431,7 @@ module system
   system_xlconcat_0_2 xlconcat_BareMetal
        (.In0(AC_8_channel_0_s2mm_introut),
         .In1(AC_8_channel_0_mm2s_introut),
+        .In10(AC_8_channel_0_time_up),
         .In2(AC_8_channel_0_prog_empty),
         .In3(AC_8_channel_0_onoff_done),
         .In4(power_pulse_v1_AXI_0_intrpt_p),

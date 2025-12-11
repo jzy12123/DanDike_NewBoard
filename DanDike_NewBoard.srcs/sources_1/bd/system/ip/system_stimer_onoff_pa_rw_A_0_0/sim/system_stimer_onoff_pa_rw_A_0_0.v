@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:user:stimer_onoff_pa_rw:1.0
-// IP Revision: 5
+// IP Revision: 6
 
 `timescale 1ns/1ps
 
@@ -80,6 +80,7 @@ module system_stimer_onoff_pa_rw_A_0_0 (
   pps_bm2cpu,
   bm_syn_end,
   date_update,
+  time_up,
   S_AXI_ACLK,
   S_AXI_ARESETN,
   S_AXI_AWADDR,
@@ -140,6 +141,7 @@ output wire pps_in2cpu;
 output wire pps_bm2cpu;
 output wire bm_syn_end;
 output wire date_update;
+output wire time_up;
 (* X_INTERFACE_PARAMETER = "XIL_INTERFACENAME S_AXI_ACLK, ASSOCIATED_BUSIF S_AXI, ASSOCIATED_RESET S_AXI_ARESETN, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, PHASE 0.000, CLK_DOMAIN system_processing_system7_0_0_FCLK_CLK0, INSERT_VIP 0" *)
 (* X_INTERFACE_INFO = "xilinx.com:signal:clock:1.0 S_AXI_ACLK CLK" *)
 input wire S_AXI_ACLK;
@@ -216,6 +218,7 @@ input wire S_AXI_RREADY;
     .pps_bm2cpu(pps_bm2cpu),
     .bm_syn_end(bm_syn_end),
     .date_update(date_update),
+    .time_up(time_up),
     .S_AXI_ACLK(S_AXI_ACLK),
     .S_AXI_ARESETN(S_AXI_ARESETN),
     .S_AXI_AWADDR(S_AXI_AWADDR),

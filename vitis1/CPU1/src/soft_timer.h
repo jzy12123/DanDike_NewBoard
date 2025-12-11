@@ -16,6 +16,16 @@
 #define SoftTimer_REG5 20 // 写: bm_encode_en[0] 读: 当前秒BCD[6:0], 当前分BCD[13:7], 当前时BCD[19:14]
 #define SoftTimer_REG6 24 // 写: bm_decode_en[0] 读: 当前日秒BCD[16:0] (或二进制)
 #define SoftTimer_REG7 28 // 写: pps_clr_en[0]   读: 亚秒值[23:0] (通常二进制)
+#define SoftTimer_REG15 60 // 定时器控制寄存器
+// REG15 位定义
+#define STIMER_ALARM_EN_MASK 0x80000000   // [31] 使能
+#define STIMER_ALARM_HOUR_MASK 0x3F000000 // [29:24] 时 (BCD)
+#define STIMER_ALARM_HOUR_SHIFT 24
+#define STIMER_ALARM_MIN_MASK 0x007F0000 // [22:16] 分 (BCD)
+#define STIMER_ALARM_MIN_SHIFT 16
+#define STIMER_ALARM_SEC_MASK 0x00007F00 // [14:8] 秒 (BCD)
+#define STIMER_ALARM_SEC_SHIFT 8
+#define STIMER_RDSERIAL_EN_MASK 0x00000001 // [0] 读故障使能 (必须保留)
 
 // 结构体定义：用于写入软时钟的时间数据
 typedef struct
@@ -60,6 +70,10 @@ typedef struct
     uint16_t bm_hour;
     uint32_t bm_daysec;
 } In_BmTime;
+
+// [新增] 声明全局影子寄存器 (在 StateSequence.c 中定义)
+// 所有操作 REG15 的代码都必须维护这个变量
+extern uint32_t g_SoftTimer_Reg15_Shadow;
 
 // 函数声明
 uint8_t int_to_bcd_byte(uint8_t value);

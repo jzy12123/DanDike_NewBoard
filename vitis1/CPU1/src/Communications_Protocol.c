@@ -4,8 +4,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.251205.1504";
-const char ARM_Ver_Full[] = "[Ver]=V1.251210.1537";
+const char FPGA_Ver_Full[] = "[Ver]=V1.251211.1057";
+const char ARM_Ver_Full[] = "[Ver]=V1.251211.1057";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3382,12 +3382,16 @@ void handle_StateSequence(cJSON *data)
     if (g_StateSequenceTask.StartMode == 0)
     {
         xil_printf("CPU1: Cmd StateSequence -> Start Immediately.\r\n");
-        StateSequence_PrepareAndStart();
+        StateSequence_QuitMode();
+
+        // 立即启动：先规划，后执行
+        StateSequence_Plan(NULL);
+        StateSequence_ApplyAndRun();
     }
     else if (g_StateSequenceTask.StartMode == 1)
     {
-        xil_printf("CPU1: Cmd StateSequence -> Schedule Start at %s.\r\n", g_StateSequenceTask.StartTime);
-        // SoftTimer_SetAlarm(g_StateSequenceTask.StartTime); // 待实现
+        // 定时启动：EnableAlarm 内部已经包含了 Plan
+        StateSequence_EnableAlarm(g_StateSequenceTask.StartTime);
     }
 }
 
