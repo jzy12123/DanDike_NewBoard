@@ -7,6 +7,13 @@ XAxiDma axidma;          // XAxiDma实例
 XScuGic intc;            // 中断控制器的实例
 XIntc AxiIntc_BareMetal; // AXI中断控制器实例
 XScuTimer Timer;         // 定时器驱动程序实例
+
+// AC分析专用缓冲区 (CPU1私有DDR，非共享)
+int g_AcAnalysisData[CHANNL_MAX][FFT_DATA_LEN];
+
+volatile u8 g_CurBufferIndex = 0;
+volatile u8 g_ProcessBufferFlag = 0;
+
 // ad
 int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
@@ -90,35 +97,36 @@ const double ADConst_Correct[8][3] = {
     {20026.621825, 23211.482920, 23379.357041}, // IC 111
     {20026.621825, 23211.482920, 23250.247711}  // IX 111
 };
-/**
- * @brief 启动一次ADC硬件采样和DMA传输 (单次批量操作)
- * @param TotalSamplePointsPerChannel 每个通道在此次采集中需要获取的总样本点数
- * @param SampleFrequency ADC的实际采样频率 (Hz)
- * @comment 此函数配置ADC IP核进行一次包含所有周期的连续采样，并启动DMA将所有数据传输到内存。
- */
-void Adc_Start(int SamplePointsPerPeriod, int SampleFrequency, int NumSamplingPeriods)
+
+void Adc_Continuous_Start(void)
 {
-    AdcFinish_Flag = 0;
+    g_CurBufferIndex = 0;
+    g_ProcessBufferFlag = 0;
 
-    int total_sample_points = SamplePointsPerPeriod * NumSamplingPeriods;      // ADC采样个数256×16周期
-    uint32_t total_dma_bytes = total_sample_points * CHANNL_MAX * sizeof(u16); // total_sample_points *16位*8个通道
+    // 1. 设置ADC分频与点数
+    Xil_Out32(adc_whole_base_addr + 4, 1953);
+    Xil_Out32(adc_whole_base_addr + 8, POINTS_PER_BLOCK);
 
-    /*2 开启DMA传输*/
-    int status = SafeDmaTransfer(&axidma, (UINTPTR)rx_buffer_ptr, total_dma_bytes, XAXIDMA_DEVICE_TO_DMA);
+    // 2. 启动第一次DMA (Ping Buffer)
+    // 【关键修改】使用硬编码地址
+    UINTPTR PingAddr = RX_BUFFER_PING_ADDR;
+
+    // 刷新 Cache，确保 CPU 不会把 Cache 里的脏数据写回覆盖 DMA 的数据
+    Xil_DCacheInvalidateRange(PingAddr, DMA_BUFFER_SIZE);
+
+    // 使用 SimpleTransfer 启动 S2MM
+    int status = XAxiDma_SimpleTransfer(&axidma, PingAddr,
+                                        DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
     if (status != XST_SUCCESS)
     {
-        // 处理DMA传输失败情况
-        printf("CPU1: ADC DMA transfer failed, will retry next cycle\n");
+        xil_printf("CPU1: DMA Start Failed! Status=%d\r\n", status);
+        return;
     }
 
-    /*1 开启ADC采样，设置采样点数和采样频率*/
-    Xil_Out32(adc_whole_base_addr + 8, total_sample_points);        // 采样点：sample_points写256
-    Xil_Out32(adc_whole_base_addr + 4, 99993600 / SampleFrequency); // 7812，对应采样频率50*256
-
-    Xil_Out32(adc_whole_base_addr + 0, 0); // 开启一次ADC
+    // 3. 启动ADC
     Xil_Out32(adc_whole_base_addr + 0, 1);
 
-    // 接下来进入DMA传输完成函数。
+    xil_printf("CPU1: ADC Continuous Mode Started.\r\n");
 }
 
 // 对于DMA缓冲区，使用更强的缓存同步
@@ -140,91 +148,14 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
     __asm__ __volatile__("dsb sy" : : : "memory");
 }
 
-// DMA RX中断处理函数 adc
-void rx_intr_handler(void *callback)
-{
-    uint32_t irq_status;
-    XAxiDma *axidma_inst = (XAxiDma *)callback;
-
-    // 读取中断状态
-    irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DEVICE_TO_DMA);
-    // 清除中断标志
-    XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DEVICE_TO_DMA);
-
-    int ioc_occurred = (irq_status & XAXIDMA_IRQ_IOC_MASK);
-    int err_occurred = (irq_status & XAXIDMA_IRQ_ERROR_MASK);
-
-    if (ioc_occurred) // 如果发生了“完成中断”
-    {
-        // 即使有错误，只要IOC发生，我们就认为指定字节数已传输，可以处理数据
-        // （这基于我们不依赖TLAST来正确结束传输的假设）
-        if (err_occurred)
-        {
-            u32 dma_s2mm_status_on_error;
-            dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34);
-            printf("CPU1_Debug: DMA RX IOC occurred with an error. S2MM_DMASR = 0x%08X\n", (unsigned int)dma_s2mm_status_on_error);
-
-            // 检查具体的错误位
-            if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
-            {
-                // printf("CPU1: S2MM Halted.\n");
-            }
-            if (dma_s2mm_status_on_error & XAXIDMA_ERR_INTERNAL_MASK)
-            {
-                // printf("CPU1: DMA Internal Error detected.\n");
-            }
-            if (dma_s2mm_status_on_error & XAXIDMA_ERR_SLAVE_MASK)
-            {
-                // printf("CPU1: DMA Slave Error detected.\n");
-            }
-            if (dma_s2mm_status_on_error & XAXIDMA_ERR_DECODE_MASK)
-            {
-                // 这个错误（DMADecErr）在没有TLAST时是预期的
-                // printf("CPU1: DMA Decode Error detected (potentially due to missing TLAST, will proceed with data processing).\n");
-            }
-        }
-
-        /*处理DDR数据*/
-        u32 total_dma_bytes_for_sync = sample_points * AD_SAMP_CYCLE_NUMBER * CHANNL_MAX * sizeof(u16);
-        sync_dma_buffer((UINTPTR)rx_buffer_ptr, total_dma_bytes_for_sync, XAXIDMA_DEVICE_TO_DMA);
-
-        Adc_Data_processing();
-        AdcFinish_Flag = 1; // 设置ADC（及数据处理）完成标志
-        return;
-    }
-    else if (err_occurred) // 仅发生错误中断，没有IOC
-    {
-        u32 dma_s2mm_status_on_error;
-        dma_s2mm_status_on_error = XAxiDma_ReadReg(axidma_inst->RegBase, 0x34);
-        printf("CPU1:DMA RX Interrupt Handler: Error Transfer without IOC. S2MM_DMASR = %ld\n", dma_s2mm_status_on_error);
-
-        if (dma_s2mm_status_on_error & XAXIDMA_HALTED_MASK)
-        {
-            printf("CPU1: S2MM Halted.\n");
-        }
-        if (dma_s2mm_status_on_error & XAXIDMA_ERR_INTERNAL_MASK)
-        {
-            printf("CPU1: DMA Internal Error detected.\n");
-        }
-        if (dma_s2mm_status_on_error & XAXIDMA_ERR_SLAVE_MASK)
-        {
-            printf("CPU1: DMA Slave Error detected.\n");
-        }
-        if (dma_s2mm_status_on_error & XAXIDMA_ERR_DECODE_MASK)
-        {
-            printf("CPU1: DMA Decode Error detected.\n");
-        }
-        // 对于没有IOC的错误，通常需要复位
-        XAxiDma_Reset(axidma_inst);
-        // AdcFinish_Flag 保持为0或根据需要处理
-        return;
-    }
-}
-
-int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction)
+/**
+ * @brief DMA 传输启动（带重试机制，ISR 安全版）
+ * @details 模仿 SafeDmaTransfer，但在失败时进行微秒级等待，避免 ISR 阻塞太久
+ */
+static int ISR_Safe_DmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction)
 {
     int retry_count = 0;
-    int max_retries = 5;
+    int max_retries = 10; // 增加重试次数
     int status = XST_FAILURE;
 
     while (retry_count < max_retries)
@@ -236,14 +167,524 @@ int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Di
             return XST_SUCCESS;
         }
 
-        printf("CPU1: DMA transfer failed, retrying (%d)...\n", retry_count + 1);
+        // 失败后短暂等待，让总线或状态机喘口气
+        // 在 666MHz CPU 下，usleep(10) 是忙等待，不会调度，适合 ISR
+        usleep(10);
         retry_count++;
-        usleep(1000); // 短暂延迟
     }
 
-    printf("CPU1: DMA transfer failed after %d retries\n", max_retries);
     return status;
 }
+
+/**
+ * @brief DMA 故障恢复函数 (修正版)
+ * @details 复位 -> 清除错误 -> 重新提交 (让 SimpleTransfer 负责启动)
+ */
+void Adc_Dma_Reset_And_Restart(void)
+{
+    u32 RxBaseAddr = axidma.RegBase + XAXIDMA_RX_OFFSET;
+
+    // 1. 复位 DMA 引擎
+    XAxiDma_Reset(&axidma);
+    int timeout = 10000;
+    while (!XAxiDma_ResetIsDone(&axidma) && timeout > 0)
+    {
+        timeout--;
+    }
+
+    if (timeout == 0)
+    {
+        xil_printf("CPU1: Critical - DMA Reset Timeout!\r\n");
+        return;
+    }
+
+    // 2. 显式清除 SR 中的错误位 (通过写 1 清除)
+    // SR 偏移 0x04. 错误位在 bit 4,5,6. Halted 在 bit 0.
+    // 读出当前 SR，并对错误位写 1
+    u32 sr = XAxiDma_ReadReg(RxBaseAddr, XAXIDMA_SR_OFFSET);
+    XAxiDma_WriteReg(RxBaseAddr, XAXIDMA_SR_OFFSET, sr | 0x70);
+
+    // 3. 重新启用中断 (关键！复位后中断被禁用，必须重新使能)
+    // 注意：这里只写中断使能位，【不要】写 XAXIDMA_CR_RUNSTOP_MASK (bit 0)
+    // 让 SimpleTransfer 函数去负责置位 Run/Stop，这样它不会误判为 Busy
+    u32 cr = XAxiDma_ReadReg(RxBaseAddr, XAXIDMA_CR_OFFSET);
+    cr |= (XAXIDMA_IRQ_IOC_MASK | XAXIDMA_IRQ_ERROR_MASK);
+    XAxiDma_WriteReg(RxBaseAddr, XAXIDMA_CR_OFFSET, cr);
+
+    // 4. 准备目标地址
+    UINTPTR TargetAddr = (g_CurBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+
+    // Invalidate Cache
+    Xil_DCacheInvalidateRange(TargetAddr, DMA_BUFFER_SIZE);
+
+    // 5. 提交传输
+    // SimpleTransfer 会检测到 DMA 处于 Halted 状态，并自动启动它
+    int status = ISR_Safe_DmaTransfer(&axidma, TargetAddr, DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
+
+    if (status == XST_SUCCESS)
+    {
+        xil_printf("CPU1: DMA Recovered! (Addr: 0x%X)\r\n", TargetAddr);
+    }
+    else
+    {
+        // 如果依然失败，打印详细 SR 供分析
+        u32 sr_after = XAxiDma_ReadReg(RxBaseAddr, XAXIDMA_SR_OFFSET);
+        xil_printf("CPU1: DMA Recovery Failed (Status: %d, SR: 0x%08X)\r\n", status, sr_after);
+    }
+}
+
+/**
+ * @brief DMA RX中断处理 (保持之前的逻辑，调用增强后的恢复函数)
+ */
+void rx_intr_handler(void *callback)
+{
+    XAxiDma *axidma_inst = (XAxiDma *)callback;
+    u32 irq_status;
+
+    // 1. 读取并清除中断
+    irq_status = XAxiDma_IntrGetIrq(axidma_inst, XAXIDMA_DEVICE_TO_DMA);
+    XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DEVICE_TO_DMA);
+
+    // 2. 错误检测与恢复
+    u32 sr = XAxiDma_ReadReg(axidma_inst->RegBase + XAXIDMA_RX_OFFSET, XAXIDMA_SR_OFFSET);
+
+    // 如果有 Error 位 (bit 4,5,6) 或者 Halted (bit 0) 且不是正常的 idle
+    // 注意：正常传输完成瞬间 Halted 可能会短暂置 1，所以主要看 Error
+    if ((irq_status & XAXIDMA_IRQ_ERROR_MASK) || (sr & 0x70))
+    {
+        xil_printf("ISR: DMA Error! SR=0x%08X. Recovering...\r\n", sr);
+        Adc_Dma_Reset_And_Restart();
+        return;
+    }
+
+    // 3. 正常传输完成
+    if (irq_status & XAXIDMA_IRQ_IOC_MASK)
+    {
+        // 切换 Buffer
+        u8 nextBufferIndex = 1 - g_CurBufferIndex;
+        UINTPTR nextBufferAddr = (nextBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+
+        Xil_DCacheInvalidateRange(nextBufferAddr, DMA_BUFFER_SIZE);
+
+        // 使用带重试的提交，防止偶发 Busy
+        int status = ISR_Safe_DmaTransfer(axidma_inst, nextBufferAddr, DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
+
+        if (status != XST_SUCCESS)
+        {
+            xil_printf("ISR: Submit Failed (%d), Resetting...\r\n", status);
+            Adc_Dma_Reset_And_Restart();
+        }
+        else
+        {
+            g_ProcessBufferFlag = (g_CurBufferIndex == 0) ? 1 : 2;
+            g_CurBufferIndex = nextBufferIndex;
+        }
+    }
+}
+
+/**
+ * @brief ADC数据预处理 (解交错 + 4抽1)
+ * @param pRawSrc 指向包含 500ms 数据的原始缓冲区
+ */
+static void Adc_Data_Preprocessing(u16 *pRawSrc)
+{
+    // 我们需要取最后 16 个周波的数据进行 FFT
+    // 原始采样率 51200Hz, 16个周波 @ 50Hz = 320ms
+    // 点数 = 16 * (51200/50) = 16384 点 (原始点)
+    // 缓冲区总点数 POINTS_PER_BLOCK = 25600
+    // 起始索引 = 25600 - 16384 = 9216
+
+#define RAW_POINTS_NEEDED (FFT_ANALYSIS_CYCLES * (FS_RATE / 50)) // 16384
+#define RAW_START_INDEX (POINTS_PER_BLOCK - RAW_POINTS_NEEDED)
+
+    // 4抽1逻辑
+    int dest_idx = 0;
+
+    // 遍历原始数据，步长为4 (降采样)
+    for (int i = RAW_START_INDEX; i < POINTS_PER_BLOCK; i += 4)
+    {
+        // pRawSrc 排列: [Ch0][Ch1]...[Ch7] [Ch0][Ch1]...
+        u16 *pSampleBase = &pRawSrc[i * CHN_NUM];
+
+        for (int ch = 0; ch < CHN_NUM; ch++)
+        {
+            // 物理通道映射 (根据原 Adc_Data_processing 逻辑)
+            // 物理: IA(0), UA(1), IB(2), UB(3), IC(4), UC(5), IX(6), UX(7)
+            // 逻辑: UA(0), UB(1), UC(2), UX(3), IA(4), IB(5), IC(6), IX(7)
+
+            u16 raw_val = 0;
+            switch (ch)
+            {
+            case 0:
+                raw_val = pSampleBase[1];
+                break; // UA
+            case 1:
+                raw_val = pSampleBase[3];
+                break; // UB
+            case 2:
+                raw_val = pSampleBase[5];
+                break; // UC
+            case 3:
+                raw_val = pSampleBase[7];
+                break; // UX
+            case 4:
+                raw_val = pSampleBase[0];
+                break; // IA
+            case 5:
+                raw_val = pSampleBase[2];
+                break; // IB
+            case 6:
+                raw_val = pSampleBase[4];
+                break; // IC
+            case 7:
+                raw_val = pSampleBase[6];
+                break; // IX
+            }
+
+            // 转换并存入 CPU1 私有数组 g_AcAnalysisData
+            g_AcAnalysisData[ch][dest_idx] = code_to_real(raw_val);
+        }
+
+        dest_idx++;
+        if (dest_idx >= FFT_DATA_LEN)
+            break; // 应该正好是 4096
+    }
+}
+/**
+ * @brief 主循环处理入口
+ */
+void Process_ADC_Buffer(void)
+{
+    // 1. 检查标志位
+    if (g_ProcessBufferFlag == 0)
+        return;
+
+    // 2. 锁定缓冲区物理地址
+    UINTPTR SrcAddr = (g_ProcessBufferFlag == 1) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+    u16 *pSrcBuffer = (u16 *)SrcAddr;
+
+    // 3. Cache 失效 (数据一致性防线)
+    Xil_DCacheInvalidateRange(SrcAddr, DMA_BUFFER_SIZE);
+
+    g_ProcessBufferFlag = 0; // 清除标志，允许下一轮中断置位
+
+    // ============================================================
+    // 分支 1: 录波处理 (无条件 / 独立控制)
+    // ============================================================
+    // 录波模块内部有 if(isRecording) 判断，所以这里无条件调用即可。
+    // 即使源停止了，如果用户强行开了录波，也能录到底噪，这符合录波逻辑。
+    WaveRecord_Process(pSrcBuffer, POINTS_PER_BLOCK);
+
+    // ============================================================
+    // 分支 2: 常规 AC 分析 (FFT + PID)
+    // ============================================================
+
+    // 条件A: 系统处于“运行”或“暂停”状态
+    // nStatus: 0=Stop, 1=Run, 2=Pause. 只要不全为0，就说明需要观测数据
+    bool any_active = (devState.nStatusFund != 0) || (devState.nStatusHarm != 0) || (devState.nStatusInharm != 0);
+    // 条件B: 状态序列未运行
+    bool seq_idle = !g_StateSeqRuntime.IsRunning;
+
+    // 只有同时满足：(有组件激活) 且 (非状态序列模式) 且 (拿到ADC锁)
+    if (any_active && seq_idle)
+    {
+        if (acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US))
+        {
+            // 解交错并抽值 (400KB -> 16周波数据)
+            Adc_Data_Preprocessing(pSrcBuffer);
+
+            // 运行 FFT 计算与 PID 调整
+            RunADCPIDCycle();
+
+            release_resource_lock(LOCK_OWNER_ADC);
+        }
+    }
+    // else: 如果全停止，什么都不做，数据丢弃，保持静默，符合原逻辑
+}
+
+void RunADCPIDCycle(void)
+{
+    // 重置计算值
+    double Phase_reference = 0; // 定义相位基准
+    double calculated_total_p = 0.0;
+    double calculated_total_q = 0.0;
+    double calculated_total_pf = 0.0;
+
+    // 12800Hz 采样率 (4抽1后)
+    int eff_sample_rate = FS_RATE / 4;
+
+    // 循环处理4个通道（A, B, C, X），但只累加前3个通道的总功率
+    for (int i = 0; i < 4; i++)
+    {
+        // 分析FFT
+        double harmonic_info_U[HarmNumberMax][3] = {0}; // 创建用于存储谐波的数组
+        double harmonic_info_I[HarmNumberMax][3] = {0};
+
+        // 调用更新后的 FFT 分析函数，传入本地缓冲区指针
+        AnalyzeWaveform_AcSource(harmonic_info_U, g_AcAnalysisData[i], eff_sample_rate, Wave_Frequency);
+        AnalyzeWaveform_AcSource(harmonic_info_I, g_AcAnalysisData[i + 4], eff_sample_rate, Wave_Frequency);
+
+        if (i == 0)
+        {
+            // 定义相位基准
+            Phase_reference = harmonic_info_U[0][2];
+        }
+
+        // --- 填充 lineAC 结构体 ---
+        // 获取电压和电流量程索引
+        int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
+        int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
+
+        lineAC.f[i] = harmonic_info_U[0][0]; // 频率 (基波)
+        lineAC.ur[i] = setACS.Vals[i].UR;    // 电压档位
+        lineAC.ir[i] = setACS.Vals[i].IR;    // 电流档位
+
+        // 计算 RMS (电压)
+        double sum_of_squares_u_rms = 0.0;
+        for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
+        {
+            double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+            sum_of_squares_u_rms += corrected_u_amp * corrected_u_amp;
+        }
+        lineAC.u[i] = sqrt(sum_of_squares_u_rms); // U[ChnsAC] //总有效值
+
+        // 计算 RMS (电流)
+        double sum_of_squares_i_rms = 0.0;
+        for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
+        {
+            double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+            sum_of_squares_i_rms += corrected_i_amp * corrected_i_amp;
+        }
+        lineAC.i[i] = sqrt(sum_of_squares_i_rms); // I[ChnsAC] //总有效值
+        /*******************************************************************************************/
+
+        lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference; // 电压相位 角度制（UA为参考, 依然是基波相位）
+        if (lineAC.phu[i] < 0)
+        {
+            lineAC.phu[i] += 360;
+        }
+        lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考, 依然是基波相位）
+        if (lineAC.phi[i] < 0)
+        {
+            lineAC.phi[i] += 360;
+        }
+
+        // 初始化总谐波畸变率变量
+        double thdu = 0.0;
+        double thdi = 0.0;
+        double baseU_for_thd = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+        double baseI_for_thd = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+
+        // 计算电压总谐波畸变率 (THDU)
+        if (baseU_for_thd >= 0.0001)
+        { // 避免除以零
+            double sum_of_squares_u_thd = 0.0;
+            // 遍历从2次谐波到指定次数谐波
+            for (int h = 1; h < g_harm_number_thd; h++)
+            {
+                double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+                sum_of_squares_u_thd += corrected_u_amp * corrected_u_amp;
+            }
+            thdu = sqrt(sum_of_squares_u_thd) / baseU_for_thd;
+        }
+        else
+        {
+            thdu = 0.0;
+        }
+        // 计算电流总谐波畸变率 (THDI)
+        if (baseI_for_thd >= 0.0001)
+        { // 避免除以零
+            double sum_of_squares_i_thd = 0.0;
+            // 遍历从2次谐波到指定次数谐波
+            for (int h = 1; h < g_harm_number_thd; h++)
+            {
+                double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+                sum_of_squares_i_thd += corrected_i_amp * corrected_i_amp;
+            }
+            thdi = sqrt(sum_of_squares_i_thd) / baseI_for_thd;
+        }
+        else
+        {
+            thdi = 0.0;
+        }
+        // 保存结果
+        lineAC.thdu[i] = thdu * 100.0;
+        lineAC.thdi[i] = thdi * 100.0;
+
+        /*lineHarm*/
+        // 初始化该通道的总功率累加变量
+        lineHarm.harm[i].totalP = 0.0;
+        lineHarm.harm[i].totalQ = 0.0;
+
+        // 存储基波幅值和相位，用于计算百分比和相对相位
+        double baseU_raw = harmonic_info_U[0][1];
+        double baseI_raw = harmonic_info_I[0][1];
+
+        // 填充直流分量（索引0）
+        lineHarm.harm[i].u[0] = 0.0;   // 直流电压（暂设为0）
+        lineHarm.harm[i].i[0] = 0.0;   // 直流电流（暂设为0）
+        lineHarm.harm[i].phu[0] = 0.0; // 直流相位（直流无相位）
+        lineHarm.harm[i].phi[0] = 0.0; // 直流相位（直流无相位）
+        lineHarm.harm[i].p[0] = 0.0;   // 直流有功功率
+        lineHarm.harm[i].q[0] = 0.0;   // 直流无功功率（直流无无功）
+
+        // 填充各次谐波
+        for (int j = 1; j < HarmNumberMax; j++)
+        {
+            // 电压和电流幅值处理
+            if (j == 1)
+            {
+                // 基波(索引1)特殊处理：使用实际幅值
+                lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+                lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+
+                // 基波相位直接采用相对于参考相位的值
+                lineHarm.harm[i].phu[j] = harmonic_info_U[j - 1][2] - Phase_reference;
+                lineHarm.harm[i].phi[j] = harmonic_info_I[j - 1][2] - Phase_reference;
+            }
+            else
+            {
+                // 谐波(索引2及以上)：u/i计算为基波的百分比
+                if (baseU_raw > 0.0001)
+                {
+                    lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU_raw) * 100.0;
+                }
+                else
+                {
+                    lineHarm.harm[i].u[j] = 0.0;
+                }
+
+                if (baseI_raw > 0.0001)
+                {
+                    lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI_raw) * 100.0;
+                }
+                else
+                {
+                    lineHarm.harm[i].i[j] = 0.0;
+                }
+
+                // 谐波相位计算
+                double n = j;
+                double u_relative_phase = harmonic_info_U[j - 1][2] - n * Phase_reference;
+                double i_relative_phase = harmonic_info_I[j - 1][2] - n * Phase_reference;
+                lineHarm.harm[i].phu[j] = fmod(u_relative_phase + 360.0, 360.0);
+                lineHarm.harm[i].phi[j] = fmod(i_relative_phase + 360.0, 360.0);
+
+                switch ((j - 1) % 4)
+                {
+                case 0:
+                    lineHarm.harm[i].phu[j] -= 0.0;
+                    lineHarm.harm[i].phi[j] -= 0.0;
+                    break;
+                case 1:
+                    lineHarm.harm[i].phu[j] -= 270.0;
+                    lineHarm.harm[i].phi[j] -= 270.0;
+                    break;
+                case 2:
+                    lineHarm.harm[i].phu[j] -= 180.0;
+                    lineHarm.harm[i].phi[j] -= 180.0;
+                    break;
+                case 3:
+                    lineHarm.harm[i].phu[j] -= 90.0;
+                    lineHarm.harm[i].phi[j] -= 90.0;
+                    break;
+                }
+                lineHarm.harm[i].phu[j] = fmod(lineHarm.harm[i].phu[j], 360.0);
+                if (lineHarm.harm[i].phu[j] < 0)
+                {
+                    lineHarm.harm[i].phu[j] += 360;
+                }
+                lineHarm.harm[i].phi[j] = fmod(lineHarm.harm[i].phi[j], 360.0);
+                if (lineHarm.harm[i].phi[j] < 0)
+                {
+                    lineHarm.harm[i].phi[j] += 360;
+                }
+            }
+
+            // 计算谐波的相位差（角度）
+            double h_phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
+
+            // 计算谐波的有功和无功功率（P/Q按幅值表示）
+            if (j == 1)
+            {
+                // 基波：直接用实际幅值计算功率
+                lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(h_phase_diff * M_PI / 180.0);
+                lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(h_phase_diff * M_PI / 180.0);
+            }
+            else
+            {
+                // 谐波：需要将百分比转换回实际幅值来计算功率
+                double actual_u_h = (lineHarm.harm[i].u[j] / 100.0) * ((baseU_raw / AD_Correct[i][idx_u]) * setACS.Vals[i].UR);
+                double actual_i_h = (lineHarm.harm[i].i[j] / 100.0) * ((baseI_raw / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR);
+                lineHarm.harm[i].p[j] = actual_u_h * actual_i_h * cos(h_phase_diff * M_PI / 180.0);
+                lineHarm.harm[i].q[j] = actual_u_h * actual_i_h * sin(h_phase_diff * M_PI / 180.0);
+            }
+
+            // 累加到总功率
+            lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
+            lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
+        }
+
+        // 中文注释: 使用 lineHarm 中已正确计算的各谐波功率之和来更新 lineAC 中的总功率
+        lineAC.p[i] = lineHarm.harm[i].totalP;
+        lineAC.q[i] = lineHarm.harm[i].totalQ;
+
+        // 中文注释: 计算该通道的总视在功率 S = sqrt(P^2 + Q^2)
+        double apparent_power_s = sqrt(lineAC.p[i] * lineAC.p[i] + lineAC.q[i] * lineAC.q[i]);
+
+        // 中文注释: 计算该通道的总功率因数 PF = P / S
+        if (apparent_power_s > 1e-6) // 避免除零
+        {
+            lineAC.pf[i] = lineAC.p[i] / apparent_power_s;
+        }
+        else
+        {
+            lineAC.pf[i] = 0.0;
+        }
+
+        // 中文注释: 累加前三个通道(A, B, C)的功率，现在使用的是正确的总谐波功率
+        if (i < 3)
+        {
+            calculated_total_p += lineAC.p[i];
+            calculated_total_q += lineAC.q[i];
+        }
+    }
+
+    // 总功率因数，使用局部变量完成所有相关计算
+    double totalApparentPower = sqrt(calculated_total_p * calculated_total_p + calculated_total_q * calculated_total_q);
+    if (totalApparentPower > 0.0001)
+    {
+        calculated_total_pf = calculated_total_p / totalApparentPower;
+    }
+    else
+    {
+        calculated_total_pf = 0.0;
+    }
+
+    // 在所有计算完成后，将最终结果“发布”到全局变量和中断安全的“影子”变量。
+    lineAC.totalP = calculated_total_p;
+    lineAC.totalQ = calculated_total_q;
+    lineAC.totalPF = calculated_total_pf;
+
+    g_safe_total_p_for_isr = calculated_total_p;
+    g_safe_total_q_for_isr = calculated_total_q;
+
+    // 输出电能脉冲
+    PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
+
+    // 标记UDP数据已更新
+    udp_data_changed_flag = true;
+
+    // [核心修改]
+    // 只有当状态序列 [既不运行] [也不保持] 时，才允许 ADC 中断触发稳态输出刷新。
+    // 这样在状态序列结束后(Holding状态)，主循环虽然在跑ADC，但不会去写 str_wr_bram，
+    // 从而保证了输出波形绝对静止，直到新的 SetACS 指令打破 Holding 状态。
+    if (!g_StateSeqRuntime.IsRunning && !g_StateSeqRuntime.IsHolding)
+    {
+        dac_parameters_updated_by_command = true;
+    }
+}
+
 
 // DMA TX中断处理函数 dac
 void tx_intr_handler(void *callback)
@@ -315,7 +756,7 @@ void timer_intr_handler(void *CallBackRef)
     // [新增] 5. 检查并上报事务性任务状态 (电能测试 & 状态序列)
     // =========================================================
     check_and_report_energy_test_status();
-    check_and_report_state_sequence_status(); 
+    check_and_report_state_sequence_status();
     // 清除定时器中断标志
     XScuTimer_ClearInterruptStatus(timer_ptr);
 }

@@ -21,8 +21,6 @@
 #include "IIC_Master.h"
 #include "power_pulse.h"
 #include "StateSequence.h"
-// ================= 功能函数声明 =================
-static void RunADCPIDCycle(void);
 
 int main()
 {
@@ -179,6 +177,7 @@ int main()
 	TimeSync_Init();
 	PowerPulse_Init();
 	init_EnergyTest();
+	WaveRecord_Init();
 	// /*******************************************************************************************/
 	// /* VITIS 裸机调试 - 手动设置启动参数                                         */
 	// /*******************************************************************************************/
@@ -230,390 +229,94 @@ int main()
 	// 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 0);
 	OnOff_Start(bit_8, 1);
+	sleep(3);
+	Adc_Continuous_Start(); // 启动 ADC 连续采集
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
 
 	while (1)
 	{
-		// [新增] 状态序列独占模式检查
-		// ===========================================================
-		// 当状态序列运行时，挂起主循环的所有常规任务（包括ADC采集、PID、参数更新等）。
-		// 状态序列后续的录波功能将由其内部逻辑独立管理ADC资源，不走这里的通用流程。
+		// ============================================================
+		// 1. [最高优先级] ADC 数据处理 (录波 & FFT)
+		// ============================================================
+		// 查询 DMA 中断产生的标志位
+		if (g_ProcessBufferFlag != 0)
+		{
+			// 处理 500ms 数据块
+			// 内部逻辑：
+			//   - 分支1: 如果开启了录波，将数据写入共享内存 (不受状态序列影响)
+			//   - 分支2: 执行 FFT 和 PID (内部会检查锁，且在状态序列运行时不刷新DAC)
+			Process_ADC_Buffer();
+		}
+
+		// ============================================================
+		// 2. 状态序列运行时的特殊处理
+		// ============================================================
+		// 如果状态序列正在运行，主循环不能去修改 DAC 参数，也不能执行常规指令的硬件映射
 		if (g_StateSeqRuntime.IsRunning)
 		{
-			usleep(10000); // 睡眠 10ms，释放 CPU 资源给中断处理
-			continue;	   // 直接跳过本次循环，不执行后续代码
+			// 仅休眠一小段时间释放 CPU，以便让出时间给中断处理录波数据
+			usleep(1000);
 		}
-
-		/* 1. 应用硬件参数的逻辑（如果被JSON指令修改） */
-		if (dac_parameters_updated_by_command)
+		else
 		{
-			// 【更新逻辑】：判断是否处于任何“运行”状态
-			// 只有当 基波、谐波 或 间谐波(预留) 任意一个为 1 (运行) 时，才视为系统运行
-			bool is_fund_running = (devState.nStatusFund == 1);
-			bool is_harm_running = (devState.nStatusHarm == 1);
-			bool is_inharm_running = (devState.nStatusInharm == 1); // 预留
+			// ============================================================
+			// 3. 常规稳态控制逻辑 (仅在非状态序列模式下执行)
+			// ============================================================
 
-			if (is_fund_running || is_harm_running || is_inharm_running)
+			/* 应用硬件参数的逻辑（如果被JSON指令修改） */
+			if (dac_parameters_updated_by_command)
 			{
-				// --- 运行状态 ---
-				// 只要有一个组件运行，我们就需要打开功放并计算使能通道
+				// 【更新逻辑】：判断是否处于任何“运行”状态
+				// 只有当 基波、谐波 或 间谐波 任意一个为 1 (运行) 时，才视为系统运行
+				bool is_fund_running = (devState.nStatusFund == 1);
+				bool is_harm_running = (devState.nStatusHarm == 1);
+				bool is_inharm_running = (devState.nStatusInharm == 1); // 预留
 
-				enable = 0x00; // 先清零，根据幅值重新计算
-				for (int i = 0; i < 8; ++i)
+				if (is_fund_running || is_harm_running || is_inharm_running)
 				{
-					// 判断通道使能：
-					// 只要设定了 Wave_Amplitude 且处于任意运行态，我们就使能通道。
-					// 即使 nStatusFund=0 (基波停止)，Wave_Amplitude 仍代表量程满度参考，
-					// 只要谐波在运行，通道就需要打开。
-					if (Wave_Amplitude[i] > 0.001f)
+					// --- 运行状态 ---
+					// 只要有一个组件运行，我们就需要打开功放并计算使能通道
+
+					enable = 0x00; // 先清零，根据幅值重新计算
+					for (int i = 0; i < 8; ++i)
 					{
-						enable |= (1 << i);
+						// 判断通道使能：
+						// 只要设定了 Wave_Amplitude 且处于任意运行态，我们就使能通道。
+						if (Wave_Amplitude[i] > 0.001f)
+						{
+							enable |= (1 << i);
+						}
 					}
-				}
 
-				// 写入波形数据
-				// 注意：str_wr_bram 内部已更新，会检查 devState.nStatusFund/Harm
-				// 来决定在波形中填入基波还是谐波，或者两者都有。
-				str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
+					// 写入波形数据 (BRAM)
+					// 注意：str_wr_bram 内部已更新，会检查运行状态来生成波形
+					str_wr_bram(devState.bClosedLoop == 1 ? PID_ON : PID_OFF);
 
-				// 控制功放打开
-				power_amplifier_control(Wave_Amplitude, Wave_Range, (devState.bClosedLoop == 1 ? PID_ON : PID_OFF), POWAMP_ON);
-			}
-			else
-			{
-				// --- 停止或全暂停状态 ---
-				// 所有组件都非运行 (可能是 Stop(0) 或 Pause(2))
-
-				// 写入全0波形 (str_wr_bram 内部发现所有运行标志都为false，会生成直线)
-				str_wr_bram(PID_OFF);
-
-				// 关闭功放
-				// 只要没有运行的组件，就关闭功放输出以确保安全和零输出。
-				power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
-			}
-
-			usleep(50000);							   // 确保硬件执行的延时
-			dac_parameters_updated_by_command = false; // 清除标志
-			udp_data_changed_flag = true;			   // 触发UDP回报当前状态
-		}
-
-		/*2 AC交流源 ADC采集与处理 */
-		// 【更新逻辑】：如果有任意组件在运行，或者处于暂停状态(以便观察)，则启动ADC
-		// nStatus: 0=Stop, 1=Run, 2=Pause
-		// 只要不全为 0 (Stop)，就进行采样
-		bool any_active = (devState.nStatusFund != 0) || (devState.nStatusHarm != 0) || (devState.nStatusInharm != 0);
-
-		if (any_active && acquire_resource_lock(LOCK_OWNER_ADC, MUTEX_ADC_ACQUIRE_TIMEOUT_US))
-		{
-			// AdcFinish_Flag 在 Adc_Start 中被清零
-			Adc_Start(sample_points, sample_points * Wave_Frequency, AD_SAMP_CYCLE_NUMBER); // 启动ADC采样
-
-			// 等待ADC采集和初步处理完成
-			uint32_t adc_wait_timeout_us = 350000; // 350ms超时
-			uint32_t adc_poll_interval_us = 1000;  // 1ms轮询间隔
-			uint32_t adc_elapsed_time_us = 0;
-
-			while (!AdcFinish_Flag && adc_elapsed_time_us < adc_wait_timeout_us)
-			{
-				usleep(adc_poll_interval_us);
-				adc_elapsed_time_us += adc_poll_interval_us;
-			}
-			release_resource_lock(LOCK_OWNER_ADC); // 释放锁
-
-			if (AdcFinish_Flag == 1)
-			{
-				RunADCPIDCycle(); // 执行FFT计算、PID调整和功放输出等
-			}
-			else
-			{
-				printf("ADC NotReady !\r\n");
-			}
-		}
-		else
-		{
-			usleep(10000); // 延时10ms，避免空转过快
-		}
-	}
-}
-
-void RunADCPIDCycle(void)
-{
-	// 刷新共享内存的缓存，保证数据的一致性
-	Xil_DCacheFlushRange((UINTPTR)Share_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-
-	// 重置计算值
-	double Phase_reference = 0; // 定义相位基准
-	double calculated_total_p = 0.0;
-	double calculated_total_q = 0.0;
-	double calculated_total_pf = 0.0;
-
-	// 循环处理4个通道（A, B, C, X），但只累加前3个通道的总功率
-	for (int i = 0; i < 4; i++)
-	{
-		// 分析FFT
-		double harmonic_info_U[HarmNumberMax][3] = {0}; // 创建用于存储谐波的数组
-		double harmonic_info_I[HarmNumberMax][3] = {0};
-
-		// AC交流源分析
-		AnalyzeWaveform_AcSource(harmonic_info_U, i, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
-		AnalyzeWaveform_AcSource(harmonic_info_I, i + 4, Share_addr, sample_points * Wave_Frequency, Wave_Frequency);
-
-		if (i == 0)
-		{
-			// 定义相位基准
-			Phase_reference = harmonic_info_U[0][2];
-		}
-		// lineAC - 将分析后的结果填充到UDP结构体里
-		// 获取电压和电流量程索引
-		int idx_u = get_voltage_index_by_value(setACS.Vals[i].UR);
-		int idx_i = get_current_index_by_value(setACS.Vals[i].IR);
-
-		lineAC.f[i] = harmonic_info_U[0][0]; // 频率 (基波)
-		lineAC.ur[i] = setACS.Vals[i].UR;	 // 电压档位
-		lineAC.ir[i] = setACS.Vals[i].IR;	 // 电流档位
-
-		// 中文注释: 计算电压总有效值 (Total RMS)
-		double sum_of_squares_u_rms = 0.0;
-		for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
-		{
-			double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
-			sum_of_squares_u_rms += corrected_u_amp * corrected_u_amp;
-		}
-		lineAC.u[i] = sqrt(sum_of_squares_u_rms); // U[ChnsAC] //总有效值
-
-		// 中文注释: 计算电流总有效值 (Total RMS)
-		double sum_of_squares_i_rms = 0.0;
-		for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
-		{
-			double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
-			sum_of_squares_i_rms += corrected_i_amp * corrected_i_amp;
-		}
-		lineAC.i[i] = sqrt(sum_of_squares_i_rms); // I[ChnsAC] //总有效值
-		/*******************************************************************************************/
-
-		lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference; // 电压相位 角度制（UA为参考, 依然是基波相位）
-		if (lineAC.phu[i] < 0)
-		{
-			lineAC.phu[i] += 360;
-		}
-		lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考, 依然是基波相位）
-		if (lineAC.phi[i] < 0)
-		{
-			lineAC.phi[i] += 360;
-		}
-
-		// 初始化总谐波畸变率变量
-		double thdu = 0.0;
-		double thdi = 0.0;
-		double baseU_for_thd = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
-		double baseI_for_thd = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
-
-		// 计算电压总谐波畸变率 (THDU)
-		if (baseU_for_thd >= 0.0001)
-		{ // 避免除以零
-			double sum_of_squares_u_thd = 0.0;
-			// 遍历从2次谐波到指定次数谐波
-			for (int h = 1; h < g_harm_number_thd; h++)
-			{
-				double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
-				sum_of_squares_u_thd += corrected_u_amp * corrected_u_amp;
-			}
-			thdu = sqrt(sum_of_squares_u_thd) / baseU_for_thd;
-		}
-		else
-		{
-			thdu = 0.0;
-		}
-		// 计算电流总谐波畸变率 (THDI)
-		if (baseI_for_thd >= 0.0001)
-		{ // 避免除以零
-			double sum_of_squares_i_thd = 0.0;
-			// 遍历从2次谐波到指定次数谐波
-			for (int h = 1; h < g_harm_number_thd; h++)
-			{
-				double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
-				sum_of_squares_i_thd += corrected_i_amp * corrected_i_amp;
-			}
-			thdi = sqrt(sum_of_squares_i_thd) / baseI_for_thd;
-		}
-		else
-		{
-			thdi = 0.0;
-		}
-		// 保存结果
-		lineAC.thdu[i] = thdu * 100.0;
-		lineAC.thdi[i] = thdi * 100.0;
-
-		/*lineHarm*/
-		// 初始化该通道的总功率累加变量
-		lineHarm.harm[i].totalP = 0.0;
-		lineHarm.harm[i].totalQ = 0.0;
-
-		// 存储基波幅值和相位，用于计算百分比和相对相位
-		double baseU_raw = harmonic_info_U[0][1];
-		double baseI_raw = harmonic_info_I[0][1];
-
-		// 填充直流分量（索引0）
-		lineHarm.harm[i].u[0] = 0.0;   // 直流电压（暂设为0）
-		lineHarm.harm[i].i[0] = 0.0;   // 直流电流（暂设为0）
-		lineHarm.harm[i].phu[0] = 0.0; // 直流相位（直流无相位）
-		lineHarm.harm[i].phi[0] = 0.0; // 直流相位（直流无相位）
-		lineHarm.harm[i].p[0] = 0.0;   // 直流有功功率
-		lineHarm.harm[i].q[0] = 0.0;   // 直流无功功率（直流无无功）
-
-		for (int j = 1; j < HarmNumberMax; j++)
-		{
-			// 电压和电流幅值处理
-			if (j == 1)
-			{
-				// 基波(索引1)特殊处理：使用实际幅值
-				lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
-				lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
-
-				// 基波相位直接采用相对于参考相位的值
-				lineHarm.harm[i].phu[j] = harmonic_info_U[j - 1][2] - Phase_reference;
-				lineHarm.harm[i].phi[j] = harmonic_info_I[j - 1][2] - Phase_reference;
-			}
-			else
-			{
-				// 谐波(索引2及以上)：u/i计算为基波的百分比
-				if (baseU_raw > 0.0001)
-				{
-					lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU_raw) * 100.0;
+					// 控制功放打开 (Hardware Registers)
+					power_amplifier_control(Wave_Amplitude, Wave_Range, (devState.bClosedLoop == 1 ? PID_ON : PID_OFF), POWAMP_ON);
 				}
 				else
 				{
-					lineHarm.harm[i].u[j] = 0.0;
+					// --- 停止或全暂停状态 ---
+					// 所有组件都非运行
+
+					// 写入全0波形
+					str_wr_bram(PID_OFF);
+
+					// 关闭功放
+					power_amplifier_control(Wave_Amplitude, Wave_Range, PID_OFF, POWAMP_OFF);
 				}
 
-				if (baseI_raw > 0.0001)
-				{
-					lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI_raw) * 100.0;
-				}
-				else
-				{
-					lineHarm.harm[i].i[j] = 0.0;
-				}
+				// 清除更新标志
+				dac_parameters_updated_by_command = false;
 
-				// 谐波相位计算
-				double n = j;
-				double u_relative_phase = harmonic_info_U[j - 1][2] - n * Phase_reference;
-				double i_relative_phase = harmonic_info_I[j - 1][2] - n * Phase_reference;
-				lineHarm.harm[i].phu[j] = fmod(u_relative_phase + 360.0, 360.0);
-				lineHarm.harm[i].phi[j] = fmod(i_relative_phase + 360.0, 360.0);
-
-				switch ((j - 1) % 4)
-				{
-				case 0:
-					lineHarm.harm[i].phu[j] -= 0.0;
-					lineHarm.harm[i].phi[j] -= 0.0;
-					break;
-				case 1:
-					lineHarm.harm[i].phu[j] -= 270.0;
-					lineHarm.harm[i].phi[j] -= 270.0;
-					break;
-				case 2:
-					lineHarm.harm[i].phu[j] -= 180.0;
-					lineHarm.harm[i].phi[j] -= 180.0;
-					break;
-				case 3:
-					lineHarm.harm[i].phu[j] -= 90.0;
-					lineHarm.harm[i].phi[j] -= 90.0;
-					break;
-				}
-				lineHarm.harm[i].phu[j] = fmod(lineHarm.harm[i].phu[j], 360.0);
-				if (lineHarm.harm[i].phu[j] < 0)
-				{
-					lineHarm.harm[i].phu[j] += 360;
-				}
-				lineHarm.harm[i].phi[j] = fmod(lineHarm.harm[i].phi[j], 360.0);
-				if (lineHarm.harm[i].phi[j] < 0)
-				{
-					lineHarm.harm[i].phi[j] += 360;
-				}
+				// 触发UDP回报当前状态 (告诉上位机状态已变更)
+				udp_data_changed_flag = true;
 			}
 
-			// 计算谐波的相位差（角度）
-			double h_phase_diff = lineHarm.harm[i].phu[j] - lineHarm.harm[i].phi[j];
-
-			// 计算谐波的有功和无功功率（P/Q按幅值表示）
-			if (j == 1)
-			{
-				// 基波：直接用实际幅值计算功率
-				lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(h_phase_diff * M_PI / 180.0);
-				lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(h_phase_diff * M_PI / 180.0);
-			}
-			else
-			{
-				// 谐波：需要将百分比转换回实际幅值来计算功率
-				double actual_u_h = (lineHarm.harm[i].u[j] / 100.0) * ((baseU_raw / AD_Correct[i][idx_u]) * setACS.Vals[i].UR);
-				double actual_i_h = (lineHarm.harm[i].i[j] / 100.0) * ((baseI_raw / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR);
-				lineHarm.harm[i].p[j] = actual_u_h * actual_i_h * cos(h_phase_diff * M_PI / 180.0);
-				lineHarm.harm[i].q[j] = actual_u_h * actual_i_h * sin(h_phase_diff * M_PI / 180.0);
-			}
-
-			// 累加到总功率
-			lineHarm.harm[i].totalP += lineHarm.harm[i].p[j];
-			lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
+			// 可以在这里添加其他低优先级的任务
+			usleep(1000); // 可选：空闲时稍微休眠
 		}
-
-		// 中文注释: 使用 lineHarm 中已正确计算的各谐波功率之和来更新 lineAC 中的总功率
-		lineAC.p[i] = lineHarm.harm[i].totalP;
-		lineAC.q[i] = lineHarm.harm[i].totalQ;
-
-		// 中文注释: 计算该通道的总视在功率 S = sqrt(P^2 + Q^2)
-		double apparent_power_s = sqrt(lineAC.p[i] * lineAC.p[i] + lineAC.q[i] * lineAC.q[i]);
-
-		// 中文注释: 计算该通道的总功率因数 PF = P / S
-		if (apparent_power_s > 1e-6) // 避免除零
-		{
-			lineAC.pf[i] = lineAC.p[i] / apparent_power_s;
-		}
-		else
-		{
-			lineAC.pf[i] = 0.0;
-		}
-
-		// 中文注释: 累加前三个通道(A, B, C)的功率，现在使用的是正确的总谐波功率
-		if (i < 3)
-		{
-			calculated_total_p += lineAC.p[i];
-			calculated_total_q += lineAC.q[i];
-		}
-	}
-
-	// 总功率因数，使用局部变量完成所有相关计算
-	double totalApparentPower = sqrt(calculated_total_p * calculated_total_p + calculated_total_q * calculated_total_q);
-	if (totalApparentPower > 0.0001)
-	{
-		calculated_total_pf = calculated_total_p / totalApparentPower;
-	}
-	else
-	{
-		calculated_total_pf = 0.0;
-	}
-
-	// 在所有计算完成后，将最终结果“发布”到全局变量和中断安全的“影子”变量。
-	lineAC.totalP = calculated_total_p;
-	lineAC.totalQ = calculated_total_q;
-	lineAC.totalPF = calculated_total_pf;
-
-	g_safe_total_p_for_isr = calculated_total_p;
-	g_safe_total_q_for_isr = calculated_total_q;
-
-	// 输出电能脉冲
-	PowerPulse_UpdateOutput(lineAC.totalP, lineAC.totalQ);
-
-	// 标记UDP数据已更新
-	udp_data_changed_flag = true;
-
-	// [核心修改]
-	// 只有当状态序列 [既不运行] [也不保持] 时，才允许 ADC 中断触发稳态输出刷新。
-	// 这样在状态序列结束后(Holding状态)，主循环虽然在跑ADC，但不会去写 str_wr_bram，
-	// 从而保证了输出波形绝对静止，直到新的 SetACS 指令打破 Holding 状态。
-	if (!g_StateSeqRuntime.IsRunning && !g_StateSeqRuntime.IsHolding)
-	{
-		dac_parameters_updated_by_command = true;
 	}
 }

@@ -4,8 +4,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.251211.1057";
-const char ARM_Ver_Full[] = "[Ver]=V1.251211.1057";
+const char FPGA_Ver_Full[] = "[Ver]=V1.251211.1939";
+const char ARM_Ver_Full[] = "[Ver]=V1.251211.1939";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数

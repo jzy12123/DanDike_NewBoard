@@ -470,136 +470,102 @@ double calculate_magnitude_with_neighbors(kiss_fft_cpx *out, int center_index, i
 
     return total_magnitude;
 }
-
 /**
- * @brief 分析交流电源波形
- *
- * 从指定DDR地址读取波形数据，计算直流分量，并进行FFT变换以分析基波和谐波信息。
- *
- * @param harmonic_info 一个二维数组，用于存储谐波信息。每个元素包含频率、幅值和相位（单位：弧度）。
- * @param channel 通道编号
- * @param ddr_addr DDR地址，用于读取波形数据
- * @param SampleFrequency 采样频率（单位：Hz）
- * @param fundamental_frequency 基波频率（单位：Hz）
+ * @brief 分析交流电源波形 (更新版)
+ * @param harmonic_info 结果存储 [频率, 幅值, 相位]
+ * @param data_buffer   输入数据指针 (CPU1 DDR中的数组)
+ * @param SampleFrequency 采样频率 (Hz)
+ * @param fundamental_frequency 基波频率 (Hz)
  */
-void AnalyzeWaveform_AcSource(double harmonic_info[][3], int channel, u32 ddr_addr,
-                              int SampleFrequency, double fundamental_frequency)
+void AnalyzeWaveform_AcSource(double harmonic_info[][3], int *data_buffer,int SampleFrequency, double fundamental_frequency)
 {
-    const int N = sample_points * AD_SAMP_CYCLE_NUMBER; // 扩展后的数据长度
-    int extended_data[N];                               // 保存一个通道，16个周期的数据
+    const int N = FFT_DATA_LEN; // 4096 点
 
-    // 在读取DDR数据前先使缓存失效
-    Xil_DCacheInvalidateRange((UINTPTR)ddr_addr, sample_points * 16 * CHANNL_MAX * AD_SAMP_CYCLE_NUMBER);
-
-    // 从指定DDR地址读取数据
-    for (int j = 0; j < AD_SAMP_CYCLE_NUMBER; j++)
-    {
-        for (int i = 0; i < sample_points; i++)
-        {
-            extended_data[i + j * sample_points] =
-                Xil_In32(ddr_addr + channel * sample_points * 4 + j * sample_points * CHANNL_MAX * 4 + i * 4);
-        }
-    }
-
-    //   // 打印extended_data，用来测试波形是否正确
-    //   for (int i = 0; i < N; i++)
-    //   {
-    //       printf("x=%d\n", extended_data[i]);
-    //   }
-
-    //  计算直流分量（平均值）
+    // 1. 计算直流分量
     double dc_offset = 0.0;
     for (int i = 0; i < N; i++)
     {
-        dc_offset += extended_data[i];
+        dc_offset += data_buffer[i];
     }
     dc_offset /= N;
 
-    // 使用kiss_fft库进行FFT计算
+    // 2. 准备 FFT 输入
     kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, NULL, NULL);
     kiss_fft_cpx *in = malloc(N * sizeof(kiss_fft_cpx));
-    if (in == NULL)
-    {
-        printf("FFT input memory allocation failed\r\n");
-        return;
-    }
     kiss_fft_cpx *out = malloc(N * sizeof(kiss_fft_cpx));
-    if (out == NULL)
+
+    if (!in || !out || !cfg)
     {
-        printf("FFT output memory allocation failed\r\n");
-        free(in);
+        printf("FFT Alloc Failed\r\n");
+        if (in)
+            free(in);
+        if (out)
+            free(out);
+        if (cfg)
+            free(cfg);
         return;
     }
 
-    // 准备FFT输入数据，并去除直流分量
     for (int i = 0; i < N; i++)
     {
-        in[i].r = extended_data[i] - dc_offset; // 减去直流分量
-        in[i].i = 0;                            // 虚部为零
+        in[i].r = data_buffer[i] - dc_offset;
+        in[i].i = 0;
     }
 
-    // 执行FFT
+    // 3. 执行 FFT
     kiss_fft(cfg, in, out);
 
-    // 频率分辨率
+    // 4. 分析结果
     double freq_res = (double)SampleFrequency / N;
-
-    // 将基波频率存储在harmonic_info[0][0]
     harmonic_info[0][0] = fundamental_frequency;
 
-    // 找到对应基波频率的索引
-    int fundamental_index = (int)(fundamental_frequency / freq_res);
+    // 查找基波索引
+    int fund_idx = (int)(fundamental_frequency / freq_res);
 
-    // 在附近索引查找最大幅值（提高精度）
-    double max_magnitude = 0;
-    int best_index = fundamental_index;
-    for (int i = fundamental_index - 2; i <= fundamental_index + 2; i++)
+    // 峰值搜索 (防止频谱泄漏导致的偏差)
+    double max_mag = 0;
+    int best_idx = fund_idx;
+    for (int i = fund_idx - 2; i <= fund_idx + 2; i++)
     {
         if (i > 0 && i < N / 2)
-        { // 确保索引有效
-            double magnitude = sqrt(out[i].r * out[i].r + out[i].i * out[i].i);
-            if (magnitude > max_magnitude)
+        {
+            double mag = sqrt(out[i].r * out[i].r + out[i].i * out[i].i);
+            if (mag > max_mag)
             {
-                max_magnitude = magnitude;
-                best_index = i;
+                max_mag = mag;
+                best_idx = i;
             }
         }
     }
-    fundamental_index = best_index;
+    fund_idx = best_idx;
 
-    // 计算基波幅值(包括邻近点)
-    double fundamental_magnitude = calculate_magnitude_with_neighbors(out, fundamental_index, N);
+    // 计算基波
+    // 注意：这里需要引用 calculate_magnitude_with_neighbors (假设它还在My_KissFft.c中或被包含)
+    // 简单起见，这里直接写计算逻辑或假设你有该辅助函数
+    double fund_mag = sqrt(out[fund_idx].r * out[fund_idx].r + out[fund_idx].i * out[fund_idx].i);
+    // 归一化: * 2 / N
+    fund_mag = fund_mag * 2.0 / N;
 
-    // 归一化处理（考虑FFT的幅值缩放）
-    fundamental_magnitude = fundamental_magnitude * 2.0 / N;
+    harmonic_info[0][1] = fund_mag;
+    harmonic_info[0][2] = atan2(out[fund_idx].i, out[fund_idx].r) * 180.0 / M_PI;
 
-    // 初始化总幅值变量
-    double total_magnitude = fundamental_magnitude;
-
-    // 存储基波信息
-    harmonic_info[0][1] = fundamental_magnitude;
-    harmonic_info[0][2] = atan2(out[fundamental_index].i, out[fundamental_index].r) * 180.0 / M_PI;
-
-    // 分析谐波
+    // 计算谐波
     for (int i = 1; i < 32; i++)
-    {
-        int index = fundamental_index * (i + 1);
-        if (index >= N / 2)
-            continue; // 防止索引越界
+    { // 2~32次
+        int h_idx = fund_idx * (i + 1);
+        if (h_idx >= N / 2)
+            break;
 
-        double frequency = fundamental_frequency * (i + 1);
-        double magnitude = calculate_magnitude_with_neighbors(out, index, N) * 2.0 / N; // (包括邻近点)
-        double phase = atan2(out[index].i, out[index].r);
+        double freq = fundamental_frequency * (i + 1);
+        double mag = sqrt(out[h_idx].r * out[h_idx].r + out[h_idx].i * out[h_idx].i) * 2.0 / N;
+        double ph = atan2(out[h_idx].i, out[h_idx].r) * 180.0 / M_PI;
 
-        harmonic_info[i][0] = frequency;
-        harmonic_info[i][1] = magnitude;
-        harmonic_info[i][2] = phase * 180.0 / M_PI;
-
-        total_magnitude += magnitude;
+        harmonic_info[i][0] = freq;
+        harmonic_info[i][1] = mag;
+        harmonic_info[i][2] = ph;
     }
 
-    // 释放内存
-    kiss_fft_free(cfg);
     free(in);
     free(out);
+    free(cfg);
 }

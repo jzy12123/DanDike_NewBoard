@@ -28,6 +28,7 @@
 #include "Timer_sync.h"
 #include "power_pulse.h"
 #include "StateSequence.h"
+#include "WaveRecord.h"
 /*
  * 定义
  */
@@ -39,10 +40,6 @@
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID // 定时器ID
 #define TIMER_IRPT_INTR XPAR_SCUTIMER_INTR         // 定时器中断ID
 #define TIMER_LOAD_VALUE 0x9EC969D                 // 定时器装载0.5s
-
-// 软中断
-#define _ID XSCUGIC_SPI_CPU0_MASK     // CPU0 ID
-#define CPU1_ID XSCUGIC_SPI_CPU1_MASK // CPU1 ID
 
 // dma中断
 #define dac_whole_base_addr XPAR_AC_8_CHANNEL_0_ADDA_DAC_WHOLE_0_BASEADDR
@@ -58,7 +55,6 @@
 
 // dma_dac
 #define DMA_TX_INTR_ID XPAR_FABRIC_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR // DMA中断号
-#define Underflow_INTR_ID 65U                                                      // FIFO空中断
 #define DDR_BASE_ADDR RTOS_base_addr                                               // RTOS_base_addr:0x21000000
 #define MEM_BASE_ADDR (DDR_BASE_ADDR + 0xD800000)                                  // MEM_BASE_ADDR：0x2E800000				//rtos内存的一半
 #define TX_BUFFER_BASE MEM_BASE_ADDR                                               // TX_BUFFER_BASE：0x2E800000
@@ -67,10 +63,34 @@
 #define DATA_LEN 1024                                                              // 波形采样长度
 #define Data_Width 65535
 
+
+
 // bram
 #define BRAM_DATA_BYTE 4 // BRAM数据字节个数
 #define CHANNL_MAX 8
 #define MAX_HARMONICS 32 // 最大谐波次数
+
+// ADC配置
+#define FS_RATE 51200      // 采样率 51.2kHz
+#define CHN_NUM 8          // 8通道
+#define BYTES_PER_SAMPLE 2 // 16bit = 2字节
+#define BLOCK_MS 500       // 每次DMA搬运时长 500ms
+
+// DMA缓冲区计算
+// 单个缓冲区点数 (每通道) = 51200 * 0.5 = 25600 点
+#define POINTS_PER_BLOCK (FS_RATE * BLOCK_MS / 1000)
+// 单个缓冲区总大小 (字节) = 25600 * 8 * 2 = 409600 字节 (400KB)
+#define DMA_BUFFER_SIZE (POINTS_PER_BLOCK * CHN_NUM * BYTES_PER_SAMPLE)
+
+// 基地址沿用您之前的定义: 0x2EC00000
+#define RX_BUFFER_PING_ADDR 0x2EC00000
+// Pong 地址 = Ping + 400KB (0x64000) = 0x2EC64000
+#define RX_BUFFER_PONG_ADDR (RX_BUFFER_PING_ADDR + 0x00100000) // 为了安全和对齐，建议间隔大一点，比如1MB(0x100000)
+// FFT分析配置 (4抽1后)
+// 目标采样率 12800Hz, 50Hz基波对应 256点/周
+#define FFT_ANALYSIS_CYCLES 16                                    // 分析最后16个周波
+#define FFT_POINTS_PER_CYCLE 256                                  // 抽样后每周期点数
+#define FFT_DATA_LEN (FFT_ANALYSIS_CYCLES * FFT_POINTS_PER_CYCLE) // 4096点
 
 // 定义PID状态枚举
 typedef enum
@@ -123,10 +143,18 @@ extern const double DA_CorrectConst_100[8][3];
 extern const double DA_CorrectConst_20[8][3];
 extern const double DA_CorrectPhaseConst_100[8][3];
 extern const double ADConst_Correct[8][3];
+
+// Ping-Pong 缓冲区 (定义在 .bss, 链接到 DDR)
+extern u8 RxBuffer_Ping[DMA_BUFFER_SIZE];
+extern u8 RxBuffer_Pong[DMA_BUFFER_SIZE];
+extern volatile u8 g_CurBufferIndex;    // 0=Ping, 1=Pong
+extern volatile u8 g_ProcessBufferFlag; // 0=Idle, 1=PingReady, 2=PongReady
+
+// AC分析用的数据缓冲区 (解交错、抽值后) [通道][点数]
+extern int g_AcAnalysisData[CHANNL_MAX][FFT_DATA_LEN];
 // 函数
 void sync_dma_buffer(UINTPTR addr, size_t size, int direction);
-int SafeDmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction);
-void Adc_Start(int SamplePoints, int SampleFrequency, int SamplingPeriodNumber);
+void Adc_Continuous_Start(void);
 // adc
 int code_to_real(u16 x);
 void Adc_Data_processing();
@@ -159,13 +187,13 @@ double sumHarmonics(float harmonics[], int numHarmonics);
 // 增加 en_fund 和 en_harm 参数，用于独立控制基波和谐波的生成
 void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[], bool en_fund, bool en_harm);
 
-// 功放
-// 获取DA输出参数
-int get_voltage_range_index(unsigned char range_code);
-int get_current_range_index(unsigned char range_code);
 
 // 通过档位获得参数
 int get_voltage_index_by_value(float voltage);
 int get_current_index_by_value(float current);
 
+// 核心处理逻辑
+void Process_ADC_Buffer(void);
+void RunADCPIDCycle(void); // 放在这里声明，实现在ADDA.c
+void Adc_Dma_Reset_And_Restart(void);
 #endif

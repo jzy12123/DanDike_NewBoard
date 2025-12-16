@@ -48,7 +48,7 @@
 
 
 // IP VLNV: xilinx.com:user:adc_whole:2.0
-// IP Revision: 15
+// IP Revision: 17
 
 `timescale 1ns/1ps
 

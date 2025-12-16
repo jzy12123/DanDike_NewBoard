@@ -616,7 +616,6 @@ void StateSequence_Plan(const char *startTimeStr)
     // 4. 执行预计算 (写入DDR，计算TTC等)
     Precalculate_Waveforms();
     Precalculate_HwParams();
-
     // 5. [核心] 将计算好的硬件寄存器值存入缓存，此时不写硬件
     // 缓存量程寄存器
     g_StateSeqRuntime.Cached_Hw.Range_Regs[0] = (range_codes[1] << 24) | (range_codes[0] << 8);
@@ -652,7 +651,6 @@ void StateSequence_Plan(const char *startTimeStr)
 void StateSequence_ApplyAndRun(void)
 {
     // xil_printf("CPU1: StateSeq - Applying HW Config and Starting...\r\n");
-
     // 1. 设置运行标志
     g_StateSeqRuntime.IsRunning = true;
     g_StateSeqRuntime.IsHolding = false;

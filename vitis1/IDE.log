@@ -9939,3 +9939,106 @@ con
 11:16:13 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
 11:16:24 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
 14:50:07 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:14:22 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+15:15:29 INFO  : Result from executing command 'getProjects': system_wrapper
+15:15:29 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+15:17:04 INFO  : Result from executing command 'getProjects': system_wrapper
+15:17:04 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+15:17:05 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:17:18 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+15:17:18 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+15:17:18 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+15:17:18 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+15:17:26 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+18:42:09 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+19:39:00 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+19:51:14 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+20:01:13 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+09:50:33 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+09:50:38 INFO  : XSCT server has started successfully.
+09:50:38 INFO  : Successfully done setting XSCT server connection channel  
+09:50:38 INFO  : plnx-install-location is set to ''
+09:50:38 INFO  : Successfully done setting workspace for the tool. 
+09:50:45 INFO  : Platform repository initialization has completed.
+09:50:46 INFO  : Registering command handlers for Vitis TCF services
+09:50:53 INFO  : Successfully done query RDI_DATADIR 
+09:51:05 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:44:39 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+10:46:31 INFO  : Result from executing command 'getProjects': system_wrapper
+10:46:31 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+10:46:38 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:46:46 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+10:46:46 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+10:46:46 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+10:46:46 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+10:46:53 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+11:09:22 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+11:10:16 INFO  : Result from executing command 'getProjects': system_wrapper
+11:10:16 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+11:10:24 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+11:10:32 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+11:10:32 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+11:10:32 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+11:10:32 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+11:10:38 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+15:26:33 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+15:27:45 INFO  : Result from executing command 'getProjects': system_wrapper
+15:27:45 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+15:27:45 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:27:55 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+15:27:55 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+15:27:55 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+15:27:55 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+15:28:01 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+09:45:57 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+09:46:00 INFO  : XSCT server has started successfully.
+09:46:00 INFO  : plnx-install-location is set to ''
+09:46:00 INFO  : Successfully done setting XSCT server connection channel  
+09:46:00 INFO  : Successfully done setting workspace for the tool. 
+09:46:04 INFO  : Platform repository initialization has completed.
+09:46:04 INFO  : Registering command handlers for Vitis TCF services
+09:46:06 INFO  : Successfully done query RDI_DATADIR 
+09:46:27 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+09:51:14 INFO  : Result from executing command 'getProjects': system_wrapper
+09:51:14 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+09:51:15 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+09:51:27 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+09:51:27 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+09:51:28 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+09:51:28 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+09:51:35 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+10:00:39 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:05:39 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:05:55 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:28:21 INFO  : Hardware specification for platform project 'system_wrapper' is updated.
+10:29:16 INFO  : Result from executing command 'getProjects': system_wrapper
+10:29:16 INFO  : Result from executing command 'getPlatforms': system_wrapper|C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/system_wrapper.xpfm
+10:29:19 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+10:29:28 INFO  : The hardware specfication used by project 'CPU1' is out of sync with the platform. Resource files extracted from the hardware specfiication will be updated.
+10:29:28 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream\system_wrapper.bit' stored in project is removed.
+10:29:28 INFO  : The updated bitstream files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\bitstream' in project 'CPU1'.
+10:29:28 INFO  : The file 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit\ps7_init.tcl' stored in project is removed.
+10:29:34 INFO  : The updated ps init files are copied from platform to folder 'C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\CPU1\_ide\psinit' in project 'CPU1'.
+11:10:32 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:54:12 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:54:56 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:01:03 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:11:26 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:16:38 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:17:06 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:33:02 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:41:01 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:42:01 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:42:35 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:48:23 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:10:35 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+15:10:39 INFO  : XSCT server has started successfully.
+15:10:39 INFO  : plnx-install-location is set to ''
+15:10:39 INFO  : Successfully done setting XSCT server connection channel  
+15:10:39 INFO  : Successfully done setting workspace for the tool. 
+15:10:46 INFO  : Platform repository initialization has completed.
+15:10:47 INFO  : Registering command handlers for Vitis TCF services
+15:10:53 INFO  : Successfully done query RDI_DATADIR 
+15:15:06 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:19:49 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+15:19:56 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
