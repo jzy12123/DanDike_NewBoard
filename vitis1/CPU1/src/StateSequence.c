@@ -5,6 +5,7 @@
 #include "xil_printf.h"
 #include "sleep.h"
 #include "soft_timer.h"
+#include "WaveRecord.h"
 #include <stdlib.h>
 // 全局变量
 StateSeq_Runtime_t g_StateSeqRuntime;
@@ -452,20 +453,29 @@ static void Execute_Step(int stepIndex)
     Step_Hw_Params_t *pHw = &g_StateSeqRuntime.StepParams[stepIndex];
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
 
-    // 3. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
+    // 3. 录波启动逻辑
+    // RecStartState: 0=不录, >=1 代表从第几步开始录 (用户输入是1-based)
+    if (g_StateSequenceTask.RecStartState > 0 &&(stepIndex + 1) == g_StateSequenceTask.RecStartState)
+    {
+        xil_printf("CPU1: StateSeq - Triggering WaveRecord at Step %d\r\n", stepIndex + 1);
+        // 启动录波 (传入设定的时长)
+        WaveRecord_Start(g_StateSequenceTask.RecMS);
+    }
+
+    // 4. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
     Load_Step_To_BRAM(stepIndex);
 
-    // 4. 写入硬件参数 写入频率分频系数 (Offset 0x04)
+    // 5. 写入硬件参数 写入频率分频系数 (Offset 0x04)
     Xil_Out32(dac_whole_base_addr + 4, pHw->Freq_Divisor);
 
-    // 5. 更新 DO
+    // 6. 更新 DO
     if (pStep->DOCount > 0)
     {
         // 这里需要更复杂的逻辑合并全局DO，暂时直接写
         OnOff_Write_Continuous(pHw->DO_State);
     }
 
-    // 6. 启动定时器
+    // 7. 启动定时器
     if (pStep->MaxDuration > 0)
     {
         Start_Step_Timer(pStep->MaxDuration);
@@ -687,7 +697,11 @@ void StateSequence_Stop(void)
     // 1. 停止定时器
     XTtcPs_Stop(&SeqTtcInstance);
 
-    // 2. 切换状态标志
+    // 2. 停止录波
+    //  即使录波已经因为时长到达自动停止，调用此函数也是安全的
+    WaveRecord_Stop();
+
+    // 3. 切换状态标志
     g_StateSeqRuntime.IsRunning = false;
     g_StateSeqRuntime.IsHolding = true; // [新增] 进入保持模式，阻断主循环刷新
     g_StateSeqRuntime.IsFinished = true;
@@ -707,6 +721,9 @@ void StateSequence_QuitMode(void)
     {
         XTtcPs_Stop(&SeqTtcInstance);
     }
+
+    // 停止录波
+    WaveRecord_Stop();
 
     // 彻底清除所有标志，释放控制权给主循环
     g_StateSeqRuntime.IsRunning = false;

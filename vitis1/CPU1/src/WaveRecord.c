@@ -1,8 +1,10 @@
 #include "WaveRecord.h"
-#include "ADDA.h" // è·å– FS_RATE, CHN_NUM
+#include "ADDA.h" // »ñÈ¡ FS_RATE, CHN_NUM, AD_Correct, setACS µÈ
 #include "xil_cache.h"
 #include "xil_printf.h"
+#include "Communications_Protocol.h" // »ñÈ¡ In_CurrTime, read_current_time
 #include <string.h>
+#include <stdio.h>
 
 WaveRecord_Ctrl_t g_WaveRecordCtrl;
 
@@ -18,16 +20,25 @@ void WaveRecord_Start(u32 duration_ms)
     g_WaveRecordCtrl.recordedBytes = 0;
     g_WaveRecordCtrl.writeAddrOffset = 0;
 
-    // è®¡ç®—æœ€å¤§å­—èŠ‚æ•° (RecMS <= 0 è¡¨ç¤ºå½•ç›´åˆ°æ»¡)
+    // ¼ÇÂ¼Æô¶¯Ê±¼äÓÃÓÚ CFG Éú³É
+    In_CurrTime curr;
+    read_current_time(&curr);
+    sprintf(g_WaveRecordCtrl.startTimeStr, "%04u/%02u/%02u,%02u:%02u:%02u.%06u",
+            curr.curr_year, curr.curr_month, curr.curr_day,
+            curr.curr_hour, curr.curr_minute, curr.curr_second,
+            (unsigned int)curr.curr_subsec); // ¼ÙÉèsubsec¾«¶ÈÊÊÅä
+
+    // ¼ÆËã×î´ó×Ö½ÚÊı (RecMS <= 0 ±íÊ¾Â¼Ö±µ½Âú)
     if (duration_ms <= 0)
     {
-        g_WaveRecordCtrl.maxRecordBytes = REC_MAX_SIZE;
+        g_WaveRecordCtrl.maxRecordBytes = REC_DAT_MAX_SIZE;
     }
     else
     {
         u64 bytes = (u64)duration_ms * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
-        if (bytes > REC_MAX_SIZE)
-            bytes = REC_MAX_SIZE;
+        // ±ØĞëÏŞÖÆÔÚÔ¤Áô¿Õ¼äÄÚ£¬·ÀÖ¹¸²¸Ç CFG ÇøÓò
+        if (bytes > REC_DAT_MAX_SIZE)
+            bytes = REC_DAT_MAX_SIZE;
         g_WaveRecordCtrl.maxRecordBytes = (u32)bytes;
     }
 
@@ -40,21 +51,22 @@ void WaveRecord_Stop(void)
     if (g_WaveRecordCtrl.isRecording)
     {
         g_WaveRecordCtrl.isRecording = false;
+
+        // Â¼²¨½áÊøÊ±Á¢¼´Éú³É CFG ÎÄ¼ş
         Generate_Comtrade_CFG();
-        xil_printf("CPU1: WaveRecord Stopped. Total: %u bytes\r\n", g_WaveRecordCtrl.recordedBytes);
-        // è¿™é‡Œå¯ä»¥å‘é€ Report.WaveRecordComplete
+
+        xil_printf("CPU1: WaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
     }
 }
 
 /**
- * @brief å¤„ç†ä¸€å—æ•°æ® (500ms) è¿›è¡Œå½•æ³¢å­˜å‚¨
+ * @brief ´¦ÀíÒ»¿éÊı¾İ (500ms) ½øĞĞÂ¼²¨´æ´¢
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
     if (!g_WaveRecordCtrl.isRecording)
         return;
 
-    // æ£€æŸ¥å‰©ä½™ç©ºé—´
     if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
     {
         WaveRecord_Stop();
@@ -66,37 +78,32 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
 
     for (int i = 0; i < points_count; i++)
     {
-        // 1. åºå·
-        *pDest++ = g_WaveRecordCtrl.sampleSequence++;
+        // 1. ĞòºÅ (4B)
+        *pDest++ = g_WaveRecordCtrl.sampleSequence; // ÏÈĞ´Èë£¬ÉÔºóµİÔö
 
-        // 2. æ—¶é—´ (us)
-        // ç®€å•è®¡ç®—: seq * 1000000 / 51200
-        // ä¸ºé¿å…æµ®ç‚¹ï¼Œå¯ç”¨ (seq * 19531) >> 10 (çº¦ç­‰äº seq * 19.07, éœ€æ›´ç²¾ç¡®)
-        // è¿™é‡Œå…ˆç”¨æµ®ç‚¹ä¿è¯ç²¾åº¦
-        u32 time_us = (u32)((double)g_WaveRecordCtrl.sampleSequence * 1000000.0 / FS_RATE);
-        *pDest++ = time_us;
+        // 2. Ê±¼ä (4B) - ¡¾ÓÅ»¯¡¿Ê¹ÓÃ u64 ÕûÊıÔËËã´úÌæ double
+        // ±ÜÃâÔÚ 25600 ´ÎÑ­»·Àï×ö¸¡µã³ı·¨
+        u64 time_us_64 = ((u64)g_WaveRecordCtrl.sampleSequence * 1000000) / FS_RATE;
+        *pDest++ = (u32)time_us_64;
 
-        // 3. 8é€šé“æ•°æ® (åˆå¹¶ä¸º4ä¸ªu32)
-        // pRawData æ’åˆ—: [Ch0][Ch1]...[Ch7]
+        // ĞòºÅµİÔö·ÅÕâÀï
+        g_WaveRecordCtrl.sampleSequence++;
+
+        // 3. 8Í¨µÀÄ£ÄâÁ¿ (16B)
         u16 *pSamp = &pRawData[i * CHN_NUM];
         *pDest++ = (u32)pSamp[0] | ((u32)pSamp[1] << 16);
         *pDest++ = (u32)pSamp[2] | ((u32)pSamp[3] << 16);
         *pDest++ = (u32)pSamp[4] | ((u32)pSamp[5] << 16);
         *pDest++ = (u32)pSamp[6] | ((u32)pSamp[7] << 16);
 
-        current_block_size += COMTRADE_FRAME_SIZE;
-        g_WaveRecordCtrl.writeAddrOffset += COMTRADE_FRAME_SIZE;
-
-        if (g_WaveRecordCtrl.writeAddrOffset >= REC_MAX_SIZE ||
-            g_WaveRecordCtrl.writeAddrOffset >= g_WaveRecordCtrl.maxRecordBytes)
-        {
-            break;
-        }
+        current_block_size += COMTRADE_FRAME_SIZE; // ÕâÀï±ØĞëÊÇ 24£¡
     }
 
+    // Ñ­»·½áÊøºóÍ³Ò»¸üĞÂÈ«¾ÖÆ«ÒÆ
+    g_WaveRecordCtrl.writeAddrOffset += current_block_size;
     g_WaveRecordCtrl.recordedBytes += current_block_size;
 
-    // åˆ·æ–°Cacheåˆ°DDR
+    // Ë¢ Cache
     Xil_DCacheFlushRange(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset - current_block_size,
                          current_block_size);
 
@@ -106,9 +113,95 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
     }
 }
 
+/**
+ * @brief Éú³É Comtrade ÅäÖÃÎÄ¼ş (.CFG) ²¢Ğ´Èë¹²ÏíÄÚ´æÄ©Î²
+ */
 void Generate_Comtrade_CFG(void)
 {
-    // è¿™é‡Œç”Ÿæˆ ASCII æ ¼å¼çš„ .cfg æ–‡ä»¶å†…å®¹å¹¶å†™å…¥å…±äº«å†…å­˜çš„ç‰¹å®šåŒºåŸŸ
-    // ä¾› Linux è¯»å–ã€‚å…·ä½“æ ¼å¼å‚è€ƒ Comtrade æ ‡å‡†ã€‚
-    // ç¤ºä¾‹ï¼š "StationName,DevId,1999" ...
+    char *cfgBuf = (char *)(UINTPTR)REC_CFG_ADDR;
+    int len = 0;
+
+    // 1. Station Name, Device ID, RevYear (1999)
+    len += sprintf(cfgBuf + len, "Zynq_Device,Unit01,1999\n");
+
+    // 2. Channels: Total, Analog, Digital (8A, 0D)
+    len += sprintf(cfgBuf + len, "8,8A,0D\n");
+
+    // 3. Analog Channel Definitions
+    // ÎïÀíË³Ğò: IA(0), UA(1), IB(2), UB(3), IC(4), UC(5), IX(6), UX(7)
+    // ¶ÔÓ¦ AD_Correct Ë÷Òı:
+    //   IA(0)->4, UA(1)->0, IB(2)->5, UB(3)->1, IC(4)->6, UC(5)->2, IX(6)->7, UX(7)->3
+    //   ¹æÂÉ: Å¼Êık(µçÁ÷) -> idx=4+k/2; ÆæÊık(µçÑ¹) -> idx=0+k/2
+    const char *chnNames[] = {"IA", "UA", "IB", "UB", "IC", "UC", "IX", "UX"};
+    const char *units[] = {"A", "V", "A", "V", "A", "V", "A", "V"};
+
+    for (int k = 0; k < 8; k++)
+    {
+        int ad_correct_idx;
+        double range_val;
+        int logical_chn = k / 2; // 0,0, 1,1, 2,2, 3,3
+
+        if (k % 2 == 0)
+        { // Current Channel (IA, IB...)
+            ad_correct_idx = 4 + logical_chn;
+            range_val = setACS.Vals[logical_chn].IR;
+        }
+        else
+        { // Voltage Channel (UA, UB...)
+            ad_correct_idx = 0 + logical_chn;
+            range_val = setACS.Vals[logical_chn].UR;
+        }
+
+        // »ñÈ¡µ±Ç°Á¿³ÌÏÂµÄĞ£×¼ÏµÊıË÷Òı
+        int range_idx;
+        if (k % 2 == 0)
+            range_idx = get_current_index_by_value(range_val);
+        else
+            range_idx = get_voltage_index_by_value(range_val);
+
+        // ¼ÆËã±ä»»Òò×Ó a (Multiplier)
+        // ¹«Ê½: Physical = Raw * a + b
+        // ÒÑÖª: Raw_Max ~32768, Physical_Max = range_val
+        // AD_Correct ´æ´¢µÄÊÇÂúÁ¿³Ì¶ÔÓ¦µÄ ADC ÂëÖµ(Ô¼20000-30000)
+        // ËùÒÔ: a = range_val / ADConst_Correct[idx][range_idx]
+        // »òÕßÊÇ AD_Correct Êı×é (Èç¹ûÒÑĞ£×¼)
+        double corrector = AD_Correct[ad_correct_idx][range_idx];
+        if (corrector < 1.0)
+            corrector = 20000.0; // ·ÀÖ¹³ıÁã±£»¤
+        // ¡¾¹Ø¼üĞŞ¸Ä¡¿
+        // Ô­Ê¼¹«Ê½: a = range_val / corrector;
+        // ÎÊÌâ: range_val ÊÇ RMS Öµ£¬¶ø COMTRADE ĞèÒª»¹Ô­Ë²Ê±·åÖµ¡£
+        // ĞŞÕı: a = (range_val * 1.41421356) / corrector;
+        // ÕâÑù Raw_Max ¾Í»áÓ³Éäµ½ Peak_Voltage (¼´ RMS * 1.414)
+        double a = (range_val * 1.41421356) / corrector;
+        double b = 0.0; // Æ«ÒÆÁ¿Í¨³£Îª0
+
+        // ¸ñÊ½: n,id,ph,cc,min,max,a,b,skew,min,max,primary,secondary,PS
+        len += sprintf(cfgBuf + len, "%d,%s,,,%s,%f,%f,0.0,-32768,32767,1,1,P\n",
+                       k + 1,       // Index
+                       chnNames[k], // ID
+                       units[k],    // Units (V/A)
+                       a,           // Multiplier
+                       b            // Offset
+        );
+    }
+
+    // 4. Frequency
+    len += sprintf(cfgBuf + len, "50.0\n");
+
+    // 5. Sample Rates (1 rate)
+    len += sprintf(cfgBuf + len, "1\n");
+    len += sprintf(cfgBuf + len, "%d,%lu\n", FS_RATE, g_WaveRecordCtrl.sampleSequence);
+
+    // 6. Dates (Start Time, Trigger Time)
+    // Ê¹ÓÃ Start Ê±¼ÇÂ¼µÄÊ±¼ä
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
+
+    // 7. File Type & Orientation
+    len += sprintf(cfgBuf + len, "BINARY\n");
+    len += sprintf(cfgBuf + len, "1\n");
+
+    // 8. Ë¢ Cache
+    Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1); // +1 °üº¬½áÊø·û
 }

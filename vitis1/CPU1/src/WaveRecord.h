@@ -4,25 +4,29 @@
 #include "xil_types.h"
 #include "stdbool.h"
 
-// å½•æ³¢é…ç½®
-#define REC_SHARE_BASE 0x3C000000 // å…±äº«å†…å­˜èµ·å§‹åœ°å€
-#define REC_MAX_SIZE 0x04000000   // 64MB
-#define COMTRADE_FRAME_SIZE 24    // 4(Seq) + 4(Time) + 16(Data)
-
-// å½•æ³¢æ§åˆ¶ç»“æ„ä½“
+// Â¼²¨ÅäÖÃ
+#define REC_SHARE_BASE 0x3C000000 // ¹²ÏíÄÚ´æÆğÊ¼µØÖ·
+#define REC_TOTAL_SIZE 0x04000000 // ×Ü¿Õ¼ä 64MB
+#define CFG_SIZE_LIMIT 4096       // Ô¤Áô 4KB ¸ø CFG ÎÄ¼ş
+#define COMTRADE_FRAME_SIZE 24     // 4(Seq) + 4(Time) + 16(8Â·Ä£ÄâÁ¿) =  24 ×Ö½Ú
+// CFG ÎÄ¼ş´æ·ÅµØÖ·£º64MB ¿Õ¼äµÄ×îºó 4KB
+#define REC_CFG_ADDR (REC_SHARE_BASE + REC_TOTAL_SIZE - CFG_SIZE_LIMIT)
+// DAT Êı¾İ×î´óÔÊĞí´óĞ¡
+#define REC_DAT_MAX_SIZE (REC_TOTAL_SIZE - CFG_SIZE_LIMIT)
+// Â¼²¨¿ØÖÆ½á¹¹Ìå
 typedef struct
 {
-    bool isRecording;    // å½•æ³¢å¼€å…³
-    u32 recordedBytes;   // å·²è®°å½•å­—èŠ‚æ•°
-    u32 maxRecordBytes;  // ç›®æ ‡å­—èŠ‚æ•°
-    u32 sampleSequence;  // é‡‡æ ·ç‚¹åºå·
-    u32 writeAddrOffset; // å½“å‰å†™å…¥åç§»
-    u32 startTimeMs;     // å¯åŠ¨æ—¶é—´ (å¯é€‰)
+    bool isRecording;      // Â¼²¨¿ª¹Ø
+    u32 recordedBytes;     // ÒÑ¼ÇÂ¼×Ö½ÚÊı
+    u32 maxRecordBytes;    // Ä¿±ê×Ö½ÚÊı (ÊÜ REC_DAT_MAX_SIZE ÏŞÖÆ)
+    u32 sampleSequence;    // ²ÉÑùµãĞòºÅ
+    u32 writeAddrOffset;   // µ±Ç°Ğ´ÈëÆ«ÒÆ
+    char startTimeStr[32]; // Â¼²¨Æô¶¯Ê±¼ä×Ö·û´® (ÓÃÓÚCFG)
 } WaveRecord_Ctrl_t;
 
 extern WaveRecord_Ctrl_t g_WaveRecordCtrl;
 
-// å‡½æ•°å£°æ˜
+// º¯ÊıÉùÃ÷
 void WaveRecord_Init(void);
 void WaveRecord_Start(u32 duration_ms);
 void WaveRecord_Stop(void);

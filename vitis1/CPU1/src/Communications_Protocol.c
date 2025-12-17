@@ -4,8 +4,8 @@
 /*
  *版本信息
  */
-const char FPGA_Ver_Full[] = "[Ver]=V1.251211.1939";
-const char ARM_Ver_Full[] = "[Ver]=V1.251211.1939";
+const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
+const char ARM_Ver_Full[] = "[Ver]=V1.251217.1114";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3044,18 +3044,27 @@ void handle_StateSequence(cJSON *data)
     item = cJSON_GetObjectItem(dataObj, "RepeatCount");
     if (item)
         g_StateSequenceTask.RepeatCount = item->valueint;
+    else
+        g_StateSequenceTask.RepeatCount = 0;//默认不重复
 
-    item = cJSON_GetObjectItem(dataObj, "RecStartState");
+    // 【新增】解析录波参数
+    item = cJSON_GetObjectItem(data, "RecStartState");
     if (item)
         g_StateSequenceTask.RecStartState = item->valueint;
+    else
+        g_StateSequenceTask.RecStartState = 0; // 默认不录波
 
-    item = cJSON_GetObjectItem(dataObj, "RecMS");
+    item = cJSON_GetObjectItem(data, "RecMS");
     if (item)
         g_StateSequenceTask.RecMS = item->valueint;
+    else
+        g_StateSequenceTask.RecMS = 0; // 默认一直录
 
-    item = cJSON_GetObjectItem(dataObj, "RecSamp");
+    item = cJSON_GetObjectItem(data, "RecSamp");
     if (item)
         g_StateSequenceTask.RecSamp = item->valueint;
+    else
+        g_StateSequenceTask.RecSamp = 51200; // 默认采样率
 
     // 2. 解析 States 数组
     cJSON *states = cJSON_GetObjectItem(dataObj, "States");

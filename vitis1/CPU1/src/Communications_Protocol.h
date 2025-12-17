@@ -358,9 +358,9 @@ typedef struct
 	int StartMode;
 	char StartTime[32];
 	int RepeatCount;
-	int RecStartState;
-	int RecMS;
-	int RecSamp;
+	int RecStartState; // 启动录波的步号 (1-based, 0=不录)
+	int RecMS;		   // 录波时长 (ms), <=0 表示一直录
+	int RecSamp;	   // 采样率 (目前硬件固定 51200, 此参数暂作为预留或校验)
 	int StepCount;
 	Struct_Seq_Step Steps[MAX_SEQ_STEPS];
 } Struct_StateSequence;
