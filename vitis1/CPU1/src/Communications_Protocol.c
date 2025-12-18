@@ -172,7 +172,7 @@ void handle_GetFunCodeList(cJSON *data)
         "SetTaskSysTimeSync", "SetProgress", "SetTaskClockTest", "SetTaskEnergyTest",
         "SetTaskGradualChange", "SetTaskWaveRecord", "SetTaskWaveReplay", "SetTaskStateSequence"};
     const char *reportListItems[] = {
-        "ProtectEvent", "DISOE", "WaveRecordStart", "WaveRecordComplete"};
+        "ProtectEvent", "DISOE", "WaveRecordStarted", "WaveRecordFileCreated"};
 
     const int structListItems[] = {
         DeviceState,

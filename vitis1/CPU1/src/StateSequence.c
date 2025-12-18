@@ -478,7 +478,7 @@ static void Execute_Step(int stepIndex)
     {
         xil_printf("CPU1: StateSeq - Triggering SetTaskWaveRecord at Step %d\r\n", stepIndex + 1);
         // 启动录波 (传入设定的时长)
-        WaveRecord_Start(g_StateSequenceTask.RecMS);
+        WaveRecord_Start(g_StateSequenceTask.RecMS, "SetTaskStateSequence");
     }
     xil_printf("CPU1: StateSeq - Step %d Executed. Time: %d ms\r\n", stepIndex, pStep->MaxDuration);
 }

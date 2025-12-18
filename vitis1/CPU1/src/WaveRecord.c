@@ -2,7 +2,6 @@
 #include "ADDA.h" // 获取 FS_RATE, CHN_NUM, AD_Correct, setACS 等
 #include "xil_cache.h"
 #include "xil_printf.h"
-#include "Communications_Protocol.h" // 获取 In_CurrTime, read_current_time
 #include <string.h>
 #include <stdio.h>
 
@@ -12,24 +11,132 @@ void WaveRecord_Init(void)
 {
     memset(&g_WaveRecordCtrl, 0, sizeof(WaveRecord_Ctrl_t));
     g_WaveRecordCtrl.isRecording = false;
-    g_WaveRecordCtrl.isPendingSave = false; 
+    g_WaveRecordCtrl.isPendingSave = false;
 }
 
-void WaveRecord_Start(u32 duration_ms)
+/**
+ * @brief 上报录波启动 (3.2.1 WaveRecordStarted)
+ */
+static void Report_WaveRecordStart(void)
+{
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "Report");
+    cJSON_AddStringToObject(report, "FunCode", "WaveRecordStarted");
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddStringToObject(data, "RecFrom", g_WaveRecordCtrl.recFrom);
+    cJSON_AddNumberToObject(data, "RecSamp", FS_RATE); // 51200
+
+    // RecDuration: 设定时长，如果无限长用 -1
+    int duration = (g_WaveRecordCtrl.targetDurationMs <= 0) ? -1 : g_WaveRecordCtrl.targetDurationMs;
+    cJSON_AddNumberToObject(data, "RecDuration", duration);
+
+    cJSON_AddItemToObject(report, "Data", data);
+
+    // 发送消息
+    char *string = cJSON_PrintUnformatted(report);
+    if (string)
+    {
+        size_t len = strlen(string);
+        char *finalStr = malloc(len + 3);
+        if (finalStr)
+        {
+            snprintf(finalStr, len + 3, "|%s|", string);
+            MsgQue_write(finalStr, strlen(finalStr));
+            free(finalStr);
+        }
+        free(string);
+    }
+    cJSON_Delete(report);
+}
+
+/**
+ * @brief 上报文件生成 (3.2.2 WaveRecordFileCreated)
+ */
+static void Report_WaveRecordFileCreated(void)
+{
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "Report");
+    cJSON_AddStringToObject(report, "FunCode", "WaveRecordFileCreated");
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddStringToObject(data, "RecFrom", g_WaveRecordCtrl.recFrom);
+    cJSON_AddNumberToObject(data, "RecSamp", FS_RATE);
+
+    // 实际录波时长 = 点数 * 1000 / FS
+    // 或者直接用 recordedBytes 计算
+    double actual_duration = (double)g_WaveRecordCtrl.sampleSequence * 1000.0 / FS_RATE;
+    cJSON_AddNumberToObject(data, "RecDuration", (int)actual_duration);
+
+    // 生成文件名 YYYYMMDD_HHNNSS_ZZZ
+    char fileNameBase[64];
+    In_CurrTime *t = &g_WaveRecordCtrl.startTimestamp;
+    // subsec 是 0.1us 单位 (10MHz计数)，转毫秒需要 / 10000
+    int ms = (int)(t->curr_subsec / 10000);
+
+    sprintf(fileNameBase, "%04u%02u%02u_%02u%02u%02u_%03u",
+            t->curr_year, t->curr_month, t->curr_day,
+            t->curr_hour, t->curr_minute, t->curr_second, ms);
+
+    cJSON *files = cJSON_CreateArray();
+    char nameBuf[80];
+    sprintf(nameBuf, "%s.cfg", fileNameBase);
+    cJSON_AddItemToArray(files, cJSON_CreateString(nameBuf));
+    sprintf(nameBuf, "%s.dat", fileNameBase);
+    cJSON_AddItemToArray(files, cJSON_CreateString(nameBuf));
+
+    cJSON_AddItemToObject(data, "WaveFile", files);
+
+    // FilePath, FileSizeDat, FileSizeCfg 按要求不输出或输出空
+    // 如果想输出 Size，可以使用 g_WaveRecordCtrl.recordedBytes 和 g_WaveRecordCtrl.cfgFileSize
+
+    cJSON_AddItemToObject(report, "Data", data);
+
+    // 发送消息
+    char *string = cJSON_PrintUnformatted(report);
+    if (string)
+    {
+        size_t len = strlen(string);
+        char *finalStr = malloc(len + 3);
+        if (finalStr)
+        {
+            snprintf(finalStr, len + 3, "|%s|", string);
+            MsgQue_write(finalStr, strlen(finalStr));
+            free(finalStr);
+        }
+        free(string);
+    }
+    cJSON_Delete(report);
+}
+
+void WaveRecord_Start(u32 duration_ms, const char *source)
 {
     g_WaveRecordCtrl.sampleSequence = 0;
     g_WaveRecordCtrl.recordedBytes = 0;
     g_WaveRecordCtrl.writeAddrOffset = 0;
-    g_WaveRecordCtrl.isPendingSave = false;
-    // 记录启动时间用于 CFG 生成
-    In_CurrTime curr;
-    read_current_time(&curr);
-    sprintf(g_WaveRecordCtrl.startTimeStr, "%04u/%02u/%02u,%02u:%02u:%02u.%06u",
-            curr.curr_year, curr.curr_month, curr.curr_day,
-            curr.curr_hour, curr.curr_minute, curr.curr_second,
-            (unsigned int)curr.curr_subsec); // 假设subsec精度适配
 
-    // 计算最大字节数 (RecMS <= 0 表示录直到满)
+    // 1. 记录来源和目标时长
+    if (source)
+    {
+        strncpy(g_WaveRecordCtrl.recFrom, source, 31);
+    }
+    else
+    {
+        strcpy(g_WaveRecordCtrl.recFrom, "Unknown");
+    }
+    g_WaveRecordCtrl.targetDurationMs = duration_ms;
+
+    // 2. 记录启动时间 (保存到结构体用于生成文件名)
+    read_current_time(&g_WaveRecordCtrl.startTimestamp);
+
+    // 生成 CFG 用的时间字符串 (保持 COMTRADE 格式)
+    In_CurrTime *curr = &g_WaveRecordCtrl.startTimestamp;
+    sprintf(g_WaveRecordCtrl.startTimeStr, "%04u/%02u/%02u,%02u:%02u:%02u.%06u",
+            curr->curr_year, curr->curr_month, curr->curr_day,
+            curr->curr_hour, curr->curr_minute, curr->curr_second,
+            (unsigned int)curr->curr_subsec);
+
+    // 3. 计算最大字节数
     if (duration_ms <= 0)
     {
         g_WaveRecordCtrl.maxRecordBytes = REC_DAT_MAX_SIZE;
@@ -37,16 +144,23 @@ void WaveRecord_Start(u32 duration_ms)
     else
     {
         u64 bytes = (u64)duration_ms * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
-        // 必须限制在预留空间内，防止覆盖 CFG 区域
         if (bytes > REC_DAT_MAX_SIZE)
             bytes = REC_DAT_MAX_SIZE;
         g_WaveRecordCtrl.maxRecordBytes = (u32)bytes;
     }
 
-    g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US(); //  记录精确的启动时刻
-    g_WaveRecordCtrl.isFirstBlock = true; // 标记这是第一块
-    g_WaveRecordCtrl.isRecording = true;  // 开启录波开关
-    xil_printf("CPU1: SetTaskWaveRecord Started. Target: %u bytes\r\n", g_WaveRecordCtrl.maxRecordBytes);
+    // 清除标志
+    g_WaveRecordCtrl.isPendingSave = false;
+    g_WaveRecordCtrl.isRecording = true;
+
+    // 4. 精确记录时间戳用于裁切
+    g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US();
+    g_WaveRecordCtrl.isFirstBlock = true;
+
+    xil_printf("CPU1: WaveRecord Started (%s)...\r\n", g_WaveRecordCtrl.recFrom);
+
+    // 【新增】立即上报 WaveRecordStarted
+    Report_WaveRecordStart();
 }
 
 void WaveRecord_Stop(void)
@@ -64,10 +178,12 @@ void WaveRecord_Stop(void)
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
-    // 1. 检查是否有挂起的保存任务 
+    // 1. 检查是否有挂起的保存任务
     if (g_WaveRecordCtrl.isPendingSave)
     {
         Generate_Comtrade_CFG();
+        // 生成完文件后，立即上报 WaveRecordFileCreated
+        Report_WaveRecordFileCreated();
         g_WaveRecordCtrl.isPendingSave = false;
     }
 
@@ -181,8 +297,7 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
     g_WaveRecordCtrl.recordedBytes += current_block_size;
 
     // 刷 Cache (确保数据写入物理 DDR)
-    Xil_DCacheFlushRange(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset - current_block_size,
-                         current_block_size);
+    Xil_DCacheFlushRange(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset - current_block_size, current_block_size);
 
     // 检查是否录满
     if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
@@ -283,6 +398,9 @@ void Generate_Comtrade_CFG(void)
     // 8. 刷 Cache
     Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1); // +1 包含结束符
 
+    // 9. 记录 CFG 大小
+    g_WaveRecordCtrl.cfgFileSize = len;
+
     // 打印日志
-    xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n",g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
+    xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
 }

@@ -3,6 +3,7 @@
 
 #include "xil_types.h"
 #include "stdbool.h"
+#include "Communications_Protocol.h"
 
 // 录波配置
 #define REC_SHARE_BASE 0x3C000000 // 共享内存起始地址
@@ -25,13 +26,18 @@ typedef struct
     u32 sampleSequence;    // 采样点序号
     u32 writeAddrOffset;   // 当前写入偏移
     char startTimeStr[32]; // 录波启动时间字符串 (用于CFG)
+    // 上报所需信息
+    char recFrom[32];           // 录波来源 (如 "SetTaskStateSequence")
+    int targetDurationMs;       // 设定时长
+    In_CurrTime startTimestamp; // 启动时的详细时间 (用于生成文件名)
+    u32 cfgFileSize;            // CFG文件大小 (用于上报)
 } WaveRecord_Ctrl_t;
 
 extern WaveRecord_Ctrl_t g_WaveRecordCtrl;
 
 // 函数声明
 void WaveRecord_Init(void);
-void WaveRecord_Start(u32 duration_ms);
+void WaveRecord_Start(u32 duration_ms, const char *source);
 void WaveRecord_Stop(void);
 void WaveRecord_Process(u16 *pRawData, int points_count);
 void Generate_Comtrade_CFG(void);
