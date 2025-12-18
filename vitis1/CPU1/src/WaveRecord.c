@@ -45,7 +45,7 @@ void WaveRecord_Start(u32 duration_ms)
     g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US(); //  记录精确的启动时刻
     g_WaveRecordCtrl.isFirstBlock = true; // 标记这是第一块
     g_WaveRecordCtrl.isRecording = true;  // 开启录波开关
-    xil_printf("CPU1: WaveRecord Started. Target: %u bytes\r\n", g_WaveRecordCtrl.maxRecordBytes);
+    xil_printf("CPU1: SetTaskWaveRecord Started. Target: %u bytes\r\n", g_WaveRecordCtrl.maxRecordBytes);
 }
 
 void WaveRecord_Stop(void)
@@ -57,7 +57,7 @@ void WaveRecord_Stop(void)
         // 录波结束时立即生成 CFG 文件
         Generate_Comtrade_CFG();
 
-        xil_printf("CPU1: WaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
+        xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
     }
 }
 

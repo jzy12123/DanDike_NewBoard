@@ -476,7 +476,7 @@ static void Execute_Step(int stepIndex)
     // RecStartState: 0=不录, >=1 代表从第几步开始录 (用户输入是1-based)
     if (g_StateSequenceTask.RecStartState > 0 && (stepIndex + 1) == g_StateSequenceTask.RecStartState)
     {
-        xil_printf("CPU1: StateSeq - Triggering WaveRecord at Step %d\r\n", stepIndex + 1);
+        xil_printf("CPU1: StateSeq - Triggering SetTaskWaveRecord at Step %d\r\n", stepIndex + 1);
         // 启动录波 (传入设定的时长)
         WaveRecord_Start(g_StateSequenceTask.RecMS);
     }
@@ -681,24 +681,12 @@ void StateSequence_ApplyAndRun(void)
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[3]);
 
-    // ============================================================
-    // 【关键修改 1】: 先搬运波形，再开输出！
-    // ============================================================
-    // 即使 DDR 忙导致这里卡 70ms，DAC 还没开，所以不会输出乱码。
-    // 这相当于把“等待时间”藏在了“启动前”，而不是“启动后”。
-    Load_Step_To_BRAM(0);
-
-    // ============================================================
-    // 【关键修改 2】: 波形这就绪了，现在开启 DAC
-    // ============================================================
+    // 现在开启 DAC
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.Cached_Hw.Init_Freq_Div);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 4. 执行第一步逻辑 (启动定时器、录波等)
-    // 注意: Execute_Step 内部会再次调用 Load_Step_To_BRAM。
-    // 由于我们上面已经搬过了，这里会重复搬一次。
-    // 因为 BRAM 只有一份，重复搬运是安全的（且此时 DDR 应该已经不忙了，会很快）。
+    // 3. 执行第一步逻辑 (启动定时器、录波等)
     Execute_Step(0);
 }
 
@@ -872,7 +860,7 @@ void check_and_report_state_sequence_status(void)
     // 构建 JSON
     cJSON *report = cJSON_CreateObject();
     cJSON_AddStringToObject(report, "FunType", "TaskEvent");
-    cJSON_AddStringToObject(report, "FunCode", "StateSequence");
+    cJSON_AddStringToObject(report, "FunCode", "SetTaskStateSequence");
 
     // 状态判断逻辑
     // 只要任务处于“活跃”状态（无论是正在跑 IsRunning，还是定时等待中），只要没 Finish，都算 Doing。
@@ -955,7 +943,7 @@ void check_and_report_state_sequence_status(void)
     if (string)
     {
         // 打印测试
-        // printf("CPU1: [DEBUG] Sending StateSequence Report: %s\r\n", string);
+        // printf("CPU1: [DEBUG] Sending SetTaskStateSequence Report: %s\r\n", string);
         size_t len = strlen(string);
         char *finalStr = malloc(len + 3);
         if (finalStr)

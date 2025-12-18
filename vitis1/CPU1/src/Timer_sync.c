@@ -197,7 +197,7 @@ static void send_task_event(const char *result_str)
 {
     cJSON *report = cJSON_CreateObject();
     cJSON_AddStringToObject(report, "FunType", "TaskEvent");
-    cJSON_AddStringToObject(report, "FunCode", "SetSysTimeSyncMode");
+    cJSON_AddStringToObject(report, "FunCode", "SetTaskSysTimeSync");
     cJSON_AddStringToObject(report, "Result", result_str);
 
     cJSON *data = cJSON_CreateObject();

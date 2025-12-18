@@ -1215,7 +1215,7 @@ void str_wr_bram(PID_STATE pid_state)
     }
 
     // 3. [核心修改] 打包数据到 DDR 并使用 CDMA 搬运
-    // 使用与 StateSequence 相同的 DDR 缓冲区首地址 (稳态输出时借用此空间)
+    // 使用与 SetTaskStateSequence 相同的 DDR 缓冲区首地址 (稳态输出时借用此空间)
     u32 *pDdrBuf = (u32 *)(UINTPTR)STATE_SEQ_DDR_BUFFER_BASE;
 
     // 数据打包：将8通道16位数据拼装成128位宽格式 (4个32位字)

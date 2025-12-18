@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251217.1705";
+const char ARM_Ver_Full[] = "[Ver]=V1.251218.0944";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -103,10 +103,10 @@ int Parse_JsonCommand(char *buffer)
         {"SetCalibrateAC", handle_SetCalibrateAC},
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
-        {"SetSysTimeSyncMode", handle_SetSysTimeSyncMode},
+        {"SetTaskSysTimeSync", handle_SetSysTimeSyncMode},
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"TerminateRunningTask", handle_TerminateRunningTask},
-        {"StateSequence", handle_StateSequence}};
+        {"SetTaskStateSequence", handle_StateSequence}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
@@ -169,8 +169,8 @@ void handle_GetFunCodeList(cJSON *data)
         "SetInterHarmStatus", "SetDCS", "StopDCS", "SetDCM", "SetACM",
         "SetDO"};
     const char *taskCmds[] = {
-        "SetSysTimeSyncMode", "SetProgress", "SetTaskClockTest", "SetTaskEnergyTest",
-        "SetTaskGradualChange", "WaveRecord", "WaveReplay", "StateSequence"};
+        "SetTaskSysTimeSync", "SetProgress", "SetTaskClockTest", "SetTaskEnergyTest",
+        "SetTaskGradualChange", "SetTaskWaveRecord", "SetTaskWaveReplay", "SetTaskStateSequence"};
     const char *reportListItems[] = {
         "ProtectEvent", "DISOE", "WaveRecordStart", "WaveRecordComplete"};
 
@@ -2458,14 +2458,14 @@ void handle_SetSysTimeSyncMode(cJSON *data)
 
     if (!data || !cJSON_IsObject(data))
     {
-        xil_printf("CPU1: SetSysTimeSyncMode: Data field is missing or not an object.\r\n");
+        xil_printf("CPU1: SetTaskSysTimeSync: Data field is missing or not an object.\r\n");
         goto send_reply;
     }
 
     cJSON *sync_mode_item = cJSON_GetObjectItem(data, "SyncMode");
     if (!sync_mode_item || !cJSON_IsString(sync_mode_item))
     {
-        xil_printf("CPU1: SetSysTimeSyncMode: SyncMode is missing or not a string.\r\n");
+        xil_printf("CPU1: SetTaskSysTimeSync: SyncMode is missing or not a string.\r\n");
         goto send_reply;
     }
 
@@ -2490,7 +2490,7 @@ void handle_SetSysTimeSyncMode(cJSON *data)
     }
     else
     {
-        xil_printf("CPU1: SetSysTimeSyncMode: Unknown SyncMode value '%s'.\r\n", requested_mode);
+        xil_printf("CPU1: SetTaskSysTimeSync: Unknown SyncMode value '%s'.\r\n", requested_mode);
         goto send_reply;
     }
 
@@ -2515,7 +2515,7 @@ void handle_SetSysTimeSyncMode(cJSON *data)
 send_reply:;
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
-    cJSON_AddStringToObject(reply, "FunCode", "SetSysTimeSyncMode");
+    cJSON_AddStringToObject(reply, "FunCode", "SetTaskSysTimeSync");
     cJSON_AddStringToObject(reply, "Result", result_str);
 
     cJSON *reply_data = cJSON_CreateObject();
@@ -2765,7 +2765,7 @@ void handle_TerminateRunningTask(cJSON *data)
                 // else if (strcmp(task_name, "SetTaskClockTest") == 0) {
                 //     ClockTest_Terminate(); // 假设的时钟测试终止函数
                 // }
-                if (strcmp(task_name, "StateSequence") == 0)
+                if (strcmp(task_name, "SetTaskStateSequence") == 0)
                 {
                     StateSequence_Stop();
                 }
@@ -3045,7 +3045,7 @@ void handle_StateSequence(cJSON *data)
     if (item)
         g_StateSequenceTask.RepeatCount = item->valueint;
     else
-        g_StateSequenceTask.RepeatCount = 0;//默认不重复
+        g_StateSequenceTask.RepeatCount = 0; // 默认不重复
 
     // 【新增】解析录波参数
     item = cJSON_GetObjectItem(data, "RecStartState");
@@ -3223,7 +3223,7 @@ void handle_StateSequence(cJSON *data)
             { // 加一点容差防止浮点精度误判
                 cJSON *reply = cJSON_CreateObject();
                 cJSON_AddStringToObject(reply, "FunType", "Reply");
-                cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+                cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
                 cJSON_AddStringToObject(reply, "Result", "Failure");
 
                 cJSON *replyData = cJSON_CreateObject();
@@ -3257,7 +3257,7 @@ void handle_StateSequence(cJSON *data)
             {
                 cJSON *reply = cJSON_CreateObject();
                 cJSON_AddStringToObject(reply, "FunType", "Reply");
-                cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+                cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
                 cJSON_AddStringToObject(reply, "Result", "Failure");
 
                 cJSON *replyData = cJSON_CreateObject();
@@ -3364,7 +3364,7 @@ void handle_StateSequence(cJSON *data)
     // 4. 构建并发送回复
     cJSON *reply = cJSON_CreateObject();
     cJSON_AddStringToObject(reply, "FunType", "Reply");
-    cJSON_AddStringToObject(reply, "FunCode", "StateSequence");
+    cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
     cJSON_AddStringToObject(reply, "Result", "Success");
 
     cJSON *replyData = cJSON_CreateObject();
@@ -3374,7 +3374,7 @@ void handle_StateSequence(cJSON *data)
     char *string = cJSON_PrintUnformatted(reply);
     if (string)
     {
-        // printf("CPU1: StateSequence Reply: %s\n", string);
+        // printf("CPU1: SetTaskStateSequence Reply: %s\n", string);
         size_t stringLength = strlen(string);
         char *finalString = (char *)malloc(stringLength + 3);
         if (finalString)
@@ -3390,7 +3390,7 @@ void handle_StateSequence(cJSON *data)
     // 5. 启动逻辑
     if (g_StateSequenceTask.StartMode == 0)
     {
-        xil_printf("CPU1: Cmd StateSequence -> Start Immediately.\r\n");
+        xil_printf("CPU1: Cmd SetTaskStateSequence -> Start Immediately.\r\n");
         StateSequence_QuitMode();
 
         // 立即启动：先规划，后执行

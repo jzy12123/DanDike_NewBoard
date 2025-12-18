@@ -1,9 +1,24 @@
 Nothing to build in platform 'system_wrapper'
 
-18:19:50 **** Incremental Build of configuration Debug for project CPU1 ****
+10:04:06 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
-make[1]: Nothing to be done for 'main-build'.
+'Building file: ../src/StateSequence.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/StateSequence.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/StateSequence.d" -MT"src/StateSequence.o" -o "src/StateSequence.o" "../src/StateSequence.c"
+'Finished building: ../src/StateSequence.c'
+' '
+'Building target: CPU1.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/8025IIC.o ./src/ADDA.o ./src/Amplifier_Switch.o ./src/Communications_Protocol.o ./src/IIC_Master.o ./src/Msg_Que.o ./src/My_KissFft.o ./src/PID.o ./src/Rc64.o ./src/StateSequence.o ./src/Timer_sync.o ./src/WaveRecord.o ./src/cJSON.o ./src/gps.o ./src/main.o ./src/mutex_utils.o ./src/power_pulse.o ./src/soft_timer.o   -lm -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+'Finished building target: CPU1.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 294968	   4640	21467824	21767432	14c2508	CPU1.elf
+'Finished building: CPU1.elf.size'
+' '
