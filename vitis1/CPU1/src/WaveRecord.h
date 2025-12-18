@@ -16,7 +16,8 @@
 // 录波控制结构体
 typedef struct
 {
-    bool isRecording;      // 录波开关
+    volatile bool isRecording;   // 录波开关 (加 volatile)
+    volatile bool isPendingSave; // 【新增】标记是否需要生成文件 (加 volatile)
     bool isFirstBlock;     // 【新增】标记是否是启动后的第一块数据
     u64 startTimeUs;       // 【新增】记录启动时刻的微秒时间戳
     u32 recordedBytes;     // 已记录字节数

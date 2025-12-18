@@ -12,6 +12,7 @@ void WaveRecord_Init(void)
 {
     memset(&g_WaveRecordCtrl, 0, sizeof(WaveRecord_Ctrl_t));
     g_WaveRecordCtrl.isRecording = false;
+    g_WaveRecordCtrl.isPendingSave = false; 
 }
 
 void WaveRecord_Start(u32 duration_ms)
@@ -19,7 +20,7 @@ void WaveRecord_Start(u32 duration_ms)
     g_WaveRecordCtrl.sampleSequence = 0;
     g_WaveRecordCtrl.recordedBytes = 0;
     g_WaveRecordCtrl.writeAddrOffset = 0;
-
+    g_WaveRecordCtrl.isPendingSave = false;
     // 记录启动时间用于 CFG 生成
     In_CurrTime curr;
     read_current_time(&curr);
@@ -52,12 +53,8 @@ void WaveRecord_Stop(void)
 {
     if (g_WaveRecordCtrl.isRecording)
     {
-        g_WaveRecordCtrl.isRecording = false;
-
-        // 录波结束时立即生成 CFG 文件
-        Generate_Comtrade_CFG();
-
-        xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
+        g_WaveRecordCtrl.isRecording = false;  // 立即停止接收数据
+        g_WaveRecordCtrl.isPendingSave = true; // 标记需要生成文件
     }
 }
 
@@ -67,18 +64,23 @@ void WaveRecord_Stop(void)
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
-    // 1. 基础检查
+    // 1. 检查是否有挂起的保存任务 
+    if (g_WaveRecordCtrl.isPendingSave)
+    {
+        Generate_Comtrade_CFG();
+        g_WaveRecordCtrl.isPendingSave = false;
+    }
+
+    // 2. 如果没在录波，直接返回
     if (!g_WaveRecordCtrl.isRecording)
         return;
 
-    // 2. 指针与计数器准备
+    // 3. 指针与计数器准备
     // 默认情况下，处理整个 Buffer
     u16 *pValidData = pRawData;      // 有效数据的起始指针
     int valid_points = points_count; // 本次需要处理的有效点数
 
-    // =================================================================
     // 【核心逻辑】如果是启动后的第一块数据，计算并剔除启动前的无效波形
-    // =================================================================
     if (g_WaveRecordCtrl.isFirstBlock)
     {
         // 计算有效时长：(当前中断时刻 - 点击启动时刻)
@@ -280,4 +282,7 @@ void Generate_Comtrade_CFG(void)
 
     // 8. 刷 Cache
     Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1); // +1 包含结束符
+
+    // 打印日志
+    xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes. CFG generated at 0x%X\r\n",g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR);
 }
