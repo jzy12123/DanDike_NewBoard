@@ -17,6 +17,8 @@
 typedef struct
 {
     bool isRecording;      // 录波开关
+    bool isFirstBlock;     // 【新增】标记是否是启动后的第一块数据
+    u64 startTimeUs;       // 【新增】记录启动时刻的微秒时间戳
     u32 recordedBytes;     // 已记录字节数
     u32 maxRecordBytes;    // 目标字节数 (受 REC_DAT_MAX_SIZE 限制)
     u32 sampleSequence;    // 采样点序号

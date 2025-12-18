@@ -41,6 +41,8 @@ double DA_CorrectPhase_100[8][3];
 // AD校准参数数组
 double AD_Correct[8][3];
 
+u64 g_LastDmaIrqTime_us = 0; // 【新增】记录上一次 DMA 中断的微秒时间戳
+
 // 出厂设定参数
 const double DA_CorrectConst_100[8][3] = {
     // Voltage channels (UA, UB, UC, UX) - for 6.5V, 3.25V, 1.876V
@@ -235,6 +237,28 @@ void Adc_Dma_Reset_And_Restart(void)
 }
 
 /**
+ * @brief 获取当前精确的微秒级时间戳
+ * @note  基于 FPGA 10MHz 软时钟，curr_subsec 单位为 0.1us
+ */
+u64 Get_Current_Time_US(void)
+{
+    In_CurrTime curr;
+    // 从 FPGA 寄存器读取时间 (slv_reg0 ~ slv_reg7)
+    read_current_time(&curr);
+
+    // 【修正点】硬件 curr_subsec 是 10MHz 计数 (0.1us/tick)
+    u64 subsec_us = (u64)curr.curr_subsec / 10;
+
+    // 计算总微秒数 (忽略日期，仅计算当天的时分秒，足以处理短时间差)
+    u64 total_us = (u64)curr.curr_hour * 3600000000ULL + // 3600 * 10^6
+                   (u64)curr.curr_minute * 60000000ULL + // 60 * 10^6
+                   (u64)curr.curr_second * 1000000ULL +  // 1 * 10^6
+                   subsec_us;
+
+    return total_us;
+}
+
+/**
  * @brief DMA RX中断处理 (保持之前的逻辑，调用增强后的恢复函数)
  */
 void rx_intr_handler(void *callback)
@@ -261,6 +285,9 @@ void rx_intr_handler(void *callback)
     // 3. 正常传输完成
     if (irq_status & XAXIDMA_IRQ_IOC_MASK)
     {
+        // 立即记录当前块结束的时刻,用来剔除没用的波形
+        g_LastDmaIrqTime_us = Get_Current_Time_US();
+
         // 切换 Buffer
         u8 nextBufferIndex = 1 - g_CurBufferIndex;
         UINTPTR nextBufferAddr = (nextBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;

@@ -42,7 +42,9 @@ void WaveRecord_Start(u32 duration_ms)
         g_WaveRecordCtrl.maxRecordBytes = (u32)bytes;
     }
 
-    g_WaveRecordCtrl.isRecording = true;
+    g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US(); //  记录精确的启动时刻
+    g_WaveRecordCtrl.isFirstBlock = true; // 标记这是第一块
+    g_WaveRecordCtrl.isRecording = true;  // 开启录波开关
     xil_printf("CPU1: WaveRecord Started. Target: %u bytes\r\n", g_WaveRecordCtrl.maxRecordBytes);
 }
 
@@ -61,52 +63,126 @@ void WaveRecord_Stop(void)
 
 /**
  * @brief 处理一块数据 (500ms) 进行录波存储
+ * 包含首块数据的“无效历史数据”剔除功能
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
+    // 1. 基础检查
     if (!g_WaveRecordCtrl.isRecording)
         return;
 
+    // 2. 指针与计数器准备
+    // 默认情况下，处理整个 Buffer
+    u16 *pValidData = pRawData;      // 有效数据的起始指针
+    int valid_points = points_count; // 本次需要处理的有效点数
+
+    // =================================================================
+    // 【核心逻辑】如果是启动后的第一块数据，计算并剔除启动前的无效波形
+    // =================================================================
+    if (g_WaveRecordCtrl.isFirstBlock)
+    {
+        // 计算有效时长：(当前中断时刻 - 点击启动时刻)
+        // 假设 Block 刚传完触发中断，那么从“启动”到“中断”这段时间才是有效录波
+        long long time_diff_us = (long long)(g_LastDmaIrqTime_us - g_WaveRecordCtrl.startTimeUs);
+
+        // 异常保护：防止时间倒挂
+        if (time_diff_us < 0)
+            time_diff_us = 0;
+
+        // 计算本块数据的总时长 (us)
+        u64 block_duration_us = (u64)points_count * 1000000 / FS_RATE;
+
+        // 如果有效时间超过了块长（说明启动指令是很久以前发的），则保留全块
+        if (time_diff_us > block_duration_us)
+        {
+            time_diff_us = block_duration_us;
+        }
+
+        // 计算需要保留的点数 = 有效时长 * 采样率
+        int keep_samples = (int)((double)time_diff_us * FS_RATE / 1000000.0);
+
+        // 计算需要剔除的点数 = 总点数 - 保留点数
+        int discard_samples = points_count - keep_samples;
+
+        // 边界修正
+        if (discard_samples < 0)
+            discard_samples = 0;
+        if (discard_samples >= points_count)
+            discard_samples = points_count;
+
+        // 应用偏移：剔除头部数据
+        if (discard_samples > 0)
+        {
+            // 指针后移：注意 pRawData 是交错存储，偏移量 = 点数 * 通道数
+            pValidData += (discard_samples * CHN_NUM);
+            valid_points -= discard_samples;
+
+            // 调试打印 (可选)
+            xil_printf("CPU1: First Block Trimmed. Discarded: %d, Kept: %d\r\n", discard_samples, valid_points);
+        }
+
+        // 清除标志，后续的数据块将全部记录
+        g_WaveRecordCtrl.isFirstBlock = false;
+    }
+
+    // =================================================================
+    // 常规存储逻辑 (使用处理过的 valid_points 和 pValidData)
+    // =================================================================
+
+    // 再次检查容量（防止刚才计算完刚好满了）
     if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
     {
         WaveRecord_Stop();
         return;
     }
 
+    // 获取 DDR 写入地址
     u32 *pDest = (u32 *)(UINTPTR)(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset);
     u32 current_block_size = 0;
 
-    for (int i = 0; i < points_count; i++)
+    for (int i = 0; i < valid_points; i++)
     {
         // 1. 序号 (4B)
-        *pDest++ = g_WaveRecordCtrl.sampleSequence; // 先写入，稍后递增
+        *pDest++ = g_WaveRecordCtrl.sampleSequence;
 
-        // 2. 时间 (4B) - 【优化】使用 u64 整数运算代替 double
-        // 避免在 25600 次循环里做浮点除法
+        // 2. 时间 (4B) - 使用 u64 优化除法
+        // Time = (Seq * 1000000) / FS
         u64 time_us_64 = ((u64)g_WaveRecordCtrl.sampleSequence * 1000000) / FS_RATE;
         *pDest++ = (u32)time_us_64;
 
-        // 序号递增放这里
+        // 序号递增
         g_WaveRecordCtrl.sampleSequence++;
 
         // 3. 8通道模拟量 (16B)
-        u16 *pSamp = &pRawData[i * CHN_NUM];
+        // 使用偏移后的 pValidData 指针
+        u16 *pSamp = &pValidData[i * CHN_NUM];
+
+        // 32位合并写入优化
         *pDest++ = (u32)pSamp[0] | ((u32)pSamp[1] << 16);
         *pDest++ = (u32)pSamp[2] | ((u32)pSamp[3] << 16);
         *pDest++ = (u32)pSamp[4] | ((u32)pSamp[5] << 16);
         *pDest++ = (u32)pSamp[6] | ((u32)pSamp[7] << 16);
 
-        current_block_size += COMTRADE_FRAME_SIZE; // 这里必须是 24！
+        // 累加帧大小 (固定24字节)
+        current_block_size += COMTRADE_FRAME_SIZE;
+
+        // 循环内检查：防止单次循环写超限 (针对内存边缘情况)
+        if (g_WaveRecordCtrl.writeAddrOffset + current_block_size >= REC_DAT_MAX_SIZE ||
+            g_WaveRecordCtrl.recordedBytes + current_block_size >= g_WaveRecordCtrl.maxRecordBytes)
+        {
+            break;
+        }
     }
 
-    // 循环结束后统一更新全局偏移
+    // 循环结束后统一更新全局状态
     g_WaveRecordCtrl.writeAddrOffset += current_block_size;
     g_WaveRecordCtrl.recordedBytes += current_block_size;
 
-    // 刷 Cache
+    // 刷 Cache (确保数据写入物理 DDR)
     Xil_DCacheFlushRange(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset - current_block_size,
                          current_block_size);
 
+    // 检查是否录满
     if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
     {
         WaveRecord_Stop();

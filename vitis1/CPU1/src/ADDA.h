@@ -152,6 +152,8 @@ extern volatile u8 g_ProcessBufferFlag; // 0=Idle, 1=PingReady, 2=PongReady
 
 // AC分析用的数据缓冲区 (解交错、抽值后) [通道][点数]
 extern int g_AcAnalysisData[CHANNL_MAX][FFT_DATA_LEN];
+
+extern u64 g_LastDmaIrqTime_us;
 // 函数
 void sync_dma_buffer(UINTPTR addr, size_t size, int direction);
 void Adc_Continuous_Start(void);
@@ -196,4 +198,7 @@ int get_current_index_by_value(float current);
 void Process_ADC_Buffer(void);
 void RunADCPIDCycle(void); // 放在这里声明，实现在ADDA.c
 void Adc_Dma_Reset_And_Restart(void);
+
+u64 Get_Current_Time_US(void);
+
 #endif

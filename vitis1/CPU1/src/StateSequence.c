@@ -453,34 +453,33 @@ static void Execute_Step(int stepIndex)
     Step_Hw_Params_t *pHw = &g_StateSeqRuntime.StepParams[stepIndex];
     Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[stepIndex];
 
-    // 3. 录波启动逻辑
-    // RecStartState: 0=不录, >=1 代表从第几步开始录 (用户输入是1-based)
-    if (g_StateSequenceTask.RecStartState > 0 &&(stepIndex + 1) == g_StateSequenceTask.RecStartState)
-    {
-        xil_printf("CPU1: StateSeq - Triggering WaveRecord at Step %d\r\n", stepIndex + 1);
-        // 启动录波 (传入设定的时长)
-        WaveRecord_Start(g_StateSequenceTask.RecMS);
-    }
-
-    // 4. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
+    // 3. 启动 CDMA 搬运波形 (DDR -> BRAM)(更新波形，自带缩放)
     Load_Step_To_BRAM(stepIndex);
 
-    // 5. 写入硬件参数 写入频率分频系数 (Offset 0x04)
+    // 4. 写入硬件参数 写入频率分频系数 (Offset 0x04)
     Xil_Out32(dac_whole_base_addr + 4, pHw->Freq_Divisor);
 
-    // 6. 更新 DO
+    // 5. 更新 DO
     if (pStep->DOCount > 0)
     {
         // 这里需要更复杂的逻辑合并全局DO，暂时直接写
         OnOff_Write_Continuous(pHw->DO_State);
     }
 
-    // 7. 启动定时器
+    // 6. 启动定时器
     if (pStep->MaxDuration > 0)
     {
         Start_Step_Timer(pStep->MaxDuration);
     }
 
+    // 7. 录波启动逻辑
+    // RecStartState: 0=不录, >=1 代表从第几步开始录 (用户输入是1-based)
+    if (g_StateSequenceTask.RecStartState > 0 && (stepIndex + 1) == g_StateSequenceTask.RecStartState)
+    {
+        xil_printf("CPU1: StateSeq - Triggering WaveRecord at Step %d\r\n", stepIndex + 1);
+        // 启动录波 (传入设定的时长)
+        WaveRecord_Start(g_StateSequenceTask.RecMS);
+    }
     xil_printf("CPU1: StateSeq - Step %d Executed. Time: %d ms\r\n", stepIndex, pStep->MaxDuration);
 }
 
@@ -651,6 +650,9 @@ void StateSequence_Plan(const char *startTimeStr)
     // 缓存初始频率
     g_StateSeqRuntime.Cached_Hw.Init_Freq_Div = g_StateSeqRuntime.StepParams[0].Freq_Divisor;
 
+    // 强制把 Cache 里的数据全刷进 DDR，并给一点时间让硬件完成 Write Buffer 的清空
+    Xil_DCacheFlush();
+    usleep(20000); // 休息 20ms
     xil_printf("CPU1: StateSeq - Plan Complete. Ready to trigger.\r\n");
 }
 
@@ -679,12 +681,24 @@ void StateSequence_ApplyAndRun(void)
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[3]);
 
-    // 3. 开启 DA IP
+    // ============================================================
+    // 【关键修改 1】: 先搬运波形，再开输出！
+    // ============================================================
+    // 即使 DDR 忙导致这里卡 70ms，DAC 还没开，所以不会输出乱码。
+    // 这相当于把“等待时间”藏在了“启动前”，而不是“启动后”。
+    Load_Step_To_BRAM(0);
+
+    // ============================================================
+    // 【关键修改 2】: 波形这就绪了，现在开启 DAC
+    // ============================================================
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.Cached_Hw.Init_Freq_Div);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 4. 立即执行第一步
+    // 4. 执行第一步逻辑 (启动定时器、录波等)
+    // 注意: Execute_Step 内部会再次调用 Load_Step_To_BRAM。
+    // 由于我们上面已经搬过了，这里会重复搬一次。
+    // 因为 BRAM 只有一份，重复搬运是安全的（且此时 DDR 应该已经不忙了，会很快）。
     Execute_Step(0);
 }
 
