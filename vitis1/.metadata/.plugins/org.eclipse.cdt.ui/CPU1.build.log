@@ -1,30 +1,25 @@
-18:03:39 **** Incremental Build of configuration Debug for project CPU1 ****
+09:37:09 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
-'Building file: ../src/Communications_Protocol.c'
+'Building file: ../src/code/Communications_Protocol.c'
 'Invoking: ARM v7 gcc compiler'
-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/Communications_Protocol.d" -MT"src/Communications_Protocol.o" -o "src/Communications_Protocol.o" "../src/Communications_Protocol.c"
-'Finished building: ../src/Communications_Protocol.c'
-' '
-'Building file: ../src/WaveRecord.c'
-'Invoking: ARM v7 gcc compiler'
-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/WaveRecord.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/WaveRecord.d" -MT"src/WaveRecord.o" -o "src/WaveRecord.o" "../src/WaveRecord.c"
-'Finished building: ../src/WaveRecord.c'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Communications_Protocol.d" -MT"src/code/Communications_Protocol.o" -o "src/code/Communications_Protocol.o" "../src/code/Communications_Protocol.c"
+'Finished building: ../src/code/Communications_Protocol.c'
 ' '
 'Building target: CPU1.elf'
 'Invoking: ARM v7 gcc linker'
-arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/8025IIC.o ./src/ADDA.o ./src/Amplifier_Switch.o ./src/Communications_Protocol.o ./src/IIC_Master.o ./src/Msg_Que.o ./src/My_KissFft.o ./src/PID.o ./src/Rc64.o ./src/StateSequence.o ./src/Timer_sync.o ./src/WaveRecord.o ./src/cJSON.o ./src/gps.o ./src/main.o ./src/mutex_utils.o ./src/power_pulse.o ./src/soft_timer.o   -lm -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bsplib/lib -o "CPU1.elf"  ./src/kiss_fft/kfc.o ./src/kiss_fft/kiss_fft.o ./src/kiss_fft/kiss_fftnd.o ./src/kiss_fft/kiss_fftndr.o ./src/kiss_fft/kiss_fftr.o  ./src/code/8025IIC.o ./src/code/ADDA.o ./src/code/Amplifier_Switch.o ./src/code/Communications_Protocol.o ./src/code/IIC_Master.o ./src/code/Msg_Que.o ./src/code/My_KissFft.o ./src/code/PID.o ./src/code/Rc64.o ./src/code/StateSequence.o ./src/code/Timer_sync.o ./src/code/WaveRecord.o ./src/code/cJSON.o ./src/code/gps.o ./src/code/main.o ./src/code/mutex_utils.o ./src/code/power_pulse.o ./src/code/soft_timer.o   -lm -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
 'Finished building target: CPU1.elf'
 ' '
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 296424	   4640	21467888	21768952	14c2af8	CPU1.elf
+ 300266	   4640	21468064	21772970	14c3aaa	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-18:03:41 Build Finished (took 1s.767ms)
+09:37:11 Build Finished (took 1s.651ms)
 
