@@ -528,11 +528,15 @@ void StateSequence_Plan(const char *startTimeStr)
     g_StateSeqRuntime.TotalSteps = g_StateSequenceTask.StepCount;
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
 
-    // 注意：此时不设置 IsRunning，防止主循环提前挂起
+    // [核心修改 1] 设置等待标志，但暂不触发上报
+    g_StateSeqRuntime.IsRunning = false;
+    g_StateSeqRuntime.IsWaiting = true; // 进入等待状态
+    g_StateSeqRuntime.IsHolding = false;
+    g_StateSeqRuntime.IsFinished = false;
 
-    // 初始化记录
     g_StateSeqRuntime.ExecutedCount = 0;
-    g_StateSeqRuntime.ReportedCount = -1;
+    g_StateSeqRuntime.ReportedCount = 0; // [关键] 保持为0，不立即上报！等待 Run 时再设为 -1
+
     memset(g_StateSeqRuntime.ExecResults, 0, sizeof(g_StateSeqRuntime.ExecResults));
 
     // 保存启动时间字符串
@@ -665,10 +669,11 @@ void StateSequence_ApplyAndRun(void)
 {
     // xil_printf("CPU1: StateSeq - Applying HW Config and Starting...\r\n");
     // 1. 设置运行标志
-    g_StateSeqRuntime.IsRunning = true;
-    g_StateSeqRuntime.IsHolding = false;
-    g_StateSeqRuntime.IsFinished = false;
-
+    g_StateSeqRuntime.IsWaiting = false;  // 结束等待
+    g_StateSeqRuntime.IsRunning = true;   // 开始运行
+    g_StateSeqRuntime.IsHolding = false;  // 结束保持标志
+    g_StateSeqRuntime.IsFinished = false; // 完成标志
+    g_StateSeqRuntime.ReportedCount = -1; // 此时才触发首条 TaskEvent (Doing)
     // 2. 写入缓存的硬件参数
     // 档位
     Seq_Hw_SetRange(g_StateSeqRuntime.Cached_Hw.Range_Regs[0],
@@ -693,30 +698,39 @@ void StateSequence_ApplyAndRun(void)
 
 void StateSequence_Stop(void)
 {
-    // 如果不在运行，直接返回 (防止重复调用)
-    if (!g_StateSeqRuntime.IsRunning)
+    // 如果不在运行，直接返回 (防止重复调用) 允许在等待状态下停止
+    if (!g_StateSeqRuntime.IsRunning && !g_StateSeqRuntime.IsWaiting)
         return;
 
     // 1. 停止定时器
     XTtcPs_Stop(&SeqTtcInstance);
 
-    // 2. 停止录波
+    // 2. 如果处于等待状态，必须关闭硬件闹钟
+    if (g_StateSeqRuntime.IsWaiting)
+    {
+        xil_printf("CPU1: StateSeq - Cancelling Alarm...\r\n");
+        g_SoftTimer_Reg15_Shadow &= ~STIMER_ALARM_EN_MASK; // 清除使能位
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+        g_StateSeqRuntime.IsWaiting = false;
+    }
+
+    // 3. 停止录波
     //  即使录波已经因为时长到达自动停止，调用此函数也是安全的
     WaveRecord_Stop();
 
-    // 3. 切换状态标志
+    // 4. 切换状态标志
     g_StateSeqRuntime.IsRunning = false;
     g_StateSeqRuntime.IsHolding = true; // [新增] 进入保持模式，阻断主循环刷新
     g_StateSeqRuntime.IsFinished = true;
 
-    // 标记系统状态为运行 (让上位机知道还在输出)
+    // 标记系统状态为运行 (保持输出)
     devState.bACMeterMode = 0;
     devState.nStatusFund = 1;
 
-    xil_printf("CPU1: StateSeq - Finished. Output HELD (No Sync).\r\n");
+    xil_printf("CPU1: StateSeq - Stopped.\r\n");
 }
 
-// [新增] 强制退出状态序列模式 (供外部指令抢占使用)
+// 强制退出状态序列模式 (供外部指令抢占使用)
 void StateSequence_QuitMode(void)
 {
     // 如果正在运行，先停止定时器
@@ -725,15 +739,20 @@ void StateSequence_QuitMode(void)
         XTtcPs_Stop(&SeqTtcInstance);
     }
 
+    //  如果在等待闹钟，也要关掉
+    if (g_StateSeqRuntime.IsWaiting)
+    {
+        g_SoftTimer_Reg15_Shadow &= ~STIMER_ALARM_EN_MASK;
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+        g_StateSeqRuntime.IsWaiting = false;
+    }
+
     // 停止录波
     WaveRecord_Stop();
 
     // 彻底清除所有标志，释放控制权给主循环
     g_StateSeqRuntime.IsRunning = false;
     g_StateSeqRuntime.IsHolding = false;
-
-    // 注意：此处不操作硬件，硬件状态将在接下来的 SetACS->str_wr_bram 流程中被刷新
-    // xil_printf("CPU1: StateSeq - Quit Mode. Control returned to Main Loop.\r\n");
 }
 // ================= 中断处理 =================
 

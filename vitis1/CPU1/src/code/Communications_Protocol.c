@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251219.1032";
+const char ARM_Ver_Full[] = "[Ver]=V1.251219.0942";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -2748,7 +2748,7 @@ void handle_TerminateRunningTask(cJSON *data)
     if (tasks_array != NULL && cJSON_IsArray(tasks_array))
     {
         // --- 逻辑分支 1: "Tasks" 节点存在，按需终止 ---
-        printf("CPU1: [INFO] Terminating specific tasks as requested.\n");
+        // printf("CPU1: [INFO] Terminating specific tasks as requested.\n");
         cJSON *task_item;
         cJSON_ArrayForEach(task_item, tasks_array)
         {
@@ -3564,6 +3564,12 @@ void handle_SetTaskWaveRecord(cJSON *data)
             // [Mode 2] 开入启动 -> 仅设置状态，等待 debounce_timer_handler 调用 OnDIIRQ
             g_WaveRecordTask.State = 2; // WaitDI (Enter ISR wait mode)
             xil_printf("CPU1: WaveRecord Task Waiting for DI...\r\n");
+            // 【新增逻辑】: 任务配置完成后，立即检查一次当前的开入状态
+            // 即使没有中断产生，如果当前状态已经满足触发条件，也应该立即启动
+            u32 current_di = OnOff_Read_Current_Input(g_onoff_bit_width);
+
+            // 手动调用检测函数 (复用已有的检测逻辑)
+            WaveRecord_OnDIIRQ(current_di);
         }
         g_WaveRecordTask.IsDonePendingReport = false;
     }

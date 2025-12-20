@@ -53,6 +53,7 @@ typedef struct
 {
     int CurrentStepIndex;     // 当前步索引
     bool IsRunning;           // 运行标志
+    bool IsWaiting;           // [新增] 正在等待定时闹钟触发
     bool IsHolding;           // [新增] 保持标志 (序列结束，保持最后一步输出，等待新指令)
     bool IsFinished;          // 标记是否刚刚完成（用于发送最后一次Success报告）
     u32 TotalSteps;           // 总步数
