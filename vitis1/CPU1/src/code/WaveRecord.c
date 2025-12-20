@@ -12,6 +12,7 @@ void WaveRecord_Init(void)
     memset(&g_WaveRecordCtrl, 0, sizeof(WaveRecord_Ctrl_t));
     g_WaveRecordCtrl.isRecording = false;
     g_WaveRecordCtrl.isPendingSave = false;
+    g_WaveRecordCtrl.isPendingStartReport = false;
 }
 
 /**
@@ -157,10 +158,7 @@ void WaveRecord_Start(u32 duration_ms, const char *source)
     g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US();
     g_WaveRecordCtrl.isFirstBlock = true;
 
-    xil_printf("CPU1: WaveRecord Started (%s)...\r\n", g_WaveRecordCtrl.recFrom);
-
-    // 【新增】立即上报 WaveRecordStarted
-    Report_WaveRecordStart();
+    g_WaveRecordCtrl.isPendingStartReport = true; // <-- 标记需要发送报告
 }
 
 void WaveRecord_Stop(void)
@@ -486,10 +484,6 @@ void WaveRecord_OnDIIRQ(uint32_t current_val)
         bool match = false;
         if (g_WaveRecordTask.TrigDICount > 0)
         {
-
-            // 【优化】删除此处原本的 OnOff_Read_Current_Input 调用
-            // u32 current_val = OnOff_Read_Current_Input(g_onoff_bit_width);
-
             int match_count = 0;
 
             for (int i = 0; i < g_WaveRecordTask.TrigDICount; i++)
@@ -526,6 +520,14 @@ void WaveRecord_OnDIIRQ(uint32_t current_val)
  */
 void WaveRecordTask_Check(void)
 {
+    // 处理挂起的启动报告
+    if (g_WaveRecordCtrl.isPendingStartReport)
+    {
+        Report_WaveRecordStart();                      // 发送 JSON
+        g_WaveRecordCtrl.isPendingStartReport = false; // 清除标志，防止重复发送
+        xil_printf("CPU1: WaveRecord Started\r\n");
+    }
+
     // 仅处理 Recording 状态下的结束逻辑
     if (g_WaveRecordTask.State == 3) // Recording
     {

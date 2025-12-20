@@ -39,7 +39,7 @@ ssize_t MsgQue_read(char *buf, size_t cnt)
         Xil_DCacheFlushRange((INTPTR)Linux_WriteMemorySpace, sizeof(struct msg_queue));
 
         /*µ÷ÊÔ*/
-        printf("CPU1: RtosRecvedMsgID=%d\r\n", (int)RtosRecvedMsgID);
+        // printf("CPU1: RtosRecvedMsgID=%d\r\n", (int)RtosRecvedMsgID);
     }
 
     /*4 ½áÊø*/

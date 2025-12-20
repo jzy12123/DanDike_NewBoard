@@ -204,9 +204,12 @@ int main()
 		}
 
 		// ============================================================
-		// 2. [关键] 任务状态监控与上报 (Main Loop Context)
+		// 2. 任务状态监控与上报
 		// ============================================================
-		// 2.1 独立录波任务监控 (SetTaskWaveRecord)
+		// 2.1 开入量SOE上报
+		Process_DI_Events();
+
+		// 2.2 独立录波任务监控 (SetTaskWaveRecord)
 		// 负责检测录波是否完成，并发送 TaskEvent Success
 		WaveRecordTask_Check();
 

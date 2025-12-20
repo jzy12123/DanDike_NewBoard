@@ -487,7 +487,7 @@ void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const vola
 	}
 	else
 	{
-		//打印调试信息
+		// 打印调试信息
 		printf("CPU1: DISOE Report Sent: %s\r\n", finalString);
 	}
 	free(finalString);
@@ -516,6 +516,31 @@ void onoff_handler(void)
 	// 2. 启动或重新启动防抖定时器
 	start_debounce_timer(g_debounce_time_ms);
 }
+// --- 新增：环形缓冲区定义 ---
+#define DI_EVENT_QUEUE_SIZE 16 // 缓冲区深度，防止突发事件丢失
+static volatile DI_Event_Node_t g_di_queue[DI_EVENT_QUEUE_SIZE];
+static volatile uint8_t g_di_head = 0; // 写入位置
+static volatile uint8_t g_di_tail = 0; // 读取位置
+
+// 辅助函数：入队 (仅在中断中调用)
+static void enqueue_di_event(uint32_t data, uint32_t changed, volatile OnOff_Timestamp_t *ts)
+{
+	uint8_t next_head = (g_di_head + 1) % DI_EVENT_QUEUE_SIZE;
+	if (next_head != g_di_tail) // 缓冲区未满
+	{
+		g_di_queue[g_di_head].stable_data = data;
+		g_di_queue[g_di_head].changed_bits = changed;
+		// 复制时间戳结构体
+		g_di_queue[g_di_head].timestamp = *ts;
+
+		// 更新头指针 (放在最后确保数据写入完成)
+		g_di_head = next_head;
+	}
+	else
+	{
+		xil_printf("CPU1: Buffer Full\r\n");
+	}
+}
 /**
  * @brief 防抖定时器的中断服务程序 (最终版)
  * @param CallBackRef 回调引用
@@ -540,57 +565,78 @@ void debounce_timer_handler(void *CallBackRef)
 
 		if (changed_bits != 0)
 		{
-			// 处理状态序列跳转
-			// 将当前的稳定DI值传入状态序列状态机，状态机内部会判断当前Step是否配置了DI触发逻辑
-			StateSequence_DI_Check(changed_bits, stable_input_data);
 
-			// 处理独立录波开关
+			//1. 将事件入队，不做处理
+			enqueue_di_event(stable_input_data, changed_bits, &last_captured_time);
+
+			//2. 处理状态序列跳转
+			StateSequence_DI_Check(changed_bits, stable_input_data);
+			
+			//3. 处理独立录波开关
 			WaveRecord_OnDIIRQ(stable_input_data);
 
-			// 调用辅助函数上报JSON
-			report_di_soe_event(stable_input_data, changed_bits, &last_captured_time);
-
-			// 更新上一次的稳定状态
+			// 更新上一次的稳定状态 (必须在中断里更新，防止下一次误判)
 			previous_stable_onoff_data = stable_input_data;
-
-			// 根据当前位宽，更新 lineDI 结构体用于UDP上报
-			int num_bits;
-			switch (g_onoff_bit_width)
-			{
-			case bit_16:
-				num_bits = 16;
-				break;
-			case bit_24:
-				num_bits = 24;
-				break;
-			case bit_32:
-				num_bits = 32;
-				break;
-			case bit_8:
-			default:
-				num_bits = 8;
-				break;
-			}
-
-			for (int i = 0; i < num_bits; ++i)
-			{
-				lineDI.DI[i].v = (1 - ((stable_input_data >> i) & 1)); // 核心修改：对硬件状态位进行逻辑反转，与DISOE上报逻辑保持一致
-			}
-			// 将未使用的位清零，确保UDP报文的整洁
-			for (int i = num_bits; i < ChnsDI; ++i)
-			{
-				lineDI.DI[i].v = 0;
-			}
-			udp_data_changed_flag = true; // 触发UDP更新
 		}
-	}
-	else
-	{
-		// 信号不稳定（抖动）
-		printf("CPU1: Input bounce detected and ignored. Last captured data: 0x%08lX, but stable data is now: 0x%08lX\r\n", last_onoff_data, stable_input_data);
 	}
 }
 
+/**
+ * @brief 在主循环中处理开入事件 (消费者)
+ * @details 包含所有耗时操作：逻辑判断、JSON生成、UDP更新
+ */
+void Process_DI_Events(void)
+{
+	// 循环处理直到队列为空
+	while (g_di_head != g_di_tail)
+	{
+		// 1. 取出事件数据
+		volatile DI_Event_Node_t *evt = &g_di_queue[g_di_tail];
+		uint32_t data = evt->stable_data;
+		uint32_t changed = evt->changed_bits;
+
+		// 2. 执行耗时任务
+
+		// (1) 上报 JSON (包含 malloc/printf)
+		report_di_soe_event(data, changed, &evt->timestamp);
+
+		// (2) 更新 UDP 全局结构体 lineDI
+		int num_bits;
+		switch (g_onoff_bit_width)
+		{
+		case bit_16:
+			num_bits = 16;
+			break;
+		case bit_24:
+			num_bits = 24;
+			break;
+		case bit_32:
+			num_bits = 32;
+			break;
+		case bit_8:
+		default:
+			num_bits = 8;
+			break;
+		}
+
+		for (int i = 0; i < num_bits; ++i)
+		{
+			// 逻辑反转
+			lineDI.DI[i].v = (1 - ((data >> i) & 1));
+		}
+		// 清零未使用位
+		for (int i = num_bits; i < ChnsDI; ++i)
+		{
+			lineDI.DI[i].v = 0;
+		}
+
+		// 触发 UDP 发送
+		udp_data_changed_flag = true;
+
+		// 3. 移动尾指针，完成处理
+		g_di_tail = (g_di_tail + 1) % DI_EVENT_QUEUE_SIZE;
+	}
+}
 /**
  * @brief 启动开关量模块
  *

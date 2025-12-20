@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251219.0937";
+const char ARM_Ver_Full[] = "[Ver]=V1.251219.1032";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -135,7 +135,6 @@ int Parse_JsonCommand(char *buffer)
 
     const char *funCode = cJSON_GetStringValue(funCodeItem);
     xil_printf("CPU1: FunCode: %s\r\n", funCode);
-    xil_printf("\r\n");
 
     // 解析Data
     cJSON *data = cJSON_GetObjectItem(json, "Data");

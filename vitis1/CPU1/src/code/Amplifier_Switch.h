@@ -65,7 +65,7 @@ typedef enum
 	bit_24 = 2,
 	bit_32 = 3
 } Read_Bit;
-extern Read_Bit g_onoff_bit_width; //声明全局位宽变量
+extern Read_Bit g_onoff_bit_width; // 声明全局位宽变量
 // 定义开入功能
 typedef enum
 {
@@ -80,6 +80,7 @@ typedef enum
 	POWAMP_OFF = 0,
 	POWAMP_ON = 1
 } POWER_AMP_STATE;
+
 // 用于保存锁存的时间戳的结构体
 typedef struct
 {
@@ -90,6 +91,13 @@ typedef struct
 	uint32_t sub_sec;
 } OnOff_Timestamp_t;
 
+// 开入事件缓冲结构 ---
+typedef struct
+{
+	uint32_t stable_data;
+	uint32_t changed_bits;
+	OnOff_Timestamp_t timestamp;
+} DI_Event_Node_t;
 extern XTtcPs DebounceTimer;	 // TTC定时器实例
 extern float g_debounce_time_ms; // <--- 新增：声明全局防抖时间变量
 
@@ -109,6 +117,7 @@ void OnOff_Read_LatchedData(Read_Bit bit_width, uint32_t *read_data, volatile On
 u32 OnOff_Read_Current_Input(Read_Bit bit_width);
 void onoff_handler(void);
 void report_di_soe_event(uint32_t stable_data, uint32_t changed_bits, const volatile OnOff_Timestamp_t *timestamp);
+void Process_DI_Events(void);
 // 防抖定时器
 int debounce_timer_init();
 void debounce_timer_handler(void *CallBackRef);
