@@ -178,19 +178,16 @@ int main()
 	PowerPulse_Init();
 	init_EnergyTest();
 	WaveRecord_Init();
-
-	XScuTimer_Start(&Timer);											  // 启动主循环定时器
-	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
-	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
-	Adc_Continuous_Start(); // 启动 ADC 连续采集
-	xil_printf("CPU1: Start Main Timer...\r\n");
-	xil_printf("-----------------------------------------------------------------------------\r\n");
-
-	// 开关量初始化 放到前面会死机
-	OnOff_Start(bit_8, 0);
+	XScuTimer_Start(&Timer);
+	OnOff_Start(bit_8, 0); // 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 1);
 	sleep(2);
+	Adc_Continuous_Start(); // 启动 ADC 连续采集
 
+	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
+	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
+	xil_printf("CPU1: Start Main Timer...\r\n");
+	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
 
 	while (1)
