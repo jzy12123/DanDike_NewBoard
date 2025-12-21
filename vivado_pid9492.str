@@ -110,3 +110,66 @@ Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 // Tcl Message: open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr 
 // Tcl Message: Scanning sources... Finished scanning sources 
 // Tcl Message: INFO: [IP_Flow 19-234] Refreshing IP repositories INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'. INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'. INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'. 
+// [GUI Memory]: 126 MB (+1034kb) [00:00:34]
+// [GUI Memory]: 143 MB (+11725kb) [00:00:34]
+// [GUI Memory]: 154 MB (+3989kb) [00:00:34]
+// Tcl Message: open_project: Time (s): cpu = 00:00:19 ; elapsed = 00:00:25 . Memory (MB): peak = 1114.734 ; gain = 5.195 
+// Project name: DanDike_NewBoard; location: C:/Users/saber/Desktop/share/DanDike_NewBoard; part: xc7z020clg400-2
+dismissDialog("Open Project"); // bz
+// Tcl Command: 'rdi::info_commands {device::*}'
+// Tcl Command: 'rdi::info_commands {debug::*}'
+// Tcl Command: 'rdi::info_commands {*}'
+// HMemoryUtils.trashcanNow. Engine heap size: 1,168 MB. GUI used memory: 115 MB. Current time: 12/21/25, 10:50:06 AM CST
+// Tcl Message: update_compile_order -fileset sources_1 
+// Elapsed time: 90 seconds
+selectTree(PAResourceEtoH.FlowNavigatorTreePanel_FLOW_NAVIGATOR_TREE, "[, IP Integrator, Open Block Design]", 7, false); // u
+// Run Command: PAResourceCommand.PACommandNames_OPEN_BLOCK_DESIGN
+// bz (cr):  Open Block Design : addNotify
+// Tcl Message: open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd} 
+// TclEventType: LOAD_FEATURE
+// TclEventType: RSB_SCRIPT_TASK
+// Tcl Message: Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>... 
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: LOAD_FEATURE
+// TclEventType: RSB_PROPERTY_CHANGE
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_LOCK_CHANGE
+// TclEventType: RSB_CHANGE_CURRENT_DIAGRAM
+// TclEventType: RSB_SCRIPT_TASK
+// TclEventType: RSB_OPEN_DIAGRAM
+// [GUI Memory]: 173 MB (+11740kb) [00:02:12]
+// [Engine Memory]: 1,215 MB (+30999kb) [00:02:12]
+// TclEventType: RSB_OPEN_DIAGRAM
+// WARNING: HEventQueue.dispatchEvent() is taking  2702 ms.
+// HMemoryUtils.trashcanNow. Engine heap size: 1,252 MB. GUI used memory: 120 MB. Current time: 12/21/25, 10:51:43 AM CST
+// [Engine Memory]: 1,291 MB (+16375kb) [00:02:17]
+// Elapsed time: 10 seconds
+closeView(PAResourceOtoP.PAViews_PROJECT_SUMMARY, "Project Summary"); // v
+// Tcl Message: open_bd_design: Time (s): cpu = 00:00:06 ; elapsed = 00:00:10 . Memory (MB): peak = 1334.051 ; gain = 137.066 
+// 'bF' command handler elapsed time: 11 seconds
+dismissDialog("Open Block Design"); // bz
+// [Engine Memory]: 1,393 MB (+38380kb) [00:02:19]
+// Elapsed time: 61 seconds
+selectButton(PAResourceCommand.PACommandNames_REGENERATE_LAYOUT, "System_regenerate_rsb_layout"); // E
+// Run Command: PAResourceCommand.PACommandNames_REGENERATE_LAYOUT
+// Tcl Command: 'regenerate_bd_layout'
+// TclEventType: RSB_LAYOUT_STATE
+// TclEventType: RSB_REGENERATE_LAYOUT
+// Tcl Message: regenerate_bd_layout 
+// [GUI Memory]: 182 MB (+59kb) [00:03:23]
+// [GUI Memory]: 195 MB (+4061kb) [00:03:25]
+// HMemoryUtils.trashcanNow. Engine heap size: 1,410 MB. GUI used memory: 138 MB. Current time: 12/21/25, 11:21:44 AM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,426 MB. GUI used memory: 138 MB. Current time: 12/21/25, 11:27:24 AM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,431 MB. GUI used memory: 128 MB. Current time: 12/21/25, 11:57:27 AM CST
+// WARNING: HSwingWorker (Refresh Filesets Swing Worker) is taking 1014 ms. Increasing delay to 3042 ms.
+// HMemoryUtils.trashcanNow. Engine heap size: 1,433 MB. GUI used memory: 127 MB. Current time: 12/21/25, 12:27:30 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,433 MB. GUI used memory: 127 MB. Current time: 12/21/25, 12:57:33 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,433 MB. GUI used memory: 127 MB. Current time: 12/21/25, 1:27:36 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,436 MB. GUI used memory: 127 MB. Current time: 12/21/25, 1:57:39 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,436 MB. GUI used memory: 127 MB. Current time: 12/21/25, 2:27:41 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,436 MB. GUI used memory: 127 MB. Current time: 12/21/25, 2:57:44 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,440 MB. GUI used memory: 127 MB. Current time: 12/21/25, 3:27:47 PM CST
+// WARNING: HSwingWorker (Update Runs Swing Worker) is taking 1332 ms. Increasing delay to 3000 ms.

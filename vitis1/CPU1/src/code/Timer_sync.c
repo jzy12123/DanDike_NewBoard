@@ -332,19 +332,60 @@ bool is_rtc_time_valid(const RTC_Time_t *TimePtr)
     return true;
 }
 
-/**
- * @brief IRIG-B 同步完成中断处理函数
- */
 void Handler_BmSyncEnd(void *CallbackRef)
 {
     // 1. 清除中断
     XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
 
     // 2. 检查当前是否正在进行IRIG-B对时任务
-    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB &&
-        g_TimeSyncManager.status == TIME_SYNC_IN_PROGRESS)
+    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB && g_TimeSyncManager.status == TIME_SYNC_IN_PROGRESS)
     {
-        // 硬件已完成对时，通知系统成功
+        // 同步 RTC
+        In_CurrTime curr_time;
+        RTC_Time_t rtc_time;
+        int iso_week = 0;
+
+        // A. 从IP核读取刚刚同步好的高精度时间
+        read_current_time(&curr_time);
+
+        // B. 转换格式为 RTC 结构体
+        rtc_time.year = (u8)(curr_time.curr_year % 100); // 2025 -> 25
+        rtc_time.month = (u8)curr_time.curr_month;
+        rtc_time.day = (u8)curr_time.curr_day;
+        rtc_time.hour = (u8)curr_time.curr_hour;
+        rtc_time.min = (u8)curr_time.curr_minute;
+        rtc_time.sec = (u8)curr_time.curr_second;
+
+        // C. 星期转换：软时钟独热码(One-Hot) -> RTC数值(0=Sun, 1=Mon...6=Sat)
+        // 假设 curr_week: bit0=Mon ... bit6=Sun
+        for (int i = 0; i < 7; i++)
+        {
+            if ((curr_time.curr_week >> i) & 0x01)
+            {
+                iso_week = i + 1; // 1=Mon...7=Sun
+                break;
+            }
+        }
+        // RX8025 星期通常定义: 0=Sun, 1=Mon, ..., 6=Sat (需根据实际驱动确认，此处兼容 main.c 逻辑)
+        rtc_time.week = (iso_week == 7) ? 0 : (u8)iso_week;
+
+        // D. 写入硬件 RTC
+        // 注意：RTC_AXI_IIC_BASEADDR 宏在您的 Timer_sync.c 中应已通过头文件可见
+        int status = Rtc8025_SetTime(RTC_AXI_IIC_BASEADDR, &rtc_time);
+
+        if (status == XST_SUCCESS)
+        {
+            xil_printf("CPU1: [ISR] IRIG-B Sync -> RTC Updated: 20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+                       rtc_time.year, rtc_time.month, rtc_time.day,
+                       rtc_time.hour, rtc_time.min, rtc_time.sec);
+        }
+        else
+        {
+            xil_printf("CPU1: [ISR] IRIG-B Sync -> RTC Write Failed!\r\n");
+        }
+        // -----------------------------------------------------
+
+        // 3. 硬件已完成对时，通知系统成功 (清理软时钟B码使能等)
         NotifySyncSuccess();
     }
 }

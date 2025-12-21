@@ -2472,7 +2472,7 @@ void handle_SetSysTimeSyncMode(cJSON *data)
     const char *requested_mode = sync_mode_item->valuestring;
     current_mode_str = (char *)requested_mode; // ”√”⁄ªÿ∏¥
 
-    if (strcmp(requested_mode, "BD") == 0)
+    if (strcmp(requested_mode, "BD") == 0 || strcmp(requested_mode, "GPS") == 0)
     {
         mode_to_start = SYNC_MODE_GPS;
     }

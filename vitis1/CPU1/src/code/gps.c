@@ -74,7 +74,7 @@ int GpsTtcTimerInit(u16 device_id)
  * @brief GPS串口接收中断处理函数
  */
 void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData)
-{ //
+{ 
 	XUartLite *UartLiteInstancePtr = (XUartLite *)CallBackRef;
 	u8 RecvChar;
 
@@ -98,10 +98,10 @@ void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData)
  * @brief GPS接收超时中断处理函数 (修改后)
  */
 void GpsTimeoutHandler(void *CallBackRef)
-{ //
+{ 
 	XTtcPs *TimerInstancePtr = (XTtcPs *)CallBackRef;
 	XTtcPs_ClearInterruptStatus(TimerInstancePtr, XTTCPS_IXR_INTERVAL_MASK);
-	XTtcPs_Stop(TimerInstancePtr);
+	XTtcPs_Stop(TimerInstancePtr); 
 
 	// --- 修改 --- 仅在GPS对时进行中才处理
 	if (g_TimeSyncManager.status != TIME_SYNC_IN_PROGRESS || g_TimeSyncManager.current_mode != SYNC_MODE_GPS)
@@ -115,7 +115,7 @@ void GpsTimeoutHandler(void *CallBackRef)
 
 		// 检查是否收到有效的RMC数据
 		if (gpsx.rmc_status == 'A')
-		{									//
+		{									
 			GPS_ConvertUTCToBeijing(&gpsx); //
 
 			if (gpsx.utc.year > 2020)
@@ -541,7 +541,6 @@ void GPS_Analysis(nmea_msg *gpsx, u8 *buf)
 	// NMEA_GNGGA_Analysis(gpsx, buf);	//GPGGA解析
 	// NMEA_GNGSA_Analysis(gpsx, buf);	//GPGSA解析
 	NMEA_GNRMC_Analysis(gpsx, buf); // GPRMC解析
-									//	NMEA_GNVTG_Analysis(gpsx, buf);	//GNVTG解析
 }
 
 // 显示GPS定位信息
