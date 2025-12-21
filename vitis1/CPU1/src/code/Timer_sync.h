@@ -6,6 +6,7 @@
 #include "cJSON.h"   // 用于构建上报的JSON
 #include "8025IIC.h"
 #include "stdbool.h"
+#include "soft_timer.h"
 // 对时模式枚举
 typedef enum
 {
@@ -79,4 +80,7 @@ void NotifySyncSuccess(void);
 void NotifySyncFailure(void);
 
 bool is_rtc_time_valid(const RTC_Time_t *TimePtr);
+
+void Handler_BmSyncEnd(void *CallbackRef);
+void Handler_DateUpdate(void *CallbackRef);
 #endif /* TIMER_SYNC_H_ */

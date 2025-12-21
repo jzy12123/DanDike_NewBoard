@@ -155,7 +155,7 @@ int main()
 		time_from_rtc_to_soft.week = 1 << (iso_weekday_from_rtc - 1);
 
 		time_from_rtc_to_soft.pps_clr_en = true;
-		time_from_rtc_to_soft.bm_encode_en = false;
+		time_from_rtc_to_soft.bm_encode_en = true; // Ä¬ÈÏ¿ªÆôBÂëÊä³ö
 		time_from_rtc_to_soft.bm_decode_en = false;
 
 		write_soft_timer(&time_from_rtc_to_soft);

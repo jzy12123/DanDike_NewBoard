@@ -1,13 +1,72 @@
-16:41:56 **** Incremental Build of configuration Debug for project CPU1 ****
+15:28:22 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
+'Building file: ../src/code/ADDA.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/ADDA.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/ADDA.d" -MT"src/code/ADDA.o" -o "src/code/ADDA.o" "../src/code/ADDA.c"
+'Finished building: ../src/code/ADDA.c'
+' '
+'Building file: ../src/code/Amplifier_Switch.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Amplifier_Switch.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Amplifier_Switch.d" -MT"src/code/Amplifier_Switch.o" -o "src/code/Amplifier_Switch.o" "../src/code/Amplifier_Switch.c"
+'Finished building: ../src/code/Amplifier_Switch.c'
+' '
+'Building file: ../src/code/Communications_Protocol.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Communications_Protocol.d" -MT"src/code/Communications_Protocol.o" -o "src/code/Communications_Protocol.o" "../src/code/Communications_Protocol.c"
+'Finished building: ../src/code/Communications_Protocol.c'
+' '
+'Building file: ../src/code/My_KissFft.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/My_KissFft.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/My_KissFft.d" -MT"src/code/My_KissFft.o" -o "src/code/My_KissFft.o" "../src/code/My_KissFft.c"
+../src/code/My_KissFft.c: In function 'perform_fft_with_window':
+../src/code/My_KissFft.c:331:9: warning: variable 'fundamental_idx' set but not used [-Wunused-but-set-variable]
+  331 |     int fundamental_idx = 0;
+      |         ^~~~~~~~~~~~~~~
+'Finished building: ../src/code/My_KissFft.c'
+' '
+'Building file: ../src/code/Rc64.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Rc64.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Rc64.d" -MT"src/code/Rc64.o" -o "src/code/Rc64.o" "../src/code/Rc64.c"
+'Finished building: ../src/code/Rc64.c'
+' '
+'Building file: ../src/code/StateSequence.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/StateSequence.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/StateSequence.d" -MT"src/code/StateSequence.o" -o "src/code/StateSequence.o" "../src/code/StateSequence.c"
+'Finished building: ../src/code/StateSequence.c'
+' '
+'Building file: ../src/code/Timer_sync.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Timer_sync.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Timer_sync.d" -MT"src/code/Timer_sync.o" -o "src/code/Timer_sync.o" "../src/code/Timer_sync.c"
+'Finished building: ../src/code/Timer_sync.c'
+' '
 'Building file: ../src/code/WaveRecord.c'
 'Invoking: ARM v7 gcc compiler'
 arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/WaveRecord.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/WaveRecord.d" -MT"src/code/WaveRecord.o" -o "src/code/WaveRecord.o" "../src/code/WaveRecord.c"
 'Finished building: ../src/code/WaveRecord.c'
+' '
+'Building file: ../src/code/gps.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/gps.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/gps.d" -MT"src/code/gps.o" -o "src/code/gps.o" "../src/code/gps.c"
+'Finished building: ../src/code/gps.c'
+' '
+'Building file: ../src/code/main.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/main.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/main.d" -MT"src/code/main.o" -o "src/code/main.o" "../src/code/main.c"
+'Finished building: ../src/code/main.c'
+' '
+'Building file: ../src/code/power_pulse.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/power_pulse.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/power_pulse.d" -MT"src/code/power_pulse.o" -o "src/code/power_pulse.o" "../src/code/power_pulse.c"
+'Finished building: ../src/code/power_pulse.c'
+' '
+'Building file: ../src/code/soft_timer.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/soft_timer.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/soft_timer.d" -MT"src/code/soft_timer.o" -o "src/code/soft_timer.o" "../src/code/soft_timer.c"
+'Finished building: ../src/code/soft_timer.c'
 ' '
 'Building target: CPU1.elf'
 'Invoking: ARM v7 gcc linker'
@@ -17,9 +76,9 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 301100	   4640	21468384	21774124	14c3f2c	CPU1.elf
+ 302536	   4640	21468384	21775560	14c44c8	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-16:41:57 Build Finished (took 1s.329ms)
+15:28:29 Build Finished (took 7s.586ms)
 

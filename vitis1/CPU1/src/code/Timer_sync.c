@@ -16,9 +16,9 @@ static void send_task_event(const char *result_str);
 static int parse_and_set_manual_time(const char *time_str);
 
 // Timeout definitions (in 0.5s ticks)
-#define GPS_SYNC_TIMEOUT_TICKS 10  // 5秒
-#define IRIGB_SYNC_TIMEOUT_TICKS 6 // 3秒
-#define REPORT_INTERVAL_TICKS 2    // 1秒
+#define GPS_SYNC_TIMEOUT_TICKS 10   // 5秒
+#define IRIGB_SYNC_TIMEOUT_TICKS 10 // 5秒
+#define REPORT_INTERVAL_TICKS 2     // 1秒
 
 /**
  * @brief 初始化对时管理器
@@ -62,11 +62,13 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
     case SYNC_MODE_IRIGB:
         xil_printf("CPU1: Starting IRIG-B time synchronization...\r\n");
         g_TimeSyncManager.timeout_ticks = IRIGB_SYNC_TIMEOUT_TICKS;
-        // TODO: 在此添加启动IRIG-B硬件解码和中断的逻辑
-        // 暂时直接设置为失败
-        NotifySyncFailure();
+
+        // 开启软时钟的B码对时,上升沿
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 1);
         break;
 
+    // SNTP和手动都是手动对时
     case SYNC_MODE_MANUAL:
     case SYNC_MODE_SNTP:
     {
@@ -162,7 +164,11 @@ void NotifySyncSuccess(void)
         XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
     }
-    // TODO: 添加其他模式的清理逻辑
+    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB)
+    {
+        // 关闭软时钟IP核B码对时功能
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+    }
 
     TimeSync_Init(); // 恢复到空闲状态
 }
@@ -185,7 +191,11 @@ void NotifySyncFailure(void)
         XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
     }
-    // TODO: 添加其他模式的清理逻辑
+    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB)
+    {
+        // 关闭软时钟IP核B码对时功能
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+    }
 
     TimeSync_Init(); // 恢复到空闲状态
 }
@@ -276,6 +286,8 @@ static int parse_and_set_manual_time(const char *time_str)
     int weekday_iso = calculate_weekday_iso(year, month, day);
     time_to_set_soft.week = (weekday_iso > 0) ? (1 << (weekday_iso - 1)) : 1;
     time_to_set_soft.pps_clr_en = true;
+    time_to_set_soft.bm_encode_en = true;
+    time_to_set_soft.bm_decode_en = false;
     write_soft_timer(&time_to_set_soft);
 
     // 填充硬件RTC结构体
@@ -318,4 +330,93 @@ bool is_rtc_time_valid(const RTC_Time_t *TimePtr)
     if (TimePtr->year > 99)
         return false; // 年份是两位数
     return true;
+}
+
+/**
+ * @brief IRIG-B 同步完成中断处理函数
+ */
+void Handler_BmSyncEnd(void *CallbackRef)
+{
+    // 1. 清除中断
+    XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
+
+    // 2. 检查当前是否正在进行IRIG-B对时任务
+    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB &&
+        g_TimeSyncManager.status == TIME_SYNC_IN_PROGRESS)
+    {
+        // 硬件已完成对时，通知系统成功
+        NotifySyncSuccess();
+    }
+}
+
+/**
+ * @brief 日期更新中断处理函数 (Pin 8)
+ * @note 每天 00:00:00 触发，负责更新软时钟日期
+ */
+void Handler_DateUpdate(void *CallbackRef)
+{
+    // 1. 清除中断
+    XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR);
+
+    xil_printf("CPU1: [ISR] Date Update Triggered at 00:00:00\r\n");
+
+    // 2. 读取当前时间以获取当前日期
+    In_CurrTime curr;
+    read_current_time(&curr);
+
+    // 3. 计算下一天的日期
+    int year = curr.curr_year;
+    int month = curr.curr_month;
+    int day = curr.curr_day;
+
+    int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    // 闰年判断
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+    {
+        days_in_month[2] = 29;
+    }
+
+    day++;
+    if (day > days_in_month[month])
+    {
+        day = 1;
+        month++;
+        if (month > 12)
+        {
+            month = 1;
+            year++;
+        }
+    }
+
+    // 4. 计算相关的辅助数据 (星期, 年积日)
+    int wk_iso = calculate_weekday_iso(year, month, day);
+    int wk_onehot = (wk_iso > 0) ? (1 << (wk_iso - 1)) : 1; // 转换为独热码
+    int year_day_val = calculate_year_day(month, day, year);
+
+    // 5. 构造写入软时钟寄存器的数据 (参考 soft_timer.c 的写入逻辑)
+
+    // 构造 slv_reg0: [17:10]年BCD | [9:0]年日BCD
+    uint8_t yd_d0 = year_day_val % 10;
+    uint8_t yd_d1 = (year_day_val / 10) % 10;
+    uint8_t yd_d2 = (year_day_val / 100) % 10;
+    uint16_t bcd_yearday = (uint16_t)(yd_d2 << 8) | (yd_d1 << 4) | yd_d0;
+    uint32_t reg0 = ((uint32_t)int_to_bcd_byte(year % 100) << 10) | (bcd_yearday & 0x3FF);
+
+    // 构造 slv_reg1: [17:13]月BCD | [12:7]日BCD | [6:0]星期
+    uint32_t reg1 = ((uint32_t)int_to_bcd_byte(month) << 13) |
+                    ((uint32_t)int_to_bcd_byte(day) << 7) |
+                    (wk_onehot & 0x7F);
+
+    // 6. 写入寄存器并产生更新脉冲
+    // 注意：只更新日期相关寄存器，不触碰 Reg2(时间)，只脉冲 Reg3(wr_date)
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG0, reg0);
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG1, reg1);
+
+    // 脉冲 wr_date (slv_reg3[0])
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG3, 0x01);
+    // 必要的延时，确保时钟域同步
+    for (volatile int i = 0; i < 100; i++)
+        ;
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG3, 0x00);
 }

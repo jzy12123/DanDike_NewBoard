@@ -2,10 +2,10 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Tue Dec  9 10:40:11 2025
-# Process ID: 11144
+# Start of session at: Mon Dec 15 09:27:14 2025
+# Process ID: 23720
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
-# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent7396 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent2928 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
 # Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
 #-----------------------------------------------------------
@@ -17,7 +17,19 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-open_project: Time (s): cpu = 00:00:25 ; elapsed = 00:00:28 . Memory (MB): peak = 1138.793 ; gain = 0.000
+WARNING: [BD 41-1661] One or more IPs have been locked in the design 'system.bd'. Please run report_ip_status for more details and recommendations on how to fix this issue.
+List of locked IPs:
+system_adc_whole_0_0
+
+open_project: Time (s): cpu = 00:00:20 ; elapsed = 00:00:26 . Memory (MB): peak = 1121.234 ; gain = 0.000
+update_compile_order -fileset sources_1
+WARNING: [IP_Flow 19-4318] IP-XACT file does not exist: c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2/component.xml. It will be created.
+update_ip_catalog -rebuild -scan_changes
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
+report_ip_status -name ip_status
+report_ip_status: Time (s): cpu = 00:00:02 ; elapsed = 00:00:06 . Memory (MB): peak = 1213.598 ; gain = 18.582
 open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
 Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>...
 Adding component instance block -- xilinx.com:ip:processing_system7:5.5 - processing_system7_0
@@ -59,38 +71,102 @@ Adding component instance block -- xilinx.com:user:gmii2rgmii:1.0 - gmii2rgmii_0
 Adding component instance block -- xilinx.com:user:dac_whole:1.0 - dac_whole_0
 Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_1
 Adding component instance block -- xilinx.com:ip:axi_dma:7.1 - axi_dma_0
-Adding component instance block -- xilinx.com:user:adc_whole:2.0 - adc_whole_0
 Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - axi_smc
 Adding component instance block -- xilinx.com:ip:axi_cdma:4.1 - axi_cdma_0
 Adding component instance block -- xilinx.com:ip:axi_bram_ctrl:4.1 - axi_bram_ctrl_1
 Adding component instance block -- xilinx.com:ip:blk_mem_gen:8.4 - axi_bram_ctrl_1_bram
 Adding component instance block -- xilinx.com:ip:smartconnect:1.0 - smartconnect_0
 Adding component instance block -- xilinx.com:ip:axis_data_fifo:2.0 - axis_data_fifo_0
+Adding component instance block -- xilinx.com:user:adc_whole:2.0 - adc_whole_0
 Adding component instance block -- xilinx.com:user:stimer_onoff_pa_rw:1.0 - stimer_onoff_pa_rw_A_0
 Adding component instance block -- xilinx.com:ip:axi_iic:2.0 - axi_iic_0
 Adding component instance block -- xilinx.com:user:power_pulse_v1_AXI:1.0 - power_pulse_v1_AXI_0
 Adding component instance block -- xilinx.com:ip:axi_intc:4.1 - axi_intc_BareMetal
 Adding component instance block -- xilinx.com:ip:xlconcat:2.1 - xlconcat_BareMetal
 Successfully read diagram <system> from block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>
-open_bd_design: Time (s): cpu = 00:00:15 ; elapsed = 00:00:12 . Memory (MB): peak = 1334.504 ; gain = 155.367
-update_compile_order -fileset sources_1
-ipx::edit_ip_in_project -upgrade true -name adc_whole_v2_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v2_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2/component.xml
+open_bd_design: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1357.828 ; gain = 102.324
+regenerate_bd_layout
+upgrade_ip -vlnv xilinx.com:user:adc_whole:2.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
+Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v2_0 2.0) from revision 18 to revision 15
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
+export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
+report_ip_status -name ip_status 
+report_ip_status -name ip_status 
+regenerate_bd_layout
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
+                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
+WARNING: [xilinx.com:ip:axi_intc:4.1-7] /axi_intc_BareMetal: Interrupts type manual value (0xFFFFFFFF) does not match computed value (0xFFFFFFFC). Please review the manual value or consider using Auto instead.
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
+Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
+VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
+Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
+Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
+Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/adc_whole_0 .
+Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0.hwh
+Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0_bd.tcl
+Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/synth/system_smartconnect_0_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_1 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_2 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i02_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/s00_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m09_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m10_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m11_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m12_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m13_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m14_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m15_couplers/auto_pc .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_intercon/s00_couplers/auto_pc .
+Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
+Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
+Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
+[Mon Dec 15 09:30:57 2025] Launched synth_1...
+Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
+[Mon Dec 15 09:30:58 2025] Launched impl_1...
+Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
+launch_runs: Time (s): cpu = 00:01:02 ; elapsed = 00:01:16 . Memory (MB): peak = 2048.066 ; gain = 324.277
+report_ip_status -name ip_status 
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
+INFO: [Hsi 55-2053] elapsed time for repository (E:/vivado/Vivado/2020.2/data\embeddedsw) loading 2 seconds
+INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
+INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
+write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:09 . Memory (MB): peak = 2252.758 ; gain = 184.324
+ipx::edit_ip_in_project -upgrade true -name adc_whole_v2_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v2_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V3/component.xml
 INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
 Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v2_0_project'
 INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1704] No user IP repositories specified
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
+create_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2252.758 ; gain = 0.000
 INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-795] Syncing license key meta-data
-ipx::edit_ip_in_project: Time (s): cpu = 00:00:10 ; elapsed = 00:00:06 . Memory (MB): peak = 1578.953 ; gain = 7.750
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:09 ; elapsed = 00:00:08 . Memory (MB): peak = 2252.758 ; gain = 0.000
 update_compile_order -fileset sources_1
 ipx::merge_project_changes files [ipx::current_core]
-WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2/component.xml' ignored by IP packager.
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V3/component.xml' ignored by IP packager.
+ipx::merge_project_changes hdl_parameters [ipx::current_core]
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V3/component.xml' ignored by IP packager.
+INFO: [IP_Flow 19-3166] Bus Interface 'S_AXI': References existing memory map 'S_AXI'.
 ipx::update_checksums [ipx::current_core]
 ipx::save_core [ipx::current_core]
-set_property core_revision 13 [ipx::current_core]
+set_property core_revision 16 [ipx::current_core]
 ipx::update_source_project_archive -component [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
@@ -106,91 +182,20 @@ INFO: [IP_Flow 19-725] Reloaded user IP repository 'c:/Users/saber/Desktop/share
 report_ip_status -name ip_status 
 upgrade_ip -vlnv xilinx.com:user:adc_whole:2.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
 Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
-INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v2_0 2.0) from revision 12 to revision 13
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v2_0 2.0) from revision 15 to revision 16
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
 INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
 export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
 report_ip_status -name ip_status 
-regenerate_bd_layout
-validate_bd_design
-INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+INFO: [Common 17-365] Interrupt caught but 'launch_runs' cannot be canceled. Please wait for command to finish.
 INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
                     All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
 WARNING: [xilinx.com:ip:axi_intc:4.1-7] /axi_intc_BareMetal: Interrupts type manual value (0xFFFFFFFF) does not match computed value (0xFFFFFFFC). Please review the manual value or consider using Auto instead.
-validate_bd_design: Time (s): cpu = 00:00:46 ; elapsed = 00:00:45 . Memory (MB): peak = 1854.145 ; gain = 94.578
-save_bd_design
-Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
-Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
-reset_run synth_1
-launch_runs impl_1 -to_step write_bitstream -jobs 8
-INFO: [BD 41-1662] The design 'system.bd' is already validated. Therefore parameter propagation will not be re-run.
-Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
-WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
-VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.v
-WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
-VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
-VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
-Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
-Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
-Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/adc_whole_0 .
-Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0.hwh
-Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0_bd.tcl
-Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/synth/system_smartconnect_0_0.hwdef
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_1 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_2 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i00_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i02_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/s00_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m09_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m10_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m11_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m12_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m13_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m14_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m15_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_intercon/s00_couplers/auto_pc .
-Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
-Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
-Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
-[Tue Dec  9 10:45:34 2025] Launched synth_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Tue Dec  9 10:45:34 2025] Launched impl_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-launch_runs: Time (s): cpu = 00:00:13 ; elapsed = 00:00:26 . Memory (MB): peak = 2069.137 ; gain = 194.359
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
-INFO: [Hsi 55-2053] elapsed time for repository (E:/vivado/Vivado/2020.2/data\embeddedsw) loading 1 seconds
-INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
-INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:08 . Memory (MB): peak = 2266.434 ; gain = 163.691
-report_ip_status -name ip_status 
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
-INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
-INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 2299.094 ; gain = 0.000
-update_ip_catalog -rebuild -scan_changes
-INFO: [IP_Flow 19-234] Refreshing IP repositories
-INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
-INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
-report_ip_status -name ip_status
-upgrade_ip -vlnv xilinx.com:user:adc_whole:2.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
-Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
-INFO: [IP_Flow 19-1972] Upgraded system_adc_whole_0_0 from adc_whole_v2_0 2.0 to adc_whole_v2_0 2.0
-Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
-Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
-INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
-export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
-reset_run synth_1
-launch_runs impl_1 -to_step write_bitstream -jobs 8
 INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
 INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
-INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
-                    All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
-WARNING: [xilinx.com:ip:axi_intc:4.1-7] /axi_intc_BareMetal: Interrupts type manual value (0xFFFFFFFF) does not match computed value (0xFFFFFFFC). Please review the manual value or consider using Auto instead.
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
@@ -198,60 +203,9 @@ VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_N
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/sim/system.v
 VHDL Output written to : C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hdl/system_wrapper.v
-Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0.hwh
-Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/hw_handoff/system_axi_smc_0_bd.tcl
-Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_axi_smc_0_1/bd_0/synth/system_axi_smc_0.hwdef
-INFO: [BD 41-1029] Generation completed for the IP Integrator block AC_8_channel_0/adda/adc_whole_0 .
-Exporting to file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0.hwh
-Generated Block Design Tcl file c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/hw_handoff/system_smartconnect_0_0_bd.tcl
-Generated Hardware Definition File c:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ip/system_smartconnect_0_0/bd_0/synth/system_smartconnect_0_0.hwdef
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_0 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_1 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/tier2_xbar_2 .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i00_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/i02_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/s00_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m09_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m10_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m11_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m12_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m13_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m14_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block ps7_0_axi_periph/m15_couplers/auto_pc .
-INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_intercon/s00_couplers/auto_pc .
-Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
-Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
-Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
-[Tue Dec  9 19:09:19 2025] Launched synth_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Tue Dec  9 19:09:19 2025] Launched impl_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-launch_runs: Time (s): cpu = 00:00:54 ; elapsed = 00:01:07 . Memory (MB): peak = 2313.848 ; gain = 0.000
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/system_wrapper.xsa
-ERROR: [Common 17-1293] The path 'C:/Users/saber/Desktop' already exists, is a directory, but is not writable.
-reset_run synth_1
-WARNING: [Vivado 12-1017] Problems encountered:
-1. Failed to delete one or more files in run directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1
-
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
-INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
-INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2410.191 ; gain = 96.344
-write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
-INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
-INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2420.816 ; gain = 10.625
-report_ip_status -name ip_status 
-launch_runs impl_1 -to_step write_bitstream -jobs 8
-[Tue Dec  9 19:14:43 2025] Launched synth_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Tue Dec  9 19:14:43 2025] Launched impl_1...
-Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-reset_run synth_1
-regenerate_bd_layout
-ipx::edit_ip_in_project -upgrade true -name adc_whole_v2_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v2_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2/component.xml
+INFO: [BD 41-1171] User-interrupt detected : Generation halted successfully for IP Integrator design C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd
+INFO: [Common 17-681] Processing pending cancel.
+ipx::edit_ip_in_project -upgrade true -name adc_whole_v2_0_project -directory C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.tmp/adc_whole_v2_0_project c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V3/component.xml
 INFO: [ProjectBase 1-489] The host OS only allows 260 characters in a normal path. The project is stored in a path with more than 80 characters. If you experience issues with IP, Block Designs, or files not being found, please consider moving the project to a location with a shorter path. Alternately consider using the OS subst command to map part of the path to a drive letter.
 Current project path is 'c:/users/saber/desktop/share/dandike_newboard/dandike_newboard.tmp/adc_whole_v2_0_project'
 INFO: [IP_Flow 19-234] Refreshing IP repositories
@@ -261,13 +215,13 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-795] Syncing license key meta-data
-ipx::edit_ip_in_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 2426.531 ; gain = 0.000
+ipx::edit_ip_in_project: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2253.551 ; gain = 0.000
 update_compile_order -fileset sources_1
 ipx::merge_project_changes files [ipx::current_core]
-WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V2/component.xml' ignored by IP packager.
+WARNING: [IP_Flow 19-5226] Project source file 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo/adc_whole_V3/component.xml' ignored by IP packager.
 ipx::update_checksums [ipx::current_core]
 ipx::save_core [ipx::current_core]
-set_property core_revision 14 [ipx::current_core]
+set_property core_revision 17 [ipx::current_core]
 ipx::update_source_project_archive -component [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
@@ -283,19 +237,21 @@ INFO: [IP_Flow 19-725] Reloaded user IP repository 'c:/Users/saber/Desktop/share
 report_ip_status -name ip_status 
 upgrade_ip -vlnv xilinx.com:user:adc_whole:2.0 [get_ips  system_adc_whole_0_0] -log ip_upgrade.log
 Upgrading 'C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd'
-INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v2_0 2.0) from revision 13 to revision 14
+INFO: [IP_Flow 19-3422] Upgraded system_adc_whole_0_0 (adc_whole_v2_0 2.0) from revision 16 to revision 17
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
 INFO: [Coretcl 2-1525] Wrote upgrade log to 'C:/Users/saber/Desktop/share/DanDike_NewBoard/ip_upgrade.log'.
 export_ip_user_files -of_objects [get_ips system_adc_whole_0_0] -no_script -sync -force -quiet
 regenerate_bd_layout
 report_ip_status -name ip_status 
+regenerate_bd_layout
+report_ip_status -name ip_status 
 launch_runs impl_1 -to_step write_bitstream -jobs 8
-INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
-INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
 INFO: [xilinx.com:ip:axi_vdma:6.3-16] /lcd/axi_vdma_0 
                     All clocks connected to AXI VDMA are not identical, therefore configuring AXI-VDMA in ASYNC mode.
 WARNING: [xilinx.com:ip:axi_intc:4.1-7] /axi_intc_BareMetal: Interrupts type manual value (0xFFFFFFFF) does not match computed value (0xFFFFFFFC). Please review the manual value or consider using Auto instead.
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
+INFO: [xilinx.com:ip:clk_wiz:6.0-1] /lcd/clk_wiz_0 clk_wiz propagate
 Wrote  : <C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.srcs\sources_1\bd\system\system.bd> 
 Wrote  : <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/ui/bd_c954508f.ui> 
 WARNING: [BD 41-2384] Width mismatch when connecting pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1_bram/addra'(32) to pin: '/AC_8_channel_0/adda/axi_bram_ctrl_1/bram_addr_a'(14) - Only lower order bits will be connected.
@@ -327,16 +283,17 @@ INFO: [BD 41-1029] Generation completed for the IP Integrator block lcd/axi_mem_
 Exporting to file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system.hwh
 Generated Block Design Tcl file C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/hw_handoff/system_bd.tcl
 Generated Hardware Definition File C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/synth/system.hwdef
-[Tue Dec  9 19:19:21 2025] Launched synth_1...
+[Mon Dec 15 10:15:19 2025] Launched synth_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/synth_1/runme.log
-[Tue Dec  9 19:19:21 2025] Launched impl_1...
+[Mon Dec 15 10:15:19 2025] Launched impl_1...
 Run output will be captured here: C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.runs/impl_1/runme.log
-launch_runs: Time (s): cpu = 00:01:01 ; elapsed = 00:01:09 . Memory (MB): peak = 2470.586 ; gain = 0.000
-report_ip_status -name ip_status 
+launch_runs: Time (s): cpu = 00:00:51 ; elapsed = 00:01:00 . Memory (MB): peak = 2277.320 ; gain = 22.062
 write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
 INFO: [Vivado 12-4895] Creating Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa ...
 INFO: [Vivado 12-12467] The Hardware Platform can be used for Hardware
 INFO: [Vivado 12-4896] Successfully created Hardware Platform: C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa
-write_hw_platform: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2558.363 ; gain = 74.613
+write_hw_platform: Time (s): cpu = 00:00:07 ; elapsed = 00:00:06 . Memory (MB): peak = 2449.449 ; gain = 157.414
+report_ip_status -name ip_status 
+regenerate_bd_layout
 exit
-INFO: [Common 17-206] Exiting Vivado at Tue Dec  9 20:00:41 2025...
+INFO: [Common 17-206] Exiting Vivado at Tue Dec 16 09:57:02 2025...

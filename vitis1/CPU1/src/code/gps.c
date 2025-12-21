@@ -132,6 +132,8 @@ void GpsTimeoutHandler(void *CallBackRef)
 				int weekday_iso = calculate_weekday_iso(gpsx.utc.year, gpsx.utc.month, gpsx.utc.date);
 				new_time_to_set_soft.week = (weekday_iso > 0) ? (1 << (weekday_iso - 1)) : 1;
 				new_time_to_set_soft.pps_clr_en = true;
+				new_time_to_set_soft.bm_encode_en = true; // Ä¬ÈÏ¿ªÆôBÂëÊä³ö
+				new_time_to_set_soft.bm_decode_en = false;
 				write_soft_timer(&new_time_to_set_soft);
 
 				new_time_to_set_rtc.year = (u8)(gpsx.utc.year % 100);
