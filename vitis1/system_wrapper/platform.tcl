@@ -510,3 +510,4 @@ catch {bsp regenerate}
 platform clean
 platform generate
 platform active {system_wrapper}
+platform generate

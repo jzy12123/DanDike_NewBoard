@@ -25,7 +25,7 @@ MEMORY
 {
    AC_8_channel_0_adda_axi_bram_ctrl_0_Mem0 : ORIGIN = 0x40000000, LENGTH = 0x4000
    AC_8_channel_1_adda_axi_bram_ctrl_0_Mem0 : ORIGIN = 0x42000000, LENGTH = 0x4000
-   ps7_ddr_0 : ORIGIN = 0x21000000, LENGTH = 0x19C00000
+   ps7_ddr_0 : ORIGIN = 0x21000000, LENGTH = 0x18C00000
    ps7_qspi_linear_0 : ORIGIN = 0xFC000000, LENGTH = 0x1000000
    ps7_ram_0 : ORIGIN = 0x0, LENGTH = 0x30000
    ps7_ram_1 : ORIGIN = 0xFFFF0000, LENGTH = 0xFE00

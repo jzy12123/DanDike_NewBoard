@@ -34,7 +34,7 @@
  */
 // 共享内存
 #define RTOS_base_addr 0x21000000
-#define Share_addr 0x3C000000
+#define Share_addr 0x3B000000
 
 // 定时器
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID // 定时器ID

@@ -19,7 +19,7 @@
 #include "StateSequence.h"
 #include "WaveRecord.h"
 
-#define JSON_ADDR 0x3AC00000
+#define JSON_ADDR 0x39C00000
 
 #define UDP_ADDRESS 0XFFFF0000 // UDP回报结构体地址
 #define UDP_MEM_SIZE 0xFE00

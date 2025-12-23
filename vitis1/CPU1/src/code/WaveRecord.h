@@ -8,8 +8,8 @@
 #include "soft_timer.h"
 
 // 录波配置
-#define REC_SHARE_BASE 0x3C000000 // 共享内存起始地址
-#define REC_TOTAL_SIZE 0x04000000 // 总空间 64MB
+#define REC_SHARE_BASE 0x3B000000 // 共享内存起始地址
+#define REC_TOTAL_SIZE 0x05000000 // 总空间 80MB
 #define CFG_SIZE_LIMIT 4096       // 预留 4KB 给 CFG 文件
 #define COMTRADE_FRAME_SIZE 24    // 4(Seq) + 4(Time) + 16(8路模拟量) =  24 字节
 // CFG 文件存放地址：64MB 空间的最后 4KB

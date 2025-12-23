@@ -328,11 +328,10 @@ void Generate_Comtrade_CFG(void)
 
     // 3. Analog Channel Definitions
     // 物理顺序: IA(0), UA(1), IB(2), UB(3), IC(4), UC(5), IX(6), UX(7)
-    // 对应 AD_Correct 索引:
-    //   IA(0)->4, UA(1)->0, IB(2)->5, UB(3)->1, IC(4)->6, UC(5)->2, IX(6)->7, UX(7)->3
-    //   规律: 偶数k(电流) -> idx=4+k/2; 奇数k(电压) -> idx=0+k/2
     const char *chnNames[] = {"IA", "UA", "IB", "UB", "IC", "UC", "IX", "UX"};
     const char *units[] = {"A", "V", "A", "V", "A", "V", "A", "V"};
+    // 【新增】定义相别数组，对应上面的通道顺序 (ABCN)
+    const char *phaseIDs[] = {"A", "A", "B", "B", "C", "C", "N", "N"};
 
     for (int k = 0; k < 8; k++)
     {
@@ -359,26 +358,22 @@ void Generate_Comtrade_CFG(void)
             range_idx = get_voltage_index_by_value(range_val);
 
         // 计算变换因子 a (Multiplier)
-        // 公式: Physical = Raw * a + b
-        // 已知: Raw_Max ~32768, Physical_Max = range_val
-        // AD_Correct 存储的是满量程对应的 ADC 码值(约20000-30000)
-        // 所以: a = range_val / ADConst_Correct[idx][range_idx]
-        // 或者是 AD_Correct 数组 (如果已校准)
+        // AD_Correct 存储的是满量程对应的 ADC 码值
         double corrector = AD_Correct[ad_correct_idx][range_idx];
         if (corrector < 1.0)
             corrector = 20000.0; // 防止除零保护
-        // 【关键修改】
-        // 原始公式: a = range_val / corrector;
-        // 问题: range_val 是 RMS 值，而 COMTRADE 需要还原瞬时峰值。
-        // 修正: a = (range_val * 1.41421356) / corrector;
-        // 这样 Raw_Max 就会映射到 Peak_Voltage (即 RMS * 1.414)
+
+        // 还原瞬时峰值: a = (RMS * sqrt(2)) / corrector
         double a = (range_val * 1.41421356) / corrector;
         double b = 0.0; // 偏移量通常为0
 
-        // 格式: n,id,ph,cc,min,max,a,b,skew,min,max,primary,secondary,PS
-        len += sprintf(cfgBuf + len, "%d,%s,,,%s,%f,%f,0.0,-32768,32767,1,1,P\n",
+        // 【关键修改】在格式化字符串中增加 %s 用于填充相别
+        // 原格式: "%d,%s,,,%s..." -> 这里的 ",,," 对应 "id, ph, cc,"
+        // 新格式: "%d,%s,%s,,%s..." -> 对应 "id, ph(相别), cc(空), units"
+        len += sprintf(cfgBuf + len, "%d,%s,%s,,%s,%f,%f,0.0,-32768,32767,1,1,P\n",
                        k + 1,       // Index
                        chnNames[k], // ID
+                       phaseIDs[k], // Phase (A, B, C, N) <--- 此处填入相别
                        units[k],    // Units (V/A)
                        a,           // Multiplier
                        b            // Offset
@@ -393,7 +388,6 @@ void Generate_Comtrade_CFG(void)
     len += sprintf(cfgBuf + len, "%d,%lu\n", FS_RATE, g_WaveRecordCtrl.sampleSequence);
 
     // 6. Dates (Start Time, Trigger Time)
-    // 使用 Start 时记录的时间
     len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
     len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
 
@@ -402,7 +396,7 @@ void Generate_Comtrade_CFG(void)
     len += sprintf(cfgBuf + len, "1\n");
 
     // 8. 刷 Cache
-    Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1); // +1 包含结束符
+    Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1);
 
     // 9. 记录 CFG 大小
     g_WaveRecordCtrl.cfgFileSize = len;

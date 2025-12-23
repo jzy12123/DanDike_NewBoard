@@ -79,6 +79,9 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
         // 4. 开启中断
         XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
         XIntc_Enable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+
+        // 5. 开启硬件 PPS 清零
+        SoftTimer_SetPPS_Clr_En(true);
         break;
 
     case SYNC_MODE_IRIGB:
@@ -87,7 +90,7 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
 
         // --- B码复位序列 ---
         // 1. 先确保解码是关的
-        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+        SoftTimer_SetBmDecode_En(false);
 
         // 2. 清除可能残留的中断标志
         XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
@@ -97,7 +100,7 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
 
         // 4. 启动解码 (制造上升沿)
         usleep(10);
-        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 1);
+        SoftTimer_SetBmDecode_En(true);
         break;
 
     // SNTP和手动都是手动对时

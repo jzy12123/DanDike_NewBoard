@@ -241,14 +241,7 @@ void SoftTimer_AlarmHandler(void *CallBackRef)
 void SoftTimer_SetPPS_Clr_En(bool enable)
 {
     // 只修改影子寄存器的对应位 (目前REG7只有bit0，直接赋值即可，若有多位需位操作)
-    if (enable)
-    {
-        g_SoftTimer_Reg7_Shadow |= 0x01;
-    }
-    else
-    {
-        g_SoftTimer_Reg7_Shadow &= ~0x01;
-    }
+    g_SoftTimer_Reg7_Shadow = enable ? 1 : 0;
     // 将影子值写入硬件
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG7, g_SoftTimer_Reg7_Shadow);
 }

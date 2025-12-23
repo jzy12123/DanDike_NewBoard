@@ -10,8 +10,8 @@
 #define QUEUE_TABLE_SIZE 100
 #define MAX_DATA_LEN 40960
 /*  消息队列地址定义*/
-#define Linux_WriteMemorySpace 0x3AC00000 // 10MB
-#define Rtos_WriteMemorySpace 0x3B600000  // 10MB
+#define Linux_WriteMemorySpace 0x39C00000 // 10MB
+#define Rtos_WriteMemorySpace 0x3A600000  // 10MB
 
 #define Linux_Header_Offset (Linux_WriteMemorySpace)
 #define Linux_RecvedMsgID_Offset (Linux_WriteMemorySpace + sizeof(uint32_t))
