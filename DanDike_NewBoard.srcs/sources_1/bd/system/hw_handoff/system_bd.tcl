@@ -731,6 +731,7 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   create_bd_pin -dir O -type intr mm2s_introut
   create_bd_pin -dir O onoff_done
   create_bd_pin -dir O pps_50_0
+  create_bd_pin -dir O pps_gps2cpu
   create_bd_pin -dir I pps_gps_0
   create_bd_pin -dir O pps_in2cpu
   create_bd_pin -dir I pps_in_0
@@ -778,6 +779,7 @@ proc create_hier_cell_AC_8_channel_0 { parentCell nameHier } {
   connect_bd_net -net stimer_onoff_pa_rw_A_0_irig_b_out [get_bd_pins irig_b_out_0] [get_bd_pins stimer_onoff_pa_rw_A_0/irig_b_out]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_onoff_done [get_bd_pins onoff_done] [get_bd_pins stimer_onoff_pa_rw_A_0/onoff_done]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_pps_50 [get_bd_pins pps_50_0] [get_bd_pins stimer_onoff_pa_rw_A_0/pps_50]
+  connect_bd_net -net stimer_onoff_pa_rw_A_0_pps_gps2cpu [get_bd_pins pps_gps2cpu] [get_bd_pins stimer_onoff_pa_rw_A_0/pps_gps2cpu]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_pps_in2cpu [get_bd_pins pps_in2cpu] [get_bd_pins stimer_onoff_pa_rw_A_0/pps_in2cpu]
   connect_bd_net -net stimer_onoff_pa_rw_A_0_time_up [get_bd_pins time_up] [get_bd_pins stimer_onoff_pa_rw_A_0/time_up]
 
@@ -1692,7 +1694,7 @@ proc create_root_design { parentCell } {
   # Create instance: xlconcat_BareMetal, and set properties
   set xlconcat_BareMetal [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_BareMetal ]
   set_property -dict [ list \
-   CONFIG.NUM_PORTS {11} \
+   CONFIG.NUM_PORTS {12} \
  ] $xlconcat_BareMetal
 
   # Create interface connections
@@ -1742,6 +1744,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net AC_8_channel_0_mm2s_introut [get_bd_pins AC_8_channel_0/mm2s_introut] [get_bd_pins xlconcat_BareMetal/In1]
   connect_bd_net -net AC_8_channel_0_onoff_done [get_bd_pins AC_8_channel_0/onoff_done] [get_bd_pins xlconcat_BareMetal/In3]
   connect_bd_net -net AC_8_channel_0_pps_50_0 [get_bd_ports pps_50_0] [get_bd_pins AC_8_channel_0/pps_50_0]
+  connect_bd_net -net AC_8_channel_0_pps_gps2cpu [get_bd_pins AC_8_channel_0/pps_gps2cpu] [get_bd_pins xlconcat_BareMetal/In11]
   connect_bd_net -net AC_8_channel_0_pps_in2cpu [get_bd_pins AC_8_channel_0/pps_in2cpu] [get_bd_pins xlconcat_BareMetal/In9]
   connect_bd_net -net AC_8_channel_0_prog_empty [get_bd_pins AC_8_channel_0/prog_empty] [get_bd_pins xlconcat_BareMetal/In2]
   connect_bd_net -net AC_8_channel_0_s2mm_introut [get_bd_pins AC_8_channel_0/s2mm_introut] [get_bd_pins xlconcat_BareMetal/In0]

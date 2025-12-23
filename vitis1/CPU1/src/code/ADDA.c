@@ -834,7 +834,6 @@ int setup_intr_system(XScuGic *int_ins_ptr,
                       XScuTimer *timer_ptr,
                       XTtcPs *debounce_timer_ptr,
                       XUartLite *gps_uart_ptr,
-                      XTtcPs *gps_ttc_ptr,
                       XTtcPs *seq_ttc_ptr)
 {
     int status;
@@ -927,6 +926,11 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
+    // Pin 11: 软时钟GPS的PPS秒中断
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR, (XInterruptHandler)GpsPPSHandler, (void *)0);
+    if (status != XST_SUCCESS)
+        return XST_FAILURE;
+
     //  连接AXI INTC的输出到GIC
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40, 0x1);             // 高电平触发
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 1); // 将中断映射到目标CPU1
@@ -935,11 +939,6 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // 主定时器中断 (PS私有定时器，ID=XPAR_SCUTIMER_INTR)
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3); // 上升沿
     status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
-
-    // GPS超时TTC定时器中断 (PS TTC，ID=XPAR_XTTCPS_1_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_1_INTR, 0x40, 0x3);             // 上升沿
-    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_XTTCPS_1_INTR, 1); // 将中断映射到目标CPU1
-    status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_1_INTR, (Xil_InterruptHandler)GpsTimeoutHandler, (void *)gps_ttc_ptr);
 
     // 开关量防抖TTC定时器中断 (PS TTC, ID=XPAR_XTTCPS_0_INTR)
     XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3);             // 上升沿
@@ -950,11 +949,6 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XScuGic_SetPriorityTriggerType(int_ins_ptr, SEQ_TTC_INTR_ID, 0xA0, 0x3);
     ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, SEQ_TTC_INTR_ID, 1);
     status = XScuGic_Connect(int_ins_ptr, SEQ_TTC_INTR_ID, (Xil_ExceptionHandler)StateSequence_TTC_Handler, (void *)seq_ttc_ptr);
-    if (status != XST_SUCCESS)
-    {
-        printf("StateSequence_TTC_init_error");
-        return XST_FAILURE;
-    }
 
     /* =================================================================
      * 步骤 4: 【关键】手动初始化CPU1的GIC接口并使能所有中断
@@ -973,13 +967,13 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);  // 7
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR); // 8
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR);     // 10
+    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR); // 11 在GPS对时事务中开启
 
     // 使能GIC上的中断
     XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR);
     XScuGic_Enable(int_ins_ptr, XPAR_SCUTIMER_INTR);
-    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_0_INTR);
-    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_1_INTR);
-    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_2_INTR);
+    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_0_INTR); // 开关量防抖TTC
+    XScuGic_Enable(int_ins_ptr, XPAR_XTTCPS_2_INTR); // 状态序列TTC
 
     // 使能外设自身的中断产生
     // 使能PS外设中断源
@@ -991,7 +985,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     // 【最后一步】打开CPU的总中断开关
     Xil_ExceptionEnable();
 
-    printf("CPU1: BareMetal AMP-safe interrupt system initialized SUCCESSFULLY.\n");
+    printf("CPU1: BareMetal interrupt system initialized SUCCESSFULLY.\n");
     return XST_SUCCESS;
 }
 

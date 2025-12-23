@@ -85,6 +85,8 @@ void write_soft_timer(Out_RealTime *time_data);
 void read_current_time(In_CurrTime *Curr_Time);
 void read_bm_time(In_BmTime *Bm_Time);
 double time_diff_seconds(const In_CurrTime *end_time, const In_CurrTime *start_time);
-// [新增] 软时钟闹钟中断处理函数 (统一分发入口)
 void SoftTimer_AlarmHandler(void *CallBackRef);
+void SoftTimer_SetPPS_Clr_En(bool enable);
+void SoftTimer_SetBmEncode_En(bool enable);
+void SoftTimer_SetBmDecode_En(bool enable);
 #endif /* SOFT_TIMER_H_ */

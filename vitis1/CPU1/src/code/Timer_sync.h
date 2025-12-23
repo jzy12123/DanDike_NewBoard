@@ -31,8 +31,8 @@ typedef struct
 {
     SyncModeType current_mode;
     volatile TimeSyncStatus status;
-    volatile int timeout_ticks; // 超时倒计时 (单位: 0.5秒)
-    volatile int report_ticks;  // 状态上报倒计时 (单位: 0.5秒)
+    volatile int timeout_ticks;   // 超时倒计时 (单位: 0.5秒)
+    volatile int report_ticks;    // 状态上报倒计时 (单位: 0.5秒)
 } TimeSyncManager_t;
 
 // --- 全局变量声明 ---

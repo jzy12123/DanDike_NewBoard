@@ -5,8 +5,11 @@
 #include "Communications_Protocol.h" // g_WaveRecordTask
 #include "WaveRecord.h"              // WaveRecord_OnAlarmIRQ
 
-// [新增] 定义全局影子寄存器
-uint32_t g_SoftTimer_Reg15_Shadow = 0;
+// --- 全局影子寄存器定义 ---
+uint32_t g_SoftTimer_Reg5_Shadow = 0;  // bm_encode_en
+uint32_t g_SoftTimer_Reg6_Shadow = 0;  // bm_decode_en
+uint32_t g_SoftTimer_Reg7_Shadow = 0;  // pps_clr_en
+uint32_t g_SoftTimer_Reg15_Shadow = 0; // rdserial	enable和定时功能
 /**
  * @brief 将一个0-99的整数转换为BCD码 (存储在一个字节中)
  */
@@ -96,9 +99,13 @@ void write_soft_timer(Out_RealTime *time_data)
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG1, reg_val_1);
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG2, reg_val_2);
 
-    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG5, (time_data->bm_encode_en ? 1 : 0));
-    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, (time_data->bm_decode_en ? 1 : 0));
-    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG7, (time_data->pps_clr_en ? 1 : 0));
+    // 更新影子变量，并写入硬件
+    g_SoftTimer_Reg5_Shadow = (time_data->bm_encode_en ? 1 : 0);
+    g_SoftTimer_Reg6_Shadow = (time_data->bm_decode_en ? 1 : 0);
+    g_SoftTimer_Reg7_Shadow = (time_data->pps_clr_en ? 1 : 0);
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG5, g_SoftTimer_Reg5_Shadow);
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, g_SoftTimer_Reg6_Shadow);
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG7, g_SoftTimer_Reg7_Shadow);
 
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG3, 1); // wr_date = 1
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG4, 1); // wr_time = 1
@@ -226,4 +233,40 @@ void SoftTimer_AlarmHandler(void *CallBackRef)
         // 如果状态序列已经在运行，通常忽略此次定时启动，或者打个日志
         // xil_printf("CPU1: [IRQ] Alarm ignored because StateSequence is already running.\r\n");
     }
+}
+
+/**
+ * @brief 单独控制 PPS 清零使能 (不影响时间写入)
+ */
+void SoftTimer_SetPPS_Clr_En(bool enable)
+{
+    // 只修改影子寄存器的对应位 (目前REG7只有bit0，直接赋值即可，若有多位需位操作)
+    if (enable)
+    {
+        g_SoftTimer_Reg7_Shadow |= 0x01;
+    }
+    else
+    {
+        g_SoftTimer_Reg7_Shadow &= ~0x01;
+    }
+    // 将影子值写入硬件
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG7, g_SoftTimer_Reg7_Shadow);
+}
+
+/**
+ * @brief 单独控制 B码输出使能
+ */
+void SoftTimer_SetBmEncode_En(bool enable)
+{
+    g_SoftTimer_Reg5_Shadow = enable ? 1 : 0;
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG5, g_SoftTimer_Reg5_Shadow);
+}
+
+/**
+ * @brief 单独控制 B码解码使能
+ */
+void SoftTimer_SetBmDecode_En(bool enable)
+{
+    g_SoftTimer_Reg6_Shadow = enable ? 1 : 0;
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, g_SoftTimer_Reg6_Shadow);
 }

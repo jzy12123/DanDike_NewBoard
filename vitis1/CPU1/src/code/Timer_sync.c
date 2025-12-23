@@ -34,6 +34,7 @@ void TimeSync_Init(void)
 /**
  * @brief 启动一个对时任务
  */
+// 定义一个全局变量记录有效帧计数
 int StartSystemSync(SyncModeType mode, cJSON *data)
 {
     if (g_TimeSyncManager.status == TIME_SYNC_IN_PROGRESS)
@@ -46,25 +47,56 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
     g_TimeSyncManager.status = TIME_SYNC_IN_PROGRESS;
     g_TimeSyncManager.report_ticks = REPORT_INTERVAL_TICKS; // 立即准备发送第一个"Doing"状态
 
+    // ==========================================================
+    // 【通用清理】：不管切什么模式，先关掉互斥的中断，防止干扰
+    // ==========================================================
+    // 1. 关闭 PPS 中断
+    XIntc_Disable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
+    // 2. 关闭 UART 中断
+    XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+    // 3. 关闭 B 码中断
+    XIntc_Disable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
+    // 4. 关闭硬件 PPS 清零 (安全第一)
+    SoftTimer_SetPPS_Clr_En(false);
+    // ==========================================================
+
     switch (mode)
     {
     case SYNC_MODE_GPS:
-        xil_printf("CPU1: Starting GPS time synchronization...\r\n");
+        xil_printf("CPU1: Starting GPS Sync (PPS Mode)...\r\n");
         g_TimeSyncManager.timeout_ticks = GPS_SYNC_TIMEOUT_TICKS;
 
-        // 复位GPS接收逻辑并使能中断
+        // --- 串口死锁解锁序列 ---
+        // 1. 复位 FIFO (清空硬件缓存，尝试拉低中断线)
+        XUartLite_ResetFifos(&GpsUartLiteInst);
+        // 2. 软件状态清零
         GPS_Ctrl_State.uart_cont = 0;
-        memset((void *)UART_RX_BUF, 0, sizeof(UART_RX_BUF));
+
+        // 3. 【关键】清除 INTC 的 Pending 标志
+        XIntc_Acknowledge(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+        XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
+
+        // 4. 开启中断
+        XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
         XIntc_Enable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
-        XScuGic_Enable(&intc, GPS_TTC_INT_IRQ_ID);
         break;
 
     case SYNC_MODE_IRIGB:
-        xil_printf("CPU1: Starting IRIG-B time synchronization...\r\n");
+        xil_printf("CPU1: Starting IRIG-B Sync...\r\n");
         g_TimeSyncManager.timeout_ticks = IRIGB_SYNC_TIMEOUT_TICKS;
 
-        // 开启软时钟的B码对时,上升沿
+        // --- B码复位序列 ---
+        // 1. 先确保解码是关的
         Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+
+        // 2. 清除可能残留的中断标志
+        XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
+
+        // 3. 使能中断
+        XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);
+
+        // 4. 启动解码 (制造上升沿)
+        usleep(10);
         Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 1);
         break;
 
@@ -158,19 +190,18 @@ void NotifySyncSuccess(void)
     g_TimeSyncManager.status = TIME_SYNC_SUCCESS;
     send_task_event("Success");
 
-    // 清理资源
-    if (g_TimeSyncManager.current_mode == SYNC_MODE_GPS)
-    {
-        XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
-        XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
-    }
-    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB)
-    {
-        // 关闭软时钟IP核B码对时功能
-        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
-    }
+    // 1. 无论什么模式，都关闭 GPS 相关中断
+    XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+    XIntc_Disable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
 
-    TimeSync_Init(); // 恢复到空闲状态
+    // 2. 关闭硬件 PPS 清零功能 (防止噪声误改时间)
+    SoftTimer_SetPPS_Clr_En(false);
+
+    // 3. 关闭 IRIG-B 解码 (即使是 GPS 失败，关一下也没坏处，保证状态确知)
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+
+    // 恢复状态
+    TimeSync_Init();
 }
 
 /**
@@ -185,19 +216,22 @@ void NotifySyncFailure(void)
     g_TimeSyncManager.status = TIME_SYNC_FAILURE;
     send_task_event("Failure");
 
-    // 清理资源
-    if (g_TimeSyncManager.current_mode == SYNC_MODE_GPS)
-    {
-        XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
-        XScuGic_Disable(&intc, GPS_TTC_INT_IRQ_ID);
-    }
-    if (g_TimeSyncManager.current_mode == SYNC_MODE_IRIGB)
-    {
-        // 关闭软时钟IP核B码对时功能
-        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
-    }
+    // =======================================================
+    // 【强制清理】：失败后必须打扫战场，防止影响下一次任务
+    // =======================================================
 
-    TimeSync_Init(); // 恢复到空闲状态
+    // 1. 无论什么模式，都关闭 GPS 相关中断
+    XIntc_Disable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+    XIntc_Disable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
+
+    // 2. 关闭硬件 PPS 清零功能 (防止噪声误改时间)
+    SoftTimer_SetPPS_Clr_En(false);
+
+    // 3. 关闭 IRIG-B 解码 (即使是 GPS 失败，关一下也没坏处，保证状态确知)
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG6, 0);
+
+    // 恢复状态
+    TimeSync_Init();
 }
 
 /**
@@ -215,7 +249,7 @@ static void send_task_event(const char *result_str)
     switch (g_TimeSyncManager.current_mode)
     {
     case SYNC_MODE_GPS:
-        mode_str = "BD";
+        mode_str = "GPS";
         break;
     case SYNC_MODE_IRIGB:
         mode_str = "IRIG-B";

@@ -1,7 +1,7 @@
 //Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-//Date        : Mon Dec 15 10:15:06 2025
+//Date        : Mon Dec 22 15:24:13 2025
 //Host        : DESKTOP-L4NOM67 running 64-bit major release  (build 9200)
 //Command     : generate_target system.bd
 //Design      : system
@@ -195,6 +195,7 @@ module AC_8_channel_0_imp_1V5LWYH
     mm2s_introut,
     onoff_done,
     pps_50_0,
+    pps_gps2cpu,
     pps_gps_0,
     pps_in2cpu,
     pps_in_0,
@@ -388,6 +389,7 @@ module AC_8_channel_0_imp_1V5LWYH
   output mm2s_introut;
   output onoff_done;
   output pps_50_0;
+  output pps_gps2cpu;
   input pps_gps_0;
   output pps_in2cpu;
   input pps_in_0;
@@ -588,6 +590,7 @@ module AC_8_channel_0_imp_1V5LWYH
   wire stimer_onoff_pa_rw_A_0_irig_b_out;
   wire stimer_onoff_pa_rw_A_0_onoff_done;
   wire stimer_onoff_pa_rw_A_0_pps_50;
+  wire stimer_onoff_pa_rw_A_0_pps_gps2cpu;
   wire stimer_onoff_pa_rw_A_0_pps_in2cpu;
   wire stimer_onoff_pa_rw_A_0_time_up;
 
@@ -741,6 +744,7 @@ module AC_8_channel_0_imp_1V5LWYH
   assign mm2s_introut = axi_dma_0_mm2s_introut;
   assign onoff_done = stimer_onoff_pa_rw_A_0_onoff_done;
   assign pps_50_0 = stimer_onoff_pa_rw_A_0_pps_50;
+  assign pps_gps2cpu = stimer_onoff_pa_rw_A_0_pps_gps2cpu;
   assign pps_gps_0_1 = pps_gps_0;
   assign pps_in2cpu = stimer_onoff_pa_rw_A_0_pps_in2cpu;
   assign pps_in_0_1 = pps_in_0;
@@ -974,6 +978,7 @@ module AC_8_channel_0_imp_1V5LWYH
         .onoff_sdo(stimer_onoff_pa_rw_A_0_OnOff_onoff_sdo),
         .pps_50(stimer_onoff_pa_rw_A_0_pps_50),
         .pps_gps(pps_gps_0_1),
+        .pps_gps2cpu(stimer_onoff_pa_rw_A_0_pps_gps2cpu),
         .pps_in(pps_in_0_1),
         .pps_in2cpu(stimer_onoff_pa_rw_A_0_pps_in2cpu),
         .rdserial_load(stimer_onoff_pa_rw_A_0_RdSerial_rd_load),
@@ -8724,6 +8729,7 @@ module system
   wire AC_8_channel_0_mm2s_introut;
   wire AC_8_channel_0_onoff_done;
   wire AC_8_channel_0_pps_50_0;
+  wire AC_8_channel_0_pps_gps2cpu;
   wire AC_8_channel_0_pps_in2cpu;
   wire AC_8_channel_0_prog_empty;
   wire AC_8_channel_0_s2mm_introut;
@@ -9231,7 +9237,7 @@ module system
   wire v_axi4s_vid_out_0_vid_active_video;
   wire v_axi4s_vid_out_0_vid_hsync;
   wire v_axi4s_vid_out_0_vid_vsync;
-  wire [10:0]xlconcat_0_dout;
+  wire [11:0]xlconcat_0_dout;
   wire [5:0]xlconcat_dout;
 
   assign AD_0_ad_ck = adc_whole_0_AD_ad_ck;
@@ -9496,6 +9502,7 @@ module system
         .mm2s_introut(AC_8_channel_0_mm2s_introut),
         .onoff_done(AC_8_channel_0_onoff_done),
         .pps_50_0(AC_8_channel_0_pps_50_0),
+        .pps_gps2cpu(AC_8_channel_0_pps_gps2cpu),
         .pps_gps_0(pps_gps_0_1),
         .pps_in2cpu(AC_8_channel_0_pps_in2cpu),
         .pps_in_0(pps_in_0_1),
@@ -10432,6 +10439,7 @@ module system
        (.In0(AC_8_channel_0_s2mm_introut),
         .In1(AC_8_channel_0_mm2s_introut),
         .In10(AC_8_channel_0_time_up),
+        .In11(AC_8_channel_0_pps_gps2cpu),
         .In2(AC_8_channel_0_prog_empty),
         .In3(AC_8_channel_0_onoff_done),
         .In4(power_pulse_v1_AXI_0_intrpt_p),

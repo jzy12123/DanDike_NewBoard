@@ -1,0 +1,26 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Mon Dec 22 15:15:42 2025
+# Process ID: 18248
+# Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent15376 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
+# Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
+update_compile_order -fileset sources_1
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+regenerate_bd_layout
+startgroup
+set_property -dict [list CONFIG.NUM_PORTS {12}] [get_bd_cells xlconcat_BareMetal]
+endgroup
+connect_bd_net [get_bd_pins AC_8_channel_0/stimer_onoff_pa_rw_A_0/pps_gps2cpu] [get_bd_pins xlconcat_BareMetal/In11]
+regenerate_bd_layout
+save_bd_design
+reset_run synth_1
+launch_runs impl_1 -to_step write_bitstream -jobs 8
+wait_on_run impl_1
+write_hw_platform -fixed -include_bit -force -file C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper.xsa

@@ -79,6 +79,10 @@ XIntc_Config XIntc_ConfigTable[] =
 			{
 				XNullHandler,
 				(void *) XNULL
+			},
+			{
+				XNullHandler,
+				(void *) XNULL
 			}
 		},
 		XPAR_AXI_INTC_BAREMETAL_NUM_SW_INTR

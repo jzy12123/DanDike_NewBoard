@@ -38,15 +38,6 @@ int main()
 		xil_printf("CPU1: GPS UART Init Failed.\r\n");
 		return XST_FAILURE;
 	}
-	xil_printf("CPU1: GPS UART Initialized.\r\n");
-
-	xil_printf("CPU1: Initializing GPS Timer...\r\n");
-	status = GpsTtcTimerInit(GPS_TTC_DEVICE_ID); // GPS超时定时器初始化
-	if (status != XST_SUCCESS)
-	{
-		xil_printf("CPU1: GPS Timer Initial Failed\r\n");
-		return XST_FAILURE;
-	}
 
 	/************************** DMA初始化 *****************************/
 	xil_printf("CPU1: Initializing DMA...\r\n");
@@ -90,7 +81,7 @@ int main()
 
 	/************************** 建立中断系统 *****************************/
 	xil_printf("CPU1: Initializing Interrupt System...\r\n");
-	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &GpsTtcTimerInst, &SeqTtcInstance);
+	status = setup_intr_system(&intc, &Timer, &DebounceTimer, &GpsUartLiteInst, &SeqTtcInstance);
 	if (status != XST_SUCCESS)
 	{
 		xil_printf("CPU1: Failed intr setup\r\n");
