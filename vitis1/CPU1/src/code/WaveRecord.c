@@ -7,12 +7,20 @@
 
 WaveRecord_Ctrl_t g_WaveRecordCtrl;
 
+// 辅助：生成时间字符串 "YYYY/MM/DD,HH:MM:SS.uuuuuu"
+static void Make_Time_Str(char *buf, In_CurrTime *t)
+{
+    sprintf(buf, "%04u/%02u/%02u,%02u:%02u:%02u.%06u",
+            t->curr_year, t->curr_month, t->curr_day,
+            t->curr_hour, t->curr_minute, t->curr_second,
+            (unsigned int)t->curr_subsec);
+}
+
 void WaveRecord_Init(void)
 {
     memset(&g_WaveRecordCtrl, 0, sizeof(WaveRecord_Ctrl_t));
     g_WaveRecordCtrl.isRecording = false;
-    g_WaveRecordCtrl.isPendingSave = false;
-    g_WaveRecordCtrl.isPendingStartReport = false;
+    g_WaveRecordCtrl.currentSection = 1;
 }
 
 /**
@@ -29,9 +37,7 @@ static void Report_WaveRecordStart(void)
     cJSON_AddNumberToObject(data, "RecSamp", FS_RATE); // 51200
 
     // RecDuration: 设定时长，如果无限长用 -1
-    int duration = (g_WaveRecordCtrl.targetDurationMs <= 0) ? -1 : g_WaveRecordCtrl.targetDurationMs;
-    cJSON_AddNumberToObject(data, "RecDuration", duration);
-
+    cJSON_AddNumberToObject(data, "RecDuration", g_WaveRecordCtrl.totalTargetDurationMs);
     cJSON_AddItemToObject(report, "Data", data);
 
     // 发送消息
@@ -55,177 +61,194 @@ static void Report_WaveRecordStart(void)
  * @brief 上报文件生成 (3.2.2 WaveRecordFileCreated)
  * @details 包含文件名列表和文件大小信息
  */
-static void Report_WaveRecordFileCreated(void)
+/**
+ * @brief 上报分段文件生成
+ * @param section 当前完成的段号 (1 或 2)
+ */
+static void Report_SectionCreated(u8 section)
 {
     cJSON *report = cJSON_CreateObject();
     cJSON_AddStringToObject(report, "FunType", "Report");
     cJSON_AddStringToObject(report, "FunCode", "WaveRecordFileCreated");
 
     cJSON *data = cJSON_CreateObject();
-    // 1. 录波来源
     cJSON_AddStringToObject(data, "RecFrom", g_WaveRecordCtrl.recFrom);
-    // 2. 采样率
     cJSON_AddNumberToObject(data, "RecSamp", FS_RATE);
 
-    // 3. 实际录波时长 = 点数 * 1000 / FS
-    double actual_duration = (double)g_WaveRecordCtrl.sampleSequence * 1000.0 / FS_RATE;
-    cJSON_AddNumberToObject(data, "RecDuration", (int)actual_duration);
+    // 1. 计算该段时长 (ms)
+    double duration = (double)g_WaveRecordCtrl.snapshot.dataSize / COMTRADE_FRAME_SIZE * 1000.0 / FS_RATE;
+    cJSON_AddNumberToObject(data, "RecDuration", (int)duration);
 
-    // 4. 生成文件名 YYYYMMDD_HHNNSS_ZZZ
+    // 2. 生成文件名
     char fileNameBase[64];
-    In_CurrTime *t = &g_WaveRecordCtrl.startTimestamp;
-    // subsec 是 0.1us 单位 (10MHz计数)，转毫秒需要 / 10000
+    In_CurrTime *t = &g_WaveRecordCtrl.snapshot.startTime;
     int ms = (int)(t->curr_subsec / 10000);
-
     sprintf(fileNameBase, "%04u%02u%02u_%02u%02u%02u_%03u",
             t->curr_year, t->curr_month, t->curr_day,
             t->curr_hour, t->curr_minute, t->curr_second, ms);
 
     cJSON *files = cJSON_CreateArray();
     char nameBuf[80];
-    // 添加 .cfg 文件名
     sprintf(nameBuf, "%s.cfg", fileNameBase);
     cJSON_AddItemToArray(files, cJSON_CreateString(nameBuf));
-    // 添加 .dat 文件名
     sprintf(nameBuf, "%s.dat", fileNameBase);
     cJSON_AddItemToArray(files, cJSON_CreateString(nameBuf));
-
     cJSON_AddItemToObject(data, "WaveFile", files);
 
-    // 5. 【新增】上报文件大小 (单位: 字节)
-    // g_WaveRecordCtrl.recordedBytes 在 WaveRecord_Process 中累加
-    // g_WaveRecordCtrl.cfgFileSize 在 Generate_Comtrade_CFG 中赋值
-    cJSON_AddNumberToObject(data, "FileSizeDat", g_WaveRecordCtrl.recordedBytes);
-    cJSON_AddNumberToObject(data, "FileSizeCfg", g_WaveRecordCtrl.cfgFileSize);
+    // 3. 【关键修改】将物理地址格式化为十六进制字符串上报
+    // FilePath: "0x3B000000" 或 "0x3D800000"
+    char addrStr[32];
+    u32 phys_addr = (section == 1) ? REC_SEC1_START : REC_SEC2_START;
 
-    // FilePath 按要求不需要上报，此处省略
+    // 使用 %08X 格式化为 8位十六进制大写字符串
+    sprintf(addrStr, "0x%08X", (unsigned int)phys_addr);
+
+    cJSON_AddStringToObject(data, "FilePath", addrStr);
+
+    // 4. 文件大小
+    cJSON_AddNumberToObject(data, "FileSizeDat", g_WaveRecordCtrl.snapshot.dataSize);
+    cJSON_AddNumberToObject(data, "FileSizeCfg", g_WaveRecordCtrl.snapshot.cfgSize);
 
     cJSON_AddItemToObject(report, "Data", data);
 
-    // 6. 发送消息
+    // 发送消息
     char *string = cJSON_PrintUnformatted(report);
     if (string)
     {
-        size_t len = strlen(string);
-        char *finalStr = malloc(len + 3);
-        if (finalStr)
-        {
-            snprintf(finalStr, len + 3, "|%s|", string);
-            MsgQue_write(finalStr, strlen(finalStr));
-            free(finalStr);
-        }
+        MsgQue_write(string, strlen(string));
+        free(string);
+    }
+    xil_printf("CPU1: [INFO] ReportCreated , Section: %d , PhysAddr: %X\r\n", section, phys_addr);
+    cJSON_Delete(report);
+}
+
+static void Report_TaskSuccess(void)
+{
+    cJSON *report = cJSON_CreateObject();
+    cJSON_AddStringToObject(report, "FunType", "TaskEvent");
+    cJSON_AddStringToObject(report, "FunCode", "SetTaskWaveRecord");
+    cJSON_AddStringToObject(report, "Result", "Success");
+    cJSON_AddItemToObject(report, "Data", cJSON_CreateObject());
+
+    char *string = cJSON_PrintUnformatted(report);
+    if (string)
+    {
+        MsgQue_write(string, strlen(string));
         free(string);
     }
     cJSON_Delete(report);
 }
+// ----------------------------------------------------------------------
+// 逻辑控制函数
+// ----------------------------------------------------------------------
 
 void WaveRecord_Start(u32 duration_ms, const char *source)
 {
-    g_WaveRecordCtrl.sampleSequence = 0;
-    g_WaveRecordCtrl.recordedBytes = 0;
-    g_WaveRecordCtrl.writeAddrOffset = 0;
+    memset(&g_WaveRecordCtrl, 0, sizeof(WaveRecord_Ctrl_t));
 
-    // 1. 记录来源和目标时长
     if (source)
-    {
         strncpy(g_WaveRecordCtrl.recFrom, source, 31);
-    }
     else
-    {
         strcpy(g_WaveRecordCtrl.recFrom, "Unknown");
-    }
-    g_WaveRecordCtrl.targetDurationMs = duration_ms;
 
-    // 2. 记录启动时间 (保存到结构体用于生成文件名)
-    read_current_time(&g_WaveRecordCtrl.startTimestamp);
+    g_WaveRecordCtrl.totalTargetDurationMs = duration_ms;
+    g_WaveRecordCtrl.currentSection = 1; // 从第一段开始
 
-    // 生成 CFG 用的时间字符串 (保持 COMTRADE 格式)
-    In_CurrTime *curr = &g_WaveRecordCtrl.startTimestamp;
-    sprintf(g_WaveRecordCtrl.startTimeStr, "%04u/%02u/%02u,%02u:%02u:%02u.%06u",
-            curr->curr_year, curr->curr_month, curr->curr_day,
-            curr->curr_hour, curr->curr_minute, curr->curr_second,
-            (unsigned int)curr->curr_subsec);
+    // 计算每段限制字节数 (30秒)
+    // 51200 * 24 * 30 = 36,864,000 bytes
+    g_WaveRecordCtrl.bytesLimitPerSection = (u32)((u64)FS_RATE * COMTRADE_FRAME_SIZE * REC_CHUNK_TIME_MS / 1000);
 
-    // 3. 计算最大字节数
-    if (duration_ms <= 0)
+    // 记录任务开始时间
+    read_current_time(&g_WaveRecordCtrl.currentSectionStartTime); // 也是第一段的开始时间
+    g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US();
+
+    g_WaveRecordCtrl.isFirstBlock = true;
+    g_WaveRecordCtrl.isRecording = true;
+
+    // 挂起启动报告
+    g_WaveRecordCtrl.isPendingStartReport = true;
+}
+
+// 内部：切换段
+static void Switch_Section(void)
+{
+    // 1. 保存当前段的快照信息 (供主循环上报用)
+    g_WaveRecordCtrl.snapshot.dataSize = g_WaveRecordCtrl.bytesWrittenInSection;
+    g_WaveRecordCtrl.snapshot.startTime = g_WaveRecordCtrl.currentSectionStartTime;
+    // startTimeStr 和 cfgSize 将在 Generate_Comtrade_CFG 中填充
+    Make_Time_Str(g_WaveRecordCtrl.snapshot.startTimeStr, &g_WaveRecordCtrl.snapshot.startTime);
+
+    // 2. 标记需要上报的段
+    g_WaveRecordCtrl.pendingReportSection = g_WaveRecordCtrl.currentSection;
+
+    // 3. 切换到下一段
+    if (g_WaveRecordCtrl.currentSection == 1)
     {
-        g_WaveRecordCtrl.maxRecordBytes = REC_DAT_MAX_SIZE;
+        g_WaveRecordCtrl.currentSection = 2;
     }
     else
     {
-        u64 bytes = (u64)duration_ms * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
-        if (bytes > REC_DAT_MAX_SIZE)
-            bytes = REC_DAT_MAX_SIZE;
-        g_WaveRecordCtrl.maxRecordBytes = (u32)bytes;
+        g_WaveRecordCtrl.currentSection = 1;
     }
 
-    g_WaveRecordCtrl.isPendingSave = false; // 清除保存标志
-    g_WaveRecordCtrl.isRecording = true;    // 开启录波标志
+    // 4. 重置新段计数
+    g_WaveRecordCtrl.bytesWrittenInSection = 0;
 
-    // 4. 精确记录时间戳用于裁切
-    g_WaveRecordCtrl.startTimeUs = Get_Current_Time_US();
-    g_WaveRecordCtrl.isFirstBlock = true;
-
-    g_WaveRecordCtrl.isPendingStartReport = true; // <-- 标记需要发送报告
+    // 5. 更新下一段的开始时间
+    // 理论上应该用 sampleSequence 精确计算时间增量
+    // NewTime = InitTime + (TotalSamples * 1/Fs)
+    // 这里简单处理：重新读取当前时间（会有微小误差），或者基于上一段递推
+    // 为了 COMTRADE 连续性，建议基于采样点推算，但这里简化直接读取当前时间保证绝对时钟准确
+    read_current_time(&g_WaveRecordCtrl.currentSectionStartTime);
 }
 
 void WaveRecord_Stop(void)
 {
     if (g_WaveRecordCtrl.isRecording)
     {
-        g_WaveRecordCtrl.isRecording = false;  // 立即停止接收数据
-        g_WaveRecordCtrl.isPendingSave = true; // 标记需要生成文件
+        g_WaveRecordCtrl.isRecording = false;
+        // 停止时，如果当前段有数据，也需要生成文件并上报
+        if (g_WaveRecordCtrl.bytesWrittenInSection > 0)
+        {
+            Switch_Section(); // 强制切换，触发上报逻辑
+        }
+        g_WaveRecordCtrl.isTaskFinished = true; // 标记整体完成
     }
 }
 
 /**
- * @brief 处理一块数据 (500ms) 进行录波存储
- * 包含首块数据的“无效历史数据”剔除功能
+ * @brief 处理一块数据 (通常为中断触发，如50ms数据) 进行录波存储
+ * @details 支持双缓冲无缝切换，处理跨段写入
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
-    // 1. 检查是否有挂起的保存任务
-    if (g_WaveRecordCtrl.isPendingSave)
-    {
-        Generate_Comtrade_CFG();
-        // 生成完文件后，立即上报 WaveRecordFileCreated
-        Report_WaveRecordFileCreated();
-        g_WaveRecordCtrl.isPendingSave = false;
-    }
-
-    // 2. 如果没在录波，直接返回
+    // 1. 如果没在录波，直接返回
     if (!g_WaveRecordCtrl.isRecording)
         return;
 
-    // 3. 指针与计数器准备
-    // 默认情况下，处理整个 Buffer
+    // 2. 数据指针与计数器准备
     u16 *pValidData = pRawData;      // 有效数据的起始指针
     int valid_points = points_count; // 本次需要处理的有效点数
 
-    // 【核心逻辑】如果是启动后的第一块数据，计算并剔除启动前的无效波形
+    // ----------------------------------------------------------------
+    // 【阶段一】首块数据裁切 (剔除启动指令前的无效历史数据)
+    // ----------------------------------------------------------------
     if (g_WaveRecordCtrl.isFirstBlock)
     {
         // 计算有效时长：(当前中断时刻 - 点击启动时刻)
-        // 假设 Block 刚传完触发中断，那么从“启动”到“中断”这段时间才是有效录波
         long long time_diff_us = (long long)(g_LastDmaIrqTime_us - g_WaveRecordCtrl.startTimeUs);
-
-        // 异常保护：防止时间倒挂
         if (time_diff_us < 0)
             time_diff_us = 0;
 
         // 计算本块数据的总时长 (us)
         u64 block_duration_us = (u64)points_count * 1000000 / FS_RATE;
 
-        // 如果有效时间超过了块长（说明启动指令是很久以前发的），则保留全块
+        // 修正逻辑：如果时间差大于块长，说明全部有效
         if (time_diff_us > block_duration_us)
-        {
             time_diff_us = block_duration_us;
-        }
 
-        // 计算需要保留的点数 = 有效时长 * 采样率
+        // 计算保留点数和剔除点数
         int keep_samples = (int)((double)time_diff_us * FS_RATE / 1000000.0);
-
-        // 计算需要剔除的点数 = 总点数 - 保留点数
         int discard_samples = points_count - keep_samples;
 
         // 边界修正
@@ -234,90 +257,126 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
         if (discard_samples >= points_count)
             discard_samples = points_count;
 
-        // 应用偏移：剔除头部数据
+        // 应用偏移
         if (discard_samples > 0)
         {
-            // 指针后移：注意 pRawData 是交错存储，偏移量 = 点数 * 通道数
-            pValidData += (discard_samples * CHN_NUM);
+            pValidData += (discard_samples * 8); // 8通道，指针偏移
             valid_points -= discard_samples;
-
-            // 调试打印 (可选)
-            // xil_printf("CPU1: First Block Trimmed. Discarded: %d, Kept: %d\r\n", discard_samples, valid_points);
         }
 
-        // 清除标志，后续的数据块将全部记录
         g_WaveRecordCtrl.isFirstBlock = false;
     }
 
-    // =================================================================
-    // 常规存储逻辑 (使用处理过的 valid_points 和 pValidData)
-    // =================================================================
-
-    // 再次检查容量（防止刚才计算完刚好满了）
-    if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
-    {
-        WaveRecord_Stop();
+    if (valid_points <= 0)
         return;
-    }
 
-    // 获取 DDR 写入地址
-    u32 *pDest = (u32 *)(UINTPTR)(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset);
-    u32 current_block_size = 0;
-
-    for (int i = 0; i < valid_points; i++)
+    // ----------------------------------------------------------------
+    // 【阶段二】 总时长硬裁切 (新增：防止最后一段超长)
+    // ----------------------------------------------------------------
+    if (g_WaveRecordCtrl.totalTargetDurationMs > 0)
     {
-        // 1. 序号 (4B)
-        *pDest++ = g_WaveRecordCtrl.sampleSequence;
+        // 1. 计算总目标字节数
+        u64 total_limit_bytes = (u64)g_WaveRecordCtrl.totalTargetDurationMs * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
 
-        // 2. 时间 (4B) - 使用 u64 优化除法
-        // Time = (Seq * 1000000) / FS
-        u64 time_us_64 = ((u64)g_WaveRecordCtrl.sampleSequence * 1000000) / FS_RATE;
-        *pDest++ = (u32)time_us_64;
+        // 2. 计算剩余可写字节数
+        long long bytes_remaining = total_limit_bytes - g_WaveRecordCtrl.totalRecordedBytes;
 
-        // 序号递增
-        g_WaveRecordCtrl.sampleSequence++;
-
-        // 3. 8通道模拟量 (16B)
-        // 使用偏移后的 pValidData 指针
-        u16 *pSamp = &pValidData[i * CHN_NUM];
-
-        // 32位合并写入优化
-        *pDest++ = (u32)pSamp[0] | ((u32)pSamp[1] << 16);
-        *pDest++ = (u32)pSamp[2] | ((u32)pSamp[3] << 16);
-        *pDest++ = (u32)pSamp[4] | ((u32)pSamp[5] << 16);
-        *pDest++ = (u32)pSamp[6] | ((u32)pSamp[7] << 16);
-
-        // 累加帧大小 (固定24字节)
-        current_block_size += COMTRADE_FRAME_SIZE;
-
-        // 循环内检查：防止单次循环写超限 (针对内存边缘情况)
-        if (g_WaveRecordCtrl.writeAddrOffset + current_block_size >= REC_DAT_MAX_SIZE ||
-            g_WaveRecordCtrl.recordedBytes + current_block_size >= g_WaveRecordCtrl.maxRecordBytes)
+        if (bytes_remaining <= 0)
         {
-            break;
+            WaveRecord_Stop();
+            return;
+        }
+
+        // 3. 计算剩余可写点数
+        int points_remaining = bytes_remaining / COMTRADE_FRAME_SIZE;
+
+        // 4. 如果本次数据超过了剩余需要的点数，就裁切
+        if (valid_points > points_remaining)
+        {
+            valid_points = points_remaining; // 强制截断，只写剩下的这一点
         }
     }
 
-    // 循环结束后统一更新全局状态
-    g_WaveRecordCtrl.writeAddrOffset += current_block_size;
-    g_WaveRecordCtrl.recordedBytes += current_block_size;
+    // ----------------------------------------------------------------
+    // 【阶段三】分块写入 (处理跨段边界)
+    // ----------------------------------------------------------------
+    int points_processed = 0;
 
-    // 刷 Cache (确保数据写入物理 DDR)
-    Xil_DCacheFlushRange(REC_SHARE_BASE + g_WaveRecordCtrl.writeAddrOffset - current_block_size, current_block_size);
-
-    // 检查是否录满
-    if (g_WaveRecordCtrl.recordedBytes >= g_WaveRecordCtrl.maxRecordBytes)
+    while (points_processed < valid_points)
     {
-        WaveRecord_Stop();
+        // A. 计算当前段的剩余空间 (字节 -> 点数)
+        u32 bytes_left_in_section = g_WaveRecordCtrl.bytesLimitPerSection - g_WaveRecordCtrl.bytesWrittenInSection;
+        int points_space_left = bytes_left_in_section / COMTRADE_FRAME_SIZE;
+
+        // B. 计算本次循环能写入多少点
+        int points_remaining = valid_points - points_processed;
+        int points_to_write = (points_remaining < points_space_left) ? points_remaining : points_space_left;
+
+        // C. 获取写入基地址
+        u32 section_base = (g_WaveRecordCtrl.currentSection == 1) ? REC_SEC1_START : REC_SEC2_START;
+        u32 *pDest = (u32 *)(UINTPTR)(section_base + g_WaveRecordCtrl.bytesWrittenInSection);
+        u32 *pFlushStart = pDest; // 记录刷Cache的起始位置
+
+        // D. 执行写入循环 (针对 points_to_write)
+        for (int i = 0; i < points_to_write; i++)
+        {
+            // 1. 序号 (4B)
+            *pDest++ = g_WaveRecordCtrl.sampleSequence;
+
+            // 2. 时间 (4B)
+            u64 time_us_64 = ((u64)g_WaveRecordCtrl.sampleSequence * 1000000) / FS_RATE;
+            *pDest++ = (u32)time_us_64;
+
+            g_WaveRecordCtrl.sampleSequence++;
+
+            // 3. 模拟量 (16B)
+            u16 *pSamp = &pValidData[(points_processed + i) * 8];
+            *pDest++ = (u32)pSamp[0] | ((u32)pSamp[1] << 16);
+            *pDest++ = (u32)pSamp[2] | ((u32)pSamp[3] << 16);
+            *pDest++ = (u32)pSamp[4] | ((u32)pSamp[5] << 16);
+            *pDest++ = (u32)pSamp[6] | ((u32)pSamp[7] << 16);
+        }
+
+        // E. 更新计数器
+        u32 bytes_written_now = points_to_write * COMTRADE_FRAME_SIZE;
+        g_WaveRecordCtrl.bytesWrittenInSection += bytes_written_now;
+        g_WaveRecordCtrl.totalRecordedBytes += bytes_written_now;
+        points_processed += points_to_write;
+
+        // F. 刷当前写入区域的 Cache
+        Xil_DCacheFlushRange((UINTPTR)pFlushStart, bytes_written_now);
+
+        // G. 检查是否写满当前段 -> 切换
+        if (g_WaveRecordCtrl.bytesWrittenInSection >= g_WaveRecordCtrl.bytesLimitPerSection)
+        {
+            Switch_Section(); // 切换段，置上报标志，重置 bytesWrittenInSection
+
+            // 注意：循环会继续，如果 valid_points 还没写完，
+            // 下一次 while 循环会自动计算新段的地址 (section_base 变化) 继续写入
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // 【阶段四】总时长检查 (仅针对有限时长录波)
+    // ----------------------------------------------------------------
+    if (g_WaveRecordCtrl.totalTargetDurationMs > 0)
+    {
+        u64 total_limit_bytes = (u64)g_WaveRecordCtrl.totalTargetDurationMs * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
+        // 此时 totalRecordedBytes 应该正好等于 limit (因为上面做了裁切)
+        if (g_WaveRecordCtrl.totalRecordedBytes >= total_limit_bytes)
+        {
+            WaveRecord_Stop();
+        }
     }
 }
 
 /**
  * @brief 生成 Comtrade 配置文件 (.CFG) 并写入共享内存末尾
  */
-void Generate_Comtrade_CFG(void)
+void Generate_Comtrade_CFG(u8 section)
 {
-    char *cfgBuf = (char *)(UINTPTR)REC_CFG_ADDR;
+    // 确定 CFG 写入地址
+    char *cfgBuf = (char *)(UINTPTR)((section == 1) ? REC_SEC1_CFG : REC_SEC2_CFG);
     int len = 0;
 
     // 1. Station Name, Device ID, RevYear (1999)
@@ -385,11 +444,13 @@ void Generate_Comtrade_CFG(void)
 
     // 5. Sample Rates (1 rate)
     len += sprintf(cfgBuf + len, "1\n");
-    len += sprintf(cfgBuf + len, "%d,%lu\n", FS_RATE, g_WaveRecordCtrl.sampleSequence);
+    u32 sample_count_in_this_section = g_WaveRecordCtrl.snapshot.dataSize / COMTRADE_FRAME_SIZE;
+    len += sprintf(cfgBuf + len, "%d,%lu\n", FS_RATE, sample_count_in_this_section);
 
     // 6. Dates (Start Time, Trigger Time)
-    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
-    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.startTimeStr);
+    // 时间使用 snapshot.startTimeStr
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot.startTimeStr);
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot.startTimeStr); // Trigger time same as start
 
     // 7. File Type & Orientation
     len += sprintf(cfgBuf + len, "BINARY\n");
@@ -399,29 +460,9 @@ void Generate_Comtrade_CFG(void)
     Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1);
 
     // 9. 记录 CFG 大小
-    g_WaveRecordCtrl.cfgFileSize = len;
-
-    // 打印日志
-    xil_printf("CPU1: SetTaskWaveRecord Stopped. Total: %u bytes; CFG generated at 0x%X,Total: %u bytes.\r\n", g_WaveRecordCtrl.recordedBytes, REC_CFG_ADDR, g_WaveRecordCtrl.cfgFileSize);
+    g_WaveRecordCtrl.snapshot.cfgSize = len; // 记录大小
 }
 
-// 辅助：TaskEvent 上报
-static void Report_WaveRecord_TaskEvent(const char *result)
-{
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "FunType", "TaskEvent");
-    cJSON_AddStringToObject(root, "FunCode", "SetTaskWaveRecord");
-    cJSON_AddStringToObject(root, "Result", result); // Success / Failure
-    cJSON_AddItemToObject(root, "Data", cJSON_CreateObject());
-
-    char *str = cJSON_PrintUnformatted(root);
-    if (str)
-    {
-        MsgQue_write(str, strlen(str));
-        free(str);
-    }
-    cJSON_Delete(root);
-}
 /**
  * @brief 设置软时钟闹钟 (Mode 1)
  */
@@ -517,30 +558,36 @@ void WaveRecord_OnDIIRQ(uint32_t current_val)
     }
 }
 
-/**
- * @brief 任务轮询 (仅用于监控结束，不负责启动)
- */
 void WaveRecordTask_Check(void)
 {
-    // 处理挂起的启动报告
+    // 1. 处理启动报告
     if (g_WaveRecordCtrl.isPendingStartReport)
     {
-        Report_WaveRecordStart();                      // 发送 JSON
-        g_WaveRecordCtrl.isPendingStartReport = false; // 清除标志，防止重复发送
+        Report_WaveRecordStart();
+        g_WaveRecordCtrl.isPendingStartReport = false;
         xil_printf("CPU1: WaveRecord Started\r\n");
     }
 
-    // 仅处理 Recording 状态下的结束逻辑
-    if (g_WaveRecordTask.State == 3) // Recording
+    // 2. 处理分段文件生成报告
+    if (g_WaveRecordCtrl.pendingReportSection != 0)
     {
-        // 监控录波是否彻底结束
-        if (g_WaveRecordCtrl.isRecording == false && g_WaveRecordCtrl.isPendingSave == false)
-        {
-            Report_WaveRecord_TaskEvent("Success");
+        u8 sec = g_WaveRecordCtrl.pendingReportSection;
 
-            xil_printf("CPU1: SetTaskWaveRecord Finished.\r\n");
-            g_WaveRecordTask.State = 0; // 回到 Idle
-        }
+        // 生成 CFG (此时数据区已经不再写入，安全)
+        Generate_Comtrade_CFG(sec);
+
+        // 发送报告 (Linux 收到后会去 MemorySectionX 读取)
+        Report_SectionCreated(sec);
+
+        g_WaveRecordCtrl.pendingReportSection = 0;
     }
-    // Idle, WaitTime, WaitDI 状态下不做任何事，等待 ISR 触发
+
+    // 3. 处理整体任务结束
+    if (g_WaveRecordCtrl.isTaskFinished)
+    {
+        Report_TaskSuccess();
+        xil_printf("CPU1: SetTaskWaveRecord All Finished.\r\n");
+        g_WaveRecordCtrl.isTaskFinished = false; // 复位状态
+        g_WaveRecordTask.State = 0;              // 回到 Idle (如果使用了 Task 状态机)
+    }
 }

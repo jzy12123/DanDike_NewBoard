@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251223.1537";
+const char ARM_Ver_Full[] = "[Ver]=V1.251224.1546";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3495,12 +3495,12 @@ void handle_SetTaskWaveRecord(cJSON *data)
     // 2. 校验逻辑 (Reply)
     char *errInfo = NULL;
 
-    // A. 空间校验
-    u64 estSize = (u64)g_WaveRecordTask.RecMS * FS_RATE / 1000 * 24; // 简算
-    if (g_WaveRecordTask.RecMS > 0 && estSize > REC_DAT_MAX_SIZE)
-    {
-        errInfo = "InsufficientStorage";
-    }
+    // A. 空间校验 不需要了，因为支持无限录波
+    // u64 estSize = (u64)g_WaveRecordTask.RecMS * FS_RATE / 1000 * 24; // 简算
+    // if (g_WaveRecordTask.RecMS > 0 && estSize > REC_DAT_MAX_SIZE)
+    // {
+    //     errInfo = "InsufficientStorage";
+    // }
 
     // B. 时间校验 (仅定时模式)
     if (g_WaveRecordTask.StartMode == 1 && errInfo == NULL)
