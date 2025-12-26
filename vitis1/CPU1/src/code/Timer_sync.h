@@ -83,4 +83,5 @@ bool is_rtc_time_valid(const RTC_Time_t *TimePtr);
 
 void Handler_BmSyncEnd(void *CallbackRef);
 void Handler_DateUpdate(void *CallbackRef);
+void send_task_event(const char *result_str);
 #endif /* TIMER_SYNC_H_ */

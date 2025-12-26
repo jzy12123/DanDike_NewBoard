@@ -12,7 +12,6 @@
 volatile TimeSyncManager_t g_TimeSyncManager;
 
 // --- 静态辅助函数声明 ---
-static void send_task_event(const char *result_str);
 static int parse_and_set_manual_time(const char *time_str);
 
 // Timeout definitions (in 0.5s ticks)
@@ -125,7 +124,6 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
         {
             g_TimeSyncManager.status = TIME_SYNC_FAILURE;
         }
-        // 手动模式是瞬间完成的，不发送TaskEvent
         g_TimeSyncManager.current_mode = SYNC_MODE_NONE;
         g_TimeSyncManager.status = TIME_SYNC_IDLE;
         break;
@@ -240,7 +238,7 @@ void NotifySyncFailure(void)
 /**
  * @brief 发送TaskEvent上行消息
  */
-static void send_task_event(const char *result_str)
+void send_task_event(const char *result_str)
 {
     cJSON *report = cJSON_CreateObject();
     cJSON_AddStringToObject(report, "FunType", "TaskEvent");

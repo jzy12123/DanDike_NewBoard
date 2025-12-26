@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251226.1625";
+const char ARM_Ver_Full[] = "[Ver]=V1.251226.1823";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -2478,7 +2478,7 @@ void handle_SetSysTimeSyncMode(cJSON *data)
         goto send_reply;
     }
 
-    //启动系统对时
+    // 启动系统对时
     if (StartSystemSync(mode_to_start, data) == 0)
     {
         // 先回复Success,后续执行过程回复doing
@@ -2512,6 +2512,13 @@ send_reply:;
             free(finalString);
         }
         free(string);
+    }
+
+    // 如果是手动对时也要回复任务成功
+    if (mode_to_start == SYNC_MODE_MANUAL)
+    {
+        g_TimeSyncManager.current_mode = mode_to_start;
+        send_task_event("Success");
     }
     cJSON_Delete(reply);
 }
