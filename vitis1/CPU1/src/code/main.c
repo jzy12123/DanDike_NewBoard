@@ -169,7 +169,7 @@ int main()
 	PowerPulse_Init();
 	init_EnergyTest();
 	WaveRecord_Init();
-	XScuTimer_Start(&Timer);
+	
 	OnOff_Start(bit_8, 0); // 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 1);
 	sleep(2);
@@ -178,6 +178,7 @@ int main()
 	const char *arm_version_for_print = get_version_string(ARM_Ver_Full); // 获取ARM版本信息
 	xil_printf("CPU1: Initialization successfully || ARM Version: %s\r\n", arm_version_for_print);
 	xil_printf("CPU1: Start Main Timer...\r\n");
+	XScuTimer_Start(&Timer);
 	xil_printf("-----------------------------------------------------------------------------\r\n");
 	/*******************************************************************************************/
 
@@ -204,7 +205,7 @@ int main()
 		// ============================================================
 		// 3. 硬件控制权互斥分发
 		// ============================================================
-		if (g_StateSeqRuntime.IsRunning)
+		if (g_StateSeqRuntime.IsRunning ||g_StateSeqRuntime.IsWaiting ||g_StateSeqRuntime.IsHolding)
 		{
 			// --- 模式 A: 状态序列运行中 ---
 			// 此时 DAC 硬件由 CDMA 和 TTC 中断接管。

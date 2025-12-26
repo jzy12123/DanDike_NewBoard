@@ -206,19 +206,15 @@ void WaveRecord_Stop(void)
 {
     if (g_WaveRecordCtrl.isRecording)
     {
-        g_WaveRecordCtrl.isRecording = false;
-        // 停止时，如果当前段有数据，也需要生成文件并上报
-        if (g_WaveRecordCtrl.bytesWrittenInSection > 0)
-        {
-            Switch_Section(); // 强制切换，触发上报逻辑
-        }
-        g_WaveRecordCtrl.isTaskFinished = true; // 标记整体完成
+        // 不立即设置 isRecording = false，而是请求停止
+        // 让 WaveRecord_Process 把当前这一块数据写完后再停
+        g_WaveRecordCtrl.isStopping = true;
     }
 }
 
 /**
- * @brief 处理一块数据 (通常为中断触发，如50ms数据) 进行录波存储
- * @details 支持双缓冲无缝切换，处理跨段写入
+ * @brief 处理一块数据 (通常为中断触发) 进行录波存储
+ * @details 修复了停止逻辑被 return 跳过的问题，确保任务能正常结束
  */
 void WaveRecord_Process(u16 *pRawData, int points_count)
 {
@@ -231,105 +227,87 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
     int valid_points = points_count; // 本次需要处理的有效点数
 
     // ----------------------------------------------------------------
-    // 【阶段一】首块数据裁切 (剔除启动指令前的无效历史数据)
+    // 【阶段一】首块数据裁切
     // ----------------------------------------------------------------
     if (g_WaveRecordCtrl.isFirstBlock)
     {
-        // 计算有效时长：(当前中断时刻 - 点击启动时刻)
         long long time_diff_us = (long long)(g_LastDmaIrqTime_us - g_WaveRecordCtrl.startTimeUs);
         if (time_diff_us < 0)
             time_diff_us = 0;
 
-        // 计算本块数据的总时长 (us)
         u64 block_duration_us = (u64)points_count * 1000000 / FS_RATE;
-
-        // 修正逻辑：如果时间差大于块长，说明全部有效
         if (time_diff_us > block_duration_us)
             time_diff_us = block_duration_us;
 
-        // 计算保留点数和剔除点数
         int keep_samples = (int)((double)time_diff_us * FS_RATE / 1000000.0);
         int discard_samples = points_count - keep_samples;
 
-        // 边界修正
         if (discard_samples < 0)
             discard_samples = 0;
         if (discard_samples >= points_count)
             discard_samples = points_count;
 
-        // 应用偏移
         if (discard_samples > 0)
         {
-            pValidData += (discard_samples * 8); // 8通道，指针偏移
+            pValidData += (discard_samples * 8);
             valid_points -= discard_samples;
         }
-
         g_WaveRecordCtrl.isFirstBlock = false;
     }
 
-    if (valid_points <= 0)
-        return;
+    // 注意：这里不要直接 return，即使 valid_points 为 0，也需要往下走去检查 isStopping
 
     // ----------------------------------------------------------------
-    // 【阶段二】 总时长硬裁切 (新增：防止最后一段超长)
+    // 【阶段二】 总时长硬裁切
     // ----------------------------------------------------------------
     if (g_WaveRecordCtrl.totalTargetDurationMs > 0)
     {
-        // 1. 计算总目标字节数
         u64 total_limit_bytes = (u64)g_WaveRecordCtrl.totalTargetDurationMs * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
-
-        // 2. 计算剩余可写字节数
         long long bytes_remaining = total_limit_bytes - g_WaveRecordCtrl.totalRecordedBytes;
 
         if (bytes_remaining <= 0)
         {
+            // 时间已到，请求停止
             WaveRecord_Stop();
-            return;
+            // 【关键修复】不要 return，而是将待写点数清零，让流程走到最后的停止处理
+            valid_points = 0;
         }
-
-        // 3. 计算剩余可写点数
-        int points_remaining = bytes_remaining / COMTRADE_FRAME_SIZE;
-
-        // 4. 如果本次数据超过了剩余需要的点数，就裁切
-        if (valid_points > points_remaining)
+        else
         {
-            valid_points = points_remaining; // 强制截断，只写剩下的这一点
+            // 还有剩余空间，检查是否需要截断本次数据
+            int points_remaining = bytes_remaining / COMTRADE_FRAME_SIZE;
+            if (valid_points > points_remaining)
+            {
+                valid_points = points_remaining;
+            }
         }
     }
 
     // ----------------------------------------------------------------
-    // 【阶段三】分块写入 (处理跨段边界)
+    // 【阶段三】分块写入 (循环处理)
     // ----------------------------------------------------------------
     int points_processed = 0;
 
+    // 如果 valid_points 为 0 (例如硬裁切触发)，循环会自动跳过
     while (points_processed < valid_points)
     {
-        // A. 计算当前段的剩余空间 (字节 -> 点数)
         u32 bytes_left_in_section = g_WaveRecordCtrl.bytesLimitPerSection - g_WaveRecordCtrl.bytesWrittenInSection;
         int points_space_left = bytes_left_in_section / COMTRADE_FRAME_SIZE;
 
-        // B. 计算本次循环能写入多少点
         int points_remaining = valid_points - points_processed;
         int points_to_write = (points_remaining < points_space_left) ? points_remaining : points_space_left;
 
-        // C. 获取写入基地址
         u32 section_base = (g_WaveRecordCtrl.currentSection == 1) ? REC_SEC1_START : REC_SEC2_START;
         u32 *pDest = (u32 *)(UINTPTR)(section_base + g_WaveRecordCtrl.bytesWrittenInSection);
-        u32 *pFlushStart = pDest; // 记录刷Cache的起始位置
+        u32 *pFlushStart = pDest;
 
-        // D. 执行写入循环 (针对 points_to_write)
         for (int i = 0; i < points_to_write; i++)
         {
-            // 1. 序号 (4B)
             *pDest++ = g_WaveRecordCtrl.sampleSequence;
-
-            // 2. 时间 (4B)
             u64 time_us_64 = ((u64)g_WaveRecordCtrl.sampleSequence * 1000000) / FS_RATE;
             *pDest++ = (u32)time_us_64;
-
             g_WaveRecordCtrl.sampleSequence++;
 
-            // 3. 模拟量 (16B)
             u16 *pSamp = &pValidData[(points_processed + i) * 8];
             *pDest++ = (u32)pSamp[0] | ((u32)pSamp[1] << 16);
             *pDest++ = (u32)pSamp[2] | ((u32)pSamp[3] << 16);
@@ -337,36 +315,51 @@ void WaveRecord_Process(u16 *pRawData, int points_count)
             *pDest++ = (u32)pSamp[6] | ((u32)pSamp[7] << 16);
         }
 
-        // E. 更新计数器
         u32 bytes_written_now = points_to_write * COMTRADE_FRAME_SIZE;
         g_WaveRecordCtrl.bytesWrittenInSection += bytes_written_now;
         g_WaveRecordCtrl.totalRecordedBytes += bytes_written_now;
         points_processed += points_to_write;
 
-        // F. 刷当前写入区域的 Cache
         Xil_DCacheFlushRange((UINTPTR)pFlushStart, bytes_written_now);
 
-        // G. 检查是否写满当前段 -> 切换
+        // 检查是否写满当前段 -> 切换
         if (g_WaveRecordCtrl.bytesWrittenInSection >= g_WaveRecordCtrl.bytesLimitPerSection)
         {
-            Switch_Section(); // 切换段，置上报标志，重置 bytesWrittenInSection
-
-            // 注意：循环会继续，如果 valid_points 还没写完，
-            // 下一次 while 循环会自动计算新段的地址 (section_base 变化) 继续写入
+            Switch_Section();
         }
     }
 
     // ----------------------------------------------------------------
-    // 【阶段四】总时长检查 (仅针对有限时长录波)
+    // 【阶段四】总时长检查 (再次确认)
     // ----------------------------------------------------------------
     if (g_WaveRecordCtrl.totalTargetDurationMs > 0)
     {
         u64 total_limit_bytes = (u64)g_WaveRecordCtrl.totalTargetDurationMs * FS_RATE / 1000 * COMTRADE_FRAME_SIZE;
-        // 此时 totalRecordedBytes 应该正好等于 limit (因为上面做了裁切)
         if (g_WaveRecordCtrl.totalRecordedBytes >= total_limit_bytes)
         {
             WaveRecord_Stop();
         }
+    }
+
+    // ----------------------------------------------------------------
+    // 【阶段五】处理软停止请求 (Fix: 移出循环，确保必执行)
+    // ----------------------------------------------------------------
+    // 无论本次是否写入了数据，只要有停止标志，就执行收尾
+    if (g_WaveRecordCtrl.isStopping)
+    {
+        g_WaveRecordCtrl.isRecording = false; // 正式关闭
+        g_WaveRecordCtrl.isStopping = false;  // 清除标志
+
+        // 如果当前段有未保存的数据，强制生成一段文件
+        if (g_WaveRecordCtrl.bytesWrittenInSection > 0)
+        {
+            Switch_Section(); // 触发上报 (FileCreated)
+        }
+
+        // 标记任务全部完成 -> 触发 TaskEvent Success
+        g_WaveRecordCtrl.isTaskFinished = true;
+
+        // xil_printf("CPU1: WaveRecord Finished. Total: %u bytes\r\n", g_WaveRecordCtrl.totalRecordedBytes);
     }
 }
 
@@ -585,9 +578,15 @@ void WaveRecordTask_Check(void)
     // 3. 处理整体任务结束
     if (g_WaveRecordCtrl.isTaskFinished)
     {
-        Report_TaskSuccess();
-        xil_printf("CPU1: SetTaskWaveRecord All Finished.\r\n");
-        g_WaveRecordCtrl.isTaskFinished = false; // 复位状态
-        g_WaveRecordTask.State = 0;              // 回到 Idle (如果使用了 Task 状态机)
+        // 仅当录波来源是 "SetTaskWaveRecord" (独立录波) 时，才上报 TaskEvent Success
+        if (strcmp(g_WaveRecordCtrl.recFrom, "SetTaskWaveRecord") == 0)
+        {
+            Report_TaskSuccess();
+        }
+
+        xil_printf("CPU1: WaveRecord All Finished (%s).\r\n", g_WaveRecordCtrl.recFrom);
+
+        g_WaveRecordCtrl.isTaskFinished = false; // 复位内部状态
+        g_WaveRecordTask.State = 0;              // 复位外部任务状态机 (回到 Idle)
     }
 }

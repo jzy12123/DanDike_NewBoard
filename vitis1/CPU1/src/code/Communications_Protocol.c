@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251224.1546";
+const char ARM_Ver_Full[] = "[Ver]=V1.251226.1625";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -88,13 +88,9 @@ int Parse_JsonCommand(char *buffer)
 
         // 状态控制 (合并后)
         {"SetACStatus", handle_SetACStatus},
-        // {"SetHarmStatus", handle_SetHarmStatus}, // 已合并到 SetACStatus
-        // {"SetInharmStatus", handle_SetACStatus}, // 已合并到 SetACStatus
 
         // 统一参数设置 (替代 SetDI, SetPulseOut 等)
         {"SetDevState", handle_SetDevState},
-        // {"SetDI", handle_SetDI},             // 已移除
-        // {"SetPulseOut", handle_SetPulseOut}, // 已移除
 
         {"SetDO", handle_SetDO},
         {"StopDCS", handle_StopDCS},
@@ -1159,18 +1155,6 @@ void handle_SetACS(cJSON *data)
             onlyRangeFieldsFound = false; // 或者可以保持 true 并依赖 valsPresent 判断
         }
     }
-
-    // // --- 打印最终的 setACS 状态 (用于调试) ---
-    // xil_printf("CPU1: Final setACS State:\r\n");
-    // xil_printf("ClosedLoop: %d\r\n", setACS.ClosedLoop);
-    // for (int i = 0; i < LinesAC * ChnsAC; i++)
-    // {
-    //     printf("  vals[%d]: Line=%d, Chn=%d, F=%.2f, UR=%.2f, U=%.2f, PhU=%.2f, IR=%.2f, I=%.2f, PhI=%.2f\n",
-    //            i, setACS.Vals[i].Line, setACS.Vals[i].Chn, setACS.Vals[i].F,
-    //            setACS.Vals[i].UR, setACS.Vals[i].U, setACS.Vals[i].PhU,
-    //            setACS.Vals[i].IR, setACS.Vals[i].I_, setACS.Vals[i].PhI);
-    // }
-    // xil_printf("CPU1: Debug: valsPresent=%d, onlyRangeFieldsFound=%d\n", valsPresent, onlyRangeFieldsFound);
 
     // --- 回报 JSON ---
     ReplyData replyData;
@@ -3382,11 +3366,10 @@ void handle_StateSequence(cJSON *data)
     cJSON_Delete(reply);
 
     // 5. 启动逻辑
+    // 无论哪种模式，先“清场”
+    StateSequence_QuitMode();
     if (g_StateSequenceTask.StartMode == 0)
     {
-        xil_printf("CPU1: Cmd SetTaskStateSequence -> Start Immediately.\r\n");
-        StateSequence_QuitMode();
-
         // 立即启动：先规划，后执行
         StateSequence_Plan(NULL);
         StateSequence_ApplyAndRun();

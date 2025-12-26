@@ -224,8 +224,6 @@ void SoftTimer_AlarmHandler(void *CallBackRef)
     // 优先级 2: 状态序列任务 (SetTaskStateSequence)
     if (!g_StateSeqRuntime.IsRunning)
     {
-        // 抢占并执行状态序列
-        StateSequence_QuitMode();    // 确保清理旧状态
         StateSequence_ApplyAndRun(); // 应用配置并运行
     }
     else

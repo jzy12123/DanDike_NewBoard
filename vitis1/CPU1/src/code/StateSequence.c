@@ -264,42 +264,62 @@ static void Load_Step_To_BRAM(int stepIndex)
     u32 SrcAddr = STATE_SEQ_DDR_BUFFER_BASE + stepIndex * WAVE_STEP_SIZE_BYTES;
     u32 DestAddr = STATE_SEQ_BRAM_BASEADDR;
 
-    // 检查 CDMA 是否空闲，带超时防止死锁
-    int timeout = 100000;
-    while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
+    // 尝试次数
+    int retries = 2;
+    while (retries > 0)
     {
-        timeout--;
-    }
-    if (timeout == 0)
-    {
-        xil_printf("CPU1: CDMA Busy Stuck - Resetting...\r\n");
-        XAxiCdma_Reset(&CdmaInstance);
-        while (!XAxiCdma_ResetIsDone(&CdmaInstance))
-            ; // 等待复位完成
+        // 1. 等待空闲 (带超时)
+        int timeout = 100000;
+        while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
+        {
+            timeout--;
+        }
+
+        // 2. 如果超时，复位硬件
+        if (timeout == 0)
+        {
+            xil_printf("CPU1: CDMA Busy Stuck - Resetting...\r\n");
+            XAxiCdma_Reset(&CdmaInstance);
+            while (!XAxiCdma_ResetIsDone(&CdmaInstance))
+                ;
+        }
+
+        // 3. 提交传输
+        int Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)SrcAddr, (UINTPTR)DestAddr, WAVE_STEP_SIZE_BYTES, NULL, NULL);
+
+        if (Status == XST_SUCCESS)
+        {
+            // 提交成功，等待完成
+            timeout = 1000000;
+            while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
+            {
+                timeout--;
+            }
+            if (timeout == 0)
+            {
+                // 传输过程中卡死，需要复位并重试
+                xil_printf("CPU1: CDMA Transfer Timeout!\r\n");
+                XAxiCdma_Reset(&CdmaInstance);
+                while (!XAxiCdma_ResetIsDone(&CdmaInstance))
+                    ;
+                retries--;
+                continue; // 重试
+            }
+            // 传输彻底完成
+            return;
+        }
+        else
+        {
+            // 提交失败 (可能是复位后状态不对)，复位并重试
+            xil_printf("CPU1: CDMA Submit Failed (Status %d), Retrying...\r\n", Status);
+            XAxiCdma_Reset(&CdmaInstance);
+            while (!XAxiCdma_ResetIsDone(&CdmaInstance))
+                ;
+            retries--;
+        }
     }
 
-    // 启动传输
-    int Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)SrcAddr, (UINTPTR)DestAddr, WAVE_STEP_SIZE_BYTES, NULL, NULL);
-    if (Status != XST_SUCCESS)
-    {
-        xil_printf("CPU1: Error - CDMA Submit Failed (Status %d)\r\n", Status);
-        return; // 发送失败直接返回
-    }
-
-    // 等待传输完成
-    timeout = 1000000;
-    while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
-    {
-        timeout--;
-    }
-
-    if (timeout == 0)
-    {
-        xil_printf("CPU1: Error - CDMA Timeout! (Check Address 0x%X)\r\n", DestAddr);
-        XAxiCdma_Reset(&CdmaInstance);
-        while (!XAxiCdma_ResetIsDone(&CdmaInstance))
-            ;
-    }
+    xil_printf("CPU1: Error - Load Step %d Failed after retries!\r\n", stepIndex);
 }
 
 /**
@@ -391,6 +411,7 @@ static bool Check_Step_Condition_Met(Struct_Seq_Step *pStep)
 
     return false;
 }
+
 /**
  * @brief 执行单步切换
  * @details 1. CDMA搬运波形; 2. 写入DO; 3. 启动定时器
@@ -474,13 +495,19 @@ static void Execute_Step(int stepIndex)
     }
 
     // 7. 录波启动逻辑
-    // RecStartState: 0=不录, >=1 代表从第几步开始录 (用户输入是1-based)
-    if (g_StateSequenceTask.RecStartState > 0 && (stepIndex + 1) == g_StateSequenceTask.RecStartState)
+    // RecStartState: 0=不录, >=1 代表从第几步开始录
+    if (g_StateSequenceTask.RecStartState > 0 &&
+        (stepIndex + 1) == g_StateSequenceTask.RecStartState)
     {
-        xil_printf("CPU1: StateSeq - Triggering SetTaskWaveRecord at Step %d\r\n", stepIndex + 1);
-        // 启动录波 (传入设定的时长)
-        WaveRecord_Start(g_StateSequenceTask.RecMS, "SetTaskStateSequence");
+        // 只有在第一次运行序列时才触发 (RepeatCountRemaining == RepeatCount)
+        if (g_StateSeqRuntime.RepeatCountRemaining == g_StateSequenceTask.RepeatCount)
+        {
+            xil_printf("CPU1: StateSeq - Triggering SetTaskWaveRecord at Step %d\r\n", stepIndex + 1);
+            // 启动录波 (传入设定的时长，建议设为 -1 无限长)
+            WaveRecord_Start(g_StateSequenceTask.RecMS, "SetTaskStateSequence");
+        }
     }
+
     xil_printf("CPU1: StateSeq - Step %d Executed. Time: %d ms\r\n", stepIndex, pStep->MaxDuration);
 }
 
@@ -523,12 +550,56 @@ int StateSequence_Init(void)
  */
 void StateSequence_Plan(const char *startTimeStr)
 {
-    // 1. 初始化基础状态
+    // 1. 先让装置输出全部为0
+    memset(TempWaveData, 0, sizeof(TempWaveData));
+
+    // 写入 DDR (临时借用 Step 0 的位置，反正下面计算流程会覆盖它)
+    u32 ZeroSrcAddr = STATE_SEQ_DDR_BUFFER_BASE;
+    u32 *pDdrBase = (u32 *)(UINTPTR)ZeroSrcAddr;
+
+    // 简单的内存拷贝，将 0 数据填入 DDR
+    // TempWaveData 是 uint16_t [8][1024]，总大小正好是 WAVE_STEP_SIZE_BYTES
+    memcpy(pDdrBase, TempWaveData, WAVE_STEP_SIZE_BYTES);
+
+    //  刷 Cache (确保 DDR 里真的是 0)
+    Xil_DCacheFlushRange((UINTPTR)pDdrBase, WAVE_STEP_SIZE_BYTES);
+
+    //  【关键动作】通过 CDMA 搬运到 BRAM
+    int Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)ZeroSrcAddr, (UINTPTR)STATE_SEQ_BRAM_BASEADDR, WAVE_STEP_SIZE_BYTES, NULL, NULL);
+
+    if (Status == XST_SUCCESS)
+    {
+        // 等待传输完成
+        int timeout = 1000000;
+        while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
+            timeout--;
+
+        if (timeout == 0)
+        {
+            xil_printf("CPU1: Debug - CDMA Timeout during Zero Write! (Bus Locked?)\r\n");
+            // 如果超时，尝试复位一下，以免影响后面的正常流程
+            XAxiCdma_Reset(&CdmaInstance);
+            while (!XAxiCdma_ResetIsDone(&CdmaInstance))
+                ;
+        }
+        else
+        {
+            // xil_printf("CPU1: Debug - Zero Write Complete. Output should be 0V now.\r\n");
+        }
+    }
+    else
+    {
+        xil_printf("CPU1: Debug - CDMA Submit Failed %d\r\n", Status);
+    }
+    // 先输出10ms
+    usleep(10000);
+    // ============================================================
+
+    // 2. 初始化基础状态
     g_StateSeqRuntime.CurrentStepIndex = 0;
     g_StateSeqRuntime.TotalSteps = g_StateSequenceTask.StepCount;
     g_StateSeqRuntime.RepeatCountRemaining = g_StateSequenceTask.RepeatCount;
 
-    // [核心修改 1] 设置等待标志，但暂不触发上报
     g_StateSeqRuntime.IsRunning = false;
     g_StateSeqRuntime.IsWaiting = true; // 进入等待状态
     g_StateSeqRuntime.IsHolding = false;
@@ -556,7 +627,7 @@ void StateSequence_Plan(const char *startTimeStr)
 
     xil_printf("CPU1: StateSeq - Planning task for %s...\r\n", g_StateSeqRuntime.StartTimeStr);
 
-    // 2. 全局扫描：确定最佳量程
+    // 3. 全局扫描：确定最佳量程
     float max_u_vals[4] = {0};
     float max_i_vals[4] = {0};
 
@@ -579,7 +650,7 @@ void StateSequence_Plan(const char *startTimeStr)
         }
     }
 
-    // 3. 计算量程并回写
+    // 4. 计算量程并回写
     float final_ur[4], final_ir[4];
     u32 range_codes[8];
     for (int k = 0; k < 8; k++)
@@ -627,10 +698,11 @@ void StateSequence_Plan(const char *startTimeStr)
         }
     }
 
-    // 4. 执行预计算 (写入DDR，计算TTC等)
+    // 5. 执行预计算 (写入DDR，计算TTC等)
     Precalculate_Waveforms();
     Precalculate_HwParams();
-    // 5. [核心] 将计算好的硬件寄存器值存入缓存，此时不写硬件
+
+    // 6. 将计算好的硬件寄存器值存入缓存，此时不写硬件
     // 缓存量程寄存器
     g_StateSeqRuntime.Cached_Hw.Range_Regs[0] = (range_codes[1] << 24) | (range_codes[0] << 8);
     g_StateSeqRuntime.Cached_Hw.Range_Regs[1] = (range_codes[3] << 24) | (range_codes[2] << 8);
@@ -665,34 +737,37 @@ void StateSequence_Plan(const char *startTimeStr)
  * @brief 阶段2：执行任务 (IO密集型)
  * @details 仅执行寄存器写入和启动操作，耗时极短。通常在中断或立即启动时调用。
  */
+/**
+ * @brief 阶段2：执行任务 (IO密集型)
+ * @details 修复了手动模式干扰导致的启动冲击问题
+ */
 void StateSequence_ApplyAndRun(void)
 {
-    // xil_printf("CPU1: StateSeq - Applying HW Config and Starting...\r\n");
     // 1. 设置运行标志
     g_StateSeqRuntime.IsWaiting = false;  // 结束等待
     g_StateSeqRuntime.IsRunning = true;   // 开始运行
     g_StateSeqRuntime.IsHolding = false;  // 结束保持标志
     g_StateSeqRuntime.IsFinished = false; // 完成标志
-    g_StateSeqRuntime.ReportedCount = -1; // 此时才触发首条 TaskEvent (Doing)
-    // 2. 写入缓存的硬件参数
+    g_StateSeqRuntime.ReportedCount = -1;
+
+    // 2. 设置硬件系数
     // 档位
     Seq_Hw_SetRange(g_StateSeqRuntime.Cached_Hw.Range_Regs[0],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[1],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[3]);
-
-    // 幅值 (100% Gain)
+    // 幅值 (状态序列模式下，这里通常被设为 100% 满增益)
     Seq_Hw_SetValue(g_StateSeqRuntime.Cached_Hw.Value_Regs[0],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[1],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[3]);
 
-    // 现在开启 DAC
+    // 3. 开启 DAC
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.Cached_Hw.Init_Freq_Div);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 3. 执行第一步逻辑 (启动定时器、录波等)
+    // 4. 执行第一步逻辑
     Execute_Step(0);
 }
 
@@ -997,9 +1072,14 @@ int StateSequence_EnableAlarm(const char *startTimeStr)
     if (startTimeStr == NULL || strlen(startTimeStr) < 19)
         return XST_FAILURE;
 
-    // 1. 先进行任务规划 (计算参数，写DDR)
-    // 这样当闹钟响时，数据已经准备好了
-    StateSequence_Plan(startTimeStr);
+    // ============================================================
+    // 【关键修复】在做任何规划前，强制关闭 DAC！
+    // ============================================================
+    // 1. 关闭 DAC 输出使能 (释放 BRAM 占用)
+    Xil_Out32(dac_whole_base_addr + 0, 0);
+
+    // 3. 延时一小会儿，确保总线彻底释放
+    usleep(1000);
 
     // 2. 解析时间并设置闹钟 (同之前)
     char h_str[3] = {startTimeStr[11], startTimeStr[12], '\0'};
@@ -1023,6 +1103,10 @@ int StateSequence_EnableAlarm(const char *startTimeStr)
     g_SoftTimer_Reg15_Shadow |= (bcd_s << STIMER_ALARM_SEC_SHIFT);
 
     Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+
+    // 1. 先进行任务规划 (计算参数，写DDR)
+    // 这样当闹钟响时，数据已经准备好了
+    StateSequence_Plan(startTimeStr);
 
     return XST_SUCCESS;
 }

@@ -40,6 +40,7 @@ typedef struct
     // --- 状态标志 ---
     volatile bool isRecording;
     volatile bool isPendingStartReport; // 启动报告挂起
+    volatile bool isStopping;           // 【新增】软停止请求标志
     volatile bool isTaskFinished;       // 任务整体完成标志 (用于发 TaskEvent Success)
 
     // --- 双缓冲控制 ---
