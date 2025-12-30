@@ -163,7 +163,7 @@ extern u8 UART_RX_BUF[1000];
 // 初始化函数
 int UartLiteGpsInit(u16 device_id);
 // 中断处理函数
-void GpsUartRecvHandler(void *CallBackRef, unsigned int EventData);
+void GpsUartRecvHandler(void *CallBackRef);
 void GpsPPSHandler(void *CallBackRef);
 
 int NMEA_Str2num(u8 *buf, u8 *dx);

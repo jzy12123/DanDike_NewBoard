@@ -906,7 +906,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
 
     // Pin 6: interrupt (GPS UART)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR, (XInterruptHandler)XUartLite_InterruptHandler, (void *)gps_uart_ptr);
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR, (XInterruptHandler)GpsUartRecvHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 

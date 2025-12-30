@@ -40,15 +40,11 @@ int UartLiteGpsInit(u16 device_id)
 	return XST_SUCCESS;
 }
 
-volatile int g_Debug_UartIrqCnt = 0; // 调试计数器
 // 自定义中断处理函数
 void GpsUartRecvHandler(void *CallBackRef)
 {
-	// 【探针 1】只要进来了，这个数必须涨
-	g_Debug_UartIrqCnt++;
-
 	XUartLite *UartInstPtr = (XUartLite *)CallBackRef;
-	u32 StatusRegister;
+	 u32 StatusRegister;
 	u8 ReadByte;
 
 	// 1. 读取状态寄存器
@@ -147,12 +143,6 @@ void GpsPPSHandler(void *CallBackRef)
 		return;
 	}
 
-	// 【探针 2】直接读取 UART 硬件寄存器的值 (偏移量 0x08)
-	u32 HardwareStatus = XUartLite_ReadReg(GpsUartLiteInst.RegBaseAddress, XUL_STATUS_REG_OFFSET);
-
-	xil_printf("PPS Debug: IRQ_Cnt=%d, UART_Status=0x%02X, Soft_Cnt=%d\r\n",
-			   g_Debug_UartIrqCnt, HardwareStatus, GPS_Ctrl_State.uart_cont);
-			   
 	// 3. 检查串口数据
 	// 如果这里进不去，说明 StartSystemSync 里没复位 FIFO，导致串口中断死锁
 	if (GPS_Ctrl_State.uart_cont > 10)

@@ -68,16 +68,22 @@ int StartSystemSync(SyncModeType mode, cJSON *data)
         // --- 串口死锁解锁序列 ---
         // 1. 复位 FIFO (清空硬件缓存，尝试拉低中断线)
         XUartLite_ResetFifos(&GpsUartLiteInst);
+        // 【关键修复】复位 FIFO 后，必须重新在 IP 核层面开启中断
+        XUartLite_EnableInterrupt(&GpsUartLiteInst);
+
         // 2. 软件状态清零
         GPS_Ctrl_State.uart_cont = 0;
+        // 确保清除上一次可能残留的错误状态
+        GPS_Ctrl_State.REV_Finish_Flag = 0;
+        memset((void *)UART_RX_BUF, 0, sizeof(UART_RX_BUF));
 
         // 3. 【关键】清除 INTC 的 Pending 标志
         XIntc_Acknowledge(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
         XIntc_Acknowledge(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
 
         // 4. 开启中断
-        XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
         XIntc_Enable(&AxiIntc_BareMetal, BAREMETAL_INTC_GPS_UART_INTR_ID);
+        XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
 
         // 5. 开启硬件 PPS 清零
         SoftTimer_SetPPS_Clr_En(true);

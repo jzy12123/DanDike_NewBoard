@@ -2,14 +2,17 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Tue Dec 30 10:04:08 2025
-# Process ID: 2964
+# Start of session at: Mon Dec 29 15:41:27 2025
+# Process ID: 21264
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
-# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent4136 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent20668 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
 # Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
 #-----------------------------------------------------------
 start_gui
 open_project C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.xpr
 update_compile_order -fileset sources_1
+open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+open_run synth_1 -name synth_1
+set_property PULLTYPE NONE [get_ports [list UART_GPS_rxd]]
 open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}

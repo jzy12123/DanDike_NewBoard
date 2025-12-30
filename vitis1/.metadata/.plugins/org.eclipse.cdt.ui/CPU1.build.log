@@ -1,18 +1,28 @@
-18:35:02 **** Incremental Build of configuration Debug for project CPU1 ****
+15:27:26 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step
 ' '
 make --no-print-directory main-build
-'Building file: ../src/code/Communications_Protocol.c'
+'Building file: ../src/code/gps.c'
 'Invoking: ARM v7 gcc compiler'
-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Communications_Protocol.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Communications_Protocol.d" -MT"src/code/Communications_Protocol.o" -o "src/code/Communications_Protocol.o" "../src/code/Communications_Protocol.c"
-'Finished building: ../src/code/Communications_Protocol.c'
-' '
-'Building file: ../src/code/Timer_sync.c'
-'Invoking: ARM v7 gcc compiler'
-arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/Timer_sync.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/Timer_sync.d" -MT"src/code/Timer_sync.o" -o "src/code/Timer_sync.o" "../src/code/Timer_sync.c"
-'Finished building: ../src/code/Timer_sync.c'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/code/gps.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include -MMD -MP -MF"src/code/gps.d" -MT"src/code/gps.o" -o "src/code/gps.o" "../src/code/gps.c"
+../src/code/gps.c: In function 'UartLiteGpsInit':
+../src/code/gps.c:36:45: warning: passing argument 2 of 'XUartLite_SetRecvHandler' from incompatible pointer type [-Wincompatible-pointer-types]
+   36 |  XUartLite_SetRecvHandler(&GpsUartLiteInst, GpsUartRecvHandler, &GpsUartLiteInst);
+      |                                             ^~~~~~~~~~~~~~~~~~
+      |                                             |
+      |                                             void (*)(void *)
+In file included from ../src/code/gps.h:6,
+                 from ../src/code/gps.c:1:
+C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/bspinclude/include/xuartlite.h:256:73: note: expected 'XUartLite_Handler' {aka 'void (*)(void *, unsigned int)'} but argument is of type 'void (*)(void *)'
+  256 | void XUartLite_SetRecvHandler(XUartLite *InstancePtr, XUartLite_Handler FuncPtr,
+      |                                                       ~~~~~~~~~~~~~~~~~~^~~~~~~
+../src/code/gps.c: In function 'GpsUartRecvHandler':
+../src/code/gps.c:51:6: warning: variable 'StatusRegister' set but not used [-Wunused-but-set-variable]
+   51 |  u32 StatusRegister;
+      |      ^~~~~~~~~~~~~~
+'Finished building: ../src/code/gps.c'
 ' '
 'Building target: CPU1.elf'
 'Invoking: ARM v7 gcc linker'
@@ -22,9 +32,9 @@ arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=non
 'Invoking: ARM v7 Print Size'
 arm-none-eabi-size CPU1.elf  |tee "CPU1.elf.size"
    text	   data	    bss	    dec	    hex	filename
- 304536	   4648	21468432	21777616	14c4cd0	CPU1.elf
+ 304792	   4648	21468432	21777872	14c4dd0	CPU1.elf
 'Finished building: CPU1.elf.size'
 ' '
 
-18:35:04 Build Finished (took 1s.590ms)
+15:27:27 Build Finished (took 1s.345ms)
 
