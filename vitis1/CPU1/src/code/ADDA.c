@@ -780,8 +780,9 @@ void timer_intr_handler(void *CallBackRef)
     TimeSync_TickHandler();
 
     // =========================================================
-    // [新增] 5. 检查并上报事务性任务状态 (电能测试 & 状态序列)
+    // [新增] 5. 检查并上报事务性任务状态 (时钟误差测试 & 电能测试 & 状态序列)
     // =========================================================
+    ClockTest_CheckAndReport();
     check_and_report_energy_test_status();
     check_and_report_state_sequence_status();
     // 清除定时器中断标志
@@ -919,7 +920,13 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR, (XInterruptHandler)Handler_DateUpdate, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
+
     // Pin 9: PPS_IN
+    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR,
+                           (Xil_ExceptionHandler)ClockTest_PPS_IntrHandler,
+                           (void *)NULL);
+    if (status != XST_SUCCESS)
+        return status;
 
     // Pin 10: 软时钟闹钟中断
     status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR, (XInterruptHandler)SoftTimer_AlarmHandler, (void *)0);
@@ -966,6 +973,7 @@ int setup_intr_system(XScuGic *int_ins_ptr,
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR);                     // 5
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);  // 7
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR); // 8
+    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR);  // 9
     XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR);     // 10
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR); // 11 在GPS对时事务中开启
 

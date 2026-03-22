@@ -21,6 +21,7 @@
 #include "IIC_Master.h"
 #include "power_pulse.h"
 #include "StateSequence.h"
+#include "ClockTest.h"
 
 int main()
 {
@@ -169,7 +170,8 @@ int main()
 	PowerPulse_Init();
 	init_EnergyTest();
 	WaveRecord_Init();
-	
+	ClockTest_Init();
+
 	OnOff_Start(bit_8, 0); // 开关量初始化 放到前面会死机
 	OnOff_Start(bit_8, 1);
 	sleep(2);

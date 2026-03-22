@@ -100,6 +100,7 @@ int Parse_JsonCommand(char *buffer)
         {"WriteCalibrateAC", handle_WriteCalibrateAC},
         {"RestoreCalibrateDefault", handle_RestoreCalibrateDefault},
         {"SetTaskSysTimeSync", handle_SetSysTimeSyncMode},
+        {"SetTaskClockTest", handle_SetTaskClockTest},
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"TerminateRunningTask", handle_TerminateRunningTask},
         {"SetTaskStateSequence", handle_StateSequence},
@@ -2524,6 +2525,70 @@ send_reply:;
 }
 
 /**
+ * @brief 处理 SetTaskClockTest 指令
+ */
+void handle_SetTaskClockTest(cJSON *data)
+{
+    char *result = "Failure";
+
+    if (!data)
+    {
+        printf("CPU1: SetTaskClockTest Error: No Data.\r\n");
+        goto send_clock_reply;
+    }
+
+    // 1. 解析参数
+    cJSON *item;
+    uint32_t plusSeconds = 1;
+    uint32_t round = 10;
+    uint32_t testTimes = 1;
+
+    item = cJSON_GetObjectItem(data, "PlusSeconds");
+    if (item && cJSON_IsNumber(item))
+        plusSeconds = item->valueint;
+
+    item = cJSON_GetObjectItem(data, "Round");
+    if (item && cJSON_IsNumber(item))
+        round = item->valueint;
+
+    item = cJSON_GetObjectItem(data, "TestTimes");
+    if (item && cJSON_IsNumber(item))
+        testTimes = item->valueint;
+
+    // 2. 启动测试 (这里默认只处理通道1，因为你的需求是PPS单通道)
+    // 如果 JSON 中有 Chns 数组，可以在这里进行判断，但目前只启动逻辑即可
+    if (ClockTest_Start(plusSeconds, round, testTimes))
+    {
+        result = "Success";
+    }
+
+send_clock_reply:
+    // 3. 回复立即响应
+    {
+        cJSON *reply = cJSON_CreateObject();
+        cJSON_AddStringToObject(reply, "FunType", "Reply");
+        cJSON_AddStringToObject(reply, "FunCode", "SetTaskClockTest");
+        cJSON_AddStringToObject(reply, "Result", result);
+        cJSON_AddItemToObject(reply, "Data", cJSON_CreateObject()); // 空Data
+
+        char *str = cJSON_PrintUnformatted(reply);
+        if (str)
+        {
+            size_t len = strlen(str);
+            char *finalStr = malloc(len + 3);
+            if (finalStr)
+            {
+                snprintf(finalStr, len + 3, "|%s|", str);
+                MsgQue_write(finalStr, strlen(finalStr));
+                free(finalStr);
+            }
+            free(str);
+        }
+        cJSON_Delete(reply);
+    }
+}
+
+/**
  * @brief (已重构) 检查并上报挂起的电能误差测试状态
  * @details 此函数应在主循环中被周期性调用。
  * 它检查全局报告标志位 (report_pending)，如果为true，则根据 "信箱" 中的数据快照
@@ -2746,11 +2811,11 @@ void handle_TerminateRunningTask(cJSON *data)
                 {
                     PowerPulse_TerminateTest(); // 调用电能测试模块的终止函数
                 }
-                // --- 未来扩展占位符 ---
-                // else if (strcmp(task_name, "SetTaskClockTest") == 0) {
-                //     ClockTest_Terminate(); // 假设的时钟测试终止函数
-                // }
-                if (strcmp(task_name, "SetTaskStateSequence") == 0)
+                else if (strcmp(task_name, "SetTaskClockTest") == 0)
+                {
+                    ClockTest_Terminate();
+                }
+                else if (strcmp(task_name, "SetTaskStateSequence") == 0)
                 {
                     StateSequence_Stop();
                 }

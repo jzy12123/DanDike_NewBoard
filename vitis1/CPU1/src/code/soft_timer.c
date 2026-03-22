@@ -119,16 +119,31 @@ void write_soft_timer(Out_RealTime *time_data)
 /**
  * @brief 读取软时钟IP核的当前时间
  */
+/**
+ * @brief 读取软时钟IP核的当前时间 (增加防翻转回读校验)
+ */
 void read_current_time(In_CurrTime *Curr_Time)
 {
     uint32_t reg_data3, reg_data4, reg_data5, reg_data6, reg_data7;
+    uint32_t reg_data6_verify; // 用于校验的一致性变量
 
+    // -------------------------------------------------------------------------
+    // 关键修正: 循环读取直到 DaySec (REG6) 在读取 SubSec (REG7) 前后保持一致
+    // 这能防止在读取间隙发生进位导致的时间错乱 
+    // -------------------------------------------------------------------------
+    do
+    {
+        reg_data6 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG6);        // 读取 DaySec
+        reg_data7 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG7);        // 读取 SubSec
+        reg_data6_verify = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG6); // 再次读取 DaySec
+    } while (reg_data6 != reg_data6_verify);
+
+    // 其他寄存器变化较慢，通常直接读取即可 (为了极致严谨，也可对 reg3/4/5 加类似校验)
     reg_data3 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG3);
     reg_data4 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG4);
     reg_data5 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG5);
-    reg_data6 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG6);
-    reg_data7 = Xil_In32(SoftTimer_BASEADDR + SoftTimer_REG7);
 
+    // 赋值逻辑保持不变
     Curr_Time->curr_year = 2000 + bcd_to_int_byte((reg_data3 >> 10) & 0xFF);
     uint16_t bcd_yd_read = reg_data3 & 0x03FF;
     uint8_t yd_r_d0 = bcd_yd_read & 0xF;
@@ -144,8 +159,8 @@ void read_current_time(In_CurrTime *Curr_Time)
     Curr_Time->curr_minute = bcd_to_int_byte((reg_data5 >> 7) & 0x7F);
     Curr_Time->curr_second = bcd_to_int_byte(reg_data5 & 0x7F);
 
-    Curr_Time->curr_daysec = reg_data6 & 0x1FFFF;  // Assuming binary
-    Curr_Time->curr_subsec = reg_data7 & 0xFFFFFF; // Assuming binary
+    Curr_Time->curr_daysec = reg_data6 & 0x1FFFF;
+    Curr_Time->curr_subsec = reg_data7 & 0xFFFFFF;
 }
 
 /**

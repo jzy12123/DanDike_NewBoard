@@ -18,6 +18,7 @@
 #include "soft_timer.h"
 #include "StateSequence.h"
 #include "WaveRecord.h"
+#include "ClockTest.h"
 
 #define JSON_ADDR 0x39C00000
 
@@ -428,6 +429,7 @@ void handle_SetCalibrateAC(cJSON *data);
 void handle_WriteCalibrateAC(cJSON *data);
 void handle_RestoreCalibrateDefault(cJSON *data);
 void handle_SetSysTimeSyncMode(cJSON *data);
+void handle_SetTaskClockTest(cJSON *data);
 void handle_SetTaskEnergyTest(cJSON *data);
 void handle_TerminateRunningTask(cJSON *data);
 void handle_StateSequence(cJSON *data);
