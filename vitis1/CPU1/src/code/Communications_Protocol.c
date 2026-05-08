@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.251226.1823";
+const char ARM_Ver_Full[] = "[Ver]=V1.260508.1003";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -23,6 +23,11 @@ volatile double g_safe_total_q_for_isr = 0.0;
 
 // 定义全局变量以存储恒定模式的状态，默认为"Total"，总有效值恒定还是基波恒定
 char g_constant_mode[16] = "Total";
+
+/* 波形回放指令处理函数 (前向声明) */
+static void handle_GetWaveReplayFileInfo(cJSON *data);
+static void handle_SetTaskWaveReplayParas(cJSON *data);
+static void handle_SetTaskWaveReplayStart(cJSON *data);
 
 void extractContentBetweenPipes(char *buffer)
 {
@@ -104,7 +109,10 @@ int Parse_JsonCommand(char *buffer)
         {"SetTaskEnergyTest", handle_SetTaskEnergyTest},
         {"TerminateRunningTask", handle_TerminateRunningTask},
         {"SetTaskStateSequence", handle_StateSequence},
-        {"SetTaskWaveRecord", handle_SetTaskWaveRecord}};
+        {"SetTaskWaveRecord", handle_SetTaskWaveRecord},
+        {"GetWaveReplayFileInfo", handle_GetWaveReplayFileInfo},
+        {"SetTaskWaveReplayParas", handle_SetTaskWaveReplayParas},
+        {"SetTaskWaveReplayStart", handle_SetTaskWaveReplayStart}};
 
     const int funCodeMapSize = sizeof(funCodeMap) / sizeof(funCodeMap[0]);
 
@@ -1027,6 +1035,13 @@ void handle_SetACS(cJSON *data)
     // [新增] 抢占逻辑：如果有新的 AC 源指令，强制退出状态序列模式
     StateSequence_QuitMode();
 
+    // [新增] 如果波形回放正在运行（含HOLDING状态），先停止回放
+    if (g_ReplayRuntime.isRunning)
+    {
+        ReplayWave_Stop();
+        xil_printf("CPU1: SetACS preempted ReplayWave.\r\n");
+    }
+
     bool onlyRangeFieldsFound = true; // 标记是否只找到了量程相关字段
     bool valsPresent = false;         // 标记 vals 数组是否存在
     bool closedLoopPresent = false;   // 标记 ClosedLoop 是否存在
@@ -1610,6 +1625,13 @@ void handle_SetACStatus(cJSON *data)
 {
     // [新增] 抢占逻辑
     StateSequence_QuitMode();
+
+    // [新增] 如果波形回放正在运行（含HOLDING状态），先停止回放
+    if (g_ReplayRuntime.isRunning)
+    {
+        ReplayWave_Stop();
+        xil_printf("CPU1: SetACStatus preempted ReplayWave.\r\n");
+    }
 
     if (data == NULL)
         return;
@@ -3994,4 +4016,126 @@ void init_JsonUdp(void)
     initLineDI(&lineDI);
     initLineDO(&lineDO);
     udp_data_changed_flag = true; // 更新UDP标志
+}
+
+/* ================================================================
+ *  波形回放相关 JSON 指令处理函数
+ * ================================================================ */
+
+/**
+ * @brief 查询回放文件信息 (非事务型)
+ */
+static void handle_GetWaveReplayFileInfo(cJSON *data)
+{
+    (void)data;
+    /* 直接在 ReplayWave 模块中处理并回复 */
+    /* 注意: data 在此处其实是 Parse_JsonCommand 传入的 cJSON* json 的 "Data" 子节点
+     * 但 HandleGetInfo 需要完整 JSON 用于获取 FunCode 等，
+     * 这里直接传 data 即可，ReplayWave_HandleGetInfo 内部自行构建回复 */
+    ReplayWave_HandleGetInfo(data);
+}
+
+/**
+ * @brief 波形回放参数预处理 (事务型: Reply + TaskEvent)
+ */
+static void handle_SetTaskWaveReplayParas(cJSON *data)
+{
+    if (!data)
+    {
+        xil_printf("CPU1: SetTaskWaveReplayParas: No Data field.\r\n");
+        return;
+    }
+
+    /* 调用 ReplayWave 模块处理参数 */
+    const char *errInfo = ReplayWave_HandleParas(data);
+
+    /* 构建 Reply */
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetTaskWaveReplayParas");
+
+    if (errInfo == NULL)
+    {
+        cJSON_AddStringToObject(reply, "Result", "Success");
+        cJSON *rdata = cJSON_CreateObject();
+        cJSON_AddItemToObject(reply, "Data", rdata);
+    }
+    else
+    {
+        cJSON_AddStringToObject(reply, "Result", "Failure");
+        cJSON *rdata = cJSON_CreateObject();
+        cJSON_AddStringToObject(rdata, "ErrInfo", errInfo);
+        cJSON_AddItemToObject(reply, "Data", rdata);
+    }
+
+    char *str = cJSON_PrintUnformatted(reply);
+    if (str)
+    {
+        MsgQue_write(str, strlen(str));
+        free(str);
+    }
+    cJSON_Delete(reply);
+
+    /* 如果Reply成功，发送 TaskEvent */
+    if (errInfo == NULL)
+    {
+        cJSON *taskEvt = cJSON_CreateObject();
+        cJSON_AddStringToObject(taskEvt, "FunType", "TaskEvent");
+        cJSON_AddStringToObject(taskEvt, "FunCode", "SetTaskWaveReplayParas");
+        cJSON_AddStringToObject(taskEvt, "Result", "Success");
+        cJSON *evtData = cJSON_CreateObject();
+        cJSON_AddItemToObject(taskEvt, "Data", evtData);
+
+        str = cJSON_PrintUnformatted(taskEvt);
+        if (str)
+        {
+            MsgQue_write(str, strlen(str));
+            free(str);
+        }
+        cJSON_Delete(taskEvt);
+    }
+}
+
+/**
+ * @brief 波形回放启动 (事务型: Reply + 多次 TaskEvent)
+ */
+static void handle_SetTaskWaveReplayStart(cJSON *data)
+{
+    if (!data)
+    {
+        xil_printf("CPU1: SetTaskWaveReplayStart: No Data field.\r\n");
+        return;
+    }
+
+    /* 调用 ReplayWave 模块启动回放 */
+    const char *errInfo = ReplayWave_HandleStart(data);
+
+    /* 构建 Reply */
+    cJSON *reply = cJSON_CreateObject();
+    cJSON_AddStringToObject(reply, "FunType", "Reply");
+    cJSON_AddStringToObject(reply, "FunCode", "SetTaskWaveReplayStart");
+
+    if (errInfo == NULL)
+    {
+        cJSON_AddStringToObject(reply, "Result", "Success");
+        cJSON *rdata = cJSON_CreateObject();
+        cJSON_AddItemToObject(reply, "Data", rdata);
+    }
+    else
+    {
+        cJSON_AddStringToObject(reply, "Result", "Failure");
+        cJSON *rdata = cJSON_CreateObject();
+        cJSON_AddStringToObject(rdata, "ErrInfo", errInfo);
+        cJSON_AddItemToObject(reply, "Data", rdata);
+    }
+
+    char *str = cJSON_PrintUnformatted(reply);
+    if (str)
+    {
+        MsgQue_write(str, strlen(str));
+        free(str);
+    }
+    cJSON_Delete(reply);
+
+    /* 后续 TaskEvent 由 ReplayWave_CheckAndReport() 在主循环中上报 */
 }

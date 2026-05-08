@@ -746,12 +746,16 @@ void tx_intr_handler(void *callback)
     }
 }
 
-// DAC FIFO溢：读空fifo后继续读则导致下溢
+// DAC FIFO prog_empty 中断：FIFO数据即将耗尽，需要补充下一批数据
 void underflow_handler()
 {
-    // xil_printf("underflow\r\n");
+    /* 波形回放模式：由 ReplayWave 引擎接管数据喂入 */
+    if (g_ReplayRuntime.isRunning) {
+        ReplayWave_FeedNext();
+        return;
+    }
 
-    //	Copy_Wave_to_tx_buffer_ptr();
+    /* 原有逻辑：循环播放 tx_buffer 中的波形 (start_dma_dac 旧模式) */
     sync_dma_buffer((UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
 }

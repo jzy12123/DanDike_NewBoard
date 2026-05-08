@@ -2,10 +2,10 @@
 # Vivado v2020.2 (64-bit)
 # SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
 # IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
-# Start of session at: Tue Dec 30 10:04:08 2025
-# Process ID: 2964
+# Start of session at: Sun Mar 22 18:49:06 2026
+# Process ID: 27280
 # Current directory: C:/Users/saber/Desktop/share/DanDike_NewBoard
-# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent4136 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent19604 C:\Users\saber\Desktop\share\DanDike_NewBoard\DanDike_NewBoard.xpr
 # Log file: C:/Users/saber/Desktop/share/DanDike_NewBoard/vivado.log
 # Journal file: C:/Users/saber/Desktop/share/DanDike_NewBoard\vivado.jou
 #-----------------------------------------------------------
@@ -17,9 +17,9 @@ INFO: [IP_Flow 19-234] Refreshing IP repositories
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/ip_repo'.
 INFO: [IP_Flow 19-1700] Loaded user IP repository 'c:/Users/saber/Desktop/share/DanDike_NewBoard/if'.
 INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/vivado/Vivado/2020.2/data/ip'.
-open_project: Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 1124.328 ; gain = 0.000
-update_compile_order -fileset sources_1
-open_bd_design {C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd}
+open_project: Time (s): cpu = 00:00:25 ; elapsed = 00:00:19 . Memory (MB): peak = 1108.992 ; gain = 99.711uupdate_compile_order -fileset sources_1oexit
+INFO: [Common 17-206] Exiting Vivado at Sun Mar 22 18:58:27 2026...
+oard.srcs/sources_1/bd/system/system.bd}
 Reading block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>...
 Adding component instance block -- xilinx.com:ip:processing_system7:5.5 - processing_system7_0
 Adding component instance block -- xilinx.com:ip:proc_sys_reset:5.0 - rst_ps7_0_100M
@@ -73,6 +73,7 @@ Adding component instance block -- xilinx.com:user:power_pulse_v1_AXI:1.0 - powe
 Adding component instance block -- xilinx.com:ip:axi_intc:4.1 - axi_intc_BareMetal
 Adding component instance block -- xilinx.com:ip:xlconcat:2.1 - xlconcat_BareMetal
 Successfully read diagram <system> from block design file <C:/Users/saber/Desktop/share/DanDike_NewBoard/DanDike_NewBoard.srcs/sources_1/bd/system/system.bd>
-open_bd_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:10 . Memory (MB): peak = 1321.012 ; gain = 136.492
+open_bd_design: Time (s): cpu = 00:00:07 ; elapsed = 00:00:10 . Memory (MB): peak = 1334.191 ; gain = 162.621
+regenerate_bd_layout
 exit
-INFO: [Common 17-206] Exiting Vivado at Tue Dec 30 10:32:51 2025...
+INFO: [Common 17-206] Exiting Vivado at Sun Mar 22 19:43:50 2026...

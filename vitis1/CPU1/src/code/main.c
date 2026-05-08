@@ -158,8 +158,9 @@ int main()
 	Xil_SetTlbAttributes(JSON_ADDR, 0x14de2); // 禁用Cache属性	//S=b1 TEX=b100 AP=b11, Domain=b1111, C=b0, B=b0
 	Xil_SetTlbAttributes(UDP_ADDRESS, 0x14de2);
 	Xil_SetTlbAttributes(Share_addr, 0x14de2);
-	Xil_SetTlbAttributes(0x40400000, 0xC02); // DMA控制器寄存器区域
-	Xil_SetTlbAttributes(0x43C30000, 0xC02); // ADC控制器寄存器区域
+	Xil_SetTlbAttributes(REPLAY_SHM_BASE, 0x14de2); // 波形回放共享DDR区域 禁用Cache
+	Xil_SetTlbAttributes(0x40400000, 0xC02);		// DMA控制器寄存器区域
+	Xil_SetTlbAttributes(0x43C30000, 0xC02);		// ADC控制器寄存器区域
 
 	/************************** 其余模块初始化*****************************/
 	xil_printf("CPU1: Initializing other modules...\r\n");
@@ -170,6 +171,7 @@ int main()
 	PowerPulse_Init();
 	init_EnergyTest();
 	WaveRecord_Init();
+	ReplayWave_Init();
 	ClockTest_Init();
 
 	OnOff_Start(bit_8, 0); // 开关量初始化 放到前面会死机
@@ -204,10 +206,20 @@ int main()
 		// 负责检测录波是否完成，并发送 TaskEvent Success
 		WaveRecordTask_Check();
 
+		// 2.3 波形回放任务监控 (DO更新/TaskEvent上报)
+		ReplayWave_CheckAndReport();
+
 		// ============================================================
 		// 3. 硬件控制权互斥分发
 		// ============================================================
-		if (g_StateSeqRuntime.IsRunning ||g_StateSeqRuntime.IsWaiting ||g_StateSeqRuntime.IsHolding)
+		if (g_ReplayRuntime.isRunning || g_ReplayRuntime.isWaiting)
+		{
+			// --- 模式 C: 波形回放模式 ---
+			// DAC硬件由 DMA/FIFO + prog_empty中断驱动
+			// 禁止稳态/状态序列抢占 DAC
+			usleep(1000);
+		}
+		else if (g_StateSeqRuntime.IsRunning || g_StateSeqRuntime.IsWaiting || g_StateSeqRuntime.IsHolding)
 		{
 			// --- 模式 A: 状态序列运行中 ---
 			// 此时 DAC 硬件由 CDMA 和 TTC 中断接管。

@@ -252,6 +252,7 @@ proc create_hier_cell_adda { parentCell nameHier } {
    CONFIG.HAS_PROG_FULL {0} \
    CONFIG.HAS_TKEEP {0} \
    CONFIG.HAS_TLAST {0} \
+   CONFIG.PROG_EMPTY_THRESH {1024} \
  ] $axis_data_fifo_1
 
   # Create instance: dac_whole_0, and set properties

@@ -29,6 +29,7 @@
 #include "power_pulse.h"
 #include "StateSequence.h"
 #include "WaveRecord.h"
+#include "ReplayWave.h"
 /*
  * ∂®“Â
  */

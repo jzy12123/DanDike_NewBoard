@@ -3,49 +3,48 @@
 
 #include "xil_types.h"
 #include "cJSON.h"
-#include "soft_timer.h" // éœ€è¦å¼•ç”¨è½¯æ—¶é’Ÿç›¸å…³å®šä¹‰
+#include "soft_timer.h" // ĞèÒªÒıÓÃÈíÊ±ÖÓÏà¹Ø¶¨Òå
 #include "stdbool.h"
 #include "ADDA.h"
 
-
-// æœ€å¤§å­˜å‚¨çš„è¯¯å·®æ•°é‡
+// ×î´ó´æ´¢µÄÎó²îÊıÁ¿
 #define MAX_CLOCK_TEST_ERRS 99
 
-// æ—¶é’Ÿè¯¯å·®æµ‹è¯•ç»“æ„ä½“
+// Ê±ÖÓÎó²î²âÊÔ½á¹¹Ìå
 typedef struct
 {
-    volatile bool isActive;     // æ˜¯å¦æ­£åœ¨æµ‹è¯•
-    volatile bool isFirstPulse; // æ˜¯å¦æ˜¯å½“å‰è½®æ¬¡çš„ç¬¬ä¸€ä¸ªè„‰å†²
+    volatile bool isActive;     // ÊÇ·ñÕıÔÚ²âÊÔ
+    volatile bool isFirstPulse; // ÊÇ·ñÊÇµ±Ç°ÂÖ´ÎµÄµÚÒ»¸öÂö³å
 
-    uint32_t plusSeconds;  // å‡ ç§’ä¸€ä¸ªè„‰å†² (æ ‡å‡†é—´éš”)
-    uint32_t targetRounds; // å¤šå°‘ä¸ªè„‰å†²ç®—ä¸€è½® (Round)
-    uint32_t targetTimes;  // æ€»å…±æµ‹å‡ æ¬¡ (TestTimes)
+    uint32_t plusSeconds;  // ¼¸ÃëÒ»¸öÂö³å (±ê×¼¼ä¸ô)
+    uint32_t targetRounds; // ¶àÉÙ¸öÂö³åËãÒ»ÂÖ (Round)
+    uint32_t targetTimes;  // ×Ü¹²²â¼¸´Î (TestTimes)
 
-    volatile uint32_t currentPulseCount; // å½“å‰è½®æ¬¡å·²æ¥æ”¶çš„è„‰å†²æ•°
-    volatile uint32_t currentTestNum;    // å½“å‰å·²å®Œæˆçš„æµ‹è¯•æ¬¡æ•° (TestedTimes)
+    volatile uint32_t currentPulseCount; // µ±Ç°ÂÖ´ÎÒÑ½ÓÊÕµÄÂö³åÊı
+    volatile uint32_t currentTestNum;    // µ±Ç°ÒÑÍê³ÉµÄ²âÊÔ´ÎÊı (TestedTimes)
 
-    double errs[MAX_CLOCK_TEST_ERRS]; // è¯¯å·®æ•°ç»„ (ç§’/å¤©)
+    double errs[MAX_CLOCK_TEST_ERRS]; // Îó²îÊı×é (Ãë/Ìì)
 
-    In_CurrTime roundStartTime; // å½“å‰è½®æ¬¡å¼€å§‹çš„æ—¶é—´æˆ³
+    In_CurrTime roundStartTime; // µ±Ç°ÂÖ´Î¿ªÊ¼µÄÊ±¼ä´Á
 } ClockTest_t;
 
-// ç”¨äºä¸»å¾ªç¯ä¸ŠæŠ¥çš„â€œä¿¡ç®±â€ç»“æ„ä½“
+// ÓÃÓÚÖ÷Ñ­»·ÉÏ±¨µÄ¡°ĞÅÏä¡±½á¹¹Ìå
 typedef struct
 {
     char result[16];              // "Doing" or "Success"
-    volatile bool report_pending; // æ˜¯å¦æœ‰å¾…å‘é€çš„æŠ¥å‘Š
-    ClockTest_t snapshot;         // æ•°æ®å¿«ç…§
+    volatile bool report_pending; // ÊÇ·ñÓĞ´ı·¢ËÍµÄ±¨¸æ
+    ClockTest_t snapshot;         // Êı¾İ¿ìÕÕ
 } ClockTestReport_t;
 
-// å…¨å±€å˜é‡å£°æ˜
+// È«¾Ö±äÁ¿ÉùÃ÷
 extern volatile ClockTest_t g_ClockTest;
 extern ClockTestReport_t g_ClockReportData;
 
-// å‡½æ•°å£°æ˜
+// º¯ÊıÉùÃ÷
 void ClockTest_Init(void);
 bool ClockTest_Start(uint32_t plusSeconds, uint32_t round, uint32_t testTimes);
 void ClockTest_Terminate(void);
-void ClockTest_PPS_IntrHandler(void *CallbackRef); // ä¸­æ–­æœåŠ¡å‡½æ•°
-void ClockTest_CheckAndReport(void);               // ä¸»å¾ªç¯è°ƒç”¨
+void ClockTest_PPS_IntrHandler(void *CallbackRef); // ÖĞ¶Ï·şÎñº¯Êı
+void ClockTest_CheckAndReport(void);               // Ö÷Ñ­»·µ÷ÓÃ
 
 #endif /* CLOCK_TEST_H_ */

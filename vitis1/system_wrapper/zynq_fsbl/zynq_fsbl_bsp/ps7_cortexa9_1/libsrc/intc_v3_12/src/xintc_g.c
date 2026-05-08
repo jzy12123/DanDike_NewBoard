@@ -5,7 +5,7 @@
 * Version: 2020.2
 * DO NOT EDIT.
 *
-* Copyright (C) 2010-2025 Xilinx, Inc. All Rights Reserved.
+* Copyright (C) 2010-2026 Xilinx, Inc. All Rights Reserved.
 * SPDX-License-Identifier: MIT 
 
 * 
@@ -36,6 +36,14 @@ XIntc_Config XIntc_ConfigTable[] =
 		XIN_SVC_SGL_ISR_OPTION,
 		XPAR_AXI_INTC_BAREMETAL_TYPE,
 		{
+			{
+				XNullHandler,
+				(void *) XNULL
+			},
+			{
+				XNullHandler,
+				(void *) XNULL
+			},
 			{
 				XNullHandler,
 				(void *) XNULL

@@ -5,13 +5,12 @@
 #include <string.h>
 #include <stdio.h>
 
-// å…¨å±€å˜é‡å®šä¹‰
+// È«¾Ö±äÁ¿¶¨Òå
 volatile ClockTest_t g_ClockTest;
 ClockTestReport_t g_ClockReportData;
 
-
 /**
- * @brief åˆå§‹åŒ–æ—¶é’Ÿæµ‹è¯•æ¨¡å—
+ * @brief ³õÊ¼»¯Ê±ÖÓ²âÊÔÄ£¿é
  */
 void ClockTest_Init(void)
 {
@@ -25,24 +24,24 @@ void ClockTest_Init(void)
 }
 
 /**
- * @brief å¯åŠ¨æ—¶é’Ÿè¯¯å·®æµ‹è¯•
+ * @brief Æô¶¯Ê±ÖÓÎó²î²âÊÔ
  */
 bool ClockTest_Start(uint32_t plusSeconds, uint32_t round, uint32_t testTimes)
 {
     if (g_ClockTest.isActive)
     {
         printf("CPU1: ClockTest Warning: Test already running, restarting.\r\n");
-        ClockTest_Terminate(); // å…ˆåœæ­¢æ—§çš„
+        ClockTest_Terminate(); // ÏÈÍ£Ö¹¾ÉµÄ
     }
 
-    // å‚æ•°æ ¡éªŒ
+    // ²ÎÊıĞ£Ñé
     if (plusSeconds == 0 || round == 0 || testTimes == 0 || testTimes > MAX_CLOCK_TEST_ERRS)
     {
         printf("CPU1: ClockTest Error: Invalid parameters.\r\n");
         return false;
     }
 
-    // åˆå§‹åŒ–çŠ¶æ€
+    // ³õÊ¼»¯×´Ì¬
     memset((void *)&g_ClockTest, 0, sizeof(ClockTest_t));
     g_ClockTest.plusSeconds = plusSeconds;
     g_ClockTest.targetRounds = round;
@@ -50,45 +49,45 @@ bool ClockTest_Start(uint32_t plusSeconds, uint32_t round, uint32_t testTimes)
     g_ClockTest.isFirstPulse = true;
     g_ClockTest.isActive = true;
 
-    // ä½¿èƒ½ PPS ä¸­æ–­
+    // Ê¹ÄÜ PPS ÖĞ¶Ï
     // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR);
-    printf("CPU1: ClockTest Started. Pulse=%ds, Round=%d, Times=%d\r\n",
-           plusSeconds, round, testTimes);
+    printf("CPU1: ClockTest Started. Pulse=%us, Round=%u, Times=%u\r\n",
+           (unsigned int)plusSeconds, (unsigned int)round, (unsigned int)testTimes);
 
     return true;
 }
 
 /**
- * @brief ç»ˆæ­¢æ—¶é’Ÿè¯¯å·®æµ‹è¯•
+ * @brief ÖÕÖ¹Ê±ÖÓÎó²î²âÊÔ
  */
 void ClockTest_Terminate(void)
 {
     g_ClockTest.isActive = false;
-    // ç¦ç”¨ PPS ä¸­æ–­ä»¥èŠ‚çœèµ„æº
+    // ½ûÓÃ PPS ÖĞ¶ÏÒÔ½ÚÊ¡×ÊÔ´
     // XIntc_Disable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR);
     printf("CPU1: ClockTest Terminated.\r\n");
 }
 
 /**
- * @brief PPS ä¸­æ–­å¤„ç†å‡½æ•° (éœ€è¦æ³¨å†Œåˆ° ID 9)
+ * @brief PPS ÖĞ¶Ï´¦Àíº¯Êı (ĞèÒª×¢²áµ½ ID 9)
  */
 void ClockTest_PPS_IntrHandler(void *CallbackRef)
 {
-    // 1. åªæœ‰åœ¨æµ‹è¯•æ¿€æ´»æ—¶æ‰å¤„ç†
+    // 1. Ö»ÓĞÔÚ²âÊÔ¼¤»îÊ±²Å´¦Àí
     if (!g_ClockTest.isActive)
     {
         return;
     }
 
-    // 2. ç«‹å³è¯»å–å½“å‰è½¯æ—¶é’Ÿæ—¶é—´
+    // 2. Á¢¼´¶ÁÈ¡µ±Ç°ÈíÊ±ÖÓÊ±¼ä
     In_CurrTime now;
     read_current_time(&now);
 
-    // 3. çŠ¶æ€æœºé€»è¾‘
+    // 3. ×´Ì¬»úÂß¼­
     if (g_ClockTest.isFirstPulse)
     {
-        // ç¬¬ä¸€è½®çš„ç¬¬ä¸€ä¸ªè„‰å†²ï¼Œä»…è®°å½•å…¶å®æ—¶é—´ï¼Œä¸è®¡æ•°
-        // å› ä¸ºæˆ‘ä»¬éœ€è¦æµ‹é‡çš„æ˜¯ä¸¤ä¸ªè„‰å†²ä¹‹é—´çš„ *é—´éš”*
+        // µÚÒ»ÂÖµÄµÚÒ»¸öÂö³å£¬½ö¼ÇÂ¼ÆäÊµÊ±¼ä£¬²»¼ÆÊı
+        // ÒòÎªÎÒÃÇĞèÒª²âÁ¿µÄÊÇÁ½¸öÂö³åÖ®¼äµÄ *¼ä¸ô*
         memcpy((void *)&g_ClockTest.roundStartTime, &now, sizeof(In_CurrTime));
         g_ClockTest.isFirstPulse = false;
         g_ClockTest.currentPulseCount = 0;
@@ -98,25 +97,25 @@ void ClockTest_PPS_IntrHandler(void *CallbackRef)
     {
         g_ClockTest.currentPulseCount++;
 
-        // 4. åˆ¤æ–­å½“å‰ä¸€è½® (Round) æ˜¯å¦å®Œæˆ
+        // 4. ÅĞ¶Ïµ±Ç°Ò»ÂÖ (Round) ÊÇ·ñÍê³É
         if (g_ClockTest.currentPulseCount >= g_ClockTest.targetRounds)
         {
 
-            // è®¡ç®—æ—¶é—´å·® (å®æµ‹æ—¶é—´)
+            // ¼ÆËãÊ±¼ä²î (Êµ²âÊ±¼ä)
             double time_elapsed = time_diff_seconds(&now, (const In_CurrTime *)&g_ClockTest.roundStartTime);
 
-            // è®¡ç®—æ ‡å‡†æ—¶é—´
+            // ¼ÆËã±ê×¼Ê±¼ä
             double time_standard = (double)g_ClockTest.targetRounds * (double)g_ClockTest.plusSeconds;
 
-            // è®¡ç®—è¯¯å·® (ç§’/å¤©)
-            // å…¬å¼: ( (å®æµ‹ - æ ‡å‡†) / æ ‡å‡† ) * 86400
+            // ¼ÆËãÎó²î (Ãë/Ìì)
+            // ¹«Ê½: ( (Êµ²â - ±ê×¼) / ±ê×¼ ) * 86400
             double error_sec_per_day = 0.0;
             if (time_standard > 0.000001)
             {
                 error_sec_per_day = ((time_elapsed - time_standard) / time_standard) * 86400.0;
             }
 
-            // è®°å½•è¯¯å·®
+            // ¼ÇÂ¼Îó²î
             if (g_ClockTest.currentTestNum < MAX_CLOCK_TEST_ERRS)
             {
                 g_ClockTest.errs[g_ClockTest.currentTestNum] = error_sec_per_day;
@@ -124,28 +123,28 @@ void ClockTest_PPS_IntrHandler(void *CallbackRef)
 
             g_ClockTest.currentTestNum++;
 
-            // æ‰“å°è°ƒè¯•
+            // ´òÓ¡µ÷ÊÔ
             // printf("CPU1: Round Done. Elapsed=%.6fs, Std=%.6fs, Err=%.4f s/d\r\n",
             //       time_elapsed, time_standard, error_sec_per_day);
 
-            // 5. åˆ¤æ–­æ˜¯å¦æ‰€æœ‰æµ‹è¯• (TestTimes) éƒ½å®Œæˆ
+            // 5. ÅĞ¶ÏÊÇ·ñËùÓĞ²âÊÔ (TestTimes) ¶¼Íê³É
             if (g_ClockTest.currentTestNum >= g_ClockTest.targetTimes)
             {
-                // å…¨éƒ¨å®Œæˆ
+                // È«²¿Íê³É
                 g_ClockTest.isActive = false;
-                ClockTest_Terminate(); // å…³ä¸­æ–­
+                ClockTest_Terminate(); // ¹ØÖĞ¶Ï
                 strcpy(g_ClockReportData.result, "Success");
             }
             else
             {
-                // ä»…æœ¬è½®å®Œæˆï¼Œç»§ç»­ä¸‹ä¸€è½®
+                // ½ö±¾ÂÖÍê³É£¬¼ÌĞøÏÂÒ»ÂÖ
                 strcpy(g_ClockReportData.result, "Doing");
-                // é‡ç½®ä¸‹ä¸€è½®çš„èµ·å§‹æ—¶é—´ä¸ºå½“å‰æ—¶é—´
+                // ÖØÖÃÏÂÒ»ÂÖµÄÆğÊ¼Ê±¼äÎªµ±Ç°Ê±¼ä
                 memcpy((void *)&g_ClockTest.roundStartTime, &now, sizeof(In_CurrTime));
                 g_ClockTest.currentPulseCount = 0;
             }
 
-            // 6. è§¦å‘ä¸ŠæŠ¥ (å¤åˆ¶å¿«ç…§)
+            // 6. ´¥·¢ÉÏ±¨ (¸´ÖÆ¿ìÕÕ)
             memcpy(&g_ClockReportData.snapshot, (void *)&g_ClockTest, sizeof(ClockTest_t));
             g_ClockReportData.report_pending = true;
         }
@@ -153,7 +152,7 @@ void ClockTest_PPS_IntrHandler(void *CallbackRef)
 }
 
 /**
- * @brief æ£€æŸ¥å¹¶ä¸ŠæŠ¥æµ‹è¯•çŠ¶æ€ (åœ¨ Main Loop ä¸­è°ƒç”¨)
+ * @brief ¼ì²é²¢ÉÏ±¨²âÊÔ×´Ì¬ (ÔÚ Main Loop ÖĞµ÷ÓÃ)
  */
 void ClockTest_CheckAndReport(void)
 {
@@ -162,7 +161,7 @@ void ClockTest_CheckAndReport(void)
         return;
     }
 
-    // æ„å»º JSON
+    // ¹¹½¨ JSON
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, "FunType", "TaskEvent");
     cJSON_AddStringToObject(root, "FunCode", "SetTaskClockTest");
@@ -173,14 +172,14 @@ void ClockTest_CheckAndReport(void)
     cJSON *chn1 = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(chn1, "Chn", 1);
-    cJSON_AddNumberToObject(chn1, "Round", g_ClockReportData.snapshot.currentPulseCount); // åè®®è¦æ±‚å½“å‰æ­£åœ¨æµ‹è¯•åœˆæ•°
+    cJSON_AddNumberToObject(chn1, "Round", g_ClockReportData.snapshot.currentPulseCount); // Ğ­ÒéÒªÇóµ±Ç°ÕıÔÚ²âÊÔÈ¦Êı
     cJSON_AddNumberToObject(chn1, "TestedTimes", g_ClockReportData.snapshot.currentTestNum);
 
-    // Completed æ ‡å¿—: å¦‚æœ Result æ˜¯ Successï¼Œåˆ™ Completed ä¸º true
+    // Completed ±êÖ¾: Èç¹û Result ÊÇ Success£¬Ôò Completed Îª true
     bool completed = (strcmp(g_ClockReportData.result, "Success") == 0);
     cJSON_AddBoolToObject(chn1, "Completed", completed);
 
-    // å¡«å……è¯¯å·®æ•°ç»„
+    // Ìî³äÎó²îÊı×é
     cJSON *errs = cJSON_CreateArray();
     for (int i = 0; i < g_ClockReportData.snapshot.currentTestNum; i++)
     {
@@ -192,7 +191,7 @@ void ClockTest_CheckAndReport(void)
     cJSON_AddItemToObject(data, "Chns", chns);
     cJSON_AddItemToObject(root, "Data", data);
 
-    // å‘é€
+    // ·¢ËÍ
     char *str = cJSON_PrintUnformatted(root);
     if (str)
     {
@@ -208,6 +207,6 @@ void ClockTest_CheckAndReport(void)
     }
     cJSON_Delete(root);
 
-    // æ¸…é™¤æ ‡å¿—
+    // Çå³ı±êÖ¾
     g_ClockReportData.report_pending = false;
 }

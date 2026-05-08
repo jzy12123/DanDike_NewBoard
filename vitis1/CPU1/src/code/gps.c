@@ -70,12 +70,12 @@ void GpsUartRecvHandler(void *CallBackRef)
 	}
 
 	// // 4. 错误处理（可选）：如果有 Frame Error 或 Overrun Error，复位 FIFO
-	// if (StatusRegister & (XUL_SR_OVERRUN_ERROR | XUL_SR_FRAME_ERROR))
-	// {
-	// 	XUartLite_ResetFifos(UartInstPtr);
-	// 	// 复位 FIFO 后记得重新开启中断！
-	// 	XUartLite_EnableInterrupt(UartInstPtr);
-	// }
+//	 if (StatusRegister & (XUL_SR_OVERRUN_ERROR | XUL_SR_FRAME_ERROR))
+//	 {
+//	 	XUartLite_ResetFifos(UartInstPtr);
+//	 	// 复位 FIFO 后记得重新开启中断！
+//	 	XUartLite_EnableInterrupt(UartInstPtr);
+//	 }
 
 	// 5. 如果你是通过 XIntc 连接的，通常不需要手动 Ack 硬件（读取 FIFO 通常会自动清除 UartLite 的中断源）
 	// 但是需要 Ack 中断控制器 (INTC)，这一步通常由上一级 XIntc_InterruptHandler 自动完成，

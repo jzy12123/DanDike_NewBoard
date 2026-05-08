@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2026 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -102,7 +102,7 @@ output wire prog_empty;
     .C_ECC_MODE(0),
     .C_FIFO_MEMORY_TYPE("auto"),
     .C_USE_ADV_FEATURES(825372720),
-    .C_PROG_EMPTY_THRESH(5),
+    .C_PROG_EMPTY_THRESH(1024),
     .C_PROG_FULL_THRESH(11)
   ) inst (
     .s_axis_aresetn(s_axis_aresetn),

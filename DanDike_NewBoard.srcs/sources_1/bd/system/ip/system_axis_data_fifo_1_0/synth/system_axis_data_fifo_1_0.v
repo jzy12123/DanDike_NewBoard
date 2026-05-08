@@ -1,4 +1,4 @@
-// (c) Copyright 1995-2025 Xilinx, Inc. All rights reserved.
+// (c) Copyright 1995-2026 Xilinx, Inc. All rights reserved.
 // 
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -53,7 +53,7 @@
 (* X_CORE_INFO = "axis_data_fifo_v2_0_4_top,Vivado 2020.2" *)
 (* CHECK_LICENSE_TYPE = "system_axis_data_fifo_1_0,axis_data_fifo_v2_0_4_top,{}" *)
 (* CORE_GENERATION_INFO = "system_axis_data_fifo_1_0,axis_data_fifo_v2_0_4_top,{x_ipProduct=Vivado 2020.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=axis_data_fifo,x_ipVersion=2.0,x_ipCoreRevision=4,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_FAMILY=zynq,C_AXIS_TDATA_WIDTH=128,C_AXIS_TID_WIDTH=1,C_AXIS_TDEST_WIDTH=1,C_AXIS_TUSER_WIDTH=1,C_AXIS_SIGNAL_SET=0b00000000000000000000000000000011,C_FIFO_DEPTH=2048,C_FIFO_MODE=1,C_IS_ACLK_ASYNC=0,C_SYNCHRONIZER_STAGE=3,C_ACLKEN_CONV_MODE=0,C_ECC_MODE=0,C_FIFO_MEMORY_TYPE=auto,\
-C_USE_ADV_FEATURES=825372720,C_PROG_EMPTY_THRESH=5,C_PROG_FULL_THRESH=11}" *)
+C_USE_ADV_FEATURES=825372720,C_PROG_EMPTY_THRESH=1024,C_PROG_FULL_THRESH=11}" *)
 (* DowngradeIPIdentifiedWarnings = "yes" *)
 module system_axis_data_fifo_1_0 (
   s_axis_aresetn,
@@ -104,7 +104,7 @@ output wire prog_empty;
     .C_ECC_MODE(0),
     .C_FIFO_MEMORY_TYPE("auto"),
     .C_USE_ADV_FEATURES(825372720),
-    .C_PROG_EMPTY_THRESH(5),
+    .C_PROG_EMPTY_THRESH(1024),
     .C_PROG_FULL_THRESH(11)
   ) inst (
     .s_axis_aresetn(s_axis_aresetn),
