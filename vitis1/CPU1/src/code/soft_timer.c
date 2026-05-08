@@ -4,6 +4,7 @@
 #include "StateSequence.h"           // g_StateSeqRuntime
 #include "Communications_Protocol.h" // g_WaveRecordTask
 #include "WaveRecord.h"              // WaveRecord_OnAlarmIRQ
+#include "ReplayWave.h"              // ReplayWave_OnAlarmIRQ
 
 // --- 全局影子寄存器定义 ---
 uint32_t g_SoftTimer_Reg5_Shadow = 0;  // bm_encode_en
@@ -129,7 +130,7 @@ void read_current_time(In_CurrTime *Curr_Time)
 
     // -------------------------------------------------------------------------
     // 关键修正: 循环读取直到 DaySec (REG6) 在读取 SubSec (REG7) 前后保持一致
-    // 这能防止在读取间隙发生进位导致的时间错乱 
+    // 这能防止在读取间隙发生进位导致的时间错乱
     // -------------------------------------------------------------------------
     do
     {
@@ -236,7 +237,14 @@ void SoftTimer_AlarmHandler(void *CallBackRef)
         return; // 响应完毕，退出
     }
 
-    // 优先级 2: 状态序列任务 (SetTaskStateSequence)
+    // 优先级 2: 波形回放任务 (SetTaskWaveReplayStart) 在等待定时
+    if (g_ReplayRuntime.isWaiting)
+    {
+        ReplayWave_OnAlarmIRQ();
+        return;
+    }
+
+    // 优先级 3: 状态序列任务 (SetTaskStateSequence)
     if (!g_StateSeqRuntime.IsRunning)
     {
         StateSequence_ApplyAndRun(); // 应用配置并运行

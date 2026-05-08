@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "soft_timer.h"
 
 /* ================================================================
  *  全局变量
@@ -1522,6 +1523,134 @@ void ReplayWave_FeedNext(void)
 }
 
 /* ================================================================
+ *  实际启动回放 (立即启动 / 被闹钟中断触发)
+ * ================================================================ */
+static void ReplayWave_DoStart(void)
+{
+    ReplayWave_Config_t *cfg = &g_ReplayConfig;
+    ReplayWave_Runtime_t *rt = &g_ReplayRuntime;
+
+    xil_printf("ReplayWave: Starting playback...\r\n");
+
+    /* 记录开始时间 */
+    Get_TimeStr(rt->startTimeStr, sizeof(rt->startTimeStr));
+    rt->startTimestampUs = Get_TimestampUs();
+    rt->startTimeRecorded = true;
+
+    /* 初始化DO */
+    Init_DO_Outputs();
+
+    /* 开启功放 (回放时不使用PID, 幅度100%) */
+    {
+        float replay_amp[8] = {100, 100, 100, 100, 100, 100, 100, 100};
+        power_amplifier_control(replay_amp, Wave_Range, PID_OFF, POWAMP_ON);
+        xil_printf("ReplayWave: Power amplifier enabled.\r\n");
+    }
+
+    /* 切换DA IP核到DMA/FIFO模式 */
+    Xil_Out32(dac_whole_base_addr + 0, 0x00000000U);
+    Xil_Out32(dac_whole_base_addr + 4, (u32)(REPLAY_FREQ_DIV) << 16);
+    Xil_Out32(dac_whole_base_addr + 8, (u32)(0xFF) << 16);
+
+    /* 初始区域 */
+    rt->region = REPLAY_FIRST_CYCLE;
+    rt->fileSamplePos = 0;
+    rt->isRunning = true;
+    rt->isWaiting = false;
+
+    /* 预填充FIFO: 填入首个DMA块 (首周波) */
+    read_and_transform_block(0);
+    Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
+    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
+                           REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
+    while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
+    {
+    }
+
+    /* 预填充第2个DMA块 */
+    u32 src2 = Advance_And_GetSource();
+    if (rt->isRunning)
+    {
+        read_and_transform_block(src2);
+        Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
+        XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
+                               REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
+        while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
+        {
+        }
+    }
+
+    /* 使能FIFO prog_empty中断 */
+    XIntc_Enable(&AxiIntc_BareMetal, REPLAY_FIFO_INTR_ID);
+
+    /* 启动DA输出 */
+    Xil_Out32(dac_whole_base_addr + 0, 0x00010000U);
+
+    /* 启动录波 (如配置) */
+    if (cfg->recConfig.recRange == 2)
+    {
+        WaveRecord_Start(0, "SetTaskWaveReplayStart");
+        rt->recordingStarted = true;
+    }
+
+    /* 上报首个 Doing */
+    rt->reportPending = true;
+    strcpy(rt->reportResult, "Doing");
+
+    xil_printf("ReplayWave: Playback started. DA DMA mode enabled.\r\n");
+}
+
+/* ================================================================
+ *  设置软时钟闹钟 (定时启动)
+ *  @param startTimeStr 格式: "2026-05-08 10:35:00.000"
+ *  @return 0=成功, -1=参数错误
+ * ================================================================ */
+static int ReplayWave_EnableAlarm(const char *startTimeStr)
+{
+    if (!startTimeStr || strlen(startTimeStr) < 19)
+        return -1;
+
+    /* 解析时分秒 (位置: [11:12] [14:15] [17:18]) */
+    char h_str[3] = {startTimeStr[11], startTimeStr[12], '\0'};
+    char m_str[3] = {startTimeStr[14], startTimeStr[15], '\0'};
+    char s_str[3] = {startTimeStr[17], startTimeStr[18], '\0'};
+    int hour = atoi(h_str);
+    int min = atoi(m_str);
+    int sec = atoi(s_str);
+
+    xil_printf("ReplayWave: Scheduling Alarm at %02d:%02d:%02d\r\n", hour, min, sec);
+
+    uint32_t bcd_h = ((hour / 10) << 4) | (hour % 10);
+    uint32_t bcd_m = ((min / 10) << 4) | (min % 10);
+    uint32_t bcd_s = ((sec / 10) << 4) | (sec % 10);
+
+    /* 配置闹钟寄存器 (保留 RdSerial 使能位) */
+    g_SoftTimer_Reg15_Shadow &= STIMER_RDSERIAL_EN_MASK;
+    g_SoftTimer_Reg15_Shadow |= STIMER_ALARM_EN_MASK;
+    g_SoftTimer_Reg15_Shadow |= (bcd_h << STIMER_ALARM_HOUR_SHIFT);
+    g_SoftTimer_Reg15_Shadow |= (bcd_m << STIMER_ALARM_MIN_SHIFT);
+    g_SoftTimer_Reg15_Shadow |= (bcd_s << STIMER_ALARM_SEC_SHIFT);
+
+    Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+
+    return 0;
+}
+
+/* ================================================================
+ *  闹钟中断回调 (由 SoftTimer_AlarmHandler 分发调用)
+ * ================================================================ */
+void ReplayWave_OnAlarmIRQ(void)
+{
+    ReplayWave_Runtime_t *rt = &g_ReplayRuntime;
+
+    if (!rt->isWaiting)
+        return; /* 不是我们的闹钟 */
+
+    xil_printf("CPU1: [IRQ] ReplayWave Triggered by Alarm!\r\n");
+    ReplayWave_DoStart();
+}
+
+/* ================================================================
  *  SetTaskWaveReplayStart 处理
  *  返回值: NULL=成功, 非NULL=错误信息
  * ================================================================ */
@@ -1552,84 +1681,27 @@ const char *ReplayWave_HandleStart(cJSON *data)
 
     if (startMode == 1)
     {
-        /* 定时启动 — 暂不实现 (v1) */
-        /* TODO: 解析 StartTime, 设置软时钟闹钟, 等待中断 */
-        return "StartTimeExpired"; /* 暂时拒绝 */
+        /* ---- 定时启动 ---- */
+        cJSON *timeItem = cJSON_GetObjectItem(data, "StartTime");
+        if (!timeItem || !timeItem->valuestring)
+        {
+            return "StartTimeMissing";
+        }
+
+        /* 设置闹钟 */
+        if (ReplayWave_EnableAlarm(timeItem->valuestring) != 0)
+        {
+            return "StartTimeInvalid";
+        }
+
+        /* 进入等待状态 (main.c 互斥会保护 DAC) */
+        rt->isWaiting = true;
+        xil_printf("ReplayWave: Waiting for timed start...\r\n");
+        return NULL; /* 返回 Success，等待闹钟中断 */
     }
 
     /* ---- 立即启动 ---- */
-    xil_printf("ReplayWave: Starting playback...\r\n");
-
-    /* 记录开始时间 */
-    Get_TimeStr(rt->startTimeStr, sizeof(rt->startTimeStr));
-    rt->startTimestampUs = Get_TimestampUs();
-    rt->startTimeRecorded = true;
-
-    /* 初始化DO */
-    Init_DO_Outputs();
-
-    /* 开启功放 (回放时不使用PID, 幅度100%) */
-    {
-        float replay_amp[8] = {100, 100, 100, 100, 100, 100, 100, 100};
-        power_amplifier_control(replay_amp, Wave_Range, PID_OFF, POWAMP_ON);
-        xil_printf("ReplayWave: Power amplifier enabled.\r\n");
-    }
-
-    /* 切换DA IP核到DMA/FIFO模式 */
-    /* slv_reg0[16] = dma_enable, 同时清除 BRAM 模式的 start_dds */
-    Xil_Out32(dac_whole_base_addr + 0, 0x00000000U); /* 先清零 */
-    Xil_Out32(dac_whole_base_addr + 4, (u32)(REPLAY_FREQ_DIV) << 16);
-    Xil_Out32(dac_whole_base_addr + 8, (u32)(0xFF) << 16); /* 全通道使能 */
-
-    /* 初始区域 */
-    rt->region = REPLAY_FIRST_CYCLE;
-    rt->fileSamplePos = 0;
-    rt->isRunning = true;
-
-    /* 预填充FIFO: 填入首个DMA块 (首周波) */
-    read_and_transform_block(0);
-    Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
-    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
-                           REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
-
-    /* 等待DMA完成 */
-    while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
-    {
-        /* 自旋等待 */
-    }
-
-    /* 预填充第2个DMA块 */
-    u32 src2 = Advance_And_GetSource(); /* 会推进状态机 */
-    if (rt->isRunning)
-    {
-        read_and_transform_block(src2);
-        Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
-        XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
-                               REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
-        while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
-        {
-        }
-    }
-
-    /* 使能FIFO prog_empty中断 */
-    XIntc_Enable(&AxiIntc_BareMetal, REPLAY_FIFO_INTR_ID);
-
-    /* 启动DA输出 (设置 dma_enable) */
-    Xil_Out32(dac_whole_base_addr + 0, 0x00010000U);
-
-    /* 启动录波 (如配置) */
-    if (cfg->recConfig.recRange == 2)
-    {
-        /* 全范围录波: 立即启动, duration_ms=0 表示一直录到手动停止 */
-        WaveRecord_Start(0, "SetTaskWaveReplayStart");
-        rt->recordingStarted = true;
-    }
-
-    /* 上报首个 Doing */
-    rt->reportPending = true;
-    strcpy(rt->reportResult, "Doing");
-
-    xil_printf("ReplayWave: Playback started. DA DMA mode enabled.\r\n");
+    ReplayWave_DoStart();
     return NULL;
 }
 
@@ -1654,6 +1726,14 @@ void ReplayWave_Stop(void)
     }
 
     rt->isRunning = false;
+
+    /* 如果在等待定时启动，取消闹钟 */
+    if (rt->isWaiting)
+    {
+        g_SoftTimer_Reg15_Shadow &= ~STIMER_ALARM_EN_MASK;
+        Xil_Out32(SoftTimer_BASEADDR + SoftTimer_REG15, g_SoftTimer_Reg15_Shadow);
+        xil_printf("ReplayWave: Alarm cancelled.\r\n");
+    }
     rt->isWaiting = false;
 
     xil_printf("ReplayWave: Playback stopped.\r\n");

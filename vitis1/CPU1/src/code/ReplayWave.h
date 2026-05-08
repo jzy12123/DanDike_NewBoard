@@ -317,4 +317,7 @@ void ReplayWave_CheckAndReport(void); /* 主循环: 检查并上报 TaskEvent */
 /* DI 状态变化回调 (Breaker模式/前导退出用) */
 void ReplayWave_OnDIChange(u32 diCurrentVal);
 
+/* 软时钟闹钟中断回调 (定时启动用) */
+void ReplayWave_OnAlarmIRQ(void);
+
 #endif /* REPLAY_WAVE_H */
