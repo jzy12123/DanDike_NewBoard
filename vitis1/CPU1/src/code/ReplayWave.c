@@ -1154,6 +1154,14 @@ static u32 Advance_And_GetSource(void)
             {
                 rt->region = REPLAY_BACK_LOOP;
                 rt->regionRepeatLeft = cfg->repeatBack.repeatCount;
+                /* ¼ÇÂ¼ BackStartTime */
+                if (!rt->backStartTimeRecorded)
+                {
+                    Get_TimeStr(rt->backStartTimeStr, sizeof(rt->backStartTimeStr));
+                    rt->backStartTimeRecorded = true;
+                    rt->reportPending = true;
+                    strcpy(rt->reportResult, "Doing");
+                }
             }
             else
             {
