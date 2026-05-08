@@ -25,6 +25,16 @@
 ReplayWave_Config_t g_ReplayConfig;
 ReplayWave_Runtime_t g_ReplayRuntime;
 
+/* 用于记录上一次满幅缩放结果的缓存 (按硬件通道索引 0-7 存储 A_final) */
+typedef struct
+{
+    bool valid;
+    char waveFile[REPLAY_WAVE_NAME_LEN];
+    double a_final_cache[8];
+} ReplayWave_History_t;
+
+static ReplayWave_History_t g_ReplayHistory = {0};
+
 /* FIFO prog_empty 中断号 (来自 xparameters.h) */
 #define REPLAY_FIFO_INTR_ID XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR
 
@@ -536,15 +546,35 @@ static void ReplayWave_ScanPeak(void)
 /* ================================================================
  *  量程检查: 用实际扫描峰值检查是否超出当前功放量程
  *  超出 → 返回 "OutDevRange" 错误 (阻断回放)
+ *
+ *  注意: 如果 rawPeak 已接近满幅 (≥95%), 说明数据已被前一次缩放过,
+ *        此时 CFG 中的 a 系数是原始值，不能直接用于计算物理峰值。
+ *        跳过该通道 (前一次已验证安全性)。
  * ================================================================ */
 static const char *ReplayWave_CheckRange(void)
 {
     ReplayWave_Config_t *cfg = &g_ReplayConfig;
 
+    bool historyMatch = (g_ReplayHistory.valid &&
+                         strcmp(g_ReplayHistory.waveFile, cfg->waveFile) == 0);
+
     for (int i = 0; i < cfg->channelMapCount; i++)
     {
         ReplayChannelMap_t *m = &cfg->channelMap[i];
         ReplayCfgAnalog_t *cfgCh = &cfg->cfgAnalog[m->mapChn - 1];
+
+        /* 判断数据是否已被缩放 (rawPeak >= 95% × 32767) */
+        int16_t absMin = (m->rawActualMin == -32768) ? 32767 : (int16_t)(-m->rawActualMin);
+        int16_t absMax = m->rawActualMax;
+        int16_t rawPeak = (absMin > absMax) ? absMin : absMax;
+
+        /* 只有波形文件名相同，并且数据接近满幅，才认为是被前一次缩放过的安全数据 */
+        if (historyMatch && rawPeak >= 31129)
+        {
+            printf("  [DEBUG] Ch%d[%s] SKIP range check (matched history, rawPeak=%d)\r\n",
+                   cfgCh->index, cfgCh->name, rawPeak);
+            continue;
+        }
 
         /* 计算物理值极限 (基于实际扫描的rawMin/rawMax) */
         double physMax = fabs(cfgCh->a * m->rawActualMax + cfgCh->b) * m->ratio;
@@ -588,6 +618,9 @@ static void ReplayWave_RescaleData(void)
 
     xil_printf("ReplayWave: RescaleData starting...\r\n");
 
+    bool historyMatch = (g_ReplayHistory.valid &&
+                         strcmp(g_ReplayHistory.waveFile, cfg->waveFile) == 0);
+
     for (int m = 0; m < cfg->channelMapCount; m++)
     {
         ReplayChannelMap_t *map = &cfg->channelMap[m];
@@ -597,12 +630,41 @@ static void ReplayWave_RescaleData(void)
         int16_t absMax = map->rawActualMax;
         int16_t rawPeak = (absMin > absMax) ? absMin : absMax;
 
-        /* 跳过条件: rawPeak 已接近满幅 (≥95% × 32767) */
+        /* 跳过条件: rawPeak 已接近满幅 (≥95% × 32767)
+         * 说明数据已被前一次缩放过。优先使用历史记录恢复A_final */
         if (rawPeak >= 31129)
-        { /* 32767 * 0.95 ≈ 31129 */
-            map->scaleApplied = 1.0;
-            xil_printf("  [DEBUG] Ch%d[%s] SKIP rescale (rawPeak=%d, already >=95%%)\r\n",
-                       cfgCh->index, cfgCh->name, rawPeak);
+        {                            /* 32767 * 0.95 ≈ 31129 */
+            map->scaleApplied = 1.0; /* 本次不做缩放 */
+
+            if (historyMatch)
+            {
+                /* 命中历史记录，直接使用上一次的 A_final */
+                map->A_final = g_ReplayHistory.a_final_cache[map->hwIndex];
+                printf("  [DEBUG] Ch%d[%s] SKIP rescale (matched history), restored A_final=%.6f\r\n",
+                       cfgCh->index, cfgCh->name, map->A_final);
+            }
+            else
+            {
+                /* 未命中历史(通常不会发生)，回退到原始估算逻辑 */
+                int16_t cfgAbsMin = (cfgCh->minVal == -32768) ? 32767 : (int16_t)(-cfgCh->minVal);
+                int16_t cfgAbsMax = cfgCh->maxVal;
+                int16_t origRawPeak = (cfgAbsMin > cfgAbsMax) ? cfgAbsMin : cfgAbsMax;
+
+                if (origRawPeak > 0 && origRawPeak < rawPeak)
+                {
+                    double prevScaleF = (double)rawPeak / (double)origRawPeak;
+                    cfgCh->a = cfgCh->a / prevScaleF;
+                    double fullScale = Get_ChannelFullScale(map->hwIndex);
+                    map->A_final = cfgCh->a * map->ratio / fullScale * 32768.0;
+                    printf("  [DEBUG] Ch%d[%s] SKIP rescale (no history), estimated prevScaleF=%.4f A_final=%.6f\r\n",
+                           cfgCh->index, cfgCh->name, prevScaleF, map->A_final);
+                }
+                else
+                {
+                    xil_printf("  [DEBUG] Ch%d[%s] SKIP rescale (rawPeak=%d, already >=95%%)\r\n",
+                               cfgCh->index, cfgCh->name, rawPeak);
+                }
+            }
             continue;
         }
 
@@ -616,7 +678,6 @@ static void ReplayWave_RescaleData(void)
 
         double scaleF = 32767.0 / (double)rawPeak;
         map->scaleApplied = scaleF;
-
         double a_old = cfgCh->a;
 
         printf("  [DEBUG] Ch%d[%s] rawPeak=%d scaleF=%.4f\r\n",
@@ -642,10 +703,18 @@ static void ReplayWave_RescaleData(void)
         /* 重算 A_final (B_final 不受 raw 缩放影响) */
         double fullScale = Get_ChannelFullScale(map->hwIndex);
         map->A_final = cfgCh->a * map->ratio / fullScale * 32768.0;
-        /* B_final 保持不变 */
 
         printf("  [DEBUG] Ch%d[%s] a: %.6f -> %.6f, A_final=%.6f\r\n",
                cfgCh->index, cfgCh->name, a_old, cfgCh->a, map->A_final);
+    }
+
+    /* 记录本次结果到历史缓存 */
+    g_ReplayHistory.valid = true;
+    strncpy(g_ReplayHistory.waveFile, cfg->waveFile, REPLAY_WAVE_NAME_LEN - 1);
+    for (int m = 0; m < cfg->channelMapCount; m++)
+    {
+        ReplayChannelMap_t *map = &cfg->channelMap[m];
+        g_ReplayHistory.a_final_cache[map->hwIndex] = map->A_final;
     }
 
     /* 刷回 D-Cache，确保覆写的数据对 DMA 可见 */
@@ -1452,6 +1521,7 @@ void ReplayWave_OnDIChange(u32 diCurrentVal)
                 Get_TimeStr(rt->diTrigTimeStr, sizeof(rt->diTrigTimeStr));
                 rt->diTrigTimeRecorded = true;
             }
+            // xil_printf("ReplayWave: [DEBUG] Early break triggered by DI! (val=0x%02X)\r\n", diCurrentVal);
         }
     }
 

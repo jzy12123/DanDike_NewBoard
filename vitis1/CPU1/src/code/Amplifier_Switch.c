@@ -5,6 +5,7 @@
  *      Author: saber
  */
 #include "Amplifier_Switch.h"
+#include "ReplayWave.h"
 // 全局变量定义
 XTtcPs DebounceTimer;
 float g_debounce_time_ms = 100.0;					  // 全局可配置的防抖时间，默认100ms
@@ -566,14 +567,17 @@ void debounce_timer_handler(void *CallBackRef)
 		if (changed_bits != 0)
 		{
 
-			//1. 将事件入队，不做处理
+			// 1. 将事件入队，不做处理
 			enqueue_di_event(stable_input_data, changed_bits, &last_captured_time);
 
-			//2. 处理状态序列跳转
+			// 2. 处理状态序列跳转
 			StateSequence_DI_Check(changed_bits, stable_input_data);
-			
-			//3. 处理独立录波开关
+
+			// 3. 处理独立录波开关
 			WaveRecord_OnDIIRQ(stable_input_data);
+
+			// 4. 处理波形回放开入触发
+			ReplayWave_OnDIChange(stable_input_data);
 
 			// 更新上一次的稳定状态 (必须在中断里更新，防止下一次误判)
 			previous_stable_onoff_data = stable_input_data;
