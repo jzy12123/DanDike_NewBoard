@@ -481,8 +481,9 @@ static const char *ReplayWave_BuildMapping(cJSON *mapArray)
          * 实际使用时: dacCode = raw * A_final + B_final (有符号浮点)
          *            dacVal  = clamp(dacCode + 32767, 0, 65535)
          */
-        m->A_final = cfgCh->a * m->ratio / fullScale * 32768.0;
-        m->B_final = cfgCh->b * m->ratio / fullScale * 32768.0;
+        double fullScalePeak = fullScale * 1.41421356;
+        m->A_final = cfgCh->a * m->ratio / fullScalePeak * 32767.0;
+        m->B_final = cfgCh->b * m->ratio / fullScalePeak * 32767.0;
 
         cfg->channelMapCount++;
     }
@@ -582,16 +583,19 @@ static const char *ReplayWave_CheckRange(void)
         double physPeak = (physMax > physMin) ? physMax : physMin;
 
         double fullScale = Get_ChannelFullScale(m->hwIndex);
+        // 放大器量程 fullScale 给出的是有效值 (RMS)，
+        // 物理硬件能够输出的最大峰值是其 1.414 倍。
+        double fullScalePeak = fullScale * 1.41421356;
 
-        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f fullScale=%.3f %s\r\n",
+        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f fullScalePeak=%.3f (RMS=%.3f) %s\r\n",
                cfgCh->index, cfgCh->name,
-               physPeak, fullScale,
-               (physPeak > fullScale) ? "EXCEED!" : "OK");
+               physPeak, fullScalePeak, fullScale,
+               (physPeak > fullScalePeak) ? "EXCEED!" : "OK");
 
-        if (physPeak > fullScale)
+        if (physPeak > fullScalePeak)
         {
-            printf("ReplayWave: ERROR Ch%d[%s] physPeak=%.4f > fullScale=%.3f\r\n",
-                   cfgCh->index, cfgCh->name, physPeak, fullScale);
+            printf("ReplayWave: ERROR Ch%d[%s] physPeak=%.4f > fullScalePeak=%.3f\r\n",
+                   cfgCh->index, cfgCh->name, physPeak, fullScalePeak);
             return "OutDevRange";
         }
     }
@@ -655,7 +659,8 @@ static void ReplayWave_RescaleData(void)
                     double prevScaleF = (double)rawPeak / (double)origRawPeak;
                     cfgCh->a = cfgCh->a / prevScaleF;
                     double fullScale = Get_ChannelFullScale(map->hwIndex);
-                    map->A_final = cfgCh->a * map->ratio / fullScale * 32768.0;
+                    double fullScalePeak = fullScale * 1.41421356;
+                    map->A_final = cfgCh->a * map->ratio / fullScalePeak * 32767.0;
                     printf("  [DEBUG] Ch%d[%s] SKIP rescale (no history), estimated prevScaleF=%.4f A_final=%.6f\r\n",
                            cfgCh->index, cfgCh->name, prevScaleF, map->A_final);
                 }
@@ -702,7 +707,8 @@ static void ReplayWave_RescaleData(void)
 
         /* 重算 A_final (B_final 不受 raw 缩放影响) */
         double fullScale = Get_ChannelFullScale(map->hwIndex);
-        map->A_final = cfgCh->a * map->ratio / fullScale * 32768.0;
+        double fullScalePeak = fullScale * 1.41421356;
+        map->A_final = cfgCh->a * map->ratio / fullScalePeak * 32767.0;
 
         printf("  [DEBUG] Ch%d[%s] a: %.6f -> %.6f, A_final=%.6f\r\n",
                cfgCh->index, cfgCh->name, a_old, cfgCh->a, map->A_final);

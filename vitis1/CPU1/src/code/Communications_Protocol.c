@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.251217.1114";
-const char ARM_Ver_Full[] = "[Ver]=V1.260508.1635";
+const char ARM_Ver_Full[] = "[Ver]=V1.260509.1052";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3358,8 +3358,9 @@ void handle_StateSequence(cJSON *data)
         }
     }
     // ============================================================
-    // 3. 量程自动计算与锁定 (Auto Range Calculation)
-    // 逻辑：扫描所有步骤，找出每个通道的最大 U 和 I，确定该通道在整个序列中的固定量程
+    // 3. 检查所需输出是否超过全局量程 (Range Check)
+    // 逻辑：扫描所有步骤，找出每个通道的最大 U 和 I，如果不超过当前设定的全局量程则通过
+    // 否则报错拦截。
 
     // 假设 Line 1 有 4 个通道
     float maxU[4] = {0};
@@ -3384,30 +3385,82 @@ void handle_StateSequence(cJSON *data)
         }
     }
 
-    // 3.2 准备回复 JSON 对象
-    cJSON *replyACArray = cJSON_CreateArray();
-
-    // 3.3 第二遍：确定量程，回写 Task 结构体，并填充 Reply
+    // 3.2 第二遍：与全局 setACS 量程比较，如果超限立刻报错
     for (int chn = 1; chn <= 4; chn++)
     {
         int idx = chn - 1;
-        float finalUR, finalIR;
+        float finalUR = setACS.Vals[idx].UR;
+        float finalIR = setACS.Vals[idx].IR;
 
-        // 计算电压量程
-        if (maxU[idx] > 3.25f)
-            finalUR = 6.5f;
-        else if (maxU[idx] > 1.876f)
-            finalUR = 3.25f;
-        else
-            finalUR = 1.876f;
+        if (maxU[idx] > finalUR)
+        {
+            cJSON *reply = cJSON_CreateObject();
+            cJSON_AddStringToObject(reply, "FunType", "Reply");
+            cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
+            cJSON_AddStringToObject(reply, "Result", "Failure");
 
-        // 计算电流量程
-        if (maxI[idx] > 1.0f)
-            finalIR = 5.0f;
-        else if (maxI[idx] > 0.2f)
-            finalIR = 1.0f;
-        else
-            finalIR = 0.2f;
+            cJSON *dataErr = cJSON_CreateObject();
+            char errStr[64];
+            sprintf(errStr, "Voltage Exceeds Range Chn%d", chn);
+            cJSON_AddStringToObject(dataErr, "ErrInfo", errStr);
+            cJSON_AddItemToObject(reply, "Data", dataErr);
+
+            char *string = cJSON_PrintUnformatted(reply);
+            if (string)
+            {
+                size_t stringLength = strlen(string);
+                char *finalString = (char *)malloc(stringLength + 3);
+                if (finalString)
+                {
+                    snprintf(finalString, stringLength + 3, "|%s|", string);
+                    MsgQue_write(finalString, strlen(finalString));
+                    free(finalString);
+                }
+                free(string);
+            }
+            cJSON_Delete(reply);
+            return; // 越限直接退出
+        }
+
+        if (maxI[idx] > finalIR)
+        {
+            cJSON *reply = cJSON_CreateObject();
+            cJSON_AddStringToObject(reply, "FunType", "Reply");
+            cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
+            cJSON_AddStringToObject(reply, "Result", "Failure");
+
+            cJSON *dataErr = cJSON_CreateObject();
+            char errStr[64];
+            sprintf(errStr, "Current Exceeds Range Chn%d", chn);
+            cJSON_AddStringToObject(dataErr, "ErrInfo", errStr);
+            cJSON_AddItemToObject(reply, "Data", dataErr);
+
+            char *string = cJSON_PrintUnformatted(reply);
+            if (string)
+            {
+                size_t stringLength = strlen(string);
+                char *finalString = (char *)malloc(stringLength + 3);
+                if (finalString)
+                {
+                    snprintf(finalString, stringLength + 3, "|%s|", string);
+                    MsgQue_write(finalString, strlen(finalString));
+                    free(finalString);
+                }
+                free(string);
+            }
+            cJSON_Delete(reply);
+            return; // 越限直接退出
+        }
+    }
+
+    // 3.3 准备回复 JSON 对象并回写固定量程
+    cJSON *replyACArray = cJSON_CreateArray();
+
+    for (int chn = 1; chn <= 4; chn++)
+    {
+        int idx = chn - 1;
+        float finalUR = setACS.Vals[idx].UR;
+        float finalIR = setACS.Vals[idx].IR;
 
         // 添加到回复 JSON
         cJSON *chnObj = cJSON_CreateObject();

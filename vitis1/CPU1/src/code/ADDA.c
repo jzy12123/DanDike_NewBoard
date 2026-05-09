@@ -750,7 +750,8 @@ void tx_intr_handler(void *callback)
 void underflow_handler()
 {
     /* 波形回放模式：由 ReplayWave 引擎接管数据喂入 */
-    if (g_ReplayRuntime.isRunning) {
+    if (g_ReplayRuntime.isRunning)
+    {
         ReplayWave_FeedNext();
         return;
     }
@@ -1348,8 +1349,10 @@ void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees
         if (total_amp < 0.0001)
             total_amp = 1.0;
 
-        // 映射到 uint16
-        NewData[i] = (uint16_t)((sum / total_amp) * 32768 + 32767);
+        // 映射到 uint16。注意：必须乘以 32767 而不是 32768，
+        // 否则如果 (sum / total_amp) = -1.0，将会得到 -32768+32767 = -1
+        // 强转 uint16_t 后就会反卷到 65535，导致负峰值处出现巨大正尖峰！
+        NewData[i] = (uint16_t)((sum / total_amp) * 32767 + 32768);
     }
 }
 // 辅助函数，计算谐波幅值总和

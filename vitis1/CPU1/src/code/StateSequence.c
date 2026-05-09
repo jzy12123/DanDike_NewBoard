@@ -98,7 +98,14 @@ static void Precalculate_Waveforms()
     for (int step = 0; step < g_StateSequenceTask.StepCount; step++)
     {
         Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[step];
-        memset(TempWaveData, 0, sizeof(TempWaveData));
+        // 默认将所有通道填充为 32768 (0V)
+        for (int ch = 0; ch < 8; ch++)
+        {
+            for (int k = 0; k < DATA_LEN; k++)
+            {
+                TempWaveData[ch][k] = 32768;
+            }
+        }
 
         for (int i = 0; i < pStep->ACCount; i++)
         {
@@ -550,18 +557,19 @@ int StateSequence_Init(void)
  */
 void StateSequence_Plan(const char *startTimeStr)
 {
-    // 1. 先让装置输出全部为0
-    memset(TempWaveData, 0, sizeof(TempWaveData));
-
+    // 1. 在真正开始前，先给硬件写入 0V 输出，避免之前的波形残留
     // 写入 DDR (临时借用 Step 0 的位置，反正下面计算流程会覆盖它)
     u32 ZeroSrcAddr = STATE_SEQ_DDR_BUFFER_BASE;
     u32 *pDdrBase = (u32 *)(UINTPTR)ZeroSrcAddr;
 
-    // 简单的内存拷贝，将 0 数据填入 DDR
-    // TempWaveData 是 uint16_t [8][1024]，总大小正好是 WAVE_STEP_SIZE_BYTES
-    memcpy(pDdrBase, TempWaveData, WAVE_STEP_SIZE_BYTES);
+    // 对于 16-bit 偏移二进制，0V 对应的码值是 32768
+    uint32_t zero_val_32 = (32768 << 16) | 32768;
+    for (int i = 0; i < WAVE_STEP_SIZE_BYTES / 4; i++)
+    {
+        pDdrBase[i] = zero_val_32;
+    }
 
-    //  刷 Cache (确保 DDR 里真的是 0)
+    //  刷 Cache (确保 DDR 里真的是 32768)
     Xil_DCacheFlushRange((UINTPTR)pDdrBase, WAVE_STEP_SIZE_BYTES);
 
     //  【关键动作】通过 CDMA 搬运到 BRAM
@@ -627,75 +635,19 @@ void StateSequence_Plan(const char *startTimeStr)
 
     xil_printf("CPU1: StateSeq - Planning task for %s...\r\n", g_StateSeqRuntime.StartTimeStr);
 
-    // 3. 全局扫描：确定最佳量程
-    float max_u_vals[4] = {0};
-    float max_i_vals[4] = {0};
-
-    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
-    {
-        Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
-        for (int j = 0; j < pStep->ACCount; j++)
-        {
-            Struct_Seq_AC *pAC = &pStep->ACs[j];
-            if (pAC->Line != 1)
-                continue;
-            int chn_idx = pAC->Chn - 1;
-            if (chn_idx >= 0 && chn_idx < 4)
-            {
-                if (pAC->U > max_u_vals[chn_idx])
-                    max_u_vals[chn_idx] = pAC->U;
-                if (pAC->I_ > max_i_vals[chn_idx])
-                    max_i_vals[chn_idx] = pAC->I_;
-            }
-        }
-    }
-
-    // 4. 计算量程并回写
+    // 3. 全局扫描：不再自动切量程，直接使用 setACS 里的全局设定量程
+    // 之前 Communications_Protocol.c 已经在预解析阶段做了越限拦截
     float final_ur[4], final_ir[4];
     u32 range_codes[8];
-    for (int k = 0; k < 8; k++)
-    {
-        // 设置默认量程
-        range_codes[k] = voltage_to_output(6);
-    }
 
     for (int chn = 0; chn < 4; chn++)
     {
-        // 电压量程
-        if (max_u_vals[chn] > 3.25f)
-            final_ur[chn] = 6.5f;
-        else if (max_u_vals[chn] > 1.876f)
-            final_ur[chn] = 3.25f;
-        else
-            final_ur[chn] = 1.876f;
+        // 沿用系统的全局量程
+        final_ur[chn] = setACS.Vals[chn].UR;
+        final_ir[chn] = setACS.Vals[chn].IR;
+
         range_codes[chn] = voltage_to_output(final_ur[chn]);
-
-        // 电流量程
-        if (max_i_vals[chn] > 1.0f)
-            final_ir[chn] = 5.0f;
-        else if (max_i_vals[chn] > 0.2f)
-            final_ir[chn] = 1.0f;
-        else
-            final_ir[chn] = 0.2f;
         range_codes[chn + 4] = current_to_output(final_ir[chn]);
-    }
-
-    // 回写量程到 Steps
-    for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
-    {
-        Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[i];
-        for (int j = 0; j < pStep->ACCount; j++)
-        {
-            if (pStep->ACs[j].Line == 1)
-            {
-                int idx = pStep->ACs[j].Chn - 1;
-                if (idx >= 0 && idx < 4)
-                {
-                    pStep->ACs[j].UR = final_ur[idx];
-                    pStep->ACs[j].IR = final_ir[idx];
-                }
-            }
-        }
     }
 
     // 5. 执行预计算 (写入DDR，计算TTC等)
