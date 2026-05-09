@@ -45,7 +45,7 @@ typedef struct
 
     // --- 双缓冲控制 ---
     volatile u8 currentSection;       // 当前正在写入的段 (1 或 2)
-    volatile u8 pendingReportSection; // 待上报的段 (0=无, 1=Sec1, 2=Sec2)
+    volatile bool isPendingReport[3]; // 待上报的段 [1]=Sec1, [2]=Sec2
 
     // --- 实时运行参数 ---
     bool isFirstBlock;
@@ -69,7 +69,7 @@ typedef struct
         u32 cfgSize;           // 该段 CFG 大小
         u32 startSeq;          // 该段起始序号
         In_CurrTime startTime; // 该段起始时间结构体 (用于文件名)
-    } snapshot;
+    } snapshot[3];
 
     // 当前正在记录段的起始时间 (用于计算 snapshot)
     In_CurrTime currentSectionStartTime;

@@ -76,12 +76,12 @@ static void Report_SectionCreated(u8 section)
     cJSON_AddNumberToObject(data, "RecSamp", FS_RATE);
 
     // 1. 计算该段时长 (ms)
-    double duration = (double)g_WaveRecordCtrl.snapshot.dataSize / COMTRADE_FRAME_SIZE * 1000.0 / FS_RATE;
+    double duration = (double)g_WaveRecordCtrl.snapshot[section].dataSize / COMTRADE_FRAME_SIZE * 1000.0 / FS_RATE;
     cJSON_AddNumberToObject(data, "RecDuration", (int)duration);
 
     // 2. 生成文件名
     char fileNameBase[64];
-    In_CurrTime *t = &g_WaveRecordCtrl.snapshot.startTime;
+    In_CurrTime *t = &g_WaveRecordCtrl.snapshot[section].startTime;
     int ms = (int)(t->curr_subsec / 10000);
     sprintf(fileNameBase, "%04u%02u%02u_%02u%02u%02u_%03u",
             t->curr_year, t->curr_month, t->curr_day,
@@ -106,8 +106,8 @@ static void Report_SectionCreated(u8 section)
     cJSON_AddStringToObject(data, "FilePath", addrStr);
 
     // 4. 文件大小
-    cJSON_AddNumberToObject(data, "FileSizeDat", g_WaveRecordCtrl.snapshot.dataSize);
-    cJSON_AddNumberToObject(data, "FileSizeCfg", g_WaveRecordCtrl.snapshot.cfgSize);
+    cJSON_AddNumberToObject(data, "FileSizeDat", g_WaveRecordCtrl.snapshot[section].dataSize);
+    cJSON_AddNumberToObject(data, "FileSizeCfg", g_WaveRecordCtrl.snapshot[section].cfgSize);
 
     cJSON_AddItemToObject(report, "Data", data);
 
@@ -172,14 +172,15 @@ void WaveRecord_Start(u32 duration_ms, const char *source)
 // 内部：切换段
 static void Switch_Section(void)
 {
+    u8 sec = g_WaveRecordCtrl.currentSection;
     // 1. 保存当前段的快照信息 (供主循环上报用)
-    g_WaveRecordCtrl.snapshot.dataSize = g_WaveRecordCtrl.bytesWrittenInSection;
-    g_WaveRecordCtrl.snapshot.startTime = g_WaveRecordCtrl.currentSectionStartTime;
+    g_WaveRecordCtrl.snapshot[sec].dataSize = g_WaveRecordCtrl.bytesWrittenInSection;
+    g_WaveRecordCtrl.snapshot[sec].startTime = g_WaveRecordCtrl.currentSectionStartTime;
     // startTimeStr 和 cfgSize 将在 Generate_Comtrade_CFG 中填充
-    Make_Time_Str(g_WaveRecordCtrl.snapshot.startTimeStr, &g_WaveRecordCtrl.snapshot.startTime);
+    Make_Time_Str(g_WaveRecordCtrl.snapshot[sec].startTimeStr, &g_WaveRecordCtrl.snapshot[sec].startTime);
 
     // 2. 标记需要上报的段
-    g_WaveRecordCtrl.pendingReportSection = g_WaveRecordCtrl.currentSection;
+    g_WaveRecordCtrl.isPendingReport[sec] = true;
 
     // 3. 切换到下一段
     if (g_WaveRecordCtrl.currentSection == 1)
@@ -437,13 +438,13 @@ void Generate_Comtrade_CFG(u8 section)
 
     // 5. Sample Rates (1 rate)
     len += sprintf(cfgBuf + len, "1\n");
-    u32 sample_count_in_this_section = g_WaveRecordCtrl.snapshot.dataSize / COMTRADE_FRAME_SIZE;
+    u32 sample_count_in_this_section = g_WaveRecordCtrl.snapshot[section].dataSize / COMTRADE_FRAME_SIZE;
     len += sprintf(cfgBuf + len, "%d,%lu\n", FS_RATE, sample_count_in_this_section);
 
     // 6. Dates (Start Time, Trigger Time)
     // 时间使用 snapshot.startTimeStr
-    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot.startTimeStr);
-    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot.startTimeStr); // Trigger time same as start
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot[section].startTimeStr);
+    len += sprintf(cfgBuf + len, "%s\n", g_WaveRecordCtrl.snapshot[section].startTimeStr); // Trigger time same as start
 
     // 7. File Type & Orientation
     len += sprintf(cfgBuf + len, "BINARY\n");
@@ -453,7 +454,7 @@ void Generate_Comtrade_CFG(u8 section)
     Xil_DCacheFlushRange((UINTPTR)cfgBuf, len + 1);
 
     // 9. 记录 CFG 大小
-    g_WaveRecordCtrl.snapshot.cfgSize = len; // 记录大小
+    g_WaveRecordCtrl.snapshot[section].cfgSize = len; // 记录大小
 }
 
 /**
@@ -562,17 +563,18 @@ void WaveRecordTask_Check(void)
     }
 
     // 2. 处理分段文件生成报告
-    if (g_WaveRecordCtrl.pendingReportSection != 0)
+    for (u8 sec = 1; sec <= 2; sec++)
     {
-        u8 sec = g_WaveRecordCtrl.pendingReportSection;
+        if (g_WaveRecordCtrl.isPendingReport[sec])
+        {
+            // 生成 CFG (此时数据区已经不再写入，安全)
+            Generate_Comtrade_CFG(sec);
 
-        // 生成 CFG (此时数据区已经不再写入，安全)
-        Generate_Comtrade_CFG(sec);
+            // 发送报告 (Linux 收到后会去 MemorySectionX 读取)
+            Report_SectionCreated(sec);
 
-        // 发送报告 (Linux 收到后会去 MemorySectionX 读取)
-        Report_SectionCreated(sec);
-
-        g_WaveRecordCtrl.pendingReportSection = 0;
+            g_WaveRecordCtrl.isPendingReport[sec] = false;
+        }
     }
 
     // 3. 处理整体任务结束
