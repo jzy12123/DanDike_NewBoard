@@ -1828,9 +1828,9 @@ void ReplayWave_CheckAndReport(void)
     {
         Update_DO_Outputs();
 
-        /* RecRange=1: 前导结束后启动录波 */
+        /* RecRange=1: 前导结束后启动录波，并且必须确保当前未进入回放结束的保持状态 */
         if (cfg->recConfig.recRange == 1 && !rt->recordingStarted &&
-            rt->preEndTimeRecorded)
+            rt->preEndTimeRecorded && !rt->holdingReported)
         {
             WaveRecord_Start(0, "SetTaskWaveReplayStart");
             rt->recordingStarted = true;
@@ -1867,10 +1867,13 @@ void ReplayWave_CheckAndReport(void)
     Send_JSON(report);
 
     /* 回放完成后的一次性处理 (停录波、打印日志) */
-    if (rt->holdingReported && rt->recordingStarted)
+    /* 如果是 RecRange == 1，遇到后导起点 (backStartTimeRecorded) 即可提前停录 */
+    bool shouldStopRecord = (rt->holdingReported) || (cfg->recConfig.recRange == 1 && rt->backStartTimeRecorded);
+
+    if (shouldStopRecord && rt->recordingStarted)
     {
         WaveRecord_Stop();
         rt->recordingStarted = false;
-        xil_printf("ReplayWave: Playback finished. Holding last cycle output.\r\n");
+        xil_printf("ReplayWave: Playback finished or entered BackLoop. Stopping record.\r\n");
     }
 }

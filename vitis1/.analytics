@@ -1558,3 +1558,11 @@ timestamp=[2026-05-09 16:38:58], mode=PLATFORM_GENERATION, duration=0:00:28.259,
 timestamp=[2026-05-09 16:39:07], mode=BUILD, duration=0:00:09.607, duration_ms=9607, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-09 16:39:42], mode=BUILD, duration=0:00:00.643, duration_ms=643, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-09 16:39:55], mode=BUILD, duration=0:00:01.491, duration_ms=1491, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-09 17:14:48], mode=BUILD, duration=0:00:05.711, duration_ms=5711, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-09 17:26:01], mode=BUILD, duration=0:00:05.227, duration_ms=5227, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-09 17:37:36], mode=BUILD, duration=0:00:01.855, duration_ms=1855, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-09 17:43:31], mode=BUILD, duration=0:00:05.253, duration_ms=5253, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-11 16:43:57], mode=WORKBENCH_START, duration=0:00:18.954, duration_ms=18954, data={}
+timestamp=[2026-05-11 16:43:58], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.115, duration_ms=115, data={}
+timestamp=[2026-05-11 16:43:58], mode=WORKBENCH_UI_INIT, duration=0:00:01.357, duration_ms=1357, data={editors_count=6, platform_editors_count=1, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2026-05-11 16:44:20], mode=BUILD, duration=0:00:04.770, duration_ms=4770, data={name=CPU1, configuration=Debug, clean_build=false}
