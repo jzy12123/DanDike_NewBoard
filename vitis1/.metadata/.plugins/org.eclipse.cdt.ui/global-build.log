@@ -1,6 +1,6 @@
 Nothing to build in platform 'system_wrapper'
 
-16:44:15 **** Incremental Build of configuration Debug for project CPU1 ****
+16:39:13 **** Incremental Build of configuration Debug for project CPU1 ****
 make all 
 make --no-print-directory pre-build
 a9-linaro-pre-build-step

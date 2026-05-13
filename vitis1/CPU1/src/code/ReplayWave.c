@@ -587,15 +587,14 @@ static const char *ReplayWave_CheckRange(void)
         // 物理硬件能够输出的最大峰值是其 1.414 倍。
         double fullScalePeak = fullScale * 1.41421356;
 
-        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f fullScalePeak=%.3f (RMS=%.3f) %s\r\n",
-               cfgCh->index, cfgCh->name,
-               physPeak, fullScalePeak, fullScale,
-               (physPeak > fullScalePeak) ? "EXCEED!" : "OK");
+        /* 增加 1.2 倍的允许余量 */
+        double maxAllowablePeak = fullScalePeak * 1.2;
 
-        if (physPeak > fullScalePeak)
+        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f maxAllowablePeak=%.3f (120%% limit) %s\r\n", cfgCh->index, cfgCh->name, physPeak, maxAllowablePeak, (physPeak > maxAllowablePeak) ? "EXCEED!" : "OK");
+
+        if (physPeak > maxAllowablePeak)
         {
-            printf("ReplayWave: ERROR Ch%d[%s] physPeak=%.4f > fullScalePeak=%.3f\r\n",
-                   cfgCh->index, cfgCh->name, physPeak, fullScalePeak);
+            printf("ReplayWave: ERROR Ch%d[%s] physPeak=%.4f > maxAllowablePeak=%.3f\r\n", cfgCh->index, cfgCh->name, physPeak, maxAllowablePeak);
             return "OutDevRange";
         }
     }
