@@ -1827,9 +1827,8 @@ void ReplayWave_CheckAndReport(void)
     {
         Update_DO_Outputs();
 
-        /* RecRange=1: 前导结束后启动录波，并且必须确保当前未进入回放结束的保持状态 */
-        if (cfg->recConfig.recRange == 1 && !rt->recordingStarted &&
-            rt->preEndTimeRecorded && !rt->holdingReported)
+        /* RecRange=1: 前导结束后启动录波，必须确保未进入后导或结束状态 */
+        if (cfg->recConfig.recRange == 1 && !rt->recordingStarted && rt->preEndTimeRecorded && !rt->holdingReported && !rt->backStartTimeRecorded)
         {
             WaveRecord_Start(0, "SetTaskWaveReplayStart");
             rt->recordingStarted = true;

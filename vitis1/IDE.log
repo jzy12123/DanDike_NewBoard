@@ -10497,3 +10497,12 @@ con
 16:43:59 INFO  : Registering command handlers for Vitis TCF services
 16:44:04 INFO  : Successfully done query RDI_DATADIR 
 16:44:11 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
+16:37:41 INFO  : Launching XSCT server: xsct.bat -n  -interactive C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\temp_xsdb_launch_script.tcl
+16:37:46 INFO  : XSCT server has started successfully.
+16:37:46 INFO  : plnx-install-location is set to ''
+16:37:46 INFO  : Successfully done setting XSCT server connection channel  
+16:37:46 INFO  : Successfully done setting workspace for the tool. 
+16:37:54 INFO  : Platform repository initialization has completed.
+16:37:55 INFO  : Registering command handlers for Vitis TCF services
+16:38:01 INFO  : Successfully done query RDI_DATADIR 
+16:39:10 INFO  : Checking for BSP changes to sync application flags for project 'CPU1'...
