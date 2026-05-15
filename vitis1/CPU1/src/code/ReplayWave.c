@@ -263,13 +263,17 @@ static int ReplayWave_ParseCfg(const char *cfgStr)
                 break;
             case 2: /* nrates */
                 break;
-            case 3:
-            {
-                /* 采样率, 末尾样本号 */
-                unsigned int rate = 0, endSamp = 0;
-                sscanf(line, "%u,%u", &rate, &endSamp);
-                cfg->fileSampleRate = (int)rate;
-                cfg->totalSamples = (u32)endSamp;
+            case 3: {
+                /* 采样率, 末尾样本号 (兼容带小数点的格式) */
+                char rateBuf[32] = "";
+                char endBuf[32] = "";
+                /* 读到逗号为止算作rateBuf，逗号后面算作endBuf */
+                if (sscanf(line, "%[^,],%s", rateBuf, endBuf) == 2) {
+                /* 用 atof 转 double 后再转 int，可以完美兼容 51200 和 51200.000000 */
+                cfg->fileSampleRate = (int)atof(rateBuf); 
+                /* 样本数通常是整数，直接 atoi 即可 */
+                cfg->totalSamples = (u32)atoi(endBuf);
+                }
                 break;
             }
             case 4:
