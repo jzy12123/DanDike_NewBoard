@@ -1585,3 +1585,17 @@ timestamp=[2026-05-15 09:51:51], mode=WORKBENCH_UI_INIT, duration=0:00:01.337, d
 timestamp=[2026-05-15 09:52:14], mode=BUILD, duration=0:00:05.171, duration_ms=5171, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-15 09:52:23], mode=BUILD, duration=0:00:00.582, duration_ms=582, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-15 10:20:00], mode=BUILD, duration=0:00:02.377, duration_ms=2377, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:20:28], mode=WORKBENCH_START, duration=0:00:15.320, duration_ms=15320, data={}
+timestamp=[2026-05-15 11:20:29], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.113, duration_ms=113, data={}
+timestamp=[2026-05-15 11:20:29], mode=WORKBENCH_UI_INIT, duration=0:00:01.149, duration_ms=1149, data={editors_count=6, platform_editors_count=1, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2026-05-15 11:20:42], mode=BUILD, duration=0:00:03.639, duration_ms=3639, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:21:15], mode=BUILD, duration=0:00:01.668, duration_ms=1668, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:21:31], mode=BUILD, duration=0:00:01.610, duration_ms=1610, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:21:50], mode=BUILD, duration=0:00:01.487, duration_ms=1487, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:22:17], mode=PLATFORM_GENERATION, duration=0:00:13.791, duration_ms=13791, data={name=system_wrapper}
+timestamp=[2026-05-15 11:22:18], mode=BUILD, duration=0:00:00.189, duration_ms=189, data={name=CPU1, configuration=Debug, clean_build=true}
+timestamp=[2026-05-15 11:22:51], mode=PLATFORM_GENERATION, duration=0:00:31.183, duration_ms=31183, data={name=system_wrapper}
+timestamp=[2026-05-15 11:23:02], mode=BUILD, duration=0:00:11.077, duration_ms=11077, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:23:29], mode=BUILD, duration=0:00:01.496, duration_ms=1496, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:39:10], mode=BUILD, duration=0:00:01.367, duration_ms=1367, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-15 11:39:15], mode=BUILD, duration=0:00:00.630, duration_ms=630, data={name=CPU1, configuration=Debug, clean_build=false}

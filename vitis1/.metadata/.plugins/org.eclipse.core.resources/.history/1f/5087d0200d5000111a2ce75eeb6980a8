@@ -119,12 +119,6 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
 {
     ReplayWave_Config_t *cfg = &g_ReplayConfig;
 
-    /* 【详细报错 1】：检查CFG字符串是否为空 */
-    if (!cfgStr || cfgStr[0] == '\0')
-    {
-        return "CfgParseError: CFG string is completely empty";
-    }
-
     /* 创建可修改的副本 */
     int cfgLen = strlen(cfgStr);
     char *cfgCopy = (char *)malloc(cfgLen + 1);
@@ -187,16 +181,8 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
             sscanf(line, "%d,%[^,],%s", &tt, aBuf, dBuf);
             cfg->analogCount = atoi(aBuf);  /* "8A" → 8 */
             cfg->digitalCount = atoi(dBuf); /* "0D" → 0 */
-
-            /* 【详细报错 2】：检查模拟通道数量是否合法 */
-            if (cfg->analogCount <= 0 || cfg->analogCount > REPLAY_MAX_FILE_CHANNELS)
-            {
-                snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                         "CfgParseError: Invalid analog count (%d). Max is %d.",
-                         cfg->analogCount, REPLAY_MAX_FILE_CHANNELS);
-                free(cfgCopy);
-                return g_ReplayErrMsg;
-            }
+            if (cfg->analogCount > REPLAY_MAX_FILE_CHANNELS)
+                cfg->analogCount = REPLAY_MAX_FILE_CHANNELS;
             cfg->digitalGroups = (cfg->digitalCount + 15) / 16;
         }
         else if (lineNum >= 3 && analogParsed < cfg->analogCount)
@@ -338,27 +324,14 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
 
     free(cfgCopy);
 
-    /* ============================================================
-     * 【详细报错 3】：最终完整性核查
-     * ============================================================ */
-    if (lineNum < 2)
-    {
-        return "CfgParseError: CFG content is too short (Missing basic lines)";
-    }
-
-    if (analogParsed < cfg->analogCount)
+    /* 验证必要字段 */
+    if (cfg->analogCount == 0 || cfg->totalSamples == 0)
     {
         snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                 "CfgParseError: Expected %d analog channels, but only parsed %d",
-                 cfg->analogCount, analogParsed);
+                 "CfgParseError: AnalogCount=%d, TotalSamples=%u",
+                 cfg->analogCount, (unsigned int)cfg->totalSamples);
         return g_ReplayErrMsg;
     }
-
-    if (cfg->totalSamples == 0)
-    {
-        return "CfgParseError: TotalSamples is 0 (Check sample rate line format)";
-    }
-
     if (cfg->fileSampleRate == 0)
         cfg->fileSampleRate = REPLAY_SAMPLE_RATE;
 
@@ -1033,9 +1006,9 @@ const char *ReplayWave_HandleParas(cJSON *data)
 
     /* ---- 4. 解析CFG ---- */
     cJSON *cfgItem = cJSON_GetObjectItem(data, "Cfg");
-    if (!cfgItem || !cJSON_IsString(cfgItem) || !cfgItem->valuestring)
+    if (!cfgItem || !cfgItem->valuestring)
     {
-        return "CfgParseError: Missing 'Cfg' node in JSON data";
+        return "CfgParseError: Missing 'Cfg' string in JSON";
     }
     /* 直接接收具体的错误字符串并向上抛出 */
     const char *parseErr = ReplayWave_ParseCfg(cfgItem->valuestring);
@@ -1051,7 +1024,7 @@ const char *ReplayWave_HandleParas(cJSON *data)
         xil_printf("ReplayWave: DAT size mismatch: file=%u, expected=%u\r\n",
                    cfg->datFileSize, expectedSize);
         snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                 "DatParseError: Size mismatch. File has %ld bytes, CFG expects %ld bytes",
+                 "DatParseError: Size mismatch. File has %u bytes, CFG expects %u bytes",
                  cfg->datFileSize, expectedSize);
         return g_ReplayErrMsg;
     }
