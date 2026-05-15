@@ -263,16 +263,18 @@ static int ReplayWave_ParseCfg(const char *cfgStr)
                 break;
             case 2: /* nrates */
                 break;
-            case 3: {
+            case 3:
+            {
                 /* 采样率, 末尾样本号 (兼容带小数点的格式) */
                 char rateBuf[32] = "";
                 char endBuf[32] = "";
                 /* 读到逗号为止算作rateBuf，逗号后面算作endBuf */
-                if (sscanf(line, "%[^,],%s", rateBuf, endBuf) == 2) {
-                /* 用 atof 转 double 后再转 int，可以完美兼容 51200 和 51200.000000 */
-                cfg->fileSampleRate = (int)atof(rateBuf); 
-                /* 样本数通常是整数，直接 atoi 即可 */
-                cfg->totalSamples = (u32)atoi(endBuf);
+                if (sscanf(line, "%[^,],%s", rateBuf, endBuf) == 2)
+                {
+                    /* 用 atof 转 double 后再转 int，可以完美兼容 51200 和 51200.000000 */
+                    cfg->fileSampleRate = (int)atof(rateBuf);
+                    /* 样本数通常是整数，直接 atoi 即可 */
+                    cfg->totalSamples = (u32)atoi(endBuf);
                 }
                 break;
             }
@@ -359,9 +361,12 @@ static int ReplayWave_ParseCfg(const char *cfgStr)
 
     /* 计算区域边界 */
     cfg->firstCycleEnd = REPLAY_CYCLE_LEN;
-    if (cfg->totalSamples > REPLAY_CYCLE_LEN)
+
+    /* 【修复相位跳变】：将 lastCycleStart 严格向下对齐到周波边界 */
+    u32 alignedTotal = (cfg->totalSamples / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
+    if (alignedTotal > REPLAY_CYCLE_LEN)
     {
-        cfg->lastCycleStart = cfg->totalSamples - REPLAY_CYCLE_LEN;
+        cfg->lastCycleStart = alignedTotal - REPLAY_CYCLE_LEN;
     }
     else
     {
@@ -753,6 +758,8 @@ static void ReplayWave_CalcRegions(void)
             u32 offsetSamples = (u32)(cfg->repeatMiddle.beginMS * REPLAY_SAMPLE_RATE / 1000.0);
             cfg->repeatMiddle.startSample = cfg->firstCycleEnd + offsetSamples;
         }
+        /* 【修复相位跳变】：将中段起点严格向下对齐到周波边界，保证无缝切入 */
+        cfg->repeatMiddle.startSample = (cfg->repeatMiddle.startSample / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
         u32 lenSamples = (u32)(cfg->repeatMiddle.lengthMS * REPLAY_SAMPLE_RATE / 1000.0);
         /* 对齐到周波边界 */
         lenSamples = ((lenSamples + REPLAY_CYCLE_LEN - 1) / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
@@ -1637,8 +1644,9 @@ static void ReplayWave_DoStart(void)
     rt->isRunning = true;
     rt->isWaiting = false;
 
-    /* 预填充FIFO: 填入首个DMA块 (首周波) */
-    read_and_transform_block(0);
+    /* 预填充FIFO: 获取第1个DMA块并推进状态机 */
+    u32 src1 = Advance_And_GetSource();
+    read_and_transform_block(src1);
     Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
                            REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
@@ -1646,7 +1654,7 @@ static void ReplayWave_DoStart(void)
     {
     }
 
-    /* 预填充第2个DMA块 */
+    /* 预填充第2个DMA块并推进状态机 */
     u32 src2 = Advance_And_GetSource();
     if (rt->isRunning)
     {
