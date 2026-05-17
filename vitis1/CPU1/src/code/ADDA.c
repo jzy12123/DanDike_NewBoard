@@ -396,6 +396,24 @@ void Process_ADC_Buffer(void)
 
     g_ProcessBufferFlag = 0; // 清除标志，允许下一轮中断置位
 
+    /* 对ADC数据取反 */
+    int total_raw_samples = POINTS_PER_BLOCK * CHN_NUM;
+    for (int i = 0; i < total_raw_samples; i++)
+    {
+        // 将 u16 强转为带符号的 int16_t
+        int16_t signed_val = (int16_t)pSrcBuffer[i];
+
+        // 【防溢出处理】：在 16位补码中，-32768 取负依然是 -32768
+        // 所以当读到极小值时，将其钳位，防止反相后出现尖峰毛刺
+        if (signed_val == -32768)
+        {
+            signed_val = -32767;
+        }
+
+        // 取负后存回原地址
+        pSrcBuffer[i] = (u16)(-signed_val);
+    }
+
     // ============================================================
     // 分支 1: 录波处理 (无条件 / 独立控制)
     // ============================================================

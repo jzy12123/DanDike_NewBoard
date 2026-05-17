@@ -1654,52 +1654,42 @@ void ReplayWave_FeedNext(void)
 }
 
 /* ================================================================
- *  实际启动回放 (立即启动 / 被闹钟中断触发)
+ * 实际启动回放
  * ================================================================ */
 static void ReplayWave_DoStart(void)
 {
     ReplayWave_Config_t *cfg = &g_ReplayConfig;
     ReplayWave_Runtime_t *rt = &g_ReplayRuntime;
 
-    xil_printf("ReplayWave: Starting playback...\r\n");
+    xil_printf("ReplayWave: Preparing hardware for playback...\r\n");
 
-    /* 记录开始时间 */
+    /* 1. 软件状态及时间戳初始化*/
     Get_TimeStr(rt->startTimeStr, sizeof(rt->startTimeStr));
     rt->startTimestampUs = Get_TimestampUs();
     rt->startTimeRecorded = true;
-
-    /* 初始化DO */
-    Init_DO_Outputs();
-
-    /* 开启功放 (回放时不使用PID, 幅度100%) */
-    {
-        float replay_amp[8] = {100, 100, 100, 100, 100, 100, 100, 100};
-        power_amplifier_control(replay_amp, Wave_Range, PID_OFF, POWAMP_ON);
-        xil_printf("ReplayWave: Power amplifier enabled.\r\n");
-    }
-
-    /* 切换DA IP核到DMA/FIFO模式 */
-    Xil_Out32(dac_whole_base_addr + 0, 0x00000000U);
-    Xil_Out32(dac_whole_base_addr + 4, (u32)(REPLAY_FREQ_DIV) << 16);
-    Xil_Out32(dac_whole_base_addr + 8, (u32)(0xFF) << 16);
-
-    /* 初始区域 */
     rt->region = REPLAY_FIRST_CYCLE;
     rt->fileSamplePos = 0;
     rt->isRunning = true;
     rt->isWaiting = false;
 
-    /* 预填充FIFO: 获取第1个DMA块并推进状态机 */
+    /* 2. 初始化DO输出 */
+    Init_DO_Outputs();
+
+    /* 3. 在切模式前预填充 FIFO */
+    /* 预填充第1个DMA块 (首周波) */
     u32 src1 = Advance_And_GetSource();
     read_and_transform_block(src1);
     Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, REPLAY_DMA_BLOCK_BYTES);
+
+    /* 启动DMA搬运：把首周波数据推入 FIFO */
     XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
                            REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
-    while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
-    {
-    }
 
-    /* 预填充第2个DMA块并推进状态机 */
+    /* 必须死等搬运完成！确保 FIFO 内部已经有了正确的起点数据 (通常是 0x8000) */
+    while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
+        ;
+
+    /* 预填充第2个DMA块 (双缓冲保证连续性) */
     u32 src2 = Advance_And_GetSource();
     if (rt->isRunning)
     {
@@ -1708,24 +1698,35 @@ static void ReplayWave_DoStart(void)
         XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr,
                                REPLAY_DMA_BLOCK_BYTES, XAXIDMA_DMA_TO_DEVICE);
         while (XAxiDma_Busy(&axidma, XAXIDMA_DMA_TO_DEVICE))
-        {
-        }
+            ;
     }
 
-    /* 使能FIFO prog_empty中断 */
+    /* 4. 配置硬件参数寄存器 (先写辅助参数，不切主开关) */
+    Xil_Out32(dac_whole_base_addr + 4, (u32)(REPLAY_FREQ_DIV) << 16);
+    Xil_Out32(dac_whole_base_addr + 8, (u32)(0xFF) << 16);
+
+    /* 5. 提前开启中断 */
+    /* 此时 FIFO 满了，不会立即触发 underflow，等硬件切模式后消耗了数据才会触发 */
     XIntc_Enable(&AxiIntc_BareMetal, REPLAY_FIFO_INTR_ID);
 
-    /* 启动DA输出 */
+    /* 6. 最后拨动模式开关 (bit 16) */
     Xil_Out32(dac_whole_base_addr + 0, 0x00010000U);
 
-    /* 启动录波 (如配置) */
+    /* 7. 功放开启移至最后 */
+    /* 确保 DAC 硬件输出已经稳定在回放数据的起始电平后，再合上功放 */
+    {
+        float replay_amp[8] = {100, 100, 100, 100, 100, 100, 100, 100};
+        power_amplifier_control(replay_amp, Wave_Range, PID_OFF, POWAMP_ON);
+        xil_printf("ReplayWave: Power amplifier enabled (Safe Boot).\r\n");
+    }
+
+    /* 8. 录波及状态上报 */
     if (cfg->recConfig.recRange == 2)
     {
         WaveRecord_Start(0, "SetTaskWaveReplayStart");
         rt->recordingStarted = true;
     }
 
-    /* 上报首个 Doing */
     rt->reportPending = true;
     strcpy(rt->reportResult, "Doing");
 
