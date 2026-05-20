@@ -8826,3 +8826,81 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64
 
 !ENTRY com.xilinx.sdk.utils 0 0 2026-05-17 10:53:08.905
 !MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-18: Build Project
+!SESSION 2026-05-19 16:42:16.214 -----------------------------------------------
+eclipse.buildId=2020.2
+java.version=11.0.2
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=zh_CN
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY org.eclipse.ui 4 4 2026-05-19 16:42:55.139
+!MESSAGE Plug-in 'org.eclipse.ui.editors' contributed an invalid Menu Extension (Path: 'navigate' is invalid): org.eclipse.ui.edit.text.gotoLastEditPosition
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.565
+!MESSAGE XSCT Command: [set sdk::sdk_chan tcfchan#0], Thread: Thread-16
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.565
+!MESSAGE XSCT Command: [plnx-install-path  ; ::scw::scw_mode gui], Thread: Thread-9
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.580
+!MESSAGE XSCT command with result: [set sdk::sdk_chan tcfchan#0], Result: [null, tcfchan#0]. Thread: Thread-16
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.582
+!MESSAGE XSCT Command: [setws C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1], Thread: Thread-16
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.589
+!MESSAGE XSCT command with result: [plnx-install-path  ; ::scw::scw_mode gui], Result: [null, ]. Thread: Thread-9
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:04.591
+!MESSAGE XSCT command with result: [setws C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1], Result: [null, ]. Thread: Thread-16
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:11.184
+!MESSAGE XSCT Command: [::hsi::utils::init_repo], Thread: Worker-5: Initializing s/w repositories
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-05-19 16:43:15.566
+!MESSAGE Enablement expression is missing for descriptor type org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-05-19 16:43:15.567
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2026-05-19 16:43:15.569
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:17.725
+!MESSAGE XSCT command with result: [::hsi::utils::init_repo], Result: [null, ]. Thread: Worker-5: Initializing s/w repositories
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:17.726
+!MESSAGE XSCT Command: [set query_var1 $::env(RDI_DATADIR)], Thread: Worker-5: Initializing s/w repositories
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:17.727
+!MESSAGE XSCT command with result: [set query_var1 $::env(RDI_DATADIR)], Result: [null, E:/vivado/Vitis/2020.2/data]. Thread: Worker-5: Initializing s/w repositories
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:39.932
+!MESSAGE XSCT Command: [::hsi::utils::openhw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa], Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.884
+!MESSAGE XSCT command with result: [::hsi::utils::openhw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa], Result: [null, ]. Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.893
+!MESSAGE XSCT Command: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.910
+!MESSAGE XSCT command with result: [ ::hsi::utils::set_current_hw_sw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss ], Result: [null, ]. Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.912
+!MESSAGE XSCT Command: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.916
+!MESSAGE XSCT command with result: [::hsi::utils::get_hw_sw_details -json C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/hw/system_wrapper.xsa C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, {"procname": "ps7_cortexa9_1",
+"osname": "standalone",
+"osver": "7.3",
+}]. Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 1 0 2026-05-19 16:43:42.919
+!MESSAGE Generating MD5 hash for file: C:\Users\saber\Desktop\share\DanDike_NewBoard\vitis1\system_wrapper\export\system_wrapper\sw\system_wrapper\standalone_ps7_cortexa9_1\system.mss ...
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.925
+!MESSAGE XSCT Command: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Thread: Worker-1: Build Project
+
+!ENTRY com.xilinx.sdk.utils 0 0 2026-05-19 16:43:42.929
+!MESSAGE XSCT command with result: [::hsi::utils::closesw C:/Users/saber/Desktop/share/DanDike_NewBoard/vitis1/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_1/system.mss], Result: [null, ]. Thread: Worker-1: Build Project

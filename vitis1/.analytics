@@ -1610,3 +1610,7 @@ timestamp=[2026-05-17 10:28:38], mode=BUILD, duration=0:00:04.187, duration_ms=4
 timestamp=[2026-05-17 10:28:42], mode=BUILD, duration=0:00:00.583, duration_ms=583, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-17 10:35:56], mode=BUILD, duration=0:00:01.405, duration_ms=1405, data={name=CPU1, configuration=Debug, clean_build=false}
 timestamp=[2026-05-17 10:53:10], mode=BUILD, duration=0:00:01.675, duration_ms=1675, data={name=CPU1, configuration=Debug, clean_build=false}
+timestamp=[2026-05-19 16:43:10], mode=WORKBENCH_START, duration=0:00:20.663, duration_ms=20663, data={}
+timestamp=[2026-05-19 16:43:11], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.154, duration_ms=154, data={}
+timestamp=[2026-05-19 16:43:11], mode=WORKBENCH_UI_INIT, duration=0:00:01.403, duration_ms=1403, data={editors_count=6, platform_editors_count=1, projects_count=4, platform_projects_count=1, active_platform_editor=false, projects=CPU1,DDK,RemoteSystemsTempFiles,system_wrapper}
+timestamp=[2026-05-19 16:43:51], mode=BUILD, duration=0:00:08.469, duration_ms=8469, data={name=CPU1, configuration=Debug, clean_build=false}
