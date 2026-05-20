@@ -1,6 +1,7 @@
 #include "ADDA.h"
-#include "xscugic_hw.h"
 #include "My_KissFft.h"
+#include "xscugic_hw.h"
+
 /*
  * 变量
  */
@@ -16,21 +17,24 @@ volatile u8 g_CurBufferIndex = 0;
 volatile u8 g_ProcessBufferFlag = 0;
 
 // ad
-int dma_rx_8[8][sample_points] = {0}; // 8个通道，每个通道的采样点数sample_points
+int dma_rx_8[8][sample_points] = {
+    0}; // 8个通道，每个通道的采样点数sample_points
 u16 *rx_buffer_ptr = (u16 *)RX_BUFFER_BASE;
 u16 *tx_buffer_ptr = (u16 *)TX_BUFFER_BASE;
 
 // 波形修改参数
-float Phase_shift[8] = {0, -120, 120, 0, 0, -120, 120, 0}; // 8路波形相位偏移 单位度
-uint16_t enable = 0xff;                                    // 使能通道输出
+float Phase_shift[8] = {0, -120, 120, 0,
+                        0, -120, 120, 0}; // 8路波形相位偏移 单位度
+uint16_t enable = 0xff;                   // 使能通道输出
 float Wave_Frequency = 50;
 float Wave_Amplitude[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 u32 Wave_Range[8] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 uint16_t Wave_NewData[8][DATA_LEN]; // 修改后8路通道所有数据
 
-int numHarmonics[CHANNL_MAX] = {0};                      // 每个通道有几个谐波
-float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0};        // 每个通道每次谐波的幅值
-float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的相位
+int numHarmonics[CHANNL_MAX] = {0};               // 每个通道有几个谐波
+float harmonics[CHANNL_MAX][MAX_HARMONICS] = {0}; // 每个通道每次谐波的幅值
+float harmonics_phases[CHANNL_MAX][MAX_HARMONICS] = {
+    0}; // 每个通道每次谐波的相位
 
 // 功放输出参数
 double DA_Correct_100[8][3];
@@ -101,13 +105,23 @@ const double ADConst_Correct[8][3] = {
     {20026.621825, 23211.482920, 23250.247711}  // IX 111
 };
 
+void Adc_Set_Frequency(float freq)
+{
+    if (freq < 10.0f)
+    {
+        freq = 50.0f; // 保护限制
+    }
+    uint32_t adc_div = (uint32_t)(100000000.0 / (freq * 1024.0) + 0.5);
+    Xil_Out32(adc_whole_base_addr + 4, adc_div);
+}
+
 void Adc_Continuous_Start(void)
 {
     g_CurBufferIndex = 0;
     g_ProcessBufferFlag = 0;
 
     // 1. 设置ADC分频与点数
-    Xil_Out32(adc_whole_base_addr + 4, 1953);
+    Adc_Set_Frequency(Wave_Frequency);
     Xil_Out32(adc_whole_base_addr + 8, POINTS_PER_BLOCK);
 
     // 2. 启动第一次DMA (Ping Buffer)
@@ -118,8 +132,8 @@ void Adc_Continuous_Start(void)
     Xil_DCacheInvalidateRange(PingAddr, DMA_BUFFER_SIZE);
 
     // 使用 SimpleTransfer 启动 S2MM
-    int status = XAxiDma_SimpleTransfer(&axidma, PingAddr,
-                                        DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
+    int status = XAxiDma_SimpleTransfer(&axidma, PingAddr, DMA_BUFFER_SIZE,
+                                        XAXIDMA_DEVICE_TO_DMA);
     if (status != XST_SUCCESS)
     {
         xil_printf("CPU1: DMA Start Failed! Status=%d\r\n", status);
@@ -155,7 +169,8 @@ void sync_dma_buffer(UINTPTR addr, size_t size, int direction)
  * @brief DMA 传输启动（带重试机制，ISR 安全版）
  * @details 模仿 SafeDmaTransfer，但在失败时进行微秒级等待，避免 ISR 阻塞太久
  */
-static int ISR_Safe_DmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr, u32 Length, int Direction)
+static int ISR_Safe_DmaTransfer(XAxiDma *AxiDmaInstPtr, UINTPTR BuffAddr,
+                                u32 Length, int Direction)
 {
     int retry_count = 0;
     int max_retries = 10; // 增加重试次数
@@ -215,14 +230,16 @@ void Adc_Dma_Reset_And_Restart(void)
     XAxiDma_WriteReg(RxBaseAddr, XAXIDMA_CR_OFFSET, cr);
 
     // 4. 准备目标地址
-    UINTPTR TargetAddr = (g_CurBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+    UINTPTR TargetAddr =
+        (g_CurBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
 
     // Invalidate Cache
     Xil_DCacheInvalidateRange(TargetAddr, DMA_BUFFER_SIZE);
 
     // 5. 提交传输
     // SimpleTransfer 会检测到 DMA 处于 Halted 状态，并自动启动它
-    int status = ISR_Safe_DmaTransfer(&axidma, TargetAddr, DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
+    int status = ISR_Safe_DmaTransfer(&axidma, TargetAddr, DMA_BUFFER_SIZE,
+                                      XAXIDMA_DEVICE_TO_DMA);
 
     if (status == XST_SUCCESS)
     {
@@ -232,7 +249,8 @@ void Adc_Dma_Reset_And_Restart(void)
     {
         // 如果依然失败，打印详细 SR 供分析
         u32 sr_after = XAxiDma_ReadReg(RxBaseAddr, XAXIDMA_SR_OFFSET);
-        xil_printf("CPU1: DMA Recovery Failed (Status: %d, SR: 0x%08X)\r\n", status, sr_after);
+        xil_printf("CPU1: DMA Recovery Failed (Status: %d, SR: 0x%08X)\r\n", status,
+                   sr_after);
     }
 }
 
@@ -271,7 +289,8 @@ void rx_intr_handler(void *callback)
     XAxiDma_IntrAckIrq(axidma_inst, irq_status, XAXIDMA_DEVICE_TO_DMA);
 
     // 2. 错误检测与恢复
-    u32 sr = XAxiDma_ReadReg(axidma_inst->RegBase + XAXIDMA_RX_OFFSET, XAXIDMA_SR_OFFSET);
+    u32 sr = XAxiDma_ReadReg(axidma_inst->RegBase + XAXIDMA_RX_OFFSET,
+                             XAXIDMA_SR_OFFSET);
 
     // 如果有 Error 位 (bit 4,5,6) 或者 Halted (bit 0) 且不是正常的 idle
     // 注意：正常传输完成瞬间 Halted 可能会短暂置 1，所以主要看 Error
@@ -290,12 +309,14 @@ void rx_intr_handler(void *callback)
 
         // 切换 Buffer
         u8 nextBufferIndex = 1 - g_CurBufferIndex;
-        UINTPTR nextBufferAddr = (nextBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+        UINTPTR nextBufferAddr =
+            (nextBufferIndex == 0) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
 
         Xil_DCacheInvalidateRange(nextBufferAddr, DMA_BUFFER_SIZE);
 
         // 使用带重试的提交，防止偶发 Busy
-        int status = ISR_Safe_DmaTransfer(axidma_inst, nextBufferAddr, DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
+        int status = ISR_Safe_DmaTransfer(axidma_inst, nextBufferAddr,
+                                          DMA_BUFFER_SIZE, XAXIDMA_DEVICE_TO_DMA);
 
         if (status != XST_SUCCESS)
         {
@@ -388,7 +409,8 @@ void Process_ADC_Buffer(void)
         return;
 
     // 2. 锁定缓冲区物理地址
-    UINTPTR SrcAddr = (g_ProcessBufferFlag == 1) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
+    UINTPTR SrcAddr =
+        (g_ProcessBufferFlag == 1) ? RX_BUFFER_PING_ADDR : RX_BUFFER_PONG_ADDR;
     u16 *pSrcBuffer = (u16 *)SrcAddr;
 
     // 3. Cache 失效 (数据一致性防线)
@@ -427,7 +449,9 @@ void Process_ADC_Buffer(void)
 
     // 条件A: 系统处于“运行”或“暂停”状态
     // nStatus: 0=Stop, 1=Run, 2=Pause. 只要不全为0，就说明需要观测数据
-    bool any_active = (devState.nStatusFund != 0) || (devState.nStatusHarm != 0) || (devState.nStatusInharm != 0);
+    bool any_active = (devState.nStatusFund != 0) ||
+                      (devState.nStatusHarm != 0) ||
+                      (devState.nStatusInharm != 0);
     // 条件B: 状态序列未运行
     bool seq_idle = !g_StateSeqRuntime.IsRunning;
 
@@ -456,8 +480,8 @@ void RunADCPIDCycle(void)
     double calculated_total_q = 0.0;
     double calculated_total_pf = 0.0;
 
-    // 12800Hz 采样率 (4抽1后)
-    int eff_sample_rate = FS_RATE / 4;
+    // 动态采样率 (4抽1后)
+    int eff_sample_rate = (int)(Wave_Frequency * 256.0f);
 
     // 循环处理4个通道（A, B, C, X），但只累加前3个通道的总功率
     for (int i = 0; i < 4; i++)
@@ -467,8 +491,10 @@ void RunADCPIDCycle(void)
         double harmonic_info_I[HarmNumberMax][3] = {0};
 
         // 调用更新后的 FFT 分析函数，传入本地缓冲区指针
-        AnalyzeWaveform_AcSource(harmonic_info_U, g_AcAnalysisData[i], eff_sample_rate, Wave_Frequency);
-        AnalyzeWaveform_AcSource(harmonic_info_I, g_AcAnalysisData[i + 4], eff_sample_rate, Wave_Frequency);
+        AnalyzeWaveform_AcSource(harmonic_info_U, g_AcAnalysisData[i],
+                                 eff_sample_rate, Wave_Frequency);
+        AnalyzeWaveform_AcSource(harmonic_info_I, g_AcAnalysisData[i + 4],
+                                 eff_sample_rate, Wave_Frequency);
 
         if (i == 0)
         {
@@ -489,7 +515,8 @@ void RunADCPIDCycle(void)
         double sum_of_squares_u_rms = 0.0;
         for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
         {
-            double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+            double corrected_u_amp =
+                harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
             sum_of_squares_u_rms += corrected_u_amp * corrected_u_amp;
         }
         lineAC.u[i] = sqrt(sum_of_squares_u_rms); // U[ChnsAC] //总有效值
@@ -498,18 +525,23 @@ void RunADCPIDCycle(void)
         double sum_of_squares_i_rms = 0.0;
         for (int h = 0; h < g_harm_number_thd; h++) // 遍历所有谐波分量（包括基波）
         {
-            double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+            double corrected_i_amp =
+                (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) *
+                setACS.Vals[i].IR;
             sum_of_squares_i_rms += corrected_i_amp * corrected_i_amp;
         }
         lineAC.i[i] = sqrt(sum_of_squares_i_rms); // I[ChnsAC] //总有效值
         /*******************************************************************************************/
 
-        lineAC.phu[i] = harmonic_info_U[0][2] - Phase_reference; // 电压相位 角度制（UA为参考, 依然是基波相位）
+        lineAC.phu[i] =
+            harmonic_info_U[0][2] -
+            Phase_reference; // 电压相位 角度制（UA为参考, 依然是基波相位）
         if (lineAC.phu[i] < 0)
         {
             lineAC.phu[i] += 360;
         }
-        lineAC.phi[i] = harmonic_info_I[0][2] - Phase_reference; // 电流相位（UA为参考, 依然是基波相位）
+        lineAC.phi[i] = harmonic_info_I[0][2] -
+                        Phase_reference; // 电流相位（UA为参考, 依然是基波相位）
         if (lineAC.phi[i] < 0)
         {
             lineAC.phi[i] += 360;
@@ -518,8 +550,10 @@ void RunADCPIDCycle(void)
         // 初始化总谐波畸变率变量
         double thdu = 0.0;
         double thdi = 0.0;
-        double baseU_for_thd = (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
-        double baseI_for_thd = (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+        double baseU_for_thd =
+            (harmonic_info_U[0][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
+        double baseI_for_thd =
+            (harmonic_info_I[0][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
 
         // 计算电压总谐波畸变率 (THDU)
         if (baseU_for_thd >= 0.0001)
@@ -528,7 +562,8 @@ void RunADCPIDCycle(void)
             // 遍历从2次谐波到指定次数谐波
             for (int h = 1; h < g_harm_number_thd; h++)
             {
-                double corrected_u_amp = harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
+                double corrected_u_amp =
+                    harmonic_info_U[h][1] / AD_Correct[i][idx_u] * setACS.Vals[i].UR;
                 sum_of_squares_u_thd += corrected_u_amp * corrected_u_amp;
             }
             thdu = sqrt(sum_of_squares_u_thd) / baseU_for_thd;
@@ -544,7 +579,9 @@ void RunADCPIDCycle(void)
             // 遍历从2次谐波到指定次数谐波
             for (int h = 1; h < g_harm_number_thd; h++)
             {
-                double corrected_i_amp = (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+                double corrected_i_amp =
+                    (harmonic_info_I[h][1] / AD_Correct[i + 4][idx_i]) *
+                    setACS.Vals[i].IR;
                 sum_of_squares_i_thd += corrected_i_amp * corrected_i_amp;
             }
             thdi = sqrt(sum_of_squares_i_thd) / baseI_for_thd;
@@ -581,8 +618,12 @@ void RunADCPIDCycle(void)
             if (j == 1)
             {
                 // 基波(索引1)特殊处理：使用实际幅值
-                lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) * setACS.Vals[i].UR;
-                lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR;
+                lineHarm.harm[i].u[j] =
+                    (harmonic_info_U[j - 1][1] / AD_Correct[i][idx_u]) *
+                    setACS.Vals[i].UR;
+                lineHarm.harm[i].i[j] =
+                    (harmonic_info_I[j - 1][1] / AD_Correct[i + 4][idx_i]) *
+                    setACS.Vals[i].IR;
 
                 // 基波相位直接采用相对于参考相位的值
                 lineHarm.harm[i].phu[j] = harmonic_info_U[j - 1][2] - Phase_reference;
@@ -593,7 +634,8 @@ void RunADCPIDCycle(void)
                 // 谐波(索引2及以上)：u/i计算为基波的百分比
                 if (baseU_raw > 0.0001)
                 {
-                    lineHarm.harm[i].u[j] = (harmonic_info_U[j - 1][1] / baseU_raw) * 100.0;
+                    lineHarm.harm[i].u[j] =
+                        (harmonic_info_U[j - 1][1] / baseU_raw) * 100.0;
                 }
                 else
                 {
@@ -602,7 +644,8 @@ void RunADCPIDCycle(void)
 
                 if (baseI_raw > 0.0001)
                 {
-                    lineHarm.harm[i].i[j] = (harmonic_info_I[j - 1][1] / baseI_raw) * 100.0;
+                    lineHarm.harm[i].i[j] =
+                        (harmonic_info_I[j - 1][1] / baseI_raw) * 100.0;
                 }
                 else
                 {
@@ -611,8 +654,10 @@ void RunADCPIDCycle(void)
 
                 // 谐波相位计算
                 double n = j;
-                double u_relative_phase = harmonic_info_U[j - 1][2] - n * Phase_reference;
-                double i_relative_phase = harmonic_info_I[j - 1][2] - n * Phase_reference;
+                double u_relative_phase =
+                    harmonic_info_U[j - 1][2] - n * Phase_reference;
+                double i_relative_phase =
+                    harmonic_info_I[j - 1][2] - n * Phase_reference;
                 lineHarm.harm[i].phu[j] = fmod(u_relative_phase + 360.0, 360.0);
                 lineHarm.harm[i].phi[j] = fmod(i_relative_phase + 360.0, 360.0);
 
@@ -654,16 +699,24 @@ void RunADCPIDCycle(void)
             if (j == 1)
             {
                 // 基波：直接用实际幅值计算功率
-                lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * cos(h_phase_diff * M_PI / 180.0);
-                lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] * sin(h_phase_diff * M_PI / 180.0);
+                lineHarm.harm[i].p[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] *
+                                        cos(h_phase_diff * M_PI / 180.0);
+                lineHarm.harm[i].q[j] = lineHarm.harm[i].u[j] * lineHarm.harm[i].i[j] *
+                                        sin(h_phase_diff * M_PI / 180.0);
             }
             else
             {
                 // 谐波：需要将百分比转换回实际幅值来计算功率
-                double actual_u_h = (lineHarm.harm[i].u[j] / 100.0) * ((baseU_raw / AD_Correct[i][idx_u]) * setACS.Vals[i].UR);
-                double actual_i_h = (lineHarm.harm[i].i[j] / 100.0) * ((baseI_raw / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR);
-                lineHarm.harm[i].p[j] = actual_u_h * actual_i_h * cos(h_phase_diff * M_PI / 180.0);
-                lineHarm.harm[i].q[j] = actual_u_h * actual_i_h * sin(h_phase_diff * M_PI / 180.0);
+                double actual_u_h =
+                    (lineHarm.harm[i].u[j] / 100.0) *
+                    ((baseU_raw / AD_Correct[i][idx_u]) * setACS.Vals[i].UR);
+                double actual_i_h =
+                    (lineHarm.harm[i].i[j] / 100.0) *
+                    ((baseI_raw / AD_Correct[i + 4][idx_i]) * setACS.Vals[i].IR);
+                lineHarm.harm[i].p[j] =
+                    actual_u_h * actual_i_h * cos(h_phase_diff * M_PI / 180.0);
+                lineHarm.harm[i].q[j] =
+                    actual_u_h * actual_i_h * sin(h_phase_diff * M_PI / 180.0);
             }
 
             // 累加到总功率
@@ -671,12 +724,14 @@ void RunADCPIDCycle(void)
             lineHarm.harm[i].totalQ += lineHarm.harm[i].q[j];
         }
 
-        // 中文注释: 使用 lineHarm 中已正确计算的各谐波功率之和来更新 lineAC 中的总功率
+        // 中文注释: 使用 lineHarm 中已正确计算的各谐波功率之和来更新 lineAC
+        // 中的总功率
         lineAC.p[i] = lineHarm.harm[i].totalP;
         lineAC.q[i] = lineHarm.harm[i].totalQ;
 
         // 中文注释: 计算该通道的总视在功率 S = sqrt(P^2 + Q^2)
-        double apparent_power_s = sqrt(lineAC.p[i] * lineAC.p[i] + lineAC.q[i] * lineAC.q[i]);
+        double apparent_power_s =
+            sqrt(lineAC.p[i] * lineAC.p[i] + lineAC.q[i] * lineAC.q[i]);
 
         // 中文注释: 计算该通道的总功率因数 PF = P / S
         if (apparent_power_s > 1e-6) // 避免除零
@@ -697,7 +752,8 @@ void RunADCPIDCycle(void)
     }
 
     // 总功率因数，使用局部变量完成所有相关计算
-    double totalApparentPower = sqrt(calculated_total_p * calculated_total_p + calculated_total_q * calculated_total_q);
+    double totalApparentPower = sqrt(calculated_total_p * calculated_total_p +
+                                     calculated_total_q * calculated_total_q);
     if (totalApparentPower > 0.0001)
     {
         calculated_total_pf = calculated_total_p / totalApparentPower;
@@ -723,8 +779,9 @@ void RunADCPIDCycle(void)
 
     // [核心修改]
     // 只有当状态序列 [既不运行] [也不保持] 时，才允许 ADC 中断触发稳态输出刷新。
-    // 这样在状态序列结束后(Holding状态)，主循环虽然在跑ADC，但不会去写 str_wr_bram，
-    // 从而保证了输出波形绝对静止，直到新的 SetACS 指令打破 Holding 状态。
+    // 这样在状态序列结束后(Holding状态)，主循环虽然在跑ADC，但不会去写
+    // str_wr_bram， 从而保证了输出波形绝对静止，直到新的 SetACS 指令打破 Holding
+    // 状态。
     if (!g_StateSeqRuntime.IsRunning && !g_StateSeqRuntime.IsHolding)
     {
         dac_parameters_updated_by_command = true;
@@ -776,7 +833,8 @@ void underflow_handler()
 
     /* 原有逻辑：循环播放 tx_buffer 中的波形 (start_dma_dac 旧模式) */
     sync_dma_buffer((UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
-    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
+    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16,
+                           XAXIDMA_DMA_TO_DEVICE);
 }
 
 // 定时器中断处理函数
@@ -821,7 +879,8 @@ int timer_init(XScuTimer *timer_ptr)
     timer_cfg_ptr = XScuTimer_LookupConfig(TIMER_DEVICE_ID);
     if (NULL == timer_cfg_ptr)
         return XST_FAILURE;
-    status = XScuTimer_CfgInitialize(timer_ptr, timer_cfg_ptr, timer_cfg_ptr->BaseAddr);
+    status = XScuTimer_CfgInitialize(timer_ptr, timer_cfg_ptr,
+                                     timer_cfg_ptr->BaseAddr);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
@@ -834,7 +893,8 @@ int timer_init(XScuTimer *timer_ptr)
 /**
  * @brief 强制设置一个SPI中断的目标CPU。
  */
-static void ScuGic_SetInterruptTarget(u32 DistBaseAddress, u32 Int_Id, u8 Cpu_Id)
+static void ScuGic_SetInterruptTarget(u32 DistBaseAddress, u32 Int_Id,
+                                      u8 Cpu_Id)
 {
     u32 RegValue;
     u32 Offset;
@@ -851,13 +911,12 @@ static void ScuGic_SetInterruptTarget(u32 DistBaseAddress, u32 Int_Id, u8 Cpu_Id
 }
 /**
  * @brief 初始化并配置中断控制器和中断处理函数（AMP安全最终版）
- * @details 此版本修正了初始化顺序，以防止在中断处理程序就绪前发生中断导致系统挂起。
+ * @details
+ * 此版本修正了初始化顺序，以防止在中断处理程序就绪前发生中断导致系统挂起。
  * @return 成功返回XST_SUCCESS，失败返回XST_FAILURE
  */
-int setup_intr_system(XScuGic *int_ins_ptr,
-                      XScuTimer *timer_ptr,
-                      XTtcPs *debounce_timer_ptr,
-                      XUartLite *gps_uart_ptr,
+int setup_intr_system(XScuGic *int_ins_ptr, XScuTimer *timer_ptr,
+                      XTtcPs *debounce_timer_ptr, XUartLite *gps_uart_ptr,
                       XTtcPs *seq_ttc_ptr)
 {
     int status;
@@ -874,7 +933,8 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
     }
 
-    status = XScuGic_CfgInitialize(int_ins_ptr, gic_config, gic_config->CpuBaseAddress);
+    status = XScuGic_CfgInitialize(int_ins_ptr, gic_config,
+                                   gic_config->CpuBaseAddress);
     if (status != XST_SUCCESS)
     {
         return XST_FAILURE;
@@ -891,7 +951,8 @@ int setup_intr_system(XScuGic *int_ins_ptr,
      * 在这一步，我们只做软件配置（连接处理函数），不使能任何中断。
      * ================================================================= */
     // 初始化裸机专用的AXI INTC
-    status = XIntc_Initialize(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_DEVICE_ID);
+    status =
+        XIntc_Initialize(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_DEVICE_ID);
     if (status != XST_SUCCESS)
     {
         printf("ERROR: Failed to initialize BareMetal AXI INTC\n");
@@ -900,85 +961,134 @@ int setup_intr_system(XScuGic *int_ins_ptr,
 
     // 连接PL中断源到AXI INTC
     // Pin 0: DMA ADC完成中断
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR, (XInterruptHandler)rx_intr_handler, (void *)&axidma);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR,
+        (XInterruptHandler)rx_intr_handler, (void *)&axidma);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 1: DMA DAC完成中断
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR, (XInterruptHandler)tx_intr_handler, (void *)&axidma);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR,
+        (XInterruptHandler)tx_intr_handler, (void *)&axidma);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 2: prog_empty (FIFO空) -> underflow_handler
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR, (XInterruptHandler)underflow_handler, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR,
+        (XInterruptHandler)underflow_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 3: onoff_done (开关量完成) -> onoff_handler
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR, (XInterruptHandler)onoff_handler, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_ONOFF_DONE_INTR,
+        (XInterruptHandler)onoff_handler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 4: power_pulse_P(电能脉冲)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR, (XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
+    status =
+        XIntc_Connect(&AxiIntc_BareMetal,
+                      XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR,
+                      (XInterruptHandler)PowerPulse_P_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 5: power_pulse_Q
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR, (XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
+    status =
+        XIntc_Connect(&AxiIntc_BareMetal,
+                      XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR,
+                      (XInterruptHandler)PowerPulse_Q_IntrHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 6: interrupt (GPS UART)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR, (XInterruptHandler)GpsUartRecvHandler, (void *)0);
+    status = XIntc_Connect(&AxiIntc_BareMetal,
+                           XPAR_AXI_INTC_BAREMETAL_AXI_UARTLITE_0_INTERRUPT_INTR,
+                           (XInterruptHandler)GpsUartRecvHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 7: bm_sync_end
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR, (XInterruptHandler)Handler_BmSyncEnd, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR,
+        (XInterruptHandler)Handler_BmSyncEnd, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 8: date_update (日期更新)
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR, (XInterruptHandler)Handler_DateUpdate, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR,
+        (XInterruptHandler)Handler_DateUpdate, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 9: PPS_IN
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR,
-                           (Xil_ExceptionHandler)ClockTest_PPS_IntrHandler,
-                           (void *)NULL);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR,
+        (Xil_ExceptionHandler)ClockTest_PPS_IntrHandler, (void *)NULL);
     if (status != XST_SUCCESS)
         return status;
 
     // Pin 10: 软时钟闹钟中断
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR, (XInterruptHandler)SoftTimer_AlarmHandler, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR,
+        (XInterruptHandler)SoftTimer_AlarmHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     // Pin 11: 软时钟GPS的PPS秒中断
-    status = XIntc_Connect(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR, (XInterruptHandler)GpsPPSHandler, (void *)0);
+    status = XIntc_Connect(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR,
+        (XInterruptHandler)GpsPPSHandler, (void *)0);
     if (status != XST_SUCCESS)
         return XST_FAILURE;
 
     //  连接AXI INTC的输出到GIC
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40, 0x1);             // 高电平触发
-    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 1); // 将中断映射到目标CPU1
-    status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, (Xil_ExceptionHandler)BareMetal_Intc_Handler, (void *)&AxiIntc_BareMetal);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr,
+                                   XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR, 0x40,
+                                   0x1); // 高电平触发
+    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress,
+                              XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR,
+                              1); // 将中断映射到目标CPU1
+    status = XScuGic_Connect(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR,
+                             (Xil_ExceptionHandler)BareMetal_Intc_Handler,
+                             (void *)&AxiIntc_BareMetal);
 
     // 主定时器中断 (PS私有定时器，ID=XPAR_SCUTIMER_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0, 0x3); // 上升沿
-    status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR, (Xil_ExceptionHandler)timer_intr_handler, (void *)timer_ptr);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_SCUTIMER_INTR, 0xB0,
+                                   0x3); // 上升沿
+    status = XScuGic_Connect(int_ins_ptr, XPAR_SCUTIMER_INTR,
+                             (Xil_ExceptionHandler)timer_intr_handler,
+                             (void *)timer_ptr);
 
     // 开关量防抖TTC定时器中断 (PS TTC, ID=XPAR_XTTCPS_0_INTR)
-    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0, 0x3);             // 上升沿
-    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, XPAR_XTTCPS_0_INTR, 1); // 将中断映射到目标CPU1
-    status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR, (Xil_ExceptionHandler)debounce_timer_handler, (void *)debounce_timer_ptr);
+    XScuGic_SetPriorityTriggerType(int_ins_ptr, XPAR_XTTCPS_0_INTR, 0xA0,
+                                   0x3); // 上升沿
+    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress,
+                              XPAR_XTTCPS_0_INTR, 1); // 将中断映射到目标CPU1
+    status = XScuGic_Connect(int_ins_ptr, XPAR_XTTCPS_0_INTR,
+                             (Xil_ExceptionHandler)debounce_timer_handler,
+                             (void *)debounce_timer_ptr);
 
     // 状态序列TTC定时器中断(PS TTC，ID = XPAR_XTTCPS_2_INTR);
     XScuGic_SetPriorityTriggerType(int_ins_ptr, SEQ_TTC_INTR_ID, 0xA0, 0x3);
-    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress, SEQ_TTC_INTR_ID, 1);
-    status = XScuGic_Connect(int_ins_ptr, SEQ_TTC_INTR_ID, (Xil_ExceptionHandler)StateSequence_TTC_Handler, (void *)seq_ttc_ptr);
+    ScuGic_SetInterruptTarget(int_ins_ptr->Config->DistBaseAddress,
+                              SEQ_TTC_INTR_ID, 1);
+    status = XScuGic_Connect(int_ins_ptr, SEQ_TTC_INTR_ID,
+                             (Xil_ExceptionHandler)StateSequence_TTC_Handler,
+                             (void *)seq_ttc_ptr);
 
     /* =================================================================
      * 步骤 4: 【关键】手动初始化CPU1的GIC接口并使能所有中断
@@ -990,15 +1100,31 @@ int setup_intr_system(XScuGic *int_ins_ptr,
         return XST_FAILURE;
 
     // 使能AXI INTC上的中断输入
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR);        // 0
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR);        // 1
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR);                     // 4
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR);                     // 5
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR);  // 7
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR); // 8
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR);  // 9
-    XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR);     // 10
-    // XIntc_Enable(&AxiIntc_BareMetal, XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR); // 11 在GPS对时事务中开启
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_S2MM_INTROUT_INTR); // 0
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXI_DMA_0_MM2S_INTROUT_INTR); // 1
+    XIntc_Enable(&AxiIntc_BareMetal,
+                 XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_P_INTR); // 4
+    XIntc_Enable(&AxiIntc_BareMetal,
+                 XPAR_AXI_INTC_BAREMETAL_POWER_PULSE_V1_AXI_0_INTRPT_Q_INTR); // 5
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_BM_SYN_END_INTR); // 7
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_DATE_UPDATE_INTR); // 8
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_IN2CPU_INTR); // 9
+    XIntc_Enable(
+        &AxiIntc_BareMetal,
+        XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_TIME_UP_INTR); // 10
+    // XIntc_Enable(&AxiIntc_BareMetal,
+    // XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_STIMER_ONOFF_PA_RW_A_0_PPS_GPS2CPU_INTR);
+    // // 11 在GPS对时事务中开启
 
     // 使能GIC上的中断
     XScuGic_Enable(int_ins_ptr, XPAR_FABRIC_AXI_INTC_BAREMETAL_IRQ_INTR);
@@ -1008,10 +1134,13 @@ int setup_intr_system(XScuGic *int_ins_ptr,
 
     // 使能外设自身的中断产生
     // 使能PS外设中断源
-    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA); // DMA
-    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE); // DMA
-    XScuTimer_EnableInterrupt(timer_ptr);                                     // 定时器
-    XTtcPs_EnableInterrupts(debounce_timer_ptr, XTTCPS_IXR_INTERVAL_MASK);    // 使能TTC定时
+    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK,
+                       XAXIDMA_DEVICE_TO_DMA); // DMA
+    XAxiDma_IntrEnable(&axidma, XAXIDMA_IRQ_ALL_MASK,
+                       XAXIDMA_DMA_TO_DEVICE); // DMA
+    XScuTimer_EnableInterrupt(timer_ptr);      // 定时器
+    XTtcPs_EnableInterrupts(debounce_timer_ptr,
+                            XTTCPS_IXR_INTERVAL_MASK); // 使能TTC定时
 
     // 【最后一步】打开CPU的总中断开关
     Xil_ExceptionEnable();
@@ -1056,7 +1185,9 @@ void Adc_Data_processing()
     for (int cycle_idx = 0; cycle_idx < AD_SAMP_CYCLE_NUMBER; cycle_idx++)
     {
         // 1. 计算当前处理周期的共享内存基地址
-        u32 *current_cycle_base_addr = (u32 *)(Share_addr + cycle_idx * CHANNL_MAX * sample_points * sizeof(u32));
+        u32 *current_cycle_base_addr =
+            (u32 *)(Share_addr +
+                    cycle_idx * CHANNL_MAX * sample_points * sizeof(u32));
 
         // 2. 初始化8个通道在本周期的目标写入地址指针
         for (int ch = 0; ch < CHANNL_MAX; ch++)
@@ -1065,7 +1196,8 @@ void Adc_Data_processing()
         }
 
         // 3. 计算DMA缓冲区中当前周期的起始地址
-        u16 *current_cycle_dma_src_ptr = rx_buffer_ptr + cycle_idx * CHANNL_MAX * sample_points;
+        u16 *current_cycle_dma_src_ptr =
+            rx_buffer_ptr + cycle_idx * CHANNL_MAX * sample_points;
 
         // 4. 内层循环：遍历当前周期的所有采样点，进行解交错和写入
         for (int i = 0; i < sample_points; i++)
@@ -1102,14 +1234,13 @@ void Write_Wave_to_Wave_NewData()
     bool run_fund = (devState.nStatusFund == 1);
     bool run_harm = (devState.nStatusHarm == 1);
 
-    // 二维数组8*DATA_LEN     Wave_NewData中存储的是8个通道，每个通道DATA_LEN个点，正弦波
+    // 二维数组8*DATA_LEN
+    // Wave_NewData中存储的是8个通道，每个通道DATA_LEN个点，正弦波
     for (int i = 0; i < CHANNL_MAX; i++)
     {
         // 【修正】传入 run_fund 和 run_harm
-        addHarmonics(Wave_NewData[i], DATA_LEN,
-                     Phase_shift[i],
-                     numHarmonics[i], harmonics[i], harmonics_phases[i],
-                     run_fund, run_harm);
+        addHarmonics(Wave_NewData[i], DATA_LEN, Phase_shift[i], numHarmonics[i],
+                     harmonics[i], harmonics_phases[i], run_fund, run_harm);
     }
 
     // 处理数据长度扩展 (保持原有逻辑不变)
@@ -1179,7 +1310,8 @@ void start_dma_dac()
     Write_Wave_to_Wave_NewData();
     Copy_Wave_to_tx_buffer_ptr();
     Xil_DCacheFlushRange((UINTPTR)tx_buffer_ptr, DATA_LEN * 16); // 刷新Data Cache
-    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16, XAXIDMA_DMA_TO_DEVICE);
+    XAxiDma_SimpleTransfer(&axidma, (UINTPTR)tx_buffer_ptr, DATA_LEN * 16,
+                           XAXIDMA_DMA_TO_DEVICE);
 }
 
 // 将波形写入BRAM(CDMA版)
@@ -1207,9 +1339,11 @@ void str_wr_bram(PID_STATE pid_state)
         for (int i = 0; i < CHANNL_MAX; i++)
         {
             // 假设lineAC.phu和lineAC.phi存储的是对应通道的实际相位
-            double actual_value = (i < 4) ? lineAC.phu[i] : lineAC.phi[i - 4]; // 根据通道选择实际值
+            double actual_value =
+                (i < 4) ? lineAC.phu[i] : lineAC.phi[i - 4]; // 根据通道选择实际值
 
-            Phase_PID_Increment[i] = PID_adjust_phase(Phase_shift[i], actual_value, &phase_pid[i]);
+            Phase_PID_Increment[i] =
+                PID_adjust_phase(Phase_shift[i], actual_value, &phase_pid[i]);
         }
     }
     else
@@ -1239,9 +1373,10 @@ void str_wr_bram(PID_STATE pid_state)
 
         // 应用PID调节值和相位校准参数
         addHarmonics(Wave_NewData[i], DATA_LEN,
-                     Phase_shift[i] + Phase_PID_Increment[i] + DA_CorrectPhase_100[i][range_idx],
-                     numHarmonics[i], harmonics[i], harmonics_phases[i],
-                     run_fund, run_harm);
+                     Phase_shift[i] + Phase_PID_Increment[i] +
+                         DA_CorrectPhase_100[i][range_idx],
+                     numHarmonics[i], harmonics[i], harmonics_phases[i], run_fund,
+                     run_harm);
     }
 
     // 3. [核心修改] 打包数据到 DDR 并使用 CDMA 搬运
@@ -1323,7 +1458,9 @@ void str_wr_bram(PID_STATE pid_state)
  * @param harmonics 谐波幅值的数组，harmonics[0]为2次谐波
  * @param harmonics_phases 谐波相位偏移的数组（以度为单位）
  */
-void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[], bool en_fund, bool en_harm)
+void addHarmonics(uint16_t NewData[], int Array_length,
+                  float Base_Phase_Degrees, int numHarmonics, float harmonics[],
+                  float harmonics_phases[], bool en_fund, bool en_harm)
 {
     // harmonics[0]为2次谐波
     for (int i = 0; i < Array_length; i++)
@@ -1344,7 +1481,8 @@ void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees
             for (int j = 0; j < numHarmonics; j++)
             {
                 double harmonic_phase = (j + 2) * phase;
-                double shifted_harmonic_phase = harmonic_phase + harmonics_phases[j] * M_PI / 180.0;
+                double shifted_harmonic_phase =
+                    harmonic_phase + harmonics_phases[j] * M_PI / 180.0;
                 double harmonic_value = sin(shifted_harmonic_phase);
                 sum += harmonic_value * harmonics[j];
             }
@@ -1411,7 +1549,8 @@ int get_voltage_index_by_value(float voltage)
  * 根据给定的电流值（current），返回对应的索引值。
  *
  * @param current 电流值，类型为float
- * @return 返回对应的索引值，类型为int。如果电流值大于等于3.0，则返回0（表示5A）；
+ * @return
+ * 返回对应的索引值，类型为int。如果电流值大于等于3.0，则返回0（表示5A）；
  *         如果电流值大于等于0.5但小于3.0，则返回1（表示1A）；
  *         如果电流值小于0.5，则返回2（表示0.2A）。
  */

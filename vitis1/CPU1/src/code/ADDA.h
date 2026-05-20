@@ -64,8 +64,6 @@
 #define DATA_LEN 1024                                                              // 波形采样长度
 #define Data_Width 65535
 
-
-
 // bram
 #define BRAM_DATA_BYTE 4 // BRAM数据字节个数
 #define CHANNL_MAX 8
@@ -189,7 +187,6 @@ double sumHarmonics(float harmonics[], int numHarmonics);
 // 增加 en_fund 和 en_harm 参数，用于独立控制基波和谐波的生成
 void addHarmonics(uint16_t NewData[], int Array_length, float Base_Phase_Degrees, int numHarmonics, float harmonics[], float harmonics_phases[], bool en_fund, bool en_harm);
 
-
 // 通过档位获得参数
 int get_voltage_index_by_value(float voltage);
 int get_current_index_by_value(float current);
@@ -200,5 +197,7 @@ void RunADCPIDCycle(void); // 放在这里声明，实现在ADDA.c
 void Adc_Dma_Reset_And_Restart(void);
 
 u64 Get_Current_Time_US(void);
+
+void Adc_Set_Frequency(float freq);
 
 #endif

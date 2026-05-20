@@ -470,7 +470,7 @@ void Generate_Comtrade_CFG(u8 section)
         g_WaveRecordCtrl.snapshot[section].dataSize / COMTRADE_FRAME_SIZE;
     uint32_t actual_fs = (uint32_t)(Wave_Frequency * 1024.0f + 0.5f);
     len +=
-        sprintf(cfgBuf + len, "%lu,%lu\n", actual_fs, sample_count_in_this_section);
+        sprintf(cfgBuf + len, "%u,%lu\n", actual_fs, sample_count_in_this_section);
 
     // 6. Dates (Start Time, Trigger Time)
     // 时间使用 snapshot.startTimeStr
