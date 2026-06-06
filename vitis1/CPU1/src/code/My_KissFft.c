@@ -477,9 +477,9 @@ double calculate_magnitude_with_neighbors(kiss_fft_cpx *out, int center_index, i
  * @param SampleFrequency 采样频率 (Hz)
  * @param fundamental_frequency 基波频率 (Hz)
  */
-void AnalyzeWaveform_AcSource(double harmonic_info[][3], int *data_buffer,int SampleFrequency, double fundamental_frequency)
+void AnalyzeWaveform_AcSource(double harmonic_info[][3], int *data_buffer, int SampleFrequency, double fundamental_frequency)
 {
-    const int N = FFT_DATA_LEN; // 4096 点
+    const int N = FFT_DATA_LEN; // 2048 点
 
     // 1. 计算直流分量
     double dc_offset = 0.0;

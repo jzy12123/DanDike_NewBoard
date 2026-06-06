@@ -8,16 +8,16 @@
 #include "ReplayWave.h"
 #include "ADDA.h"
 #include "Amplifier_Switch.h"
-#include "WaveRecord.h"
 #include "Communications_Protocol.h"
 #include "Msg_Que.h"
+#include "WaveRecord.h"
 #include "cJSON.h"
 
-#include <string.h>
+#include "soft_timer.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include "soft_timer.h"
+#include <string.h>
 
 /* ================================================================
  *  全局变量
@@ -39,7 +39,8 @@ typedef struct
 static ReplayWave_History_t g_ReplayHistory = {0};
 
 /* FIFO prog_empty 中断号 (来自 xparameters.h) */
-#define REPLAY_FIFO_INTR_ID XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR
+#define REPLAY_FIFO_INTR_ID \
+    XPAR_AXI_INTC_BAREMETAL_AC_8_CHANNEL_0_ADDA_AXIS_DATA_FIFO_1_PROG_EMPTY_INTR
 
 /* 外部引用 */
 extern XIntc AxiIntc_BareMetal;
@@ -67,10 +68,7 @@ static void Get_TimeStr(char *buf, int bufLen)
 }
 
 /* 获取当前时间的微秒时间戳 (日内微秒, 用于DO延时计时) */
-static u64 Get_TimestampUs(void)
-{
-    return Get_Current_Time_US();
-}
+static u64 Get_TimestampUs(void) { return Get_Current_Time_US(); }
 
 /* ================================================================
  *  辅助函数：发送JSON消息
@@ -189,7 +187,8 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
             cfg->digitalCount = atoi(dBuf); /* "0D" → 0 */
 
             /* 【详细报错 2】：检查模拟通道数量是否合法 */
-            if (cfg->analogCount <= 0 || cfg->analogCount > REPLAY_MAX_FILE_CHANNELS)
+            if (cfg->analogCount <= 0 ||
+                cfg->analogCount > REPLAY_MAX_FILE_CHANNELS)
             {
                 snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
                          "CfgParseError: Invalid analog count (%d). Max is %d.",
@@ -327,7 +326,8 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
                 if (strstr(line, "ASCII"))
                 {
                     free(cfgCopy);
-                    return "CfgParseError: ASCII format not supported. Please use BINARY."; /* 不支持ASCII */
+                    return "CfgParseError: ASCII format not supported. Please use "
+                           "BINARY."; /* 不支持ASCII */
                 }
                 break;
             }
@@ -363,15 +363,15 @@ static const char *ReplayWave_ParseCfg(const char *cfgStr)
         cfg->fileSampleRate = REPLAY_SAMPLE_RATE;
 
     /* 打印解析结果 */
-    xil_printf("ReplayWave: ParseCfg OK: %d analog, %d digital, rate=%d, samples=%u\r\n",
-               cfg->analogCount, cfg->digitalCount,
-               cfg->fileSampleRate, (unsigned int)cfg->totalSamples);
+    xil_printf(
+        "ReplayWave: ParseCfg OK: %d analog, %d digital, rate=%d, samples=%u\r\n",
+        cfg->analogCount, cfg->digitalCount, cfg->fileSampleRate,
+        (unsigned int)cfg->totalSamples);
     for (int i = 0; i < cfg->analogCount; i++)
     {
         printf("  Ch%d [%s] unit=%s a=%.6f b=%.6f min=%d max=%d\r\n",
                cfg->cfgAnalog[i].index, cfg->cfgAnalog[i].name,
-               cfg->cfgAnalog[i].unit,
-               cfg->cfgAnalog[i].a, cfg->cfgAnalog[i].b,
+               cfg->cfgAnalog[i].unit, cfg->cfgAnalog[i].a, cfg->cfgAnalog[i].b,
                (int)cfg->cfgAnalog[i].minVal, (int)cfg->cfgAnalog[i].maxVal);
     }
 
@@ -475,15 +475,26 @@ static const char *ReplayWave_BuildMapping(cJSON *mapArray)
         ReplayChannelMap_t *m = &cfg->channelMap[i];
         memset(m, 0, sizeof(*m));
 
-        m->line = cJSON_GetObjectItem(item, "Line") ? cJSON_GetObjectItem(item, "Line")->valueint : 1;
-        m->chn = cJSON_GetObjectItem(item, "Chn") ? cJSON_GetObjectItem(item, "Chn")->valueint : 1;
+        m->line = cJSON_GetObjectItem(item, "Line")
+                      ? cJSON_GetObjectItem(item, "Line")->valueint
+                      : 1;
+        m->chn = cJSON_GetObjectItem(item, "Chn")
+                     ? cJSON_GetObjectItem(item, "Chn")->valueint
+                     : 1;
 
         cJSON *typeItem = cJSON_GetObjectItem(item, "Type");
-        m->type = (typeItem && typeItem->valuestring) ? typeItem->valuestring[0] : 'U';
+        m->type =
+            (typeItem && typeItem->valuestring) ? typeItem->valuestring[0] : 'U';
 
-        m->mapChn = cJSON_GetObjectItem(item, "MapChn") ? cJSON_GetObjectItem(item, "MapChn")->valueint : 1;
-        m->ratio = cJSON_GetObjectItem(item, "Ratio") ? cJSON_GetObjectItem(item, "Ratio")->valuedouble : 1.0;
-        m->delayMS = cJSON_GetObjectItem(item, "DelayMS") ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble : 0.0;
+        m->mapChn = cJSON_GetObjectItem(item, "MapChn")
+                        ? cJSON_GetObjectItem(item, "MapChn")->valueint
+                        : 1;
+        m->ratio = cJSON_GetObjectItem(item, "Ratio")
+                       ? cJSON_GetObjectItem(item, "Ratio")->valuedouble
+                       : 1.0;
+        m->delayMS = cJSON_GetObjectItem(item, "DelayMS")
+                         ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble
+                         : 0.0;
 
         /* 验证文件通道号有效 */
         if (m->mapChn < 1 || m->mapChn > cfg->analogCount)
@@ -499,8 +510,8 @@ static const char *ReplayWave_BuildMapping(cJSON *mapArray)
         if (m->hwIndex < 0 || m->hwIndex > 7)
         {
             snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                     "MapParseError: Invalid HwChannel (Type='%c', Chn=%d)",
-                     m->type, m->chn);
+                     "MapParseError: Invalid HwChannel (Type='%c', Chn=%d)", m->type,
+                     m->chn);
             return g_ReplayErrMsg;
         }
 
@@ -518,7 +529,8 @@ static const char *ReplayWave_BuildMapping(cJSON *mapArray)
          *   physical = a_cfg * raw + b_cfg     (COMTRADE标准)
          *   physical_scaled = physical * ratio  (用户额外缩放)
          *   normalized = physical_scaled / fullScale  (归一化到 [-1, +1])
-         *   dac_u16 = normalized * 32768 + 32767      (映射到 [0, 65535], 中值32767)
+         *   dac_u16 = normalized * 32768 + 32767      (映射到 [0, 65535],
+         * 中值32767)
          *
          * 预计算 (将 raw → dac_u16 合并):
          *   dac_u16 = raw * (a_cfg * ratio / fullScale * 32768)
@@ -585,8 +597,7 @@ static void ReplayWave_ScanPeak(void)
         ReplayChannelMap_t *map = &cfg->channelMap[m];
         ReplayCfgAnalog_t *cfgCh = &cfg->cfgAnalog[map->mapChn - 1];
         xil_printf("  [DEBUG] Ch%d[%s] → hw%c%d: rawMin=%d rawMax=%d\r\n",
-                   cfgCh->index, cfgCh->name,
-                   map->type, map->chn,
+                   cfgCh->index, cfgCh->name, map->type, map->chn,
                    map->rawActualMin, map->rawActualMax);
     }
     xil_printf("ReplayWave: ScanPeak done.\r\n");
@@ -613,14 +624,16 @@ static const char *ReplayWave_CheckRange(void)
         ReplayCfgAnalog_t *cfgCh = &cfg->cfgAnalog[m->mapChn - 1];
 
         /* 判断数据是否已被缩放 (rawPeak >= 95% × 32767) */
-        int16_t absMin = (m->rawActualMin == -32768) ? 32767 : (int16_t)(-m->rawActualMin);
+        int16_t absMin =
+            (m->rawActualMin == -32768) ? 32767 : (int16_t)(-m->rawActualMin);
         int16_t absMax = m->rawActualMax;
         int16_t rawPeak = (absMin > absMax) ? absMin : absMax;
 
         /* 只有波形文件名相同，并且数据接近满幅，才认为是被前一次缩放过的安全数据 */
         if (historyMatch && rawPeak >= 31129)
         {
-            printf("  [DEBUG] Ch%d[%s] SKIP range check (matched history, rawPeak=%d)\r\n",
+            printf("  [DEBUG] Ch%d[%s] SKIP range check (matched history, "
+                   "rawPeak=%d)\r\n",
                    cfgCh->index, cfgCh->name, rawPeak);
             continue;
         }
@@ -638,13 +651,16 @@ static const char *ReplayWave_CheckRange(void)
         /* 增加 1.2 倍的允许余量 */
         double maxAllowablePeak = fullScalePeak * 1.2;
 
-        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f maxAllowablePeak=%.3f (120%% limit) %s\r\n", cfgCh->index, cfgCh->name, physPeak, maxAllowablePeak, (physPeak > maxAllowablePeak) ? "EXCEED!" : "OK");
+        printf("  [DEBUG] Ch%d[%s] physPeak=%.4f maxAllowablePeak=%.3f (120%% "
+               "limit) %s\r\n",
+               cfgCh->index, cfgCh->name, physPeak, maxAllowablePeak,
+               (physPeak > maxAllowablePeak) ? "EXCEED!" : "OK");
 
         if (physPeak > maxAllowablePeak)
         {
             snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                     "OutDevRange: Ch%d[%s] Peak=%.2f > Limit=%.2f",
-                     cfgCh->index, cfgCh->name, physPeak, maxAllowablePeak);
+                     "OutDevRange: Ch%d[%s] Peak=%.2f > Limit=%.2f", cfgCh->index,
+                     cfgCh->name, physPeak, maxAllowablePeak);
             return g_ReplayErrMsg;
         }
     }
@@ -679,7 +695,8 @@ static void ReplayWave_RescaleData(void)
         ReplayChannelMap_t *map = &cfg->channelMap[m];
         ReplayCfgAnalog_t *cfgCh = &cfg->cfgAnalog[map->mapChn - 1];
 
-        int16_t absMin = (map->rawActualMin == -32768) ? 32767 : (int16_t)(-map->rawActualMin);
+        int16_t absMin =
+            (map->rawActualMin == -32768) ? 32767 : (int16_t)(-map->rawActualMin);
         int16_t absMax = map->rawActualMax;
         int16_t rawPeak = (absMin > absMax) ? absMin : absMax;
 
@@ -693,13 +710,15 @@ static void ReplayWave_RescaleData(void)
             {
                 /* 命中历史记录，直接使用上一次的 A_final */
                 map->A_final = g_ReplayHistory.a_final_cache[map->hwIndex];
-                printf("  [DEBUG] Ch%d[%s] SKIP rescale (matched history), restored A_final=%.6f\r\n",
+                printf("  [DEBUG] Ch%d[%s] SKIP rescale (matched history), restored "
+                       "A_final=%.6f\r\n",
                        cfgCh->index, cfgCh->name, map->A_final);
             }
             else
             {
                 /* 未命中历史(通常不会发生)，回退到原始估算逻辑 */
-                int16_t cfgAbsMin = (cfgCh->minVal == -32768) ? 32767 : (int16_t)(-cfgCh->minVal);
+                int16_t cfgAbsMin =
+                    (cfgCh->minVal == -32768) ? 32767 : (int16_t)(-cfgCh->minVal);
                 int16_t cfgAbsMax = cfgCh->maxVal;
                 int16_t origRawPeak = (cfgAbsMin > cfgAbsMax) ? cfgAbsMin : cfgAbsMax;
 
@@ -710,12 +729,14 @@ static void ReplayWave_RescaleData(void)
                     double fullScale = Get_ChannelFullScale(map->hwIndex);
                     double fullScalePeak = fullScale * 1.41421356;
                     map->A_final = cfgCh->a * map->ratio / fullScalePeak * 32767.0;
-                    printf("  [DEBUG] Ch%d[%s] SKIP rescale (no history), estimated prevScaleF=%.4f A_final=%.6f\r\n",
+                    printf("  [DEBUG] Ch%d[%s] SKIP rescale (no history), estimated "
+                           "prevScaleF=%.4f A_final=%.6f\r\n",
                            cfgCh->index, cfgCh->name, prevScaleF, map->A_final);
                 }
                 else
                 {
-                    xil_printf("  [DEBUG] Ch%d[%s] SKIP rescale (rawPeak=%d, already >=95%%)\r\n",
+                    xil_printf("  [DEBUG] Ch%d[%s] SKIP rescale (rawPeak=%d, already "
+                               ">=95%%)\r\n",
                                cfgCh->index, cfgCh->name, rawPeak);
                 }
             }
@@ -734,8 +755,8 @@ static void ReplayWave_RescaleData(void)
         map->scaleApplied = scaleF;
         double a_old = cfgCh->a;
 
-        printf("  [DEBUG] Ch%d[%s] rawPeak=%d scaleF=%.4f\r\n",
-               cfgCh->index, cfgCh->name, rawPeak, scaleF);
+        printf("  [DEBUG] Ch%d[%s] rawPeak=%d scaleF=%.4f\r\n", cfgCh->index,
+               cfgCh->name, rawPeak, scaleF);
 
         /* 遍历所有采样点，就地缩放该通道的 raw 值 */
         int chOffset = (map->mapChn - 1); /* 通道在记录中的偏移 (int16单位) */
@@ -759,8 +780,8 @@ static void ReplayWave_RescaleData(void)
         double fullScalePeak = fullScale * 1.41421356;
         map->A_final = cfgCh->a * map->ratio / fullScalePeak * 32767.0;
 
-        printf("  [DEBUG] Ch%d[%s] a: %.6f -> %.6f, A_final=%.6f\r\n",
-               cfgCh->index, cfgCh->name, a_old, cfgCh->a, map->A_final);
+        printf("  [DEBUG] Ch%d[%s] a: %.6f -> %.6f, A_final=%.6f\r\n", cfgCh->index,
+               cfgCh->name, a_old, cfgCh->a, map->A_final);
     }
 
     /* 记录本次结果到历史缓存 */
@@ -796,14 +817,18 @@ static void ReplayWave_CalcRegions(void)
         else
         {
             /* 从 PreEndTime 开始的偏移 */
-            u32 offsetSamples = (u32)(cfg->repeatMiddle.beginMS * REPLAY_SAMPLE_RATE / 1000.0);
+            u32 offsetSamples =
+                (u32)(cfg->repeatMiddle.beginMS * REPLAY_SAMPLE_RATE / 1000.0);
             cfg->repeatMiddle.startSample = cfg->firstCycleEnd + offsetSamples;
         }
         /* 【修复相位跳变】：将中段起点严格向下对齐到周波边界，保证无缝切入 */
-        cfg->repeatMiddle.startSample = (cfg->repeatMiddle.startSample / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
-        u32 lenSamples = (u32)(cfg->repeatMiddle.lengthMS * REPLAY_SAMPLE_RATE / 1000.0);
+        cfg->repeatMiddle.startSample =
+            (cfg->repeatMiddle.startSample / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
+        u32 lenSamples =
+            (u32)(cfg->repeatMiddle.lengthMS * REPLAY_SAMPLE_RATE / 1000.0);
         /* 对齐到周波边界 */
-        lenSamples = ((lenSamples + REPLAY_CYCLE_LEN - 1) / REPLAY_CYCLE_LEN) * REPLAY_CYCLE_LEN;
+        lenSamples = ((lenSamples + REPLAY_CYCLE_LEN - 1) / REPLAY_CYCLE_LEN) *
+                     REPLAY_CYCLE_LEN;
         if (lenSamples == 0)
             lenSamples = REPLAY_CYCLE_LEN;
         cfg->repeatMiddle.endSample = cfg->repeatMiddle.startSample + lenSamples;
@@ -836,7 +861,9 @@ static void ReplayWave_ParseDO(cJSON *doArray)
         ReplayDO_Config_t *d = &cfg->doConfig[i];
         memset(d, 0, sizeof(*d));
 
-        d->chn = cJSON_GetObjectItem(item, "Chn") ? cJSON_GetObjectItem(item, "Chn")->valueint : 0;
+        d->chn = cJSON_GetObjectItem(item, "Chn")
+                     ? cJSON_GetObjectItem(item, "Chn")->valueint
+                     : 0;
 
         cJSON *modeItem = cJSON_GetObjectItem(item, "Mode");
         if (modeItem && modeItem->valuestring)
@@ -851,33 +878,49 @@ static void ReplayWave_ParseDO(cJSON *doArray)
                 d->mode = DO_MODE_MAP;
         }
 
-        d->val = cJSON_GetObjectItem(item, "val") ? cJSON_GetObjectItem(item, "val")->valueint : 0;
+        d->val = cJSON_GetObjectItem(item, "val")
+                     ? cJSON_GetObjectItem(item, "val")->valueint
+                     : 0;
 
         /* Turn 模式参数 */
         if (d->mode == DO_MODE_TURN)
         {
             cJSON *ref = cJSON_GetObjectItem(item, "TimeRef");
-            if (ref && ref->valuestring && strcmp(ref->valuestring, "RepeatPrevEnd") == 0)
+            if (ref && ref->valuestring &&
+                strcmp(ref->valuestring, "RepeatPrevEnd") == 0)
                 d->timeRef = DO_TIMEREF_REPEATPREVEND;
             else
                 d->timeRef = DO_TIMEREF_START;
 
-            d->delayMS = cJSON_GetObjectItem(item, "DelayMS") ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble : 0;
-            d->holdMS = cJSON_GetObjectItem(item, "HoldMS") ? cJSON_GetObjectItem(item, "HoldMS")->valuedouble : -1;
+            d->delayMS = cJSON_GetObjectItem(item, "DelayMS")
+                             ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble
+                             : 0;
+            d->holdMS = cJSON_GetObjectItem(item, "HoldMS")
+                            ? cJSON_GetObjectItem(item, "HoldMS")->valuedouble
+                            : -1;
         }
 
         /* Breaker 模式参数 */
         if (d->mode == DO_MODE_BREAKER)
         {
-            d->diCSChn = cJSON_GetObjectItem(item, "DICSChn") ? cJSON_GetObjectItem(item, "DICSChn")->valueint : 0;
-            d->diOSChn = cJSON_GetObjectItem(item, "DIOSChn") ? cJSON_GetObjectItem(item, "DIOSChn")->valueint : 0;
-            d->breakerDelayMS = cJSON_GetObjectItem(item, "DelayMS") ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble : 0;
+            d->diCSChn = cJSON_GetObjectItem(item, "DICSChn")
+                             ? cJSON_GetObjectItem(item, "DICSChn")->valueint
+                             : 0;
+            d->diOSChn = cJSON_GetObjectItem(item, "DIOSChn")
+                             ? cJSON_GetObjectItem(item, "DIOSChn")->valueint
+                             : 0;
+            d->breakerDelayMS =
+                cJSON_GetObjectItem(item, "DelayMS")
+                    ? cJSON_GetObjectItem(item, "DelayMS")->valuedouble
+                    : 0;
         }
 
         /* Map 模式参数 */
         if (d->mode == DO_MODE_MAP)
         {
-            d->mapChn = cJSON_GetObjectItem(item, "MapChn") ? cJSON_GetObjectItem(item, "MapChn")->valueint : 1;
+            d->mapChn = cJSON_GetObjectItem(item, "MapChn")
+                            ? cJSON_GetObjectItem(item, "MapChn")->valueint
+                            : 1;
         }
 
         cfg->doConfigCount++;
@@ -896,12 +939,16 @@ static void ReplayWave_ParseRepeat(cJSON *data)
     cJSON *prev = cJSON_GetObjectItem(data, "RepeatPrev");
     if (prev)
     {
-        cfg->repeatPrev.repeatCount = cJSON_GetObjectItem(prev, "RepeatCount") ? cJSON_GetObjectItem(prev, "RepeatCount")->valueint : 0;
+        cfg->repeatPrev.repeatCount =
+            cJSON_GetObjectItem(prev, "RepeatCount")
+                ? cJSON_GetObjectItem(prev, "RepeatCount")->valueint
+                : 0;
 
         cJSON *brk = cJSON_GetObjectItem(prev, "BreakCondition");
         if (brk && cfg->repeatPrev.repeatCount > 0)
         {
-            cfg->repeatPrev.breakEnable = cJSON_IsTrue(cJSON_GetObjectItem(brk, "Enable"));
+            cfg->repeatPrev.breakEnable =
+                cJSON_IsTrue(cJSON_GetObjectItem(brk, "Enable"));
 
             cJSON *trigArr = cJSON_GetObjectItem(brk, "TrigDI");
             if (trigArr)
@@ -912,8 +959,14 @@ static void ReplayWave_ParseRepeat(cJSON *data)
                 for (int i = 0; i < tc; i++)
                 {
                     cJSON *t = cJSON_GetArrayItem(trigArr, i);
-                    cfg->repeatPrev.trigDIs[i].chn = cJSON_GetObjectItem(t, "Chn") ? cJSON_GetObjectItem(t, "Chn")->valueint : 0;
-                    cfg->repeatPrev.trigDIs[i].val = cJSON_GetObjectItem(t, "val") ? cJSON_GetObjectItem(t, "val")->valueint : -1;
+                    cfg->repeatPrev.trigDIs[i].chn =
+                        cJSON_GetObjectItem(t, "Chn")
+                            ? cJSON_GetObjectItem(t, "Chn")->valueint
+                            : 0;
+                    cfg->repeatPrev.trigDIs[i].val =
+                        cJSON_GetObjectItem(t, "val")
+                            ? cJSON_GetObjectItem(t, "val")->valueint
+                            : -1;
                 }
                 cfg->repeatPrev.trigCount = tc;
             }
@@ -929,9 +982,18 @@ static void ReplayWave_ParseRepeat(cJSON *data)
     cJSON *mid = cJSON_GetObjectItem(data, "RepeatMiddle");
     if (mid)
     {
-        cfg->repeatMiddle.repeatCount = cJSON_GetObjectItem(mid, "RepeatCount") ? cJSON_GetObjectItem(mid, "RepeatCount")->valueint : 0;
-        cfg->repeatMiddle.beginMS = cJSON_GetObjectItem(mid, "BeginMS") ? cJSON_GetObjectItem(mid, "BeginMS")->valuedouble : -1.0;
-        cfg->repeatMiddle.lengthMS = cJSON_GetObjectItem(mid, "LengthMS") ? cJSON_GetObjectItem(mid, "LengthMS")->valuedouble : 20.0;
+        cfg->repeatMiddle.repeatCount =
+            cJSON_GetObjectItem(mid, "RepeatCount")
+                ? cJSON_GetObjectItem(mid, "RepeatCount")->valueint
+                : 0;
+        cfg->repeatMiddle.beginMS =
+            cJSON_GetObjectItem(mid, "BeginMS")
+                ? cJSON_GetObjectItem(mid, "BeginMS")->valuedouble
+                : -1.0;
+        cfg->repeatMiddle.lengthMS =
+            cJSON_GetObjectItem(mid, "LengthMS")
+                ? cJSON_GetObjectItem(mid, "LengthMS")->valuedouble
+                : 20.0;
     }
 
     /* 后导 */
@@ -939,7 +1001,10 @@ static void ReplayWave_ParseRepeat(cJSON *data)
     cJSON *back = cJSON_GetObjectItem(data, "RepeatBack");
     if (back)
     {
-        cfg->repeatBack.repeatCount = cJSON_GetObjectItem(back, "RepeatCount") ? cJSON_GetObjectItem(back, "RepeatCount")->valueint : 0;
+        cfg->repeatBack.repeatCount =
+            cJSON_GetObjectItem(back, "RepeatCount")
+                ? cJSON_GetObjectItem(back, "RepeatCount")->valueint
+                : 0;
     }
 }
 
@@ -962,7 +1027,8 @@ void ReplayWave_HandleGetInfo(cJSON *root)
     Xil_DCacheInvalidateRange(REPLAY_SHM_BASE, REPLAY_HEADER_SIZE);
     volatile ReplayHeader_t *hdr = (volatile ReplayHeader_t *)REPLAY_SHM_BASE;
 
-    bool fileExist = (hdr->magic == REPLAY_MAGIC && hdr->status == REPLAY_STATUS_READY);
+    bool fileExist =
+        (hdr->magic == REPLAY_MAGIC && hdr->status == REPLAY_STATUS_READY);
 
     /* 构建回复 */
     cJSON *reply = cJSON_CreateObject();
@@ -986,7 +1052,8 @@ void ReplayWave_HandleGetInfo(cJSON *root)
 
         cJSON_AddStringToObject(fileInfo, "WaveFile", nameBuf);
         cJSON_AddNumberToObject(fileInfo, "FileSizeDat", hdr->datFileSize);
-        cJSON_AddBoolToObject(fileInfo, "ParasCompleted", g_ReplayConfig.parasCompleted);
+        cJSON_AddBoolToObject(fileInfo, "ParasCompleted",
+                              g_ReplayConfig.parasCompleted);
         cJSON_AddItemToObject(data, "FileInfo", fileInfo);
     }
 
@@ -1051,7 +1118,8 @@ const char *ReplayWave_HandleParas(cJSON *data)
         xil_printf("ReplayWave: DAT size mismatch: file=%u, expected=%u\r\n",
                    cfg->datFileSize, expectedSize);
         snprintf(g_ReplayErrMsg, sizeof(g_ReplayErrMsg),
-                 "DatParseError: Size mismatch. File has %ld bytes, CFG expects %ld bytes",
+                 "DatParseError: Size mismatch. File has %ld bytes, CFG expects "
+                 "%ld bytes",
                  cfg->datFileSize, expectedSize);
         return g_ReplayErrMsg;
     }
@@ -1096,8 +1164,10 @@ const char *ReplayWave_HandleParas(cJSON *data)
     /* ---- 14. 标记预处理完成 ---- */
     cfg->parasCompleted = true;
 
-    xil_printf("ReplayWave: Paras OK. analog=%d, samples=%u, recordSize=%u, maps=%d\r\n",
-               cfg->analogCount, cfg->totalSamples, cfg->recordSize, cfg->channelMapCount);
+    xil_printf(
+        "ReplayWave: Paras OK. analog=%d, samples=%u, recordSize=%u, maps=%d\r\n",
+        cfg->analogCount, cfg->totalSamples, cfg->recordSize,
+        cfg->channelMapCount);
 
     return NULL; /* 成功 */
 }
@@ -1153,7 +1223,8 @@ static void read_and_transform_block(u32 fileSampleStart)
             /* AX+B → 有符号浮点 (与 ADDA.c 公式一致: val * 32768 + 32767) */
             int32_t dacCode = (int32_t)(rawVal * map->A_final + map->B_final);
 
-            /* 转为无符号并钳位 (中值32767, 与 ADDA.c Write_Wave_to_Wave_NewData 一致) */
+            /* 转为无符号并钳位 (中值32767, 与 ADDA.c Write_Wave_to_Wave_NewData 一致)
+             */
             int32_t dacU16 = dacCode + 32767;
             if (dacU16 > 65535)
                 dacU16 = 65535;
@@ -1260,8 +1331,7 @@ static u32 Advance_And_GetSource(void)
         rt->fileSamplePos += REPLAY_CYCLE_LEN;
 
         /* 检查是否到达原始触发点 → 记录时间 */
-        if (!rt->rawTrigTimeRecorded &&
-            src <= cfg->rawTrigSample &&
+        if (!rt->rawTrigTimeRecorded && src <= cfg->rawTrigSample &&
             rt->fileSamplePos > cfg->rawTrigSample)
         {
             Get_TimeStr(rt->rawTrigTimeStr, sizeof(rt->rawTrigTimeStr));
@@ -1276,7 +1346,7 @@ static u32 Advance_And_GetSource(void)
         {
             rt->region = REPLAY_MIDDLE_LOOP;
             rt->middleLoopPos = cfg->repeatMiddle.startSample;
-            rt->regionRepeatLeft = cfg->repeatMiddle.repeatCount;
+            rt->regionRepeatLeft = cfg->repeatMiddle.repeatCount + 1; /* +1: 原始中段1次 + 额外循环N次 */
         }
         /* 或直接到达后段 */
         else if (rt->fileSamplePos >= cfg->lastCycleStart)
@@ -1284,7 +1354,7 @@ static u32 Advance_And_GetSource(void)
             if (cfg->repeatBack.repeatCount > 0)
             {
                 rt->region = REPLAY_BACK_LOOP;
-                rt->regionRepeatLeft = cfg->repeatBack.repeatCount;
+                rt->regionRepeatLeft = cfg->repeatBack.repeatCount + 1; /* +1: 原始后导1次 + 额外循环N次 */
                 /* 记录 BackStartTime */
                 if (!rt->backStartTimeRecorded)
                 {
@@ -1306,8 +1376,7 @@ static u32 Advance_And_GetSource(void)
         rt->middleLoopPos += REPLAY_CYCLE_LEN;
 
         /* 检查触发点 */
-        if (!rt->rawTrigTimeRecorded &&
-            src <= cfg->rawTrigSample &&
+        if (!rt->rawTrigTimeRecorded && src <= cfg->rawTrigSample &&
             rt->middleLoopPos > cfg->rawTrigSample)
         {
             Get_TimeStr(rt->rawTrigTimeStr, sizeof(rt->rawTrigTimeStr));
@@ -1339,8 +1408,7 @@ static u32 Advance_And_GetSource(void)
         rt->fileSamplePos += REPLAY_CYCLE_LEN;
 
         /* 检查触发点 */
-        if (!rt->rawTrigTimeRecorded &&
-            src <= cfg->rawTrigSample &&
+        if (!rt->rawTrigTimeRecorded && src <= cfg->rawTrigSample &&
             rt->fileSamplePos > cfg->rawTrigSample)
         {
             Get_TimeStr(rt->rawTrigTimeStr, sizeof(rt->rawTrigTimeStr));
@@ -1355,7 +1423,7 @@ static u32 Advance_And_GetSource(void)
             if (cfg->repeatBack.repeatCount > 0)
             {
                 rt->region = REPLAY_BACK_LOOP;
-                rt->regionRepeatLeft = cfg->repeatBack.repeatCount;
+                rt->regionRepeatLeft = cfg->repeatBack.repeatCount + 1; /* +1: 原始后导1次 + 额外循环N次 */
                 /* 记录 BackStartTime */
                 if (!rt->backStartTimeRecorded)
                 {
@@ -1505,7 +1573,8 @@ static void Update_DO_Outputs(void)
             }
         }
 
-        if (d->mode == DO_MODE_TURN && d->turnTriggered && !d->turnRestored && d->holdMS > 0)
+        if (d->mode == DO_MODE_TURN && d->turnTriggered && !d->turnRestored &&
+            d->holdMS > 0)
         {
             u64 refUs = rt->startTimestampUs;
             if (d->timeRef == DO_TIMEREF_REPEATPREVEND && rt->preEndTimeRecorded)
@@ -1524,7 +1593,8 @@ static void Update_DO_Outputs(void)
         if (d->mode == DO_MODE_MAP && rt->isRunning)
         {
             /* 从当前播放位置读取数字通道值 */
-            u32 curSample = rt->fileSamplePos > 0 ? rt->fileSamplePos - REPLAY_CYCLE_LEN : 0;
+            u32 curSample =
+                rt->fileSamplePos > 0 ? rt->fileSamplePos - REPLAY_CYCLE_LEN : 0;
             int digVal = Read_DigitalChannel(curSample, d->mapChn);
             if (digVal != d->currentVal)
             {
@@ -1547,12 +1617,12 @@ void ReplayWave_OnDIChange(u32 diCurrentVal)
         return;
 
     /* ---- 前导循环 DI 提前退出检查 ---- */
-    if (rt->region == REPLAY_PREV_LOOP &&
-        cfg->repeatPrev.breakEnable &&
+    if (rt->region == REPLAY_PREV_LOOP && cfg->repeatPrev.breakEnable &&
         !rt->prevBreakTriggered)
     {
 
-        bool condMet = cfg->repeatPrev.trigLogicAnd; /* AND起始为true, OR起始为false */
+        bool condMet =
+            cfg->repeatPrev.trigLogicAnd; /* AND起始为true, OR起始为false */
 
         for (int i = 0; i < cfg->repeatPrev.trigCount; i++)
         {
@@ -1582,7 +1652,8 @@ void ReplayWave_OnDIChange(u32 diCurrentVal)
                 Get_TimeStr(rt->diTrigTimeStr, sizeof(rt->diTrigTimeStr));
                 rt->diTrigTimeRecorded = true;
             }
-            // xil_printf("ReplayWave: [DEBUG] Early break triggered by DI! (val=0x%02X)\r\n", diCurrentVal);
+            // xil_printf("ReplayWave: [DEBUG] Early break triggered by DI!
+            // (val=0x%02X)\r\n", diCurrentVal);
         }
     }
 
@@ -1751,7 +1822,8 @@ static int ReplayWave_EnableAlarm(const char *startTimeStr)
     int min = atoi(m_str);
     int sec = atoi(s_str);
 
-    xil_printf("ReplayWave: Scheduling Alarm at %02d:%02d:%02d\r\n", hour, min, sec);
+    xil_printf("ReplayWave: Scheduling Alarm at %02d:%02d:%02d\r\n", hour, min,
+               sec);
 
     uint32_t bcd_h = ((hour / 10) << 4) | (hour % 10);
     uint32_t bcd_m = ((min / 10) << 4) | (min % 10);
@@ -1886,7 +1958,9 @@ void ReplayWave_CheckAndReport(void)
         Update_DO_Outputs();
 
         /* RecRange=1: 前导结束后启动录波，必须确保未进入后导或结束状态 */
-        if (cfg->recConfig.recRange == 1 && !rt->recordingStarted && rt->preEndTimeRecorded && !rt->holdingReported && !rt->backStartTimeRecorded)
+        if (cfg->recConfig.recRange == 1 && !rt->recordingStarted &&
+            rt->preEndTimeRecorded && !rt->holdingReported &&
+            !rt->backStartTimeRecorded)
         {
             WaveRecord_Start(0, "SetTaskWaveReplayStart");
             rt->recordingStarted = true;
@@ -1924,12 +1998,15 @@ void ReplayWave_CheckAndReport(void)
 
     /* 回放完成后的一次性处理 (停录波、打印日志) */
     /* 如果是 RecRange == 1，遇到后导起点 (backStartTimeRecorded) 即可提前停录 */
-    bool shouldStopRecord = (rt->holdingReported) || (cfg->recConfig.recRange == 1 && rt->backStartTimeRecorded);
+    bool shouldStopRecord =
+        (rt->holdingReported) ||
+        (cfg->recConfig.recRange == 1 && rt->backStartTimeRecorded);
 
     if (shouldStopRecord && rt->recordingStarted)
     {
         WaveRecord_Stop();
         rt->recordingStarted = false;
-        xil_printf("ReplayWave: Playback finished or entered BackLoop. Stopping record.\r\n");
+        xil_printf("ReplayWave: Playback finished or entered BackLoop. Stopping "
+                   "record.\r\n");
     }
 }

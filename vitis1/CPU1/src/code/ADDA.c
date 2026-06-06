@@ -337,13 +337,12 @@ void rx_intr_handler(void *callback)
  */
 static void Adc_Data_Preprocessing(u16 *pRawSrc)
 {
-    // 我们需要取最后 16 个周波的数据进行 FFT
-    // 原始采样率 51200Hz, 16个周波 @ 50Hz = 320ms
-    // 点数 = 16 * (51200/50) = 16384 点 (原始点)
-    // 缓冲区总点数 POINTS_PER_BLOCK = 25600
-    // 起始索引 = 25600 - 16384 = 9216
+    // 我们需要取最后 8 个周波的数据进行 FFT
+    // 原始采样率与频率同步, 每周期固定1024点, 8个周波 = 8192 点 (原始点)
+    // 缓冲区总点数 POINTS_PER_BLOCK = 10240
+    // 起始索引 = 10240 - 8192 = 2048
 
-#define RAW_POINTS_NEEDED (FFT_ANALYSIS_CYCLES * (FS_RATE / 50)) // 16384
+#define RAW_POINTS_NEEDED (FFT_ANALYSIS_CYCLES * (FS_RATE / 50)) // 8192
 #define RAW_START_INDEX (POINTS_PER_BLOCK - RAW_POINTS_NEEDED)
 
     // 4抽1逻辑

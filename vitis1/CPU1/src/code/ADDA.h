@@ -73,12 +73,12 @@
 #define FS_RATE 51200      // 采样率 51.2kHz
 #define CHN_NUM 8          // 8通道
 #define BYTES_PER_SAMPLE 2 // 16bit = 2字节
-#define BLOCK_MS 500       // 每次DMA搬运时长 500ms
+#define BLOCK_MS 200       // 每次DMA搬运时长 200ms
 
 // DMA缓冲区计算
-// 单个缓冲区点数 (每通道) = 51200 * 0.5 = 25600 点
+// 单个缓冲区点数 (每通道) = 51200 * 0.2 = 10240 点
 #define POINTS_PER_BLOCK (FS_RATE * BLOCK_MS / 1000)
-// 单个缓冲区总大小 (字节) = 25600 * 8 * 2 = 409600 字节 (400KB)
+// 单个缓冲区总大小 (字节) = 10240 * 8 * 2 = 163840 字节 (160KB)
 #define DMA_BUFFER_SIZE (POINTS_PER_BLOCK * CHN_NUM * BYTES_PER_SAMPLE)
 
 // 基地址沿用您之前的定义: 0x2EC00000
@@ -87,9 +87,9 @@
 #define RX_BUFFER_PONG_ADDR (RX_BUFFER_PING_ADDR + 0x00100000) // 为了安全和对齐，建议间隔大一点，比如1MB(0x100000)
 // FFT分析配置 (4抽1后)
 // 目标采样率 12800Hz, 50Hz基波对应 256点/周
-#define FFT_ANALYSIS_CYCLES 16                                    // 分析最后16个周波
+#define FFT_ANALYSIS_CYCLES 8                                     // 分析最后8个周波
 #define FFT_POINTS_PER_CYCLE 256                                  // 抽样后每周期点数
-#define FFT_DATA_LEN (FFT_ANALYSIS_CYCLES * FFT_POINTS_PER_CYCLE) // 4096点
+#define FFT_DATA_LEN (FFT_ANALYSIS_CYCLES * FFT_POINTS_PER_CYCLE) // 2048点
 
 // 定义PID状态枚举
 typedef enum
