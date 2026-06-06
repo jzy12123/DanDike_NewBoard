@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.260509.1714";
-const char ARM_Ver_Full[] = "[Ver]=V1.260527.1530";
+const char ARM_Ver_Full[] = "[Ver]=V1.260606.1924";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3434,6 +3434,12 @@ void handle_StateSequence(cJSON *data)
                     item = cJSON_GetObjectItem(ac, "F");
                     if (item)
                         pAC->F = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "UR");
+                    if (item)
+                        pAC->UR = (float)item->valuedouble;
+                    item = cJSON_GetObjectItem(ac, "IR");
+                    if (item)
+                        pAC->IR = (float)item->valuedouble;
 
                     // 解析 Harm
                     cJSON *harms = cJSON_GetObjectItem(ac, "Harm");
@@ -3580,8 +3586,10 @@ void handle_StateSequence(cJSON *data)
     // 假设 Line 1 有 4 个通道
     float maxU[4] = {0};
     float maxI[4] = {0};
+    float seqUR[4] = {0}; // 记录报文中指定的量程
+    float seqIR[4] = {0};
 
-    // 3.1 第一遍扫描：找最大值
+    // 3.1 第一遍扫描：找最大值以及记录报文中下发的量程
     for (int i = 0; i < g_StateSequenceTask.StepCount; i++)
     {
         Struct_Seq_Step *step = &g_StateSequenceTask.Steps[i];
@@ -3596,6 +3604,12 @@ void handle_StateSequence(cJSON *data)
                     maxU[idx] = ac->U;
                 if (ac->I_ > maxI[idx])
                     maxI[idx] = ac->I_;
+
+                // 记录状态序列报文中的量程 (只要传了大于 0 的就记录)
+                if (ac->UR > 0.001f)
+                    seqUR[idx] = ac->UR;
+                if (ac->IR > 0.001f)
+                    seqIR[idx] = ac->IR;
             }
         }
     }
@@ -3606,6 +3620,37 @@ void handle_StateSequence(cJSON *data)
         int idx = chn - 1;
         float finalUR = setACS.Vals[idx].UR;
         float finalIR = setACS.Vals[idx].IR;
+
+        // 新增：检查状态序列的量程是否与当前 AC 源量程一致
+        if (seqUR[idx] > 0.001f && fabs(seqUR[idx] - finalUR) > 0.01f)
+        {
+            cJSON *reply = cJSON_CreateObject();
+            cJSON_AddStringToObject(reply, "FunType", "Reply");
+            cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
+            cJSON_AddStringToObject(reply, "Result", "Failure");
+
+            cJSON *dataErr = cJSON_CreateObject();
+            char errStr[64];
+            sprintf(errStr, "Voltage Range Mismatch Chn%d (Seq:%.1f, Dev:%.1f)", chn, seqUR[idx], finalUR);
+            cJSON_AddStringToObject(dataErr, "ErrInfo", errStr);
+            cJSON_AddItemToObject(reply, "Data", dataErr);
+
+            char *string = cJSON_PrintUnformatted(reply);
+            if (string)
+            {
+                size_t stringLength = strlen(string);
+                char *finalString = (char *)malloc(stringLength + 3);
+                if (finalString)
+                {
+                    snprintf(finalString, stringLength + 3, "|%s|", string);
+                    MsgQue_write(finalString, strlen(finalString));
+                    free(finalString);
+                }
+                free(string);
+            }
+            cJSON_Delete(reply);
+            return; // 量程不一致直接退出
+        }
 
         if (maxU[idx] > finalUR)
         {
@@ -3665,6 +3710,35 @@ void handle_StateSequence(cJSON *data)
             }
             cJSON_Delete(reply);
             return; // 越限直接退出
+        }
+        if (seqIR[idx] > 0.001f && fabs(seqIR[idx] - finalIR) > 0.01f)
+        {
+            cJSON *reply = cJSON_CreateObject();
+            cJSON_AddStringToObject(reply, "FunType", "Reply");
+            cJSON_AddStringToObject(reply, "FunCode", "SetTaskStateSequence");
+            cJSON_AddStringToObject(reply, "Result", "Failure");
+
+            cJSON *dataErr = cJSON_CreateObject();
+            char errStr[64];
+            sprintf(errStr, "Current Range Mismatch Chn%d (Seq:%.1f, Dev:%.1f)", chn, seqIR[idx], finalIR);
+            cJSON_AddStringToObject(dataErr, "ErrInfo", errStr);
+            cJSON_AddItemToObject(reply, "Data", dataErr);
+
+            char *string = cJSON_PrintUnformatted(reply);
+            if (string)
+            {
+                size_t stringLength = strlen(string);
+                char *finalString = (char *)malloc(stringLength + 3);
+                if (finalString)
+                {
+                    snprintf(finalString, stringLength + 3, "|%s|", string);
+                    MsgQue_write(finalString, strlen(finalString));
+                    free(finalString);
+                }
+                free(string);
+            }
+            cJSON_Delete(reply);
+            return; // 量程不一致直接退出
         }
     }
 

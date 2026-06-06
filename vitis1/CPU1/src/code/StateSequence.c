@@ -98,7 +98,7 @@ static void Precalculate_Waveforms()
     for (int step = 0; step < g_StateSequenceTask.StepCount; step++)
     {
         Struct_Seq_Step *pStep = &g_StateSequenceTask.Steps[step];
-        // 默认将所有通道填充为 32768 (0V)
+        // 默认将所有通道填充为 32768 (硬件 0V)
         for (int ch = 0; ch < 8; ch++)
         {
             for (int k = 0; k < DATA_LEN; k++)
@@ -557,51 +557,9 @@ int StateSequence_Init(void)
  */
 void StateSequence_Plan(const char *startTimeStr)
 {
-    // 1. 在真正开始前，先给硬件写入 0V 输出，避免之前的波形残留
-    // 写入 DDR (临时借用 Step 0 的位置，反正下面计算流程会覆盖它)
-    u32 ZeroSrcAddr = STATE_SEQ_DDR_BUFFER_BASE;
-    u32 *pDdrBase = (u32 *)(UINTPTR)ZeroSrcAddr;
-
-    // 对于 16-bit 偏移二进制，0V 对应的码值是 32768
-    uint32_t zero_val_32 = (32768 << 16) | 32768;
-    for (int i = 0; i < WAVE_STEP_SIZE_BYTES / 4; i++)
-    {
-        pDdrBase[i] = zero_val_32;
-    }
-
-    //  刷 Cache (确保 DDR 里真的是 32768)
-    Xil_DCacheFlushRange((UINTPTR)pDdrBase, WAVE_STEP_SIZE_BYTES);
-
-    //  【关键动作】通过 CDMA 搬运到 BRAM
-    int Status = XAxiCdma_SimpleTransfer(&CdmaInstance, (UINTPTR)ZeroSrcAddr, (UINTPTR)STATE_SEQ_BRAM_BASEADDR, WAVE_STEP_SIZE_BYTES, NULL, NULL);
-
-    if (Status == XST_SUCCESS)
-    {
-        // 等待传输完成
-        int timeout = 1000000;
-        while (XAxiCdma_IsBusy(&CdmaInstance) && timeout > 0)
-            timeout--;
-
-        if (timeout == 0)
-        {
-            xil_printf("CPU1: Debug - CDMA Timeout during Zero Write! (Bus Locked?)\r\n");
-            // 如果超时，尝试复位一下，以免影响后面的正常流程
-            XAxiCdma_Reset(&CdmaInstance);
-            while (!XAxiCdma_ResetIsDone(&CdmaInstance))
-                ;
-        }
-        else
-        {
-            // xil_printf("CPU1: Debug - Zero Write Complete. Output should be 0V now.\r\n");
-        }
-    }
-    else
-    {
-        xil_printf("CPU1: Debug - CDMA Submit Failed %d\r\n", Status);
-    }
-    // 先输出10ms
-    usleep(10000);
-    // ============================================================
+    // [无缝衔接] 不再清零 BRAM，保持当前波形持续输出
+    // 新波形数据将在 Precalculate_Waveforms() 中写入 DDR，
+    // 在 ApplyAndRun -> Load_Step_To_BRAM 时才一次性替换 BRAM 内容
 
     // 2. 初始化基础状态
     g_StateSeqRuntime.CurrentStepIndex = 0;
@@ -702,24 +660,30 @@ void StateSequence_ApplyAndRun(void)
     g_StateSeqRuntime.IsFinished = false; // 完成标志
     g_StateSeqRuntime.ReportedCount = -1;
 
-    // 2. 设置硬件系数
-    // 档位
+    // [无缝衔接] 步骤 2: 先用 CDMA 将新波形加载到 BRAM (~20μs)
+    // 此时 DAC 仍在输出旧波形，CDMA 完成后 BRAM 内容立即更新为新数据
+    Load_Step_To_BRAM(0);
+
+    // 步骤 3: 再切换硬件系数 (量程 + 幅值)
+    // 因为先更新了 BRAM 数据，即使增益系数短暂不匹配，
+    // 新波形的数字缩放已经包含了正确的幅值信息，影响极小
     Seq_Hw_SetRange(g_StateSeqRuntime.Cached_Hw.Range_Regs[0],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[1],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Range_Regs[3]);
-    // 幅值 (状态序列模式下，这里通常被设为 100% 满增益)
     Seq_Hw_SetValue(g_StateSeqRuntime.Cached_Hw.Value_Regs[0],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[1],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[2],
                     g_StateSeqRuntime.Cached_Hw.Value_Regs[3]);
 
-    // 3. 开启 DAC
+    // 步骤 4: 确保 DAC 使能 + 更新频率 (DAC 可能已在运行，写1是幂等的)
     Xil_Out32(dac_whole_base_addr + 0, 1);
     Xil_Out32(dac_whole_base_addr + 4, g_StateSeqRuntime.Cached_Hw.Init_Freq_Div);
     Xil_Out32(dac_whole_base_addr + 8, 0xFF);
 
-    // 4. 执行第一步逻辑
+    // 步骤 5: 执行第一步完整逻辑 (DO/定时器/录波等)
+    // 注意: Execute_Step 内部会再次调用 Load_Step_To_BRAM(0)，
+    // 这是重复但无害的操作 (相同数据 ~20μs 的额外开销)
     Execute_Step(0);
 }
 
@@ -1024,16 +988,10 @@ int StateSequence_EnableAlarm(const char *startTimeStr)
     if (startTimeStr == NULL || strlen(startTimeStr) < 19)
         return XST_FAILURE;
 
-    // ============================================================
-    // 【关键修复】在做任何规划前，强制关闭 DAC！
-    // ============================================================
-    // 1. 关闭 DAC 输出使能 (释放 BRAM 占用)
-    Xil_Out32(dac_whole_base_addr + 0, 0);
+    // [无缝衔接] 不再关闭 DAC，保持当前波形持续输出
+    // BRAM 和 DDR 可以并行访问，Plan 阶段仅写 DDR 不碰 BRAM
 
-    // 3. 延时一小会儿，确保总线彻底释放
-    usleep(1000);
-
-    // 2. 解析时间并设置闹钟 (同之前)
+    // 1. 解析时间并设置闹钟
     char h_str[3] = {startTimeStr[11], startTimeStr[12], '\0'};
     char m_str[3] = {startTimeStr[14], startTimeStr[15], '\0'};
     char s_str[3] = {startTimeStr[17], startTimeStr[18], '\0'};
