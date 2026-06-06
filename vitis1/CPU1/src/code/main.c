@@ -217,7 +217,7 @@ int main()
 			// --- 模式 C: 波形回放模式 ---
 			// DAC硬件由 DMA/FIFO + prog_empty中断驱动
 			// 禁止稳态/状态序列抢占 DAC
-			usleep(1000);
+			// usleep(1000);//不浪费时间，因为此时我要轮询查看时间，用来DO输出
 		}
 		else if (g_StateSeqRuntime.IsRunning || g_StateSeqRuntime.IsWaiting || g_StateSeqRuntime.IsHolding)
 		{

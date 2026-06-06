@@ -11,8 +11,8 @@
 #ifndef REPLAY_WAVE_H
 #define REPLAY_WAVE_H
 
-#include "xil_types.h"
 #include "stdbool.h"
+#include "xil_types.h"
 #include "xintc.h"
 
 /* 前向声明 cJSON，避免循环依赖 */
@@ -25,7 +25,8 @@ typedef struct cJSON cJSON;
 #define REPLAY_SHM_BASE 0x34C00000U
 #define REPLAY_SHM_SIZE 0x05000000U /* 80MB */
 #define REPLAY_HEADER_SIZE 64U
-#define REPLAY_DAT_ADDR (REPLAY_SHM_BASE + REPLAY_HEADER_SIZE) /* 0x34C00040 */
+#define REPLAY_DAT_ADDR (REPLAY_SHM_BASE + REPLAY_HEADER_SIZE) /* 0x34C00040 \
+                                                                */
 #define REPLAY_DAT_MAX_SIZE (REPLAY_SHM_SIZE - REPLAY_HEADER_SIZE)
 
 /* 控制头 Magic */
@@ -139,6 +140,7 @@ typedef struct
     bool turnRestored;  /* Turn: 已恢复 */
     u32 prevDI_CS;      /* Breaker: 上次合闸DI状态 */
     u32 prevDI_OS;      /* Breaker: 上次分闸DI状态 */
+    u64 actualTurnUs;   /* Turn: 记录第一次翻转的实际精确微秒时间 */
 } ReplayDO_Config_t;
 
 /* ================================================================

@@ -1299,7 +1299,9 @@ static u32 Advance_And_GetSource(void)
             {
                 Get_TimeStr(rt->preEndTimeStr, sizeof(rt->preEndTimeStr));
                 rt->preEndTimeRecorded = true;
-                rt->preEndTimestampUs = Get_TimestampUs();
+                /* 根据物理推入 FIFO 的块数，精准计算前导的物理播放结束时刻 */
+                u64 prevTotalMs = (u64)rt->totalBlocksPlayed * 20ULL;
+                rt->preEndTimestampUs = rt->startTimestampUs + prevTotalMs * 1000ULL;
                 rt->reportPending = true;
                 strcpy(rt->reportResult, "Doing");
             }
@@ -1319,7 +1321,9 @@ static u32 Advance_And_GetSource(void)
             {
                 Get_TimeStr(rt->preEndTimeStr, sizeof(rt->preEndTimeStr));
                 rt->preEndTimeRecorded = true;
-                rt->preEndTimestampUs = Get_TimestampUs();
+                /* 根据物理推入 FIFO 的块数，精准计算前导的物理播放结束时刻 */
+                u64 prevTotalMs = (u64)rt->totalBlocksPlayed * 20ULL;
+                rt->preEndTimestampUs = rt->startTimestampUs + prevTotalMs * 1000ULL;
                 rt->reportPending = true;
                 strcpy(rt->reportResult, "Doing");
             }
@@ -1566,22 +1570,18 @@ static void Update_DO_Outputs(void)
             u64 turnUs = refUs + (u64)(d->delayMS * 1000.0);
             if (nowUs >= turnUs)
             {
-                /* 翻转 */
                 d->currentVal = d->currentVal ? 0 : 1;
                 Replay_SetDO(d->chn, d->currentVal);
                 d->turnTriggered = true;
+                d->actualTurnUs = nowUs; /* 记录实际翻转的时刻 */
             }
         }
 
         if (d->mode == DO_MODE_TURN && d->turnTriggered && !d->turnRestored &&
             d->holdMS > 0)
         {
-            u64 refUs = rt->startTimestampUs;
-            if (d->timeRef == DO_TIMEREF_REPEATPREVEND && rt->preEndTimeRecorded)
-            {
-                refUs = rt->preEndTimestampUs;
-            }
-            u64 restoreUs = refUs + (u64)((d->delayMS + d->holdMS) * 1000.0);
+            /* 第二次翻转以第一次实际翻转的时刻为基准，确保物理保持时间充足 */
+            u64 restoreUs = d->actualTurnUs + (u64)(d->holdMS * 1000.0);
             if (nowUs >= restoreUs)
             {
                 d->currentVal = d->currentVal ? 0 : 1;
@@ -1734,9 +1734,8 @@ static void ReplayWave_DoStart(void)
 
     xil_printf("ReplayWave: Preparing hardware for playback...\r\n");
 
-    /* 1. 软件状态及时间戳初始化*/
+    /* 1. 软件状态初始化 (时间戳延后到硬件启动时获取) */
     Get_TimeStr(rt->startTimeStr, sizeof(rt->startTimeStr));
-    rt->startTimestampUs = Get_TimestampUs();
     rt->startTimeRecorded = true;
     rt->region = REPLAY_FIRST_CYCLE;
     rt->fileSamplePos = 0;
@@ -1782,6 +1781,9 @@ static void ReplayWave_DoStart(void)
 
     /* 6. 最后拨动模式开关 (bit 16) */
     Xil_Out32(dac_whole_base_addr + 0, 0x00010000U);
+
+    /* 在实际硬件输出启动瞬间，记录物理起播时刻，作为开出时间控制的基准 */
+    rt->startTimestampUs = Get_TimestampUs();
 
     /* 7. 功放开启移至最后 */
     /* 确保 DAC 硬件输出已经稳定在回放数据的起始电平后，再合上功放 */
