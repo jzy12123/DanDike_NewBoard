@@ -5,7 +5,7 @@
  *版本信息
  */
 const char FPGA_Ver_Full[] = "[Ver]=V1.260509.1714";
-const char ARM_Ver_Full[] = "[Ver]=V1.260606.2116";
+const char ARM_Ver_Full[] = "[Ver]=V1.260609.2149";
 
 volatile bool udp_data_changed_flag = true;              // 初始化为1，确保第一次会发送
 volatile bool dac_parameters_updated_by_command = false; // JSon指令修改了参数
@@ -3807,9 +3807,35 @@ void handle_StateSequence(cJSON *data)
     StateSequence_QuitMode();
     if (g_StateSequenceTask.StartMode == 0)
     {
-        // 立即启动：先规划，后执行
-        StateSequence_Plan(NULL);
-        StateSequence_ApplyAndRun();
+        // 立即启动：改为延时2秒的定时启动，保证在软时钟中断上下文中触发，对齐波形输出和录波
+        In_CurrTime curr;
+        read_current_time(&curr);
+
+        int sec = curr.curr_second + 2;
+        int min = curr.curr_minute;
+        int hour = curr.curr_hour;
+
+        if (sec >= 60)
+        {
+            sec -= 60;
+            min++;
+            if (min >= 60)
+            {
+                min -= 60;
+                hour++;
+                if (hour >= 24)
+                {
+                    hour = 0;
+                }
+            }
+        }
+
+        char future_time_str[40];
+        sprintf(future_time_str, "%04u-%02u-%02u %02u:%02u:%02u.000",
+                curr.curr_year, curr.curr_month, curr.curr_day,
+                hour, min, sec);
+
+        StateSequence_EnableAlarm(future_time_str);
     }
     else if (g_StateSequenceTask.StartMode == 1)
     {
